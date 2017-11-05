@@ -1,0 +1,49 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using Skila.Language.Comparers;
+using NaiveLanguageTools.Common;
+using System;
+using System.Diagnostics;
+using Skila.Language.Extensions;
+using Skila.Language.Semantics;
+
+namespace Skila.Language.Entities
+{
+    [DebuggerDisplay("{GetType().Name} {ToString()}")]
+    public abstract class TypeContainerDefinition : TemplateDefinition
+    {
+        protected TypeContainerDefinition(EntityModifier modifier, NameDefinition name) : base(modifier, name)
+        {
+        }
+
+        public override void Evaluate(ComputationContext ctx)
+        {
+            {   // detecting function duplicates
+                var functions = NestedFunctions.StoreReadOnlyList();
+                for (int a = 0; a < functions.Count; ++a)
+                {
+                    for (int b = a + 1; b < functions.Count; ++b)
+                    {
+                        FunctionDefinition func_a = functions[a];
+                        FunctionDefinition func_b = functions[b];
+
+                        if (FunctionDefinition.IsOverloadedDuplicate(func_a, func_b))
+                            ctx.ErrorManager.AddError(ErrorCode.OverloadingDuplicateFunctionDefinition, func_b, func_a);
+                    }
+                }
+            }
+            {   // detecting variables duplicates
+                foreach (VariableDeclaration second_var in this.NestedEntities
+                    .WhereType<VariableDeclaration>()
+                    .GroupBy(it => it.Name, EntityBareNameComparer.Instance)
+                    .Select(group => group.Skip(1).FirstOrDefault())
+                    .Where(it => it != null))
+                {
+                    ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, second_var);
+                }
+            }
+        }
+
+
+    }
+}

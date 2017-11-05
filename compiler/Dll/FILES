@@ -1,0 +1,5 @@
+NaiveLanguageTools.Common.dll
+NaiveLanguageTools.Generator.exe
+NaiveLanguageTools.Lexer.dll
+NaiveLanguageTools.MultiRegex.dll
+NaiveLanguageTools.Parser.dll

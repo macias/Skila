@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{98569F21-D141-4F85-A3E9-74F986FB7FA3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Skila.Language</RootNamespace>
+    <AssemblyName>Skila.Language</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NaiveLanguageTools.Common">
+      <HintPath>..\Dll\NaiveLanguageTools.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="NaiveLanguageTools.Lexer">
+      <HintPath>..\Dll\NaiveLanguageTools.Lexer.dll</HintPath>
+    </Reference>
+    <Reference Include="NaiveLanguageTools.MultiRegex">
+      <HintPath>..\Dll\NaiveLanguageTools.MultiRegex.dll</HintPath>
+    </Reference>
+    <Reference Include="NaiveLanguageTools.Parser">
+      <HintPath>..\Dll\NaiveLanguageTools.Parser.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CallContext.cs" />
+    <Compile Include="Comparers\LoopInterruptComparer.cs" />
+    <Compile Include="Entities\FunctorSignature.cs" />
+    <Compile Include="Entities\Property.cs" />
+    <Compile Include="Entities\IEntityVariable.cs" />
+    <Compile Include="Expressions\Spawn.cs" />
+    <Compile Include="Expressions\ExpressionFactory.cs" />
+    <Compile Include="Extensions\IEvaluableExtension.cs" />
+    <Compile Include="Extensions\IEvaluableExtension.Evaluated.cs" />
+    <Compile Include="Extensions\IEvaluableExtension.Validated.cs" />
+    <Compile Include="Flow\Throw.cs" />
+    <Compile Include="IEntityScope.cs" />
+    <Compile Include="IOptions.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Semantics\ErrorManager.cs" />
+    <Compile Include="Expressions\Alloc.cs" />
+    <Compile Include="Expressions\AddressOf.cs" />
+    <Compile Include="Expressions\DoubleLiteral.cs" />
+    <Compile Include="Extensions\EntityInstanceExtension.cs" />
+    <Compile Include="ReportCollector.cs" />
+    <Compile Include="IErrorReporter.cs" />
+    <Compile Include="Semantics\ErrorPriority.cs" />
+    <Compile Include="Semantics\TrackingState.cs" />
+    <Compile Include="Semantics\ExecutionMode.cs" />
+    <Compile Include="Flow\ILoopInterrupt.cs" />
+    <Compile Include="Semantics\ValidationData.LoopInterruptInfo.cs" />
+    <Compile Include="Semantics\AssignmentTracker.VariableState.cs" />
+    <Compile Include="Semantics\AssignmentTracker.VariableInfo.cs" />
+    <Compile Include="Builders\IBuilder.cs" />
+    <Compile Include="Builders\FunctionBuilder.cs" />
+    <Compile Include="Builders\TypeBuilder.cs" />
+    <Compile Include="Data\LayerDictionary.cs" />
+    <Compile Include="ComputationContext.cs" />
+    <Compile Include="Entities\IFunctionOutcome.cs" />
+    <Compile Include="Entities\IFunctionSignature.cs" />
+    <Compile Include="Entities\FunctionRole.cs" />
+    <Compile Include="ExecutionFlow.cs" />
+    <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Expressions\IFunctionArgumentsProvider.cs" />
+    <Compile Include="Expressions\IsType.cs" />
+    <Compile Include="Expressions\Undef.cs" />
+    <Compile Include="Extensions\FunctionMatchMode.cs" />
+    <Compile Include="Extensions\FunctionDefinitionExtension.cs" />
+    <Compile Include="Extensions\TypeDefinitionExtension.cs" />
+    <Compile Include="Flow\IFlowJump.cs" />
+    <Compile Include="IAnchor.cs" />
+    <Compile Include="Semantics\ValidationData.cs" />
+    <Compile Include="IExecutableScope.cs" />
+    <Compile Include="Semantics\AssignmentTracker.cs" />
+    <Compile Include="LocalInfo.cs" />
+    <Compile Include="ITemplateParameters.cs" />
+    <Compile Include="Node.cs" />
+    <Compile Include="NameRegistry.cs" />
+    <Compile Include="IBindable.cs" />
+    <Compile Include="Flow\Loop.cs" />
+    <Compile Include="Flow\IfBranch.cs" />
+    <Compile Include="Flow\LoopInterrupt.cs" />
+    <Compile Include="EntityModifier.cs" />
+    <Compile Include="Expressions\BoolLiteral.cs" />
+    <Compile Include="Expressions\Literal.cs" />
+    <Compile Include="Expressions\StringLiteral.cs" />
+    <Compile Include="Flow\Return.cs" />
+    <Compile Include="Expressions\Assignment.cs" />
+    <Compile Include="ICloneable.cs" />
+    <Compile Include="IScope.cs" />
+    <Compile Include="Flow\IFunctionExit.cs" />
+    <Compile Include="LabelReference.cs" />
+    <Compile Include="ConstraintMatch.cs" />
+    <Compile Include="Variadic.cs" />
+    <Compile Include="ExpressionReadMode.cs" />
+    <Compile Include="IIndexed.cs" />
+    <Compile Include="Expressions\FunctionArgument.cs" />
+    <Compile Include="Expressions\UnitValue.cs" />
+    <Compile Include="Expressions\IntLiteral.cs" />
+    <Compile Include="Extensions\IExpressionExtension.cs" />
+    <Compile Include="Inheritance.cs" />
+    <Compile Include="CallResolution.cs" />
+    <Compile Include="FunctionParameter.cs" />
+    <Compile Include="Semantics\Error.cs" />
+    <Compile Include="Semantics\ErrorCode.cs" />
+    <Compile Include="EntityInstanceUnion.cs" />
+    <Compile Include="Expressions\FunctionCall.cs" />
+    <Compile Include="Expressions\Block.cs" />
+    <Compile Include="IEntityInstance.cs" />
+    <Compile Include="DebugId.cs" />
+    <Compile Include="INameReference.cs" />
+    <Compile Include="IEvaluable.cs" />
+    <Compile Include="IReferentialName.cs" />
+    <Compile Include="INode.cs" />
+    <Compile Include="IExpression.cs" />
+    <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="NameFactory.cs" />
+    <Compile Include="Entities\FunctionDefinition.cs" />
+    <Compile Include="NameReferenceUnion.cs" />
+    <Compile Include="Binding.cs" />
+    <Compile Include="Environment.cs" />
+    <Compile Include="Entities\TypeContainerDefinition.cs" />
+    <Compile Include="TypeMatcher.cs" />
+    <Compile Include="ITemplateName.cs" />
+    <Compile Include="Comparers\EntityBareNameComparer.cs" />
+    <Compile Include="Comparers\EntityNameArityComparer.cs" />
+    <Compile Include="NameResolver.cs" />
+    <Compile Include="Entities\TemplateDefinition.cs" />
+    <Compile Include="Entities\Namespace.cs" />
+    <Compile Include="EntityInstance.cs" />
+    <Compile Include="Entities\TypeDefinition.cs" />
+    <Compile Include="NameDefinition.cs" />
+    <Compile Include="Extensions\Tools.cs" />
+    <Compile Include="Entities\VariableDeclaration.cs" />
+    <Compile Include="TemplateParametersBuffer.cs" />
+    <Compile Include="TypeMatch.cs" />
+    <Compile Include="VarianceMode.cs" />
+    <Compile Include="TypeParameter.cs" />
+    <Compile Include="NameReference.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Documentation\References.md" />
+    <None Include="Documentation\Assignments.md" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
