@@ -17,7 +17,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-            //new Semantics.Inheritance().ErrorMissingImplementation();
+            new Semantics.Inheritance().ProperGenericWithCostraintsMethodDerivation();
             // new Protocols().ErrorCallingConstructor();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
@@ -30,7 +30,7 @@ namespace Skila.Tests
             //  new Variables().TypeInference();
             //new Expressions().ErrorIgnoringFunctionResult();
             //new MethodDefinitions().Basics();
-            new FunctionDefinitions().VariadicParametersInvalidLimits();
+            //new FunctionDefinitions().VariadicParametersInvalidLimits();
             //new TypeMatching().ConstraintsMatching();
             //  new Flow().ErrorReadingOtherIfBlocks();
             //new Variables().DetectingUsage();

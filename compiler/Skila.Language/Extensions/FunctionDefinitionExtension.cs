@@ -107,20 +107,25 @@ namespace Skila.Language.Extensions
             return true;
         }
 
-        public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc, FunctionDefinition baseFunc)
+        public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc,
+            FunctionDefinition baseFunc, EntityInstance baseTemplate)
         {
             // todo: we have to check constraints as well
             if (!EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
                 return false;
 
-            foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters.SyncZip(baseFunc.Name.Parameters))
-                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2))
+            foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters
+                .SyncZip(baseFunc.Name.Parameters))
+            {
+                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2,baseTemplate))
+                    return false;
+            }
+
+            {
+                IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.TranslateThrough(baseTemplate);
+                if (derivedFunc.ResultTypeName.Evaluation.MatchesTarget(ctx, base_result_type, allowSlicing: false) != TypeMatch.Pass)
                     return false;
 
-            if (derivedFunc.ResultTypeName.Evaluation.MatchesTarget(ctx, baseFunc.ResultTypeName.Evaluation,
-                allowSlicing: false) != TypeMatch.Pass)
-            {
-                return false;
             }
 
             if (derivedFunc.Parameters.Count != baseFunc.Parameters.Count)
@@ -128,7 +133,7 @@ namespace Skila.Language.Extensions
 
             foreach (Tuple<FunctionParameter, FunctionParameter> param_pair in derivedFunc.Parameters.SyncZip(baseFunc.Parameters))
             {
-                if (!FunctionParameterExtension.IsDerivedOf(ctx, param_pair.Item1, param_pair.Item2))
+                if (!FunctionParameterExtension.IsDerivedOf(ctx, param_pair.Item1, param_pair.Item2, baseTemplate))
                     return false;
             }
 

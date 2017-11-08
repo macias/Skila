@@ -129,11 +129,15 @@ namespace Skila.Language.Entities
                         foreach (FunctionDefinition base_func in ancestor.Target.CastType().NestedFunctions
                             .Where(it => !it.IsSealed))
                         {
+                            if (base_func.DebugId.Id==8849)
+                            {
+                                ;
+                            }
                             bool found_derived = false;
 
                             foreach (FunctionDefinition derived_func in functions)
                             {
-                                if (FunctionDefinitionExtension.IsDerivedOf(ctx,derived_func,base_func))
+                                if (FunctionDefinitionExtension.IsDerivedOf(ctx,derived_func,base_func,ancestor))
                                 {
                                     if (!derived_func.Modifier.HasDerived)
                                         ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
@@ -282,7 +286,9 @@ namespace Skila.Language.Entities
                 if (!this.Modifier.HasHeapOnly && parent.Target.Modifier.HasHeapOnly)
                     ctx.AddError(ErrorCode.CrossInheritingHeapOnlyType, parent_name);
 
-                if (parent.Target.Modifier.HasSealed)
+                // if this is template parameter the parent-child "inheritance" is not actually an inheritance
+                // but constraint, so do not report an error
+                if (!this.IsTemplateParameter && parent.Target.Modifier.HasSealed)
                     ctx.AddError(ErrorCode.InheritingSealedType, parent_name);
 
                 if (!parent.TargetType.computeAncestors(ctx, visited))

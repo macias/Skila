@@ -57,7 +57,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("IX")
                 .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
                     NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired:false)},
+                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference())))
                 .Modifier(EntityModifier.Protocol));
@@ -73,6 +73,82 @@ namespace Skila.Tests.Semantics
                         Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     })))
                 .Parents(NameReference.Create("IX")));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ProperGenericMethodDerivation()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
+                .Add("T", VarianceMode.None)
+                .Values))
+                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                    NameDefinition.Create("bar"),
+                    new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference()))
+                .Modifier(EntityModifier.Protocol));
+
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
+                .Add("V", VarianceMode.None)
+                .Values))
+                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
+                    NameDefinition.Create("bar"),
+                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("2"))
+                    })))
+                .Parents(NameReference.Create("IX", NameReference.Create("V"))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ProperGenericWithCostraintsMethodDerivation()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
+                .Add("T", VarianceMode.None)
+                .Values))
+                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                    NameDefinition.Create("bar", TemplateParametersBuffer.Create()
+                        .Add("U", VarianceMode.None, EntityModifier.None, new[] { NameReference.Create("T") }, null)
+                        .Values),
+                    new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference()))
+                .Modifier(EntityModifier.Protocol));
+
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
+                .Add("V", VarianceMode.None)
+                .Values))
+                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
+                    NameDefinition.Create("bar", TemplateParametersBuffer.Create()
+                        .Add("W", VarianceMode.None, EntityModifier.None, new[] { NameReference.Create("V") }, null)
+                        .Values),
+                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("2"))
+                    })))
+                .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);
 
