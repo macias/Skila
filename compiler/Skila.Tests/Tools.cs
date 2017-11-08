@@ -25,7 +25,11 @@ namespace Skila.Tests
         }
         public static IExpression Readout(string name)
         {
-            return Assignment.CreateStatement(NameReference.Sink(), NameReference.Create(name));
+            return Readout(NameReference.Create(name));
+        }
+        public static IExpression Readout(IExpression expr)
+        {
+            return Assignment.CreateStatement(NameReference.Sink(), expr);
         }
         public static IEntity Target(this IEntityInstance instance)
         {

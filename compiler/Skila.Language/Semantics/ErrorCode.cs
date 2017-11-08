@@ -49,9 +49,12 @@
         PropertyMultipleAccessors = 45,
         CrossInheritingHeapOnlyType = 46,
         InitializationWithUndef = 47,
-        InheritingFinalType = 48,
+        InheritingSealedType = 48,
         TypeImplementationAsSecondaryParent = 49,
         CannotSpawnWithMutableArgument = 50,
         CannotSpawnOnMutableContext = 51,
+        MissingDerivedModifier = 52,
+        MissingFunctionImplementation = 53,
+        NonAbstractTypeWithAbstractMethod = 54,
     }
 }

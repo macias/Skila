@@ -17,6 +17,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
+            //new Semantics.Inheritance().ErrorMissingImplementation();
             // new Protocols().ErrorCallingConstructor();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
@@ -29,7 +30,7 @@ namespace Skila.Tests
             //  new Variables().TypeInference();
             //new Expressions().ErrorIgnoringFunctionResult();
             //new MethodDefinitions().Basics();
-            //new FunctionDefinitions().ProperReturning();
+            new FunctionDefinitions().VariadicParametersInvalidLimits();
             //new TypeMatching().ConstraintsMatching();
             //  new Flow().ErrorReadingOtherIfBlocks();
             //new Variables().DetectingUsage();
@@ -39,7 +40,7 @@ namespace Skila.Tests
 
             //new Pointers().DereferenceOnAssignment();
             //new Execution.FunctionCalls().LocalVariablesLeakCheck();
-            //new Execution.Concurrency().SingleMessage();
+            //new Execution.Concurrency().ChannelDeadLockOnReceive();
 
             {
                 double start = Stopwatch.GetTimestamp();

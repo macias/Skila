@@ -5,6 +5,7 @@ using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Interpreter;
+using System.Threading.Tasks;
 
 namespace Skila.Tests.Execution
 {
@@ -12,7 +13,7 @@ namespace Skila.Tests.Execution
     public class Concurrency
     {
         [TestMethod]
-        public void BasicChannel()
+        public void ChannelDeadLockOnSend()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -24,18 +25,36 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
                         ExpressionFactory.HeapConstructorCall(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
-                    ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
+                    Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(IntLiteral.Create("2")))),
-                    VariableDeclaration.CreateStatement("r",null,
-                        FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("r")),
-                    Return.Create(NameReference.Create("r",NameFactory.OptionValue))
+                    Return.Create(IntLiteral.Create("0"))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+            int task_id = Task.WaitAny(Task.Delay(2000), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+            Assert.AreEqual(0, task_id);
+        }
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+        [TestMethod]
+        public void ChannelDeadLockOnReceive()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("ch",null,
+                        ExpressionFactory.HeapConstructorCall(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                    Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
+                    Return.Create(IntLiteral.Create("0"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            int task_id = Task.WaitAny(Task.Delay(2000), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+            Assert.AreEqual(0, task_id);
         }
 
         [TestMethod]

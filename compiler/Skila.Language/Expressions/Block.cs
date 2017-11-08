@@ -18,6 +18,10 @@ namespace Skila.Language.Expressions
         {
             return new Block(ExpressionReadMode.CannotBeRead, body);
         }
+        public static Block CreateStatement()
+        {
+            return new Block(ExpressionReadMode.CannotBeRead, body:null);
+        }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
             return new Block(ExpressionReadMode.ReadRequired, body);

@@ -14,7 +14,7 @@ namespace Skila.Interpreter
 {
     public sealed class Interpreter
     {
-        private const bool continueOnCapturedContext = true;
+        private const bool continueOnCapturedContext = false;
 
         private async Task<ExecValue> executeAsync(FunctionDefinition func, ExecutionContext ctx)
         {
@@ -199,22 +199,28 @@ namespace Skila.Interpreter
                 return ExecValue.Undefined;
         }
 
-        public ExecValue TestRun(Language.Environment env)
+        public static FunctionDefinition PrepareRun(Language.Environment env)
         {
             var resolver = NameResolver.Create(env);
 
             if (resolver.ErrorManager.Errors.Count != 0)
                 throw new Exception("Internal error");
 
+            return env.Root.FindEntities(NameReference.Create("main")).Single().CastFunction();
+        }
+        public ExecValue TestRun(Language.Environment env)
+        {
+            return TestRunAsync(env,PrepareRun(env)).Result;
+        }
+        public async Task<ExecValue> TestRunAsync(Language.Environment env,FunctionDefinition main)
+        {
             ExecutionContext ctx = ExecutionContext.Create(env);
-            Task<ExecValue> exec_task = this.executedAsync(env.Root.FindEntities(NameReference.Create("main")).Single().CastFunction(),
-                ctx);
-            exec_task.Wait();
+            ExecValue result = await this.executedAsync(main, ctx).ConfigureAwait(false);
 
             if (!ctx.Heap.IsClean)
                 throw new Exception("Internal error with heap");
 
-            return exec_task.Result;
+            return result;
         }
 
         private async Task<ExecValue> executedAsync(IExpression node, ExecutionContext ctx)

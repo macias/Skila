@@ -20,9 +20,11 @@ namespace Skila.Language
 
         private readonly bool isSet;
         public int MinLimit { get; }
-        public int? MaxLimit { get; }
+        // when set, it is inclusive
+        private readonly int? maxLimit;
+        public int MaxLimit => this.maxLimit ?? int.MaxValue;
 
-        public bool HasLimits { get { return MinLimit > 0 || MaxLimit.HasValue; } }
+        public bool HasValidLimits { get { return MinLimit <= MaxLimit; } }
 
         private Variadic()
         {
@@ -31,13 +33,13 @@ namespace Skila.Language
         {
             this.isSet = true;
             this.MinLimit = min;
-            this.MaxLimit = max;
+            this.maxLimit = max;
         }
         public override string ToString()
         {
             return new[] { MinLimit>0 ? MinLimit.ToString() : "",
                 "...",
-                MaxLimit.HasValue ? MaxLimit.ToString() : "" }
+                maxLimit.HasValue ? maxLimit.ToString() : "" }
                 .Where(it => it != "")
                 .Join("");
         }
@@ -54,17 +56,17 @@ namespace Skila.Language
             if (Object.ReferenceEquals(this, comp))
                 return true;
 
-            return this.isSet==comp.isSet && MinLimit.Equals(comp.MinLimit) && MaxLimit.Equals(comp.MaxLimit);
+            return this.isSet == comp.isSet && MinLimit.Equals(comp.MinLimit) && MaxLimit.Equals(comp.MaxLimit);
         }
 
         public override int GetHashCode()
         {
-            return isSet.GetHashCode() ^ MinLimit.GetHashCode() ^ (MaxLimit ?? 0).GetHashCode();
+            return isSet.GetHashCode() ^ MinLimit.GetHashCode() ^ MaxLimit .GetHashCode();
         }
 
         public bool IsWithinLimits(int count)
         {
-            return MinLimit <= count && (!MaxLimit.HasValue || count<=MaxLimit.Value);
+            return MinLimit <= count && count <= MaxLimit;
         }
     }
 

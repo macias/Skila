@@ -38,7 +38,7 @@ namespace Skila.Tests.Semantics
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
                     new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
-                    null)));
+                    Block.CreateStatement())));
             VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null);
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
                 .With(field_decl));
@@ -100,6 +100,32 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
+        [TestMethod]
+        public IErrorReporter ErrorNonAbstractTypeWithAbstractMethod()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionDefinition func_decl = FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                    NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference());
+            FunctionDefinition abstract_func = FunctionDefinition.CreateFunction(EntityModifier.Abstract,
+                    NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }));
+            root_ns.AddBuilder(TypeBuilder.Create("X")
+                .With(func_decl)
+                .With(abstract_func));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, func_decl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, abstract_func));
+
+            return resolver;
+        }
 
     }
 

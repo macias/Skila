@@ -1,10 +1,24 @@
 ﻿using Skila.Language.Entities;
 using Skila.Language.Flow;
+using System.Linq;
 
 namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static IExpression HeapConstructorCall(NameReference innerTypeName)
+        {
+#if USE_NEW_CONS
+            return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName));
+#else
+            NameReference dummy;
+            return constructorCall(innerTypeName, out dummy, true);
+#endif
+        }
+        public static IExpression HeapConstructorCall(NameReference innerTypeName, params IExpression[] arguments)
+        {
+            return HeapConstructorCall(innerTypeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+        }
         public static IExpression HeapConstructorCall(NameReference innerTypeName, params FunctionArgument[] arguments)
         {
 #if USE_NEW_CONS
@@ -28,7 +42,7 @@ namespace Skila.Language.Expressions
         private static IExpression constructorCall(NameReference typeName,
             // todo: hack, we don't have nice error translation from generic error to more specific one
             out NameReference constructorReference,
-            bool useHeap, FunctionArgument[] arguments)
+            bool useHeap, params FunctionArgument[] arguments)
         {
             const string local_this = "__this__";
             var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));

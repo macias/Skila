@@ -57,6 +57,8 @@ namespace Skila.Language.Entities
 
         public bool IsTypeImplementation => !this.IsProtocol;
         public bool IsProtocol => this.Modifier.HasProtocol;
+        public bool IsAbstract => this.IsProtocol || this.Modifier.HasAbstract;
+
         public bool IsJoker => this.Name.Name == NameFactory.JokerTypeName;
 
         public TemplateParameter TemplateParameter { get; }
@@ -119,6 +121,38 @@ namespace Skila.Language.Entities
                     if (parent.Evaluation.Cast<EntityInstance>().Target.CastType().IsTypeImplementation)
                         ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
 
+
+                {
+                    HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
+                    foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+                    {
+                        foreach (FunctionDefinition base_func in ancestor.Target.CastType().NestedFunctions
+                            .Where(it => !it.IsSealed))
+                        {
+                            bool found_derived = false;
+
+                            foreach (FunctionDefinition derived_func in functions)
+                            {
+                                if (FunctionDefinitionExtension.IsDerivedOf(ctx,derived_func,base_func))
+                                {
+                                    if (!derived_func.Modifier.HasDerived)
+                                        ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
+                                    functions.Remove(derived_func);
+                                    found_derived = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found_derived && base_func.IsAbstract)
+                                ctx.AddError(ErrorCode.MissingFunctionImplementation, this, base_func);
+                        }
+                    }
+                }
+
+                if (!this.IsAbstract)
+                    foreach (FunctionDefinition func in this.NestedFunctions.Where(it => it.IsAbstract))
+                        ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
+
                 if (this.Modifier.HasConst)
                 {
                     foreach (NameReference parent in this.ParentNames)
@@ -154,7 +188,7 @@ namespace Skila.Language.Entities
 
             if (!this.NestedFunctions.Any(it => it.IsInitConstructor()))
             {
-                this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, null));
+                this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()));
             }
 
 #if USE_NEW_CONS
@@ -162,6 +196,7 @@ namespace Skila.Language.Entities
 #endif
         }
 
+#if USE_NEW_CONS
         private void createNewConstructors()
         {
             NameReference type_name = this.Name.CreateNameReference();
@@ -187,53 +222,8 @@ namespace Skila.Language.Entities
                     this.AddNode(new_cons);
                 }
         }
-
-        /*private static FunctionDefinition installNewConstructor(TypeDefinition type, FunctionDefinition initConstructor)
-{
-    var func_params = initConstructor.FunctionParams.Clone(withBindings: true, withInits: true, asExtension: false);
-    func_params.Elements.ForEach(it => it.ResetUsageRequirement(ValueUsageEnum.CanBeIgnored));
-
-    List<INode> instructions = null;
-
-    {
-        instructions = new List<INode>();
-
-        const string local_this = "__this__";
-        var var_decl = VariableDeclaration.CreateStatement(local_this, type.InstanceOf.NameOf, Undef.Create());
-        var init_call = FunctionCall.Create(NameReference.Create(NameReference.Create(local_this),NameFactory.InitConstructorName));
-        var ret = Return.Create(NameReference.Create(local_this));
-
-        instructions.Add(var_decl);
-        instructions.Add(init_call);
-        instructions.Add(ret);
-    }
-
-    var cons =  FunctionDefinition.CreateNewConstructor(EntityModifier.Static,TreeNode.DO_NOT_USE_NoCoords, null, true,
-                            EntityModifier.None()
-                            .SetStatic(true)
-                            // important piece -- new constructor for interface has to be implemented in EVERY descendant class, not just child class
-                            .SetPinned(type.IsInterface() || initConstructor.ModifierGiven.HasPinnedFlag)
-                            .SetRefines(initConstructor.ModifierGiven.HasRefinesFlag)
-                            .SetLeastVisbileFlag(initConstructor.ModifierComputed)
-                            ,
-
-                            TemplatedIdentifier.Create(TreeConstants.NewConstructor()),
-                          func_params,
-                          new FunctionOutcome(TreeNode.DO_NOT_USE_NoCoords,
-                            ValueUsageEnum.UseRequired,
-                          EntitySelector.CreateContextSelf(TreeNode.DO_NOT_USE_NoCoords)),
-                          GenericConstraint.NoConstraints,
-                           Function.FuncPurposeEnum.None);
-
-
-    if (instructions != null)
-        cons.SetUserCodeAsBlock(instructions);
-
-    type.AddNode(cons);
-
-    return cons;
-}*/
-
+#endif
+  
         /*internal bool HasImplicitConversionConstructor(ComputationContext ctx, EntityInstance input)
 {
    return this.NestedFunctions.Any(it => it.Name.Name == NameFactory.InitConstructorName
@@ -292,8 +282,8 @@ namespace Skila.Language.Entities
                 if (!this.Modifier.HasHeapOnly && parent.Target.Modifier.HasHeapOnly)
                     ctx.AddError(ErrorCode.CrossInheritingHeapOnlyType, parent_name);
 
-                if (parent.Target.Modifier.HasFinal)
-                    ctx.AddError(ErrorCode.InheritingFinalType, parent_name);
+                if (parent.Target.Modifier.HasSealed)
+                    ctx.AddError(ErrorCode.InheritingSealedType, parent_name);
 
                 if (!parent.TargetType.computeAncestors(ctx, visited))
                     ctx.AddError(ErrorCode.CyclicTypeHierarchy, parent_name);

@@ -1,6 +1,5 @@
 ﻿using System;
 using NaiveLanguageTools.Common;
-using System.Threading;
 using Skila.Interpreter.Tools;
 using System.Threading.Tasks;
 
@@ -13,12 +12,14 @@ namespace Skila.Interpreter.Channels
         bool isClosed;
         bool hasValue;
         T value;
-        private readonly AsyncAutoResetEvent writeGuard;
+        private readonly AsyncAutoResetEvent beforeWriteGuard;
+        private readonly AsyncAutoResetEvent afterWriteGuard;
         private readonly AsyncAutoResetEvent readGuard;
 
         public UnbufferedChannel()
         {
-            this.writeGuard = new AsyncAutoResetEvent(true);
+            this.beforeWriteGuard = new AsyncAutoResetEvent(true);
+            this.afterWriteGuard = new AsyncAutoResetEvent(false);
             this.readGuard = new AsyncAutoResetEvent(false);
         }
 
@@ -28,13 +29,13 @@ namespace Skila.Interpreter.Channels
 
         public async Task<bool> SendAsync(T value)
         {
-            await this.writeGuard.WaitOneAsync().ConfigureAwait(false);
+            await this.beforeWriteGuard.WaitOneAsync().ConfigureAwait(false);
 
             lock (this.threadLock)
             {
                 if (this.isClosed)
                 {
-                    this.writeGuard.Set();
+                    this.beforeWriteGuard.Set();
                     return false;
                 }
 
@@ -43,6 +44,9 @@ namespace Skila.Interpreter.Channels
             }
 
             this.readGuard.Set();
+            await this.afterWriteGuard.WaitOneAsync().ConfigureAwait(false);
+            this.beforeWriteGuard.Set();
+
             return true;
         }
 
@@ -63,7 +67,7 @@ namespace Skila.Interpreter.Channels
                 this.hasValue = false;
             }
 
-            this.writeGuard.Set();
+            this.afterWriteGuard.Set();
             return result;
         }
 
@@ -75,7 +79,7 @@ namespace Skila.Interpreter.Channels
             }
 
             this.readGuard.Set();
-            this.writeGuard.Set();
+            this.beforeWriteGuard.Set();
         }
     }
 }

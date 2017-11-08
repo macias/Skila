@@ -27,7 +27,7 @@ namespace Skila.Language.Entities
                         FunctionDefinition func_a = functions[a];
                         FunctionDefinition func_b = functions[b];
 
-                        if (FunctionDefinition.IsOverloadedDuplicate(func_a, func_b))
+                        if (FunctionDefinitionExtension.IsOverloadedDuplicate(func_a, func_b))
                             ctx.ErrorManager.AddError(ErrorCode.OverloadingDuplicateFunctionDefinition, func_b, func_a);
                     }
                 }

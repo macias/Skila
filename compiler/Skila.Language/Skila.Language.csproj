@@ -61,9 +61,11 @@
     <Compile Include="Entities\IEntityVariable.cs" />
     <Compile Include="Expressions\Spawn.cs" />
     <Compile Include="Expressions\ExpressionFactory.cs" />
+    <Compile Include="Extensions\FunctionParameterExtension.cs" />
     <Compile Include="Extensions\IEvaluableExtension.cs" />
     <Compile Include="Extensions\IEvaluableExtension.Evaluated.cs" />
     <Compile Include="Extensions\IEvaluableExtension.Validated.cs" />
+    <Compile Include="Extensions\TemplateParameterExtension.cs" />
     <Compile Include="Flow\Throw.cs" />
     <Compile Include="IEntityScope.cs" />
     <Compile Include="IOptions.cs" />
@@ -89,7 +91,6 @@
     <Compile Include="ComputationContext.cs" />
     <Compile Include="Entities\IFunctionOutcome.cs" />
     <Compile Include="Entities\IFunctionSignature.cs" />
-    <Compile Include="Entities\FunctionRole.cs" />
     <Compile Include="ExecutionFlow.cs" />
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Expressions\IFunctionArgumentsProvider.cs" />

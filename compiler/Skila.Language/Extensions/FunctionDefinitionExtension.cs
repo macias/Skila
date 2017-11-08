@@ -1,4 +1,7 @@
-﻿using Skila.Language.Entities;
+﻿using NaiveLanguageTools.Common;
+using Skila.Language.Comparers;
+using Skila.Language.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +17,7 @@ namespace Skila.Language.Extensions
         }
         public static bool IsInitConstructor(this FunctionDefinition @this)
         {
-            return  @this.Name.Name == NameFactory.InitConstructorName;
+            return @this.Name.Name == NameFactory.InitConstructorName;
         }
         public static bool IsNewConstructor(this FunctionDefinition @this)
         {
@@ -30,8 +33,106 @@ namespace Skila.Language.Extensions
         }
         public static bool IsCopyInitConstructor(this FunctionDefinition @this)
         {
-            return @this.IsInitConstructor() && @this.Parameters.Count == 1 
-                && @this.Parameters.Single().TypeName.Evaluation==@this.OwnerType().InstanceOf;
+            return @this.IsInitConstructor() && @this.Parameters.Count == 1
+                && @this.Parameters.Single().TypeName.Evaluation == @this.OwnerType().InstanceOf;
+        }
+
+        internal static bool IsOverloadedDuplicate(FunctionDefinition f1, FunctionDefinition f2)
+        {
+            // since in case of functions type parameters can be inferred it is better to exclude arity
+            // when checking if two functions are duplicates -- let the function parameter types decide
+            if (!EntityBareNameComparer.Instance.Equals(f1.Name, f2.Name))
+                return false;
+
+            {   // linear check of anonymous parameters types
+
+                // we move optional parameters at the end, because they have to be at the end (among anonymous ones)
+                IEnumerable<FunctionParameter> f1_params = f1.Parameters.Where(it => !it.IsNameRequired)
+                    .OrderBy(it => it.IsOptional)
+                    .Concat((FunctionParameter)null); // terminal for easier checking
+                IEnumerable<FunctionParameter> f2_params = f2.Parameters.Where(it => !it.IsNameRequired)
+                    .OrderBy(it => it.IsOptional)
+                    .Concat((FunctionParameter)null);
+
+                foreach (Tuple<FunctionParameter, FunctionParameter> param_pair in f1_params.Zip(f2_params, (a, b) => Tuple.Create(a, b)))
+                {
+                    if (param_pair.Item1 == null)
+                    {
+                        if (param_pair.Item2 == null || param_pair.Item2.IsOptional)
+                            break;
+                        // when we hit terminal and in the other function we still have non-optional we have a difference
+                        else
+                            return false;
+                    }
+                    if (param_pair.Item2 == null)
+                    {
+                        if (param_pair.Item1 == null || param_pair.Item1.IsOptional)
+                            break;
+                        else
+                            return false;
+                    }
+
+                    if (param_pair.Item1.IsOptional && param_pair.Item2.IsOptional)
+                        break;
+
+                    if (param_pair.Item1.TypeName.Evaluation.IsOverloadDistinctFrom(param_pair.Item2.TypeName.Evaluation)
+                        || param_pair.Item1.IsVariadic != param_pair.Item2.IsVariadic)
+                        return false;
+                }
+            }
+
+            {
+                // checking non-optional parameters with required names
+                Dictionary<ITemplateName, FunctionParameter> f1_params = f1.Parameters.Where(it => it.IsNameRequired && !it.IsOptional)
+                    .ToDictionary(it => it.Name, it => it, EntityBareNameComparer.Instance);
+                IEnumerable<FunctionParameter> f2_params = f2.Parameters.Where(it => it.IsNameRequired && !it.IsOptional).StoreReadOnly();
+
+                if (f1_params.Count() != f2_params.Count())
+                    return false;
+
+                foreach (FunctionParameter f2_param in f2_params)
+                {
+                    FunctionParameter f1_param;
+                    if (!f1_params.TryGetValue(f2_param.Name, out f1_param))
+                        return false;
+                    if (f1_param.TypeName.Evaluation.IsOverloadDistinctFrom(f2_param.TypeName.Evaluation))
+                        return false;
+                }
+            }
+
+            if (f1.IsOutConverter() && f2.IsOutConverter())
+                if (f1.ResultTypeName.Evaluation.IsOverloadDistinctFrom(f2.ResultTypeName.Evaluation))
+                    return false;
+
+            return true;
+        }
+
+        public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc, FunctionDefinition baseFunc)
+        {
+            // todo: we have to check constraints as well
+            if (!EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
+                return false;
+
+            foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters.SyncZip(baseFunc.Name.Parameters))
+                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2))
+                    return false;
+
+            if (derivedFunc.ResultTypeName.Evaluation.MatchesTarget(ctx, baseFunc.ResultTypeName.Evaluation,
+                allowSlicing: false) != TypeMatch.Pass)
+            {
+                return false;
+            }
+
+            if (derivedFunc.Parameters.Count != baseFunc.Parameters.Count)
+                return false;
+
+            foreach (Tuple<FunctionParameter, FunctionParameter> param_pair in derivedFunc.Parameters.SyncZip(baseFunc.Parameters))
+            {
+                if (!FunctionParameterExtension.IsDerivedOf(ctx, param_pair.Item1, param_pair.Item2))
+                    return false;
+            }
+
+            return true;
         }
     }
     /*

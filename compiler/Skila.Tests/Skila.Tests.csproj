@@ -59,6 +59,7 @@
     <Compile Include="Execution\FunctionCalls.cs" />
     <Compile Include="Semantics\CompilerProtection.cs" />
     <Compile Include="Semantics\Concurrency.cs" />
+    <Compile Include="Semantics\Inheritance.cs" />
     <Compile Include="Semantics\Protocols.cs" />
     <Compile Include="Semantics\MemoryClasses.cs" />
     <Compile Include="Semantics\Flow.cs" />

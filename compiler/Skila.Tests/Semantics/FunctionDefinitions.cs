@@ -90,7 +90,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(3, 3), null, isNameRequired: false);
+            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(4, 3), null, isNameRequired: false);
             var func_def = root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
                 NameDefinition.Create("foo"), new[] { param1 },
                 ExpressionReadMode.OptionalUse,
@@ -101,9 +101,8 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.InvalidVariadicLimits, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(param1, resolver.ErrorManager.Errors.Single().Node);
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidVariadicLimits, param1));
 
             return resolver;
         }

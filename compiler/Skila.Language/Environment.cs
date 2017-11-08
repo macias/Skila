@@ -59,9 +59,10 @@ namespace Skila.Language
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference())
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, null))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) }, null))
+                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) }, 
+                    Block.CreateStatement()))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.AddOperator),
                     new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
@@ -129,9 +130,10 @@ namespace Skila.Language
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, null))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) }, null))
+                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) }, 
+                    Block.CreateStatement()))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.NotOperator),
                     null,
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -146,7 +148,7 @@ namespace Skila.Language
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, null))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
                   new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
@@ -157,7 +159,7 @@ namespace Skila.Language
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, null))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
 
             /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
@@ -199,7 +201,7 @@ namespace Skila.Language
                     })))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelClose),
                     null,
-                    ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), null))
+                    ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), Block.CreateStatement()))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelReceive),
                     null,
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),

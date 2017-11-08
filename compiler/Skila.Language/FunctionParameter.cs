@@ -86,7 +86,7 @@ namespace Skila.Language
                     this.DefaultValue.IsRead = true;
                 }
 
-                if (this.IsVariadic && this.Variadic.MaxLimit.HasValue && this.Variadic.MinLimit >= this.Variadic.MaxLimit.Value)
+                if (this.IsVariadic && !this.Variadic.HasValidLimits)
                     ctx.ErrorManager.AddError(ErrorCode.InvalidVariadicLimits, this);
             }
         }

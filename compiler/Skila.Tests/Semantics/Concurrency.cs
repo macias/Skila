@@ -22,7 +22,8 @@ namespace Skila.Tests.Semantics
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None,NameDefinition.Create("empty"),new[] {
                     FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
-                        null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),null)));
+                        null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), 
+                        Block.CreateStatement())));
 
             FunctionArgument mutable_arg = FunctionArgument.Create(NameReference.Create("r"));
             NameReference mutable_method = NameReference.Create("r", "empty");
