@@ -299,13 +299,13 @@ TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
             //            return VoidType.InstanceOf.MatchesTarget(typeInstance, allowSlicing: false);
             return VoidType.InstanceOf.IsSame(typeInstance, jokerMatchesAll: false);
         }
-        public bool IsReferenceOfType(EntityInstance instance)
+        public bool IsReferenceOfType(IEntityInstance instance)
         {
-            return /*instance.IsJoker ||*/ instance.IsOfType(ReferenceType);// (instance.Target.IsType() && ReferenceType == instance.Target);
+            return instance.Enumerate().All(it => it.IsOfType(ReferenceType));
         }
-        public bool IsPointerOfType(EntityInstance instance)
+        public bool IsPointerOfType(IEntityInstance instance)
         {
-            return /*instance.IsJoker ||*/ (instance.Target.IsType() && PointerType == instance.Target);
+            return instance.Enumerate().All(it => it.IsOfType( PointerType));
         }
 
         public bool IsOfUnitType(INameReference typeName)

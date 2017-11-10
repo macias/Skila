@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Inheritance
+    public sealed class TypeInheritance
     {
         // please note Object type does not have Object (itself) in its parents nor in its ancestors
         public IReadOnlyCollection<EntityInstance> AncestorsWithoutObject { get; }
@@ -21,7 +19,7 @@ namespace Skila.Language
         //public bool HasLoop { get; }
         private  readonly bool addObject;
 
-        public Inheritance(EntityInstance objectType,IEnumerable<EntityInstance> minimalParents,
+        public TypeInheritance(EntityInstance objectType,IEnumerable<EntityInstance> minimalParents,
             IEnumerable<EntityInstance> completeAncestors  // with object, if appropriate
             //bool looped
             )
@@ -34,9 +32,9 @@ namespace Skila.Language
             //this.HasLoop = looped;
         }
 
-        public Inheritance TranslateThrough(EntityInstance context)
+        public TypeInheritance TranslateThrough(EntityInstance context)
         {
-           return new Inheritance(this.objectType,
+           return new TypeInheritance(this.objectType,
                 this.MinimalParentsWithoutObject,
                 this.AncestorsIncludingObject.Select(it => it.TranslateThrough(context)));
         }

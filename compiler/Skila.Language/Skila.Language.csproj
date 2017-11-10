@@ -130,7 +130,7 @@
     <Compile Include="Expressions\UnitValue.cs" />
     <Compile Include="Expressions\IntLiteral.cs" />
     <Compile Include="Extensions\IExpressionExtension.cs" />
-    <Compile Include="Inheritance.cs" />
+    <Compile Include="TypeInheritance.cs" />
     <Compile Include="CallResolution.cs" />
     <Compile Include="FunctionParameter.cs" />
     <Compile Include="Semantics\Error.cs" />

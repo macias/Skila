@@ -31,7 +31,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var interpreter = new Interpreter.Interpreter();
-            int task_id = Task.WaitAny(Task.Delay(2000), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+            int task_id = Task.WaitAny(Task.Delay(2000),Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
         }
 
@@ -53,7 +53,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var interpreter = new Interpreter.Interpreter();
-            int task_id = Task.WaitAny(Task.Delay(2000), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+            int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
         }
 

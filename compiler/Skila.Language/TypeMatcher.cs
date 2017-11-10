@@ -21,10 +21,12 @@ namespace Skila.Language
 
             for (int i = 0; i < template.Name.Arity; ++i)
             {
-                if (!input.TemplateArguments[i].TemplateMatchesTarget(ctx, inversedVariance,
+                TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx, inversedVariance,
                     target.TemplateArguments[i],
                     template.Name.Parameters[i].Variance,
-                    allowSlicing).IsPerfectMatch())
+                    allowSlicing);
+
+                if (m != TypeMatch.Pass && m != TypeMatch.AutoDereference)
                 {
                     return false;
                 }
@@ -70,8 +72,9 @@ namespace Skila.Language
                     IEntityInstance inner_target_type = target.TemplateArguments.Single();
                     IEntityInstance inner_input_type = input.TemplateArguments.Single();
 
-                    if (inner_input_type.MatchesTarget(ctx, inner_target_type, true) == TypeMatch.Pass)
-                        return TypeMatch.Pass;
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, true);
+                    if (m == TypeMatch.Pass)
+                        return m;
                 }
                 else if (!ctx.Env.IsReferenceOfType(input))
                 {
@@ -116,9 +119,9 @@ namespace Skila.Language
                 return TypeMatch.No;
             }
 
-            foreach (EntityInstance inheritance in input.Inheritance(ctx).AncestorsIncludingObject.Concat(input))
+            foreach (EntityInstance family_instance in input.Inheritance(ctx).AncestorsIncludingObject.Concat(input))
             {
-                bool match = templateMatches(ctx, inversedVariance, inheritance, target, allowSlicing);
+                bool match = templateMatches(ctx, inversedVariance, family_instance, target, allowSlicing);
                 if (match)
                     return TypeMatch.Pass;
             }

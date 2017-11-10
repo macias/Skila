@@ -67,6 +67,15 @@ namespace Skila.Interpreter
                 return this.data.PlainValue;
             }
         }
+        internal VirtualTable VirtualTable
+        {
+            get
+            {
+                if (this.isDisposed)
+                    throw new ObjectDisposedException($"{this}");
+                return this.data.VirtualTable;
+            }
+        }
         public EntityInstance TypeInstance => this.data.TypeInstance;
 
         private sealed class Data
@@ -77,6 +86,7 @@ namespace Skila.Interpreter
             internal IEnumerable<ObjectData> Fields => this.fields?.Values ?? Enumerable.Empty<ObjectData>();
 
             private readonly Dictionary<VariableDeclaration, ObjectData> fields;
+            internal VirtualTable VirtualTable { get; }
 
             public object PlainValue { get; }
             internal bool IsPlain { get; }
@@ -97,6 +107,8 @@ namespace Skila.Interpreter
                         this.fields.Add(field, ObjectData.CreateEmpty(field_type));
                     }
                 }
+
+                this.VirtualTable = new VirtualTable(this.TypeInstance.Target.CastType().VirtualMapping);
             }
 
             public Data(Data src)

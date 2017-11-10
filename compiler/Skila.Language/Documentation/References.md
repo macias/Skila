@@ -4,3 +4,9 @@
 * [A Brief Introduction to Rvalue References
 ](http://www.artima.com/cppsource/rvalue.html)
 * [Rvalue References: C++0x Features in VC10, Part 2](https://blogs.msdn.microsoft.com/vcblog/2009/02/03/rvalue-references-c0x-features-in-vc10-part-2/)
+
+# Go interfaces
+
+* [Go Data Structures: Interfaces](https://research.swtch.com/interfaces)
+* [Go Interfaces](http://www.airs.com/blog/archives/277)
+* [Go Interface Values](http://www.airs.com/blog/archives/281)

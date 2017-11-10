@@ -32,8 +32,10 @@ namespace Skila.Interpreter
                     throw new Exception("Routine failed");
             }
         }
-        internal void Run(Task<ExecValue> routine)
+        internal void Run(Func<ExecValue> func)
         {
+            Task<ExecValue> routine = Task.Run(() => func());
+
             lock (this.threadLock)
                 tasks.Add(routine);
 

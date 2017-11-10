@@ -52,6 +52,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Execution\Concurrency.cs" />
+    <Compile Include="Execution\Inheritance.cs" />
     <Compile Include="Execution\Properties.cs" />
     <Compile Include="Execution\Pointers.cs" />
     <Compile Include="Execution\Objects.cs" />
@@ -75,7 +76,6 @@
     <Compile Include="Tools.cs" />
     <Compile Include="Semantics\Variables.cs" />
     <Compile Include="Semantics\TypeMatching.cs" />
-    <Compile Include="Semantics\HierarchyBinding.cs" />
     <Compile Include="Semantics\NameResolution.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

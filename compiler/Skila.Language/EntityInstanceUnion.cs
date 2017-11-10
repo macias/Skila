@@ -139,13 +139,10 @@ namespace Skila.Language
                 TypeMatch m = target.MatchesInput(ctx, input, allowSlicing);
                 if (m == TypeMatch.Pass)
                     return m;
-                else if (m == TypeMatch.InConversion)
-                    match = m;
-                else if (m == TypeMatch.AutoDereference)
-                    match = m;
-                else if (m == TypeMatch.ImplicitReference)
-                    match = m;
-                else if (m == TypeMatch.OutConversion)
+                else if (m == TypeMatch.InConversion
+                    || m == TypeMatch.AutoDereference
+                    || m == TypeMatch.ImplicitReference
+                    || m == TypeMatch.OutConversion)
                     match = m;
                 else if (m != TypeMatch.No)
                     throw new NotImplementedException();
@@ -158,7 +155,11 @@ namespace Skila.Language
         // type conversion, some day improve it
         public TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
         {
-            return this.Instances.All(it => it.MatchesTarget(ctx, target, allowSlicing) == TypeMatch.Pass) ? TypeMatch.Pass : TypeMatch.No;
+            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
+            if (matches.All(it => it == TypeMatch.Pass))
+                return TypeMatch.Pass;
+            else
+                return TypeMatch.No;
         }
 
         public TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target, VarianceMode variance, bool allowSlicing)

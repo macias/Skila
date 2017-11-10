@@ -56,5 +56,6 @@
         MissingDerivedModifier = 52,
         MissingFunctionImplementation = 53,
         NonAbstractTypeWithAbstractMethod = 54,
+        SealedTypeWithBaseMethod = 55,
     }
 }

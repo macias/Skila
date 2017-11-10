@@ -239,10 +239,10 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.IsFalse(TypeMatch.Pass == separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.IsTrue(TypeMatch.Pass == deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.IsTrue(TypeMatch.Pass == tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, allowSlicing: true));
-            Assert.IsFalse(TypeMatch.Pass == tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Pass, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Pass, tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, allowSlicing: true));
 
             return resolver;
         }
@@ -336,9 +336,9 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.IsTrue(TypeMatch.Pass == separate_deriz_union.Evaluation.MatchesTarget(resolver.Context, separate_deriv_union.Evaluation, allowSlicing: true));
-            Assert.IsTrue(TypeMatch.Pass == sink_union.Evaluation.MatchesTarget(resolver.Context, separate_abc_union.Evaluation, allowSlicing: true));
-            Assert.IsFalse(TypeMatch.Pass == sink_deriv_union.Evaluation.MatchesTarget(resolver.Context, separate_deriz_union.Evaluation, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.MatchesTarget(resolver.Context, separate_deriv_union.Evaluation, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.MatchesTarget(resolver.Context, separate_abc_union.Evaluation, allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.MatchesTarget(resolver.Context, separate_deriz_union.Evaluation, allowSlicing: true));
 
             return resolver;
         }

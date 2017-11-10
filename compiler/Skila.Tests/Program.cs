@@ -10,6 +10,8 @@ using Skila.Language.Semantics;
 using NaiveLanguageTools.Common;
 using Skila.Tests.Execution;
 using Skila.Tests.Semantics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Skila.Tests
 {
@@ -17,7 +19,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-            new Semantics.Inheritance().ProperGenericWithCostraintsMethodDerivation();
+            //new Semantics.Inheritance().ProperBasicMethodDerivation();
             // new Protocols().ErrorCallingConstructor();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
@@ -31,16 +33,16 @@ namespace Skila.Tests
             //new Expressions().ErrorIgnoringFunctionResult();
             //new MethodDefinitions().Basics();
             //new FunctionDefinitions().VariadicParametersInvalidLimits();
-            //new TypeMatching().ConstraintsMatching();
+           // new TypeMatching().UnionMatching();
             //  new Flow().ErrorReadingOtherIfBlocks();
             //new Variables().DetectingUsage();
-            //new HierarchyBinding().ErrorInheritingHeapOnlyType();
-            //  new Types().ErrorNoDefaultConstructor();
+            // new Types().ErrorIncorrectMethodsForType();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
             //new Pointers().DereferenceOnAssignment();
             //new Execution.FunctionCalls().LocalVariablesLeakCheck();
-            //new Execution.Concurrency().ChannelDeadLockOnReceive();
+            //new Execution.Concurrency().SingleMessage();
+            new Execution.Inheritance().VirtualCall();
 
             {
                 double start = Stopwatch.GetTimestamp();

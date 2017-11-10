@@ -1,7 +1,6 @@
 ﻿using System;
 using NaiveLanguageTools.Common;
-using Skila.Interpreter.Tools;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Skila.Interpreter.Channels
 {
@@ -12,24 +11,27 @@ namespace Skila.Interpreter.Channels
         bool isClosed;
         bool hasValue;
         T value;
-        private readonly AsyncAutoResetEvent beforeWriteGuard;
-        private readonly AsyncAutoResetEvent afterWriteGuard;
-        private readonly AsyncAutoResetEvent readGuard;
+        private readonly AutoResetEvent beforeWriteGuard;
+        private readonly AutoResetEvent afterWriteGuard;
+        private readonly AutoResetEvent readGuard;
 
         public UnbufferedChannel()
         {
-            this.beforeWriteGuard = new AsyncAutoResetEvent(true);
-            this.afterWriteGuard = new AsyncAutoResetEvent(false);
-            this.readGuard = new AsyncAutoResetEvent(false);
+            this.beforeWriteGuard = new AutoResetEvent(true);
+            this.afterWriteGuard = new AutoResetEvent(false);
+            this.readGuard = new AutoResetEvent(false);
         }
 
         public void Dispose()
         {
+            this.beforeWriteGuard.Dispose();
+            this.afterWriteGuard.Dispose();
+            this.readGuard.Dispose();
         }
 
-        public async Task<bool> SendAsync(T value)
+        public bool Send(T value)
         {
-            await this.beforeWriteGuard.WaitOneAsync().ConfigureAwait(false);
+            this.beforeWriteGuard.WaitOne();
 
             lock (this.threadLock)
             {
@@ -44,17 +46,17 @@ namespace Skila.Interpreter.Channels
             }
 
             this.readGuard.Set();
-            await this.afterWriteGuard.WaitOneAsync().ConfigureAwait(false);
+            this.afterWriteGuard.WaitOne();
             this.beforeWriteGuard.Set();
 
             return true;
         }
 
-        public async Task<Option<T>> ReceiveAsync()
+        public Option<T> Receive()
         {
             Option<T> result;
 
-            await this.readGuard.WaitOneAsync().ConfigureAwait(false);
+            this.readGuard.WaitOne();
             lock (this.threadLock)
             {
                 if (this.isClosed && !this.hasValue)

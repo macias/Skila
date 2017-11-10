@@ -41,8 +41,8 @@ namespace Skila.Language
         public IEntityInstance Evaluation { get; private set; }
         public bool MissingTemplateArguments => !this.TemplateArguments.Any() && this.Target.Name.Arity > 0;
 
-        private Inheritance inheritance;
-        public Inheritance Inheritance(ComputationContext ctx)
+        private TypeInheritance inheritance;
+        public TypeInheritance Inheritance(ComputationContext ctx)
         {
             if (inheritance == null)
             {

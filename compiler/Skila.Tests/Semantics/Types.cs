@@ -101,7 +101,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorNonAbstractTypeWithAbstractMethod()
+        public IErrorReporter ErrorIncorrectMethodsForType()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -114,15 +114,21 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }));
+            FunctionDefinition base_func = FunctionDefinition.CreateFunction(EntityModifier.Base,
+                    NameDefinition.Create("basic"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }));
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(func_decl)
+                .With(base_func)
                 .With(abstract_func));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, func_decl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, abstract_func));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SealedTypeWithBaseMethod, base_func));
 
             return resolver;
         }

@@ -9,12 +9,4 @@
         ImplicitReference,
         AutoDereference,
     }
-
-    public static class TypeMatchExtensions
-    {
-        public static bool IsPerfectMatch(this TypeMatch match)
-        {
-            return match == TypeMatch.Pass || match == TypeMatch.AutoDereference;
-        }
-    }
 }

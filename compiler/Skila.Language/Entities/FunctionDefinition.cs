@@ -104,6 +104,7 @@ namespace Skila.Language.Entities
         public bool IsAbstract => this.IsDeclaration || this.Modifier.HasAbstract;
         // sealed functions cannot be derived from
         public bool IsSealed => !this.IsAbstract && !this.Modifier.HasBase;
+        public bool IsVirtual => this.IsAbstract || this.Modifier.HasDerived || this.Modifier.HasBase;
 
         private FunctionDefinition(ExpressionReadMode readMode,
             EntityModifier modifier,

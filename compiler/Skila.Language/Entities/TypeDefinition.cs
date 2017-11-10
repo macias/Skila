@@ -65,7 +65,7 @@ namespace Skila.Language.Entities
         public bool IsTemplateParameter => this.TemplateParameter != null;
         public IReadOnlyCollection<NameReference> ParentNames { get; }
         //public IEnumerable<EntityInstance> ParentTypes => this.ParentNames.Select(it => it.Binding.Match).WhereType<EntityInstance>();
-        public Inheritance Inheritance { get; private set; }
+        public TypeInheritance Inheritance { get; private set; }
         private bool inheritanceComputed => this.Inheritance != null;
         public IFunctionSignature FunctorSignature { get; }
 
@@ -77,6 +77,11 @@ namespace Skila.Language.Entities
         public bool AllowSlicedSubstitution { get; }
 
         public bool IsPlain { get; }
+
+        // base method -> derived (here) method
+        private readonly Dictionary<FunctionDefinition, FunctionDefinition> methodDerivations;
+
+        public IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> VirtualMapping => methodDerivations;
 
         private TypeDefinition(bool isPlain,
             EntityModifier modifier,
@@ -97,6 +102,8 @@ namespace Skila.Language.Entities
             addAutoConstructors();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.methodDerivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
 
             constructionCompleted = true;
         }
@@ -129,7 +136,7 @@ namespace Skila.Language.Entities
                         foreach (FunctionDefinition base_func in ancestor.Target.CastType().NestedFunctions
                             .Where(it => !it.IsSealed))
                         {
-                            if (base_func.DebugId.Id==8849)
+                            if (base_func.DebugId.Id == 8849)
                             {
                                 ;
                             }
@@ -137,11 +144,12 @@ namespace Skila.Language.Entities
 
                             foreach (FunctionDefinition derived_func in functions)
                             {
-                                if (FunctionDefinitionExtension.IsDerivedOf(ctx,derived_func,base_func,ancestor))
+                                if (FunctionDefinitionExtension.IsDerivedOf(ctx, derived_func, base_func, ancestor))
                                 {
                                     if (!derived_func.Modifier.HasDerived)
                                         ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
                                     functions.Remove(derived_func);
+                                    this.methodDerivations.Add(base_func,derived_func);
                                     found_derived = true;
                                     break;
                                 }
@@ -154,8 +162,13 @@ namespace Skila.Language.Entities
                 }
 
                 if (!this.IsAbstract)
-                    foreach (FunctionDefinition func in this.NestedFunctions.Where(it => it.IsAbstract))
-                        ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
+                {
+                    foreach (FunctionDefinition func in this.NestedFunctions)
+                        if (func.IsAbstract)
+                            ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
+                        else if (func.Modifier.HasBase && this.Modifier.HasSealed)
+                            ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
+                }
 
                 if (this.Modifier.HasConst)
                 {
@@ -227,7 +240,7 @@ namespace Skila.Language.Entities
                 }
         }
 #endif
-  
+
         /*internal bool HasImplicitConversionConstructor(ComputationContext ctx, EntityInstance input)
 {
    return this.NestedFunctions.Any(it => it.Name.Name == NameFactory.InitConstructorName
@@ -306,7 +319,7 @@ namespace Skila.Language.Entities
 
             // now we have minimal parents
             parents.ExceptWith(ancestors);
-            this.Inheritance = new Inheritance(ctx.Env.ObjectType.InstanceOf,
+            this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,
                 parents, ancestors.Concat(parents));
 
             return true;

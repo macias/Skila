@@ -72,6 +72,8 @@ namespace Skila.Language
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
 
+        public bool IsVirtualCall { get; }
+
         private CallResolution(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
@@ -88,6 +90,10 @@ namespace Skila.Language
             this.TargetInstance = targetInstance;
             this.argumentsProvider = argumentsProvider;
             this.templateArguments = templateArguments.StoreReadOnly();
+
+            this.IsVirtualCall = this.MetaThisArgument!=null 
+                && (ctx.Env.IsPointerOfType(this.MetaThisArgument.Evaluation) || ctx.Env.IsReferenceOfType(this.MetaThisArgument.Evaluation))
+                && this.TargetInstance.Target.CastFunction().IsVirtual;
 
             extractParameters(ctx, callContext.Evaluation, this.TargetInstance,
                 out this.signature, out this.translatedParamEvaluations, out this.translatedResultEvaluation);

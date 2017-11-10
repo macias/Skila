@@ -37,7 +37,7 @@ namespace Skila.Language.Expressions
             return result;
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
         }
@@ -48,10 +48,10 @@ namespace Skila.Language.Expressions
             {
                 this.Evaluation = ctx.Env.BoolType.InstanceOf;
 
-                if (this.Lhs.Evaluation.MatchesTarget(ctx, this.RhsTypeName.Evaluation, allowSlicing: true) == TypeMatch.Pass)
+                if (this.Lhs.Evaluation.MatchesTarget(ctx, this.RhsTypeName.Evaluation, allowSlicing: true)== TypeMatch.Pass)
                     // checking if x (of String) is Object does not make sense
                     ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
-                else if (this.RhsTypeName.Evaluation.MatchesTarget(ctx, this.Lhs.Evaluation, allowSlicing: true) != TypeMatch.Pass)
+                else if (this.RhsTypeName.Evaluation.MatchesTarget(ctx, this.Lhs.Evaluation, allowSlicing: true)!= TypeMatch.Pass)
                     // we cannot check if x (of Int) is String because it is illegal
                     ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
                 else
@@ -69,6 +69,7 @@ namespace Skila.Language.Expressions
                             break;
                         }
                     }
+
             }
         }
     }
