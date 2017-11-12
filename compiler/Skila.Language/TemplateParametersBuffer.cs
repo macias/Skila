@@ -13,64 +13,27 @@ namespace Skila.Language
         }
 
         private readonly List<TemplateParameter> values;
-        public IEnumerable<TemplateParameter> Values { get { store(); return this.values; } }
-
-        private sealed class Buffer
+        public IEnumerable<TemplateParameter> Values
         {
-            internal string Name;
-            internal VarianceMode Mode;
-            internal EntityModifier ConstraintModifier;
-            internal List<NameReference> Inherits;
-            internal List<NameReference> BaseOf;
-            internal List<FunctionDefinition> Functions;
-
-            internal Buffer()
+            get
             {
-                this.Functions = new List<FunctionDefinition>();
-                this.Inherits = new List<NameReference>();
-                this.BaseOf = new List<NameReference>();
+                this.closed = true;
+                return this.values;
             }
         }
 
-        private Buffer buffer;
+        private bool closed;
 
         private TemplateParametersBuffer()
         {
             this.values = new List<TemplateParameter>();
         }
-        private void store()
-        {
-            if (buffer != null)
-                this.values.Add(new TemplateParameter(this.values.Count, buffer.Name, buffer.Mode, buffer.ConstraintModifier,
-                    buffer.Functions, buffer.Inherits, buffer.BaseOf));
-            buffer = null;
-        }
         public TemplateParametersBuffer Add(string name, VarianceMode mode = VarianceMode.None)
         {
-            store();
-            this.buffer = new Buffer() { Name = name, Mode = mode };
-            return this;
-        }
-        public TemplateParametersBuffer With(EntityModifier constraintModifier)
-        {
-            if (this.buffer.ConstraintModifier != null)
-                throw new ArgumentException();
-            this.buffer.ConstraintModifier = constraintModifier;
-            return this;
-        }
-        public TemplateParametersBuffer Inherits(string inherits)
-        {
-            this.buffer.Inherits.Add(NameReference.Create(inherits));
-            return this;
-        }
-        public TemplateParametersBuffer BaseOf(string baseOf)
-        {
-            this.buffer.BaseOf.Add(NameReference.Create(baseOf));
-            return this;
-        }
-        public TemplateParametersBuffer Has(FunctionDefinition func)
-        {
-            this.buffer.Functions.Add(func);
+            if (this.closed)
+                throw new InvalidOperationException();
+
+            this.values.Add(new TemplateParameter(this.values.Count, name, mode));
             return this;
         }
     }

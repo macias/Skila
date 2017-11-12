@@ -48,8 +48,9 @@ namespace Skila.Tests.Semantics
             VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
-                    TemplateParametersBuffer.Create().Add("T").With(EntityModifier.Const).Values))
+                    TemplateParametersBuffer.Create().Add("T").Values))
                .Modifier(EntityModifier.Const)
+               .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
                .With(field));
 
             NameReference wrong_type = NameReference.Create("Point", NameReference.Create("Bar"));

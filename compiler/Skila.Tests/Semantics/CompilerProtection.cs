@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Skila.Language;
+using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 
@@ -29,15 +30,15 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var type = root_ns.AddNode(TypeDefinition.Create(EntityModifier.None,
-                NameDefinition.Create("Foo", "T", VarianceMode.Out), allowSlicing: true, parents:null,
-                entities:new[] { FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
+            TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.Out))
+                .Slicing(true)
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
                 new[] {
                     // converting itself
                     FunctionParameter.Create("value", NameReference.Create("Foo", NameReference.Create("T")), Variadic.None,
-                    null, isNameRequired: false) },
-                    Block.CreateStatement(new IExpression[] { }))
-                }));
+                        null, isNameRequired: false) },
+                    Block.CreateStatement())
+                ));
 
             var decl = root_ns.AddNode(
                 VariableDeclaration.CreateStatement("x",

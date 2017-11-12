@@ -27,6 +27,7 @@ namespace Skila.Language.Entities
         internal static FunctionDefinition CreateProxyGetter(INameReference typeName, IExpression passedExpression)
         {
             return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertyGetter),
+                null,
                 null, ExpressionReadMode.CannotBeRead, typeName,
                 Block.CreateStatement(new[] {
                     Return.Create(passedExpression)
@@ -35,6 +36,7 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateAutoSetter(INameReference typeName)
         {
             return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertySetter),
+                null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterParameter, typeName, Variadic.None, null, isNameRequired: false) },
                 ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {

@@ -40,14 +40,14 @@ namespace Skila.Tests.Execution
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2"), EntityModifier.Reassignable))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create("pass"), new[] {
+                .With(FunctionBuilder.Create( NameDefinition.Create("pass"), new[] {
                         FunctionParameter.Create("v",NameFactory.IntTypeReference(),Variadic.None,
                             FunctionCall.Create(NameReference.Create("getme")),isNameRequired:false)
                     },
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(NameReference.Create("v"))
                     })))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create("getme"), null,
+                .With(FunctionBuilder.Create( NameDefinition.Create("getme"), null,
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(NameReference.Create("x"))
                     }))));

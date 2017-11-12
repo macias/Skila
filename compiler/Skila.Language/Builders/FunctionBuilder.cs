@@ -19,6 +19,13 @@ namespace Skila.Language.Builders
         {
             return new FunctionBuilder(name, parameters, callMode, result, body);
         }
+        public static FunctionBuilder CreateDeclaration(
+                       NameDefinition name,
+                       ExpressionReadMode callMode,
+                       INameReference result)
+        {
+            return new FunctionBuilder(name, null, callMode, result, null);
+        }
         public static FunctionBuilder Create(
                    NameDefinition name,
                    ExpressionReadMode callMode,
@@ -35,6 +42,7 @@ namespace Skila.Language.Builders
         private INameReference result;
         private Block body;
         private FunctionCall chainCall;
+        private IEnumerable<TemplateConstraint> constraints;
 
         private FunctionDefinition build;
 
@@ -76,15 +84,25 @@ namespace Skila.Language.Builders
             this.parameters = parameters;
             return this;
         }
+        public FunctionBuilder Constraints(params TemplateConstraint[] constraints)
+        {
+            if (this.constraints!=null || this.build!=null)
+                throw new InvalidOperationException();
+
+            this.constraints = constraints;
+            return this;
+        }
+
 
         public FunctionDefinition Build()
         {
             if (build == null)
                 build = FunctionDefinition.CreateFunction(this.modifier ?? EntityModifier.None,
                     this.name,
+                    constraints,
                     parameters?? Enumerable.Empty<FunctionParameter>(), callMode, result,
                     chainCall,
-                    body??Block.CreateStatement(Enumerable.Empty<IExpression>()));
+                    body);
             return build;
         }
         public static implicit operator FunctionDefinition(FunctionBuilder @this)

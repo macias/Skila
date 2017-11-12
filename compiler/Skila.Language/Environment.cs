@@ -52,10 +52,10 @@ namespace Skila.Language
             this.ConcurrencyNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.ConcurrencyNamespace));
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
 
-            this.ObjectType = this.Root.AddNode(TypeDefinition.CreateInterface(EntityModifier.Const,
+            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(EntityModifier.Const,
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
 
-            this.IntType = this.Root.AddNode(TypeBuilder.Create(NameFactory.IntTypeName)
+            this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference())
@@ -63,16 +63,15 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                     new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) }, 
                     Block.CreateStatement()))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.AddOperator),
-                    new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))
-                .Build());
+                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) })).
+                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false))));
 
-            this.DoubleType = this.Root.AddNode(TypeBuilder.Create(NameFactory.DoubleTypeName)
+            this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Plain(true)
                 .Modifier(EntityModifier.Const)
-                .Parents(NameFactory.ObjectTypeReference()).Build());
+                .Parents(NameFactory.ObjectTypeReference()));
 
             // spread functions family
             {
@@ -134,8 +133,7 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                     new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) }, 
                     Block.CreateStatement()))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.NotOperator),
-                    null,
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))
                 .Parents(NameFactory.ObjectTypeReference()));
@@ -166,16 +164,16 @@ namespace Skila.Language
                 null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
                 Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
 
-            this.StringType = this.SystemNamespace.AddNode(TypeBuilder.Create(NameFactory.StringTypeName)
+            this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
                 //.Slicing(true)
-                .Parents(NameFactory.ObjectTypeReference()).Build());
+                .Parents(NameFactory.ObjectTypeReference()));
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
 
-            this.ExceptionType = this.SystemNamespace.AddNode(TypeBuilder.Create(NameFactory.ExceptionTypeName)
+            this.ExceptionType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.ExceptionTypeName)
                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
-                .Parents(NameFactory.ObjectTypeReference()).Build());
+                .Parents(NameFactory.ObjectTypeReference()));
 
             {
                 FunctionDefinition empty, value;
@@ -192,18 +190,17 @@ namespace Skila.Language
         private static TypeDefinition createChannelType()
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
-                    TemplateParametersBuffer.Create().Add("T").With(EntityModifier.Const).Values))
+                    TemplateParametersBuffer.Create().Add("T").Values))
                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelSend),
-                    new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
-                    })))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelClose),
-                    null,
-                    ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), Block.CreateStatement()))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelReceive),
-                    null,
+                    }))
+                    .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose),ExpressionReadMode.CannotBeRead, 
+                    NameFactory.VoidTypeReference(), Block.CreateStatement()))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))
                 /*.With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelTryReceive),
@@ -246,13 +243,13 @@ TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
                             ))
                             .With(Property.Create(NameFactory.OptionValue, NameReference.Create("T"),
                                 null,
-                                new[] { FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertyGetter),
+                                new[] { FunctionBuilder.Create(NameDefinition.Create(NameFactory.PropertyGetter),
                                 null, ExpressionReadMode.CannotBeRead, NameReference.Create("T"),
                                 Block.CreateStatement(new IExpression[] {
                                     IfBranch.CreateIf(ExpressionFactory.NotOperator( NameReference.Create(has_value_field)),
                                         new[]{ Throw.Create(ExpressionFactory.HeapConstructorCall(NameFactory.ExceptionTypeReference())) }),
                                     Return.Create(NameReference.Create(value_field))
-                                })) },
+                                })).Build() },
                                 null
                             ))
                             .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))

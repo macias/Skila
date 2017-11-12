@@ -13,36 +13,44 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class TypeDefinition : TypeContainerDefinition
     {
-        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name, bool allowSlicing,
+        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints, bool allowSlicing,
             IEnumerable<NameReference> parents, IEnumerable<INode> features)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, parents, features, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name,constraints, parents, features, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name, bool allowSlicing,
+        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
+            bool allowSlicing,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name,constraints, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition Create(EntityModifier modifier, NameDefinition name, bool allowSlicing,
+        public static TypeDefinition Create(EntityModifier modifier, NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
+            bool allowSlicing,
             IEnumerable<NameReference> parents = null, IEnumerable<IEntity> entities = null)
         {
-            return new TypeDefinition(false, modifier, allowSlicing, name, parents, entities, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier, allowSlicing, name,constraints,
+                parents, entities, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateValue(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
+        public static TypeDefinition CreateValue(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
+            IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier, false, name, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier, false, name,constraints, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateInterface(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
+        public static TypeDefinition CreateInterface(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
+            IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier | EntityModifier.Interface, false, name, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier | EntityModifier.Interface, false, name,constraints, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateHeapOnly(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
+        public static TypeDefinition CreateHeapOnly(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
+            IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier | EntityModifier.HeapOnly, true, name, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier | EntityModifier.HeapOnly, true, name,constraints, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateFunctor(NameDefinition name, IFunctionSignature signature)
+        public static TypeDefinition CreateFunctor(NameDefinition name,  IFunctionSignature signature)
         {
-            return new TypeDefinition(false, EntityModifier.Const, false, name, new[] { NameFactory.ObjectTypeReference() }, null,
+            return new TypeDefinition(false, EntityModifier.Const, false, name,null, new[] { NameFactory.ObjectTypeReference() }, null,
                 signature, typeParameter: null);
         }
 
@@ -52,12 +60,13 @@ namespace Skila.Language.Entities
             EntityModifier modifier = typeParameter.ConstraintModifier;
             if (typeParameter.Functions.Any())
                 modifier = modifier | EntityModifier.Protocol;
-            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name),
+            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name),null,
                 typeParameter.InheritsNames, typeParameter.Functions, null, typeParameter);
         }
 
 
-        public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None, NameDefinition.Create(NameFactory.JokerTypeName), allowSlicing: true);
+        public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None, 
+            NameDefinition.Create(NameFactory.JokerTypeName),null, allowSlicing: true);
 
         public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
         public bool IsInterface => this.Modifier.HasInterface;
@@ -89,10 +98,11 @@ namespace Skila.Language.Entities
             EntityModifier modifier,
             bool allowSlicing,
             NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents,
             IEnumerable<INode> features,
             IFunctionSignature functorSignature,
-            TemplateParameter typeParameter) : base(modifier, name)
+            TemplateParameter typeParameter) : base(modifier, name,constraints)
         {
             this.IsPlain = isPlain;
             this.AllowSlicedSubstitution = allowSlicing;
@@ -135,29 +145,26 @@ namespace Skila.Language.Entities
                     HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
                     foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
                     {
-                        foreach (Tuple<FunctionDefinition, FunctionDefinition> pair in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
+                        foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
                         {
-                            FunctionDefinition base_func = pair.Item1;
-                            FunctionDefinition derived_func = pair.Item2;
-
-                            if (derived_func == null)
+                            if (deriv_info.Derived == null)
                             {
-                                if (base_func.IsAbstract)
-                                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, base_func);
+                                if (deriv_info.Base.IsAbstract)
+                                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
                             }
                             else
                             {
-                                if (!derived_func.Modifier.HasDerived)
-                                    ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
+                                if (!deriv_info.Derived.Modifier.HasDerived)
+                                    ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
-                                if (!base_func.IsSealed)
+                                if (!deriv_info.Base.IsSealed)
                                 {
-                                    if (!functions.Remove(derived_func))
+                                    if (!functions.Remove(deriv_info.Derived))
                                         throw new System.Exception("Internal error");
-                                    derivations.Add(base_func, derived_func);
+                                    derivations.Add(deriv_info.Base, deriv_info.Derived);
                                 }
-                                else if (derived_func.Modifier.HasDerived)
-                                    ctx.AddError(ErrorCode.CannotDeriveSealedMethod, derived_func);
+                                else if (deriv_info.Derived.Modifier.HasDerived)
+                                    ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
                             }
                         }
                     }

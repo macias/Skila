@@ -12,7 +12,8 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public abstract class TypeContainerDefinition : TemplateDefinition
     {
-        protected TypeContainerDefinition(EntityModifier modifier, NameDefinition name) : base(modifier, name)
+        protected TypeContainerDefinition(EntityModifier modifier, NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints) : base(modifier, name,constraints)
         {
         }
 

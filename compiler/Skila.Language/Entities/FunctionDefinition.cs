@@ -4,7 +4,6 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Expressions;
 using System.Linq;
 using Skila.Language.Extensions;
-using Skila.Language.Comparers;
 using System;
 using Skila.Language.Semantics;
 
@@ -17,27 +16,19 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
             NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode callMode,
             INameReference result,
             Block body)
         {
             return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
-                name, parameters, callMode, result, chainCall: null, body: body);
-        }
-        public static FunctionDefinition CreateDeclaration(
-            EntityModifier modifier,
-            NameDefinition name,
-            IEnumerable<FunctionParameter> parameters,
-            ExpressionReadMode callMode,
-            INameReference result)
-        {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
-                name, parameters, callMode, result, chainCall: null, body: null);
+                name, constraints, parameters, callMode, result, chainCall: null, body: body);
         }
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
             NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode callMode,
             INameReference result,
@@ -45,7 +36,7 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition( ExpressionReadMode.CannotBeRead, modifier,
-                name, parameters, callMode, result, chainCall, body);
+                name,constraints, parameters, callMode, result, chainCall, body);
         }
         public static FunctionDefinition CreateInitConstructor(
             EntityModifier modifier,
@@ -53,7 +44,7 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
-                                NameFactory.InitConstructorNameDefinition(),
+                                NameFactory.InitConstructorNameDefinition(),null,
                                 parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
         public static FunctionDefinition CreateHeapConstructor(
@@ -64,14 +55,14 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition( ExpressionReadMode.CannotBeRead,
                 modifier | EntityModifier.Static,
-                NameFactory.NewConstructorNameDefinition(),
+                NameFactory.NewConstructorNameDefinition(),null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
                 chainCall: null, body: body);
         }
         public static FunctionDefinition CreateZeroConstructor(Block body)
         {
             return new FunctionDefinition( ExpressionReadMode.CannotBeRead, EntityModifier.None,
-                                NameFactory.ZeroConstructorNameDefinition(),
+                                NameFactory.ZeroConstructorNameDefinition(),null,
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
 
@@ -109,12 +100,13 @@ namespace Skila.Language.Entities
         private FunctionDefinition(ExpressionReadMode readMode,
             EntityModifier modifier,
             NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints,
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode resultMode,
             INameReference result,
             FunctionCall chainCall,
             Block body)
-            : base(modifier, name)
+            : base(modifier, name,constraints)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 

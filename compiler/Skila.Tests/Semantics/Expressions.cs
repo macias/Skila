@@ -170,7 +170,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var func_def = root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false) },
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.BoolTypeReference(),
@@ -198,7 +198,7 @@ namespace Skila.Tests.Semantics
 
             var var_decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(), Undef.Create());
             var var_ref = NameReference.Create("x");
-            var func_def = root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                           NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                           ExpressionReadMode.OptionalUse,
                           NameFactory.BoolTypeReference(),
@@ -227,7 +227,7 @@ namespace Skila.Tests.Semantics
             var var_decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                 Undef.Create(), EntityModifier.Reassignable);
             var assign = Assignment.CreateStatement(NameReference.Create("x"), NameReference.Create("x"));
-            var func_def = root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                           NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                           ExpressionReadMode.OptionalUse,
                           NameFactory.VoidTypeReference(),

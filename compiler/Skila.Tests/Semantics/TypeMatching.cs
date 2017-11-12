@@ -20,20 +20,22 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Implicit,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.ConvertFunctionName),
                     null, ExpressionReadMode.ReadRequired, NameReference.Create("Bar"),
-                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })))
+                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
+                    .Modifier(EntityModifier.Implicit))
                 // added second conversion to check if compiler correctly disambiguate the call
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Implicit,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.ConvertFunctionName),
                     null, ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))));
+                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
+                    .Modifier(EntityModifier.Implicit)));
             var type_bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar")));
 
 
-            root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
-                NameDefinition.Create("wrapper"), null,
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("wrapper"), 
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
@@ -259,14 +261,16 @@ namespace Skila.Tests.Semantics
             var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
                 .Parents(NameReference.Create("ABC")));
             var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo",
-                    TemplateParametersBuffer.Create().Add("V", VarianceMode.Out).Inherits("ABC").Values))
+                    TemplateParametersBuffer.Create().Add("V", VarianceMode.Out).Values))
+                .Constraints(ConstraintBuilder.Create("V").Inherits(NameReference.Create("ABC")))
                 .Parents(NameReference.Create("ABC")));
             var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple",
-                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).BaseOf("ABC").Values)));
+                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values))
+                .Constraints(ConstraintBuilder.Create("T").BaseOf(NameReference.Create("ABC"))));
 
             var tuple_ok_type = TypeBuilder.Create(
-                NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None)
-                    .BaseOf("Basic").Values))
+                NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None).Values))
+                .Constraints(ConstraintBuilder.Create("U").BaseOf(NameReference.Create("Basic")))
                 .Parents(NameReference.Create("Tuple", NameReference.Create("U"))).Build();
             system_ns.AddNode(tuple_ok_type);
             var tuple_bad_type = TypeBuilder.Create(

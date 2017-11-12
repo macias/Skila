@@ -31,7 +31,9 @@ namespace Skila.Language.Entities
         public IEnumerable<TemplateDefinition> NestedTemplates => this.ownedNodes.WhereType<TemplateDefinition>();
         public IEnumerable<IEntity> NestedEntities => this.ownedNodes.WhereType<IEntity>();
 
-        public override IEnumerable<INode> OwnedNodes => this.ownedNodes.Concat(this.Name);
+        public override IEnumerable<INode> OwnedNodes => this.ownedNodes.Concat(this.Name)
+            //.Concat(this.Constraints)
+            .Where(it => it!=null);
 
         // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on
         // the purpose -- to have just single instance per template+arguments
@@ -42,14 +44,17 @@ namespace Skila.Language.Entities
         public ValidationData Validation { get; set; }
 
         public EntityModifier Modifier { get; }
+        public IEnumerable< TemplateConstraint> Constraints { get; }
 
         // used to protect ourselves against adding extra nodes after the object is built
         // used in functions and types, not namespaces
         protected bool constructionCompleted;
 
-        protected TemplateDefinition(EntityModifier modifier, NameDefinition name) : base()
+        protected TemplateDefinition(EntityModifier modifier, NameDefinition name,
+            IEnumerable<TemplateConstraint> constraints) : base()
         {
             this.Modifier = modifier;
+            this.Constraints = (constraints??Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
             this.ownedNodes = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
             this.Name = name;
             this.instancesCache = new Dictionary<IReadOnlyCollection<IEntityInstance>, EntityInstance>(EqualityComparer.Create<IReadOnlyCollection<IEntityInstance>>(
@@ -69,7 +74,11 @@ namespace Skila.Language.Entities
                 }, aa => aa.Count.GetHashCode() ^ aa.Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a))));
 
             foreach (TemplateParameter param in name.Parameters)
+            {
+                TemplateConstraint constraint = this.Constraints.SingleOrDefault(it => it.Name.Name==param.Name);
+                param.SetConstraint(constraint);
                 this.AddNode(param.AssociatedType);
+            }
 
             this.instanceOf = new Lazy<EntityInstance>(() => this.GetInstanceOf(this.Name.Parameters.Select(it => it.InstanceOf)));
         }

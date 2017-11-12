@@ -19,24 +19,23 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .Modifier(EntityModifier.Base)
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Base,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
-                    null,
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("33"))
-                    }))));
+                    }))
+                    .Modifier(EntityModifier.Base)));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
-                    NameDefinition.Create("bar"),
-                    null,
+                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
-                    })))
+                    }))
+                    .Modifier(EntityModifier.Derived))
                 .Parents(NameReference.Create("X")));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -53,6 +52,6 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
-        }  
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace Skila.Language.Extensions
                  .Any(it => it.Modifier.HasPublic);
         }
 
-        public static IEnumerable<Tuple<FunctionDefinition, FunctionDefinition>> PairDerivations(ComputationContext ctx,
+        public static IEnumerable<FunctionDerivation> PairDerivations(ComputationContext ctx,
             EntityInstance baseInstance,
             IEnumerable<FunctionDefinition> derivedFunctions)
         {
@@ -23,7 +23,7 @@ namespace Skila.Language.Extensions
                 FunctionDefinition derived_func = derivedFunctions
                     .FirstOrDefault(f => FunctionDefinitionExtension.IsDerivedOf(ctx, f, base_func, baseInstance));
 
-                yield return Tuple.Create(base_func, derived_func);
+                yield return new FunctionDerivation(base_func, derived_func);
             }
         }
 

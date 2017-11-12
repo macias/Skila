@@ -199,7 +199,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var func_def = FunctionDefinition.CreateFunction(EntityModifier.None,
+            FunctionDefinition func_def = FunctionBuilder.Create(
                 NameDefinition.Create("sqrt"), new[] { FunctionParameter.Create("r", NameReference.Create("Double"), Variadic.None, null, false) },
                 ExpressionReadMode.OptionalUse,
                 NameReference.Create("Double"),

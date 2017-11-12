@@ -148,6 +148,9 @@ namespace Skila.Interpreter
 
         private ExecValue executeRegularFunction(FunctionDefinition func, ExecutionContext ctx)
         {
+            if (func.IsDeclaration)
+                throw new Exception("Internal error");
+
             ExecValue ret = executed(func.UserBody, ctx);
             if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation))
                 return ExecValue.CreateReturn(null);

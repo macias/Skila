@@ -18,7 +18,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
@@ -155,7 +155,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var func_def = root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("t", NameFactory.IntTypeReference(), Variadic.None,
                     null,isNameRequired: false) },
                 ExpressionReadMode.OptionalUse,

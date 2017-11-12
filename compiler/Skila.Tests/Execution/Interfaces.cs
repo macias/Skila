@@ -27,8 +27,8 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
-                .Modifier(options.InterfaceDuckTyping? EntityModifier.Interface: EntityModifier.Protocol)
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
+                .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     null,
                     ExpressionReadMode.ReadRequired,
@@ -38,8 +38,7 @@ namespace Skila.Tests.Execution
                     }))));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
-                    NameDefinition.Create("bar"),
+                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     null,
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
@@ -81,7 +80,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     null,
                     ExpressionReadMode.ReadRequired,
@@ -92,24 +91,24 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Y")
                 .Modifier(EntityModifier.Base)
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Base,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
-                    null,
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("117"))
-                    }))));
+                    }))
+                    .Modifier(EntityModifier.Base)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Z")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
-                    null,
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
-                    })))
+                    }))
+                    .Modifier(EntityModifier.Derived))
                     .Parents(NameReference.Create("Y")));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -148,16 +147,14 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                     .Add("T").Values))
                 .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                .With(FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("bar"),
-                    null,
                     ExpressionReadMode.ReadRequired,
                     NameReference.Create("T"))));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
-                    null,
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {

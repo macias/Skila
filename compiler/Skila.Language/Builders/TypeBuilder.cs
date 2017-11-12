@@ -14,12 +14,17 @@ namespace Skila.Language.Builders
         {
             return new TypeBuilder(name);
         }
-        public static TypeBuilder Create(string name,params string[] typeParameters)
+        public static TypeBuilder Create(string name, params string[] typeParameters)
         {
             var buff = TemplateParametersBuffer.Create();
-            typeParameters.ForEach(it => buff.Add(it,VarianceMode.None));
+            typeParameters.ForEach(it => buff.Add(it, VarianceMode.None));
             return new TypeBuilder(NameDefinition.Create(name, buff.Values));
         }
+        internal static TypeBuilder CreateInterface(EntityModifier modifier, NameDefinition name)
+        {
+            return new TypeBuilder(name).Modifier(modifier | EntityModifier.Interface);
+        }
+
 
         private readonly NameDefinition name;
         private readonly List<INode> features;
@@ -28,6 +33,7 @@ namespace Skila.Language.Builders
         private TypeDefinition build;
         private bool allowSlicing;
         private bool isPlain;
+        private IEnumerable<TemplateConstraint> constraints;
 
         private TypeBuilder(NameDefinition name)
         {
@@ -40,6 +46,14 @@ namespace Skila.Language.Builders
                 throw new InvalidOperationException();
 
             this.parents = parents;
+            return this;
+        }
+        public TypeBuilder Constraints(params TemplateConstraint[] constraints)
+        {
+            if (this.constraints != null || this.build != null)
+                throw new InvalidOperationException();
+
+            this.constraints = constraints;
             return this;
         }
         public TypeBuilder Parents(params string[] parents)
@@ -57,6 +71,10 @@ namespace Skila.Language.Builders
         {
             this.features.Add(node);
             return this;
+        }
+        public TypeBuilder With(IBuilder<INode> builder)
+        {
+            return With(builder.Build());
         }
 
         public TypeBuilder Slicing(bool allow)
@@ -79,7 +97,8 @@ namespace Skila.Language.Builders
             if (build == null)
                 build = TypeDefinition.Create(isPlain,
                     this.modifier ?? EntityModifier.None,
-                    this.name, 
+                    this.name,
+                    this.constraints,
                     allowSlicing,
                     this.parents,
                     features);

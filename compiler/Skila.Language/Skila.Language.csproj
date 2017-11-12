@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Entities\FunctorSignature.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Flow\Throw.cs" />
     <Compile Include="IEntityScope.cs" />
     <Compile Include="IOptions.cs" />
+    <Compile Include="FunctionDerivation.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Semantics\ErrorManager.cs" />
     <Compile Include="Expressions\Alloc.cs" />
@@ -123,6 +125,7 @@
     <Compile Include="Flow\IFunctionExit.cs" />
     <Compile Include="LabelReference.cs" />
     <Compile Include="ConstraintMatch.cs" />
+    <Compile Include="TemplateConstraint.cs" />
     <Compile Include="Variadic.cs" />
     <Compile Include="ExpressionReadMode.cs" />
     <Compile Include="IIndexed.cs" />

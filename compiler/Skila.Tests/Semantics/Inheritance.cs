@@ -153,32 +153,31 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
-                    NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
+                .With(FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("foo"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
-                    NameDefinition.Create("fin"), Enumerable.Empty<FunctionParameter>(),
+                .With(FunctionBuilder.Create(NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.VoidTypeReference(),
                     Block.CreateStatement()))
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
-                    NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
+                .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
                 .Modifier(EntityModifier.Interface));
 
-            FunctionDefinition bar_impl = FunctionDefinition.CreateFunction(EntityModifier.None,
-                    NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
+            FunctionDefinition bar_impl = FunctionBuilder.Create(
+                    NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }));
-            FunctionDefinition fin_impl = FunctionDefinition.CreateFunction(EntityModifier.Derived,
-                    NameDefinition.Create("fin"), Enumerable.Empty<FunctionParameter>(),
+            FunctionDefinition fin_impl = FunctionBuilder.Create(
+                    NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.VoidTypeReference(),
-                    Block.CreateStatement());
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Derived);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(bar_impl)
                 .With(fin_impl)
@@ -201,23 +200,23 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                .With(FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference())))
+                    NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                 .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
-                    NameDefinition.Create("bar"),
+                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
                         Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
-                    })))
+                    }))
+                    .Modifier(EntityModifier.Derived))
                 .Parents(NameReference.Create("IX")));
 
             var resolver = NameResolver.Create(env);
@@ -236,23 +235,24 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
                 .Add("T")
                 .Values))
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                .With(FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference()))
+                    NameFactory.IntTypeReference())
+                    .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
                 .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                 .Add("V").Values))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
+                .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
-                    })))
+                    }))
+                    .Modifier(EntityModifier.Derived))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);
@@ -271,28 +271,27 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
                 .Add("T", VarianceMode.None)
                 .Values))
-                .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
-                    NameDefinition.Create("bar", TemplateParametersBuffer.Create()
-                        .Add("U", VarianceMode.None).Inherits("T")
-                        .Values),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                .With(FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("bar", TemplateParametersBuffer.Create().Add("U", VarianceMode.None).Values),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference()))
+                    NameFactory.IntTypeReference())
+                    .Constraints(ConstraintBuilder.Create("U").Inherits(NameReference.Create("T")))
+                    .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
                 .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                 .Add("V", VarianceMode.None)
                 .Values))
-                .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
-                    NameDefinition.Create("bar", TemplateParametersBuffer.Create()
-                        .Add("W", VarianceMode.None).Inherits("V")
-                        .Values),
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("bar", TemplateParametersBuffer.Create().Add("W", VarianceMode.None).Values),
                     new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
-                    })))
+                    }))
+                    .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))
+                    .Modifier(EntityModifier.Derived))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);

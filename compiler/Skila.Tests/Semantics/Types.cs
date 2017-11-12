@@ -106,18 +106,20 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition func_decl = FunctionDefinition.CreateDeclaration(EntityModifier.None,
-                    NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
+            FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("foo"), 
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference());
-            FunctionDefinition abstract_func = FunctionDefinition.CreateFunction(EntityModifier.Abstract,
-                    NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
+            FunctionDefinition abstract_func = FunctionBuilder.Create(
+                    NameDefinition.Create("bar"), 
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }));
-            FunctionDefinition base_func = FunctionDefinition.CreateFunction(EntityModifier.Base,
-                    NameDefinition.Create("basic"), Enumerable.Empty<FunctionParameter>(),
+                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
+                    .Modifier(EntityModifier.Abstract);
+            FunctionDefinition base_func = FunctionBuilder.Create(
+                    NameDefinition.Create("basic"), 
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }));
+                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
+                    .Modifier(EntityModifier.Base);
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(func_decl)
                 .With(base_func)

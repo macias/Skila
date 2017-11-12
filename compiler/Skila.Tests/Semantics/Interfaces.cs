@@ -23,7 +23,7 @@ namespace Skila.Tests.Semantics
 
             NameReference typename = NameReference.Create("IX");
             NameReference cons_ref;
-            root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None,
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
@@ -59,16 +59,15 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
-                 .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
+                 .With(FunctionBuilder.CreateDeclaration(
                      NameDefinition.Create("bar"),
-                     new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                      ExpressionReadMode.OptionalUse,
-                     NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference())))
+                     NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()))
+                     .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                  .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
-                    NameDefinition.Create("bar"),
+                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal

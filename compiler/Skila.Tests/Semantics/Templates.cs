@@ -18,19 +18,19 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition func_constraint = FunctionDefinition.CreateDeclaration(EntityModifier.None, NameDefinition.Create("getMe"), null,
+            FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
                 ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference());
-            root_ns.AddNode(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create("proxy",
-                TemplateParametersBuffer.Create().Add("T").Has(func_constraint).Values), new[] {
-                    FunctionParameter.Create("t",NameFactory.PointerTypeReference("T"),Variadic.None,null,isNameRequired:false) },
-                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+                TemplateParametersBuffer.Create().Add("T").Values),
+                ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
-                     })));
+                     }))
+                     .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
+                     .Parameters(FunctionParameter.Create("t", NameFactory.PointerTypeReference("T"), Variadic.None,
+                        null, isNameRequired: false)));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
-                    NameDefinition.Create("missing"),
-                    null,
+                .With(FunctionBuilder.Create(NameDefinition.Create("missing"),
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {

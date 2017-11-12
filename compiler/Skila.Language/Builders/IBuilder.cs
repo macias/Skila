@@ -1,7 +1,7 @@
 ﻿namespace Skila.Language.Builders
 {
-    public interface IBuilder<T>
-        where T : INode
+    public interface IBuilder<out T>
+      //  where T : INode
     {
         T Build();
     }

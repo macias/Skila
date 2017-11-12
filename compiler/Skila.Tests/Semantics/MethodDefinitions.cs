@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var func_def = FunctionDefinition.CreateFunction(EntityModifier.None,
+            var func_def = FunctionBuilder.Create(
                 NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
