@@ -1,4 +1,5 @@
 ﻿using Skila.Language.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,6 +12,21 @@ namespace Skila.Language.Extensions
             return @this.NestedFunctions.Where(it => it.IsDefaultInitConstructor())
                  .Any(it => it.Modifier.HasPublic);
         }
+
+        public static IEnumerable<Tuple<FunctionDefinition, FunctionDefinition>> PairDerivations(ComputationContext ctx,
+            EntityInstance baseInstance,
+            IEnumerable<FunctionDefinition> derivedFunctions)
+        {
+            foreach (FunctionDefinition base_func in baseInstance.Target.CastType().NestedFunctions
+                .Where(it => !it.IsInitConstructor() && !it.IsZeroConstructor()))
+            {
+                FunctionDefinition derived_func = derivedFunctions
+                    .FirstOrDefault(f => FunctionDefinitionExtension.IsDerivedOf(ctx, f, base_func, baseInstance));
+
+                yield return Tuple.Create(base_func, derived_func);
+            }
+        }
+
     }/*
         public static FunctionDefinition GetNewConstructor(this TypeDefinition @this, FunctionDefinition initConstructor)
         {

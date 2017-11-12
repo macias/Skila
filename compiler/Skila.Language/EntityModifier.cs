@@ -19,7 +19,8 @@ namespace Skila.Language
             //InOut // for parameters only, reassignment is visible outside function
             Const, // for (deeply) immutable types 
             Base, // unseal types
-            Protocol,
+            Interface,
+            Protocol, // same as interface, but supports duck type matching 
             Derived, // modifier for methods ("override" in C#)
             Abstract,
         }
@@ -33,6 +34,7 @@ namespace Skila.Language
         public static readonly EntityModifier Reassignable = new EntityModifier(ModifierIndex.Reassignable);
         public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
         public static readonly EntityModifier Base = new EntityModifier(ModifierIndex.Base);
+        public static readonly EntityModifier Interface = new EntityModifier(ModifierIndex.Interface);
         public static readonly EntityModifier Protocol = new EntityModifier(ModifierIndex.Protocol);
         public static readonly EntityModifier Derived = new EntityModifier(ModifierIndex.Derived);
         public static readonly EntityModifier Abstract = new EntityModifier(ModifierIndex.Abstract);
@@ -48,11 +50,12 @@ namespace Skila.Language
         public bool HasReassignable => this.flags[(int)ModifierIndex.Reassignable] > 0;
         public bool HasConst => this.flags[(int)ModifierIndex.Const] > 0;
         public bool HasBase => this.flags[(int)ModifierIndex.Base] > 0;
+        public bool HasInterface => this.flags[(int)ModifierIndex.Interface] > 0;
         public bool HasProtocol => this.flags[(int)ModifierIndex.Protocol] > 0;
         public bool HasDerived => this.flags[(int)ModifierIndex.Derived] > 0;
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
 
-        public bool HasSealed => !this.HasBase && !this.HasProtocol;
+        public bool HasSealed => !this.HasBase && !this.HasInterface;
 
         private EntityModifier(ModifierIndex index)
         {

@@ -10,9 +10,9 @@ namespace Skila.Language
 {
     public sealed class NameResolver : IErrorReporter
     {
-        public static NameResolver Create(Environment env,IOptions options = null)
+        public static NameResolver Create(Environment env)
         {
-            return new NameResolver(env,options);
+            return new NameResolver(env);
         }
 
         public ComputationContext Context { get; }
@@ -20,9 +20,9 @@ namespace Skila.Language
         public ErrorManager ErrorManager => this.Context.ErrorManager;
         public IEnumerable<Error> Errors => this.ErrorManager.Errors;
 
-        private NameResolver(Environment env,IOptions options)
+        private NameResolver(Environment env)
         {
-            this.Context = ComputationContext.Create(env,options);
+            this.Context = ComputationContext.Create(env);
 
             env.Root.Evaluated(this.Context);
 

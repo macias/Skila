@@ -259,21 +259,18 @@ namespace Skila.Tests.Semantics
             var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
                 .Parents(NameReference.Create("ABC")));
             var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo",
-                    TemplateParametersBuffer.Create().Add("V", VarianceMode.Out, EntityModifier.None,
-                    inherits: new[] { NameReference.Create("ABC") }, baseOf: null).Values))
+                    TemplateParametersBuffer.Create().Add("V", VarianceMode.Out).Inherits("ABC").Values))
                 .Parents(NameReference.Create("ABC")));
             var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple",
-                TemplateParametersBuffer.Create().Add("T", VarianceMode.None, EntityModifier.None, Enumerable.Empty<NameReference>(),
-                new[] { NameReference.Create("ABC") }).Values)));
+                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).BaseOf("ABC").Values)));
 
             var tuple_ok_type = TypeBuilder.Create(
-                NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None, EntityModifier.None,
-                    Enumerable.Empty<NameReference>(), new[] { NameReference.Create("Basic") }).Values))
+                NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None)
+                    .BaseOf("Basic").Values))
                 .Parents(NameReference.Create("Tuple", NameReference.Create("U"))).Build();
             system_ns.AddNode(tuple_ok_type);
             var tuple_bad_type = TypeBuilder.Create(
-                NameDefinition.Create("TupleBad", TemplateParametersBuffer.Create().Add("L", VarianceMode.None, EntityModifier.None,
-                    Enumerable.Empty<NameReference>(), Enumerable.Empty<NameReference>()).Values))
+                NameDefinition.Create("TupleBad", TemplateParametersBuffer.Create().Add("L", VarianceMode.None).Values))
                 .Parents(NameReference.Create("Tuple", NameReference.Create("L"))).Build();
             system_ns.AddNode(tuple_bad_type);
 

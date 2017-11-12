@@ -8,12 +8,11 @@ namespace Skila.Language
 {
     public struct ComputationContext
     {
-        public static ComputationContext Create(Environment globals,IOptions options = null)
+        public static ComputationContext Create(Environment env)
         {
-            return new ComputationContext(globals,options);
+            return new ComputationContext(env);
         }
 
-        public IOptions Options { get; }
         public Environment Env { get; }
         public NameRegistry EvalLocalNames { get; set; }
         public VariableTracker ValAssignTracker { get; set; }
@@ -22,11 +21,10 @@ namespace Skila.Language
 
         private readonly HashSet<INode> visited;
 
-        private ComputationContext(Environment globals,IOptions options) : this()
+        private ComputationContext(Environment env) : this()
         {
-            this.Options = options ?? new Options();
             this.ErrorManager = ErrorManager.Create();
-            Env = globals;
+            Env = env;
             visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
         }
 

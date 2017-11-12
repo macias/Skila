@@ -54,7 +54,7 @@ namespace Skila.Interpreter
 
         internal void TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut)
         {
-            if (!ctx.Env.IsPointerOfType(obj.TypeInstance))
+            if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
                 return;
 
             obj = obj.Dereference();
@@ -94,10 +94,13 @@ namespace Skila.Interpreter
 
         internal void TryInc(ExecutionContext ctx, ObjectData obj)
         {
-            if (!ctx.Env.IsPointerOfType(obj.TypeInstance))
+            if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
                 return;
 
             obj = obj.Dereference();
+
+            if (obj == null) // null pointer
+                return;
 
             if (obj.DebugId.Id == 8758)
             {

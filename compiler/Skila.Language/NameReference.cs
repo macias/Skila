@@ -169,7 +169,7 @@ namespace Skila.Language
                                 .Enumerate()
                                 .Select(it => tryDereference(ctx, it, ref dereferenced).TargetTemplate)
                                 .SelectMany(it => it.FindEntities(this))
-                                .Where(it => !ctx.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic)
+                                .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic)
                                 .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments)));
                             this.Prefix.IsDereferenced = dereferenced;
                         }
@@ -197,33 +197,7 @@ namespace Skila.Language
 
         public void Validate(ComputationContext ctx)
         {
-            test(ctx);
-
-            if (ctx.ValAssignTracker != null &&
-                !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl)
-                && (this.Owner as Assignment)?.Lhs != this)
-            {
-                ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);
-            }
-        }
-        private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
-        {
-            //return entityInstance;
-
-            if (!ctx.Env.IsPointerOfType(entityInstance) && !ctx.Env.IsReferenceOfType(entityInstance))
-                return entityInstance;
-
-            dereferenced = true;
-
-            return entityInstance.TemplateArguments.Single()
-                // this is incorrect, just a temporary shortcut
-                .Cast<EntityInstance>();
-
-        }
-
-        private void test(ComputationContext ctx)
-        {
-            if (this.DebugId.Id == 2461)
+            if (this.DebugId.Id == 11176)
             {
                 ;
             }
@@ -249,6 +223,8 @@ namespace Skila.Language
                     ctx.AddError(ErrorCode.ViolatedConstConstraint, this);
                 else if (mismatch == ConstraintMatch.InheritsViolation)
                     ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
+                else if (mismatch == ConstraintMatch.MissingFunction)
+                    ctx.AddError(ErrorCode.ViolatedHasFunctionConstraint, this);
                 else if (mismatch != ConstraintMatch.Yes)
                     throw new Exception("Internal error");
             }
@@ -265,6 +241,26 @@ namespace Skila.Language
                         || (this.Prefix == null && template.Modifier.HasStatic)))
                     ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
             }
+
+            if (ctx.ValAssignTracker != null &&
+                !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl)
+                && (this.Owner as Assignment)?.Lhs != this)
+            {
+                ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);
+            }
+        }
+        private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
+        {
+            //return entityInstance;
+
+            if (!ctx.Env.IsPointerOfType(entityInstance) && !ctx.Env.IsReferenceOfType(entityInstance))
+                return entityInstance;
+
+            dereferenced = true;
+
+            return entityInstance.TemplateArguments.Single()
+                // this is incorrect, just a temporary shortcut
+                .Cast<EntityInstance>();
 
         }
 

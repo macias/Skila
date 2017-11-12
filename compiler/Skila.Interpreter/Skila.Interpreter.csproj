@@ -50,7 +50,6 @@
     <Compile Include="Channels\IChannel.cs" />
     <Compile Include="Channels\UnbufferedChannel.cs" />
     <Compile Include="ExecutionContext.cs" />
-    <Compile Include="VirtualTable.cs" />
     <Compile Include="RoutineRegistry.cs" />
     <Compile Include="Heap.cs" />
     <Compile Include="ExecValue.cs" />

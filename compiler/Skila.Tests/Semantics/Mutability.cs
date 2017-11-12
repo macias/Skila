@@ -3,10 +3,6 @@ using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
-using Skila.Language.Flow;
-using System;
-using System.Linq;
-using Skila.Interpreter;
 using Skila.Language.Semantics;
 
 namespace Skila.Tests.Semantics
@@ -25,7 +21,7 @@ namespace Skila.Tests.Semantics
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
-                null);
+                Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
                .Modifier(EntityModifier.Const)
                .With(decl1)
@@ -49,12 +45,12 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar"));
             root_ns.AddBuilder(TypeBuilder.Create("Foo").Modifier(EntityModifier.Const));
 
-            VariableDeclaration decl = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
-                null);
+            VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
+                Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
-                    TemplateParametersBuffer.Create().Add("T", VarianceMode.None, EntityModifier.Const, null, null).Values))
+                    TemplateParametersBuffer.Create().Add("T").With(EntityModifier.Const).Values))
                .Modifier(EntityModifier.Const)
-               .With(decl));
+               .With(field));
 
             NameReference wrong_type = NameReference.Create("Point", NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(

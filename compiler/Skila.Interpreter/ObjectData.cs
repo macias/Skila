@@ -67,16 +67,16 @@ namespace Skila.Interpreter
                 return this.data.PlainValue;
             }
         }
-        internal VirtualTable VirtualTable
+        internal VirtualTable InheritanceVirtualTable
         {
             get
             {
                 if (this.isDisposed)
                     throw new ObjectDisposedException($"{this}");
-                return this.data.VirtualTable;
+                return this.RunTimeTypeInstance.Target.CastType().InheritanceVirtualTable;
             }
         }
-        public EntityInstance TypeInstance => this.data.TypeInstance;
+        public EntityInstance RunTimeTypeInstance => this.data.RunTimeTypeInstance;
 
         private sealed class Data
         {
@@ -86,36 +86,33 @@ namespace Skila.Interpreter
             internal IEnumerable<ObjectData> Fields => this.fields?.Values ?? Enumerable.Empty<ObjectData>();
 
             private readonly Dictionary<VariableDeclaration, ObjectData> fields;
-            internal VirtualTable VirtualTable { get; }
 
             public object PlainValue { get; }
             internal bool IsPlain { get; }
-            public EntityInstance TypeInstance { get; }
+            public EntityInstance RunTimeTypeInstance { get; }
 
             public Data(bool plain, object value, IEntityInstance typeInstance)
             {
                 this.PlainValue = value;
                 this.IsPlain = plain;
-                this.TypeInstance = typeInstance.Cast<EntityInstance>();
+                this.RunTimeTypeInstance = typeInstance.Cast<EntityInstance>();
                 if (!this.IsPlain)
                 {
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
-                    foreach (VariableDeclaration field in this.TypeInstance.Target.CastType().AllNestedFields)
+                    foreach (VariableDeclaration field in this.RunTimeTypeInstance.Target.CastType().AllNestedFields)
                     {
                         EntityInstance field_type = field.Evaluation.Cast<EntityInstance>();
                         field_type = field_type.TranslateThrough(typeInstance);
                         this.fields.Add(field, ObjectData.CreateEmpty(field_type));
                     }
                 }
-
-                this.VirtualTable = new VirtualTable(this.TypeInstance.Target.CastType().VirtualMapping);
             }
 
             public Data(Data src)
             {
                 this.PlainValue = src.PlainValue;
                 this.IsPlain = src.IsPlain;
-                this.TypeInstance = src.TypeInstance;
+                this.RunTimeTypeInstance = src.RunTimeTypeInstance;
                 this.fields = src.fields?.ToDictionary(it => it.Key, it => it.Value);
             }
 
@@ -165,7 +162,7 @@ namespace Skila.Interpreter
 
         public override string ToString()
         {
-            return $"{this.TypeInstance}";
+            return $"{this.RunTimeTypeInstance}";
         }
 
         public ObjectData Dereference()
@@ -204,7 +201,7 @@ namespace Skila.Interpreter
 
         internal ObjectData Reference(Language.Environment env)
         {
-            return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.TypeInstance }), this);
+            return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }), this);
         }
 
         internal ObjectData GetValue(IExpression expr)

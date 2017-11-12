@@ -10,6 +10,30 @@ namespace Skila.Language.Extensions
         {
             return /*instance.IsJoker ||*/ (instance.Target.IsType() && target == instance.Target);
         }
+
+        public static VirtualTable BuildDuckVirtualTable(ComputationContext ctx, EntityInstance input, EntityInstance target)
+        {
+            VirtualTable vtable;
+            if (!input.TryGetDuckVirtualTable(target, out vtable))
+            {
+                vtable = new VirtualTable(TypeDefinitionExtension.PairDerivations(ctx, target, input.Target.CastType().NestedFunctions)
+                    .Where(it => it.Item2 != null)
+                    .ToDictionary(it => it.Item1, it => it.Item2));
+
+                foreach (FunctionDefinition base_func in target.Target.CastType().NestedFunctions)
+                    if (base_func.IsAbstract && !vtable.HasDerived(base_func))
+                    {
+                        vtable = null;
+                        break;
+                    }
+
+                input.AddDuckVirtualTable(target, vtable);
+            }
+
+            return vtable;
+        }
+
+
     }
     /*
         public static IEnumerable<FunctionDefinition> FilterFunctionsLike(this IEnumerable<FunctionDefinition> __this__,

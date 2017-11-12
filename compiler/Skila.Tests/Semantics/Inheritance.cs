@@ -157,27 +157,39 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
+                .With(FunctionDefinition.CreateFunction(EntityModifier.None,
+                    NameDefinition.Create("fin"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.VoidTypeReference(),
+                    Block.CreateStatement()))
                 .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
                     NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
-                .Modifier(EntityModifier.Protocol));
+                .Modifier(EntityModifier.Interface));
 
-            FunctionDefinition func_impl = FunctionDefinition.CreateFunction(EntityModifier.None,
+            FunctionDefinition bar_impl = FunctionDefinition.CreateFunction(EntityModifier.None,
                     NameDefinition.Create("bar"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }));
+            FunctionDefinition fin_impl = FunctionDefinition.CreateFunction(EntityModifier.Derived,
+                    NameDefinition.Create("fin"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.VoidTypeReference(),
+                    Block.CreateStatement());
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(func_impl)
+                .With(bar_impl)
+                .With(fin_impl)
                 .Parents(NameReference.Create("IX")));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingFunctionImplementation, type_impl));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingDerivedModifier, func_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingDerivedModifier, bar_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotDeriveSealedMethod, fin_impl));
 
             return resolver;
         }
@@ -194,7 +206,7 @@ namespace Skila.Tests.Semantics
                     new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference())))
-                .Modifier(EntityModifier.Protocol));
+                .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
@@ -222,18 +234,17 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
-                .Add("T", VarianceMode.None)
+                .Add("T")
                 .Values))
                 .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
                     NameDefinition.Create("bar"),
                     new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
-                .Modifier(EntityModifier.Protocol));
+                .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
-                .Add("V", VarianceMode.None)
-                .Values))
+                .Add("V").Values))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
                     NameDefinition.Create("bar"),
                     new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
@@ -262,19 +273,19 @@ namespace Skila.Tests.Semantics
                 .Values))
                 .With(FunctionDefinition.CreateDeclaration(EntityModifier.None,
                     NameDefinition.Create("bar", TemplateParametersBuffer.Create()
-                        .Add("U", VarianceMode.None, EntityModifier.None, new[] { NameReference.Create("T") }, null)
+                        .Add("U", VarianceMode.None).Inherits("T")
                         .Values),
                     new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference()))
-                .Modifier(EntityModifier.Protocol));
+                .Modifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                 .Add("V", VarianceMode.None)
                 .Values))
                 .With(FunctionDefinition.CreateFunction(EntityModifier.Derived,
                     NameDefinition.Create("bar", TemplateParametersBuffer.Create()
-                        .Add("W", VarianceMode.None, EntityModifier.None, new[] { NameReference.Create("V") }, null)
+                        .Add("W", VarianceMode.None).Inherits("V")
                         .Values),
                     new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
                     ExpressionReadMode.OptionalUse,

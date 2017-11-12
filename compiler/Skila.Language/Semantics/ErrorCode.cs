@@ -57,5 +57,7 @@
         MissingFunctionImplementation = 53,
         NonAbstractTypeWithAbstractMethod = 54,
         SealedTypeWithBaseMethod = 55,
+        CannotDeriveSealedMethod = 56,
+        ViolatedHasFunctionConstraint = 57,
     }
 }

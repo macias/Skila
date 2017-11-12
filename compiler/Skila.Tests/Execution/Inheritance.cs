@@ -10,7 +10,7 @@ namespace Skila.Tests.Execution
 {
     [TestClass]
     public class Inheritance
-    {     
+    {
         [TestMethod]
         public void VirtualCall()
         {
@@ -53,7 +53,6 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
-        }
-
+        }  
     }
 }

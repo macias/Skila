@@ -32,14 +32,14 @@ namespace Skila.Interpreter
                 {
                     if (param.DefaultValue == null)
                         throw new Exception("Internal error");
-                    ctx.LocalVariables.Add(param, ( executed(param.DefaultValue, ctx)).ExprValue);
+                    ctx.LocalVariables.Add(param, (executed(param.DefaultValue, ctx)).ExprValue);
                 }
             }
 
             TypeDefinition owner_type = func.OwnerType();
             if (func.IsNewConstructor())
             {
-                return  executeRegularFunction(func, ctx);
+                return executeRegularFunction(func, ctx);
             }
             else if (owner_type != null && owner_type.IsPlain)
             {
@@ -89,7 +89,7 @@ namespace Skila.Interpreter
                     if (func.IsDefaultInitConstructor())
                     {
                         ctx.Heap.AddDisposable();
-                        ObjectData channel_obj = ObjectData.Create(ctx.ThisArgument.TypeInstance, Channels.Channel.Create<ObjectData>());
+                        ObjectData channel_obj = ObjectData.Create(ctx.ThisArgument.RunTimeTypeInstance, Channels.Channel.Create<ObjectData>());
                         ctx.ThisArgument.Assign(channel_obj);
                         return ExecValue.CreateReturn(null);
                     }
@@ -98,18 +98,18 @@ namespace Skila.Interpreter
                         ObjectData arg = ctx.Arguments.Values.Single();
 
                         Channels.IChannel<ObjectData> channel = ctx.ThisArgument.PlainValue.Cast<Channels.IChannel<ObjectData>>();
-                        bool result =  channel.Send(arg);
+                        bool result = channel.Send(arg);
                         return ExecValue.CreateReturn(ObjectData.Create(func.MetaThisParameter.Evaluation, result));
                     }
                     else if (func.Name.Name == NameFactory.ChannelReceive)
                     {
                         Channels.IChannel<ObjectData> channel = ctx.ThisArgument.PlainValue.Cast<Channels.IChannel<ObjectData>>();
-                        EntityInstance channel_type = ctx.ThisArgument.TypeInstance;
+                        EntityInstance channel_type = ctx.ThisArgument.RunTimeTypeInstance;
                         IEntityInstance value_type = channel_type.TemplateArguments.Single();
                         // we have to compute Skila Option type (not C# one we use for C# channel type)
                         EntityInstance option_type = ctx.Env.OptionType.GetInstanceOf(new[] { value_type });
 
-                        Option<ObjectData> received =  channel.Receive();
+                        Option<ObjectData> received = channel.Receive();
 
                         // allocate memory for Skila option (on stack)
                         ObjectData result = ObjectData.CreateEmpty(option_type);
@@ -120,12 +120,12 @@ namespace Skila.Interpreter
                         {
                             ctx.Arguments = new Dictionary<FunctionParameter, ObjectData>();
                             ctx.Arguments.Add(ctx.Env.OptionValueConstructor.Parameters.Single(), received.Value);
-                             executed(ctx.Env.OptionValueConstructor, ctx);
+                            executed(ctx.Env.OptionValueConstructor, ctx);
                         }
                         else
                         {
                             ctx.Arguments = null;
-                             executed(ctx.Env.OptionEmptyConstructor, ctx);
+                            executed(ctx.Env.OptionEmptyConstructor, ctx);
                         }
 
                         // at this point Skila option is initialized so we can return it
@@ -142,13 +142,13 @@ namespace Skila.Interpreter
             }
             else
             {
-                return  executeRegularFunction(func, ctx);
+                return executeRegularFunction(func, ctx);
             }
         }
 
         private ExecValue executeRegularFunction(FunctionDefinition func, ExecutionContext ctx)
         {
-            ExecValue ret =  executed(func.UserBody, ctx);
+            ExecValue ret = executed(func.UserBody, ctx);
             if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation))
                 return ExecValue.CreateReturn(null);
             else
@@ -169,7 +169,7 @@ namespace Skila.Interpreter
 
             foreach (IExpression expr in block.Instructions)
             {
-                result =  executed(expr, ctx);
+                result = executed(expr, ctx);
                 if (result.IsReturn)
                     break;
             }
@@ -182,7 +182,7 @@ namespace Skila.Interpreter
             ObjectData cond_obj = null;
             if (!ifBranch.IsElse)
             {
-                ExecValue cond =  executed(ifBranch.Condition, ctx);
+                ExecValue cond = executed(ifBranch.Condition, ctx);
                 if (cond.IsReturn)
                     return cond;
 
@@ -190,9 +190,9 @@ namespace Skila.Interpreter
             }
 
             if (ifBranch.IsElse || cond_obj.PlainValue.Cast<bool>())
-                return  executed(ifBranch.Body, ctx);
+                return executed(ifBranch.Body, ctx);
             else if (ifBranch.Next != null)
-                return  executed(ifBranch.Next, ctx);
+                return executed(ifBranch.Next, ctx);
             else
                 return ExecValue.Undefined;
         }
@@ -216,7 +216,7 @@ namespace Skila.Interpreter
             // the only thing is going on is execution
 
             ExecutionContext ctx = ExecutionContext.Create(env);
-            ExecValue result =  this.executed(main, ctx);
+            ExecValue result = this.executed(main, ctx);
 
             ctx.Routines.Complete();
 
@@ -237,27 +237,27 @@ namespace Skila.Interpreter
 
             if (node is IfBranch if_branch)
             {
-                result =  execute(if_branch, ctx);
+                result = execute(if_branch, ctx);
             }
             else if (node is Block block)
             {
-                result =  execute(block, ctx);
+                result = execute(block, ctx);
             }
             else if (node is FunctionDefinition func)
             {
-                result =  execute(func, ctx);
+                result = execute(func, ctx);
             }
             else if (node is VariableDeclaration decl)
             {
-                result =  execute(decl, ctx);
+                result = execute(decl, ctx);
             }
             else if (node is Assignment assign)
             {
-                result =  execute(assign, ctx);
+                result = execute(assign, ctx);
             }
             else if (node is NameReference name_ref)
             {
-                result =  execute(name_ref, ctx);
+                result = execute(name_ref, ctx);
             }
             else if (node is BoolLiteral bool_lit)
             {
@@ -273,11 +273,11 @@ namespace Skila.Interpreter
             }
             else if (node is Return ret)
             {
-                result =  execute(ret, ctx);
+                result = execute(ret, ctx);
             }
             else if (node is FunctionCall call)
             {
-                result =  execute(call, ctx);
+                result = execute(call, ctx);
             }
             else if (node is Alloc alloc)
             {
@@ -285,7 +285,7 @@ namespace Skila.Interpreter
             }
             else if (node is Spawn spawn)
             {
-                result =  execute(spawn, ctx);
+                result = execute(spawn, ctx);
             }
             else
                 throw new NotImplementedException();
@@ -343,7 +343,7 @@ namespace Skila.Interpreter
                 return ExecValue.CreateReturn(null);
             else
             {
-                ObjectData obj = ( executed(ret.Value, ctx)).ExprValue;
+                ObjectData obj = (executed(ret.Value, ctx)).ExprValue;
                 if (ret.Value.IsDereferenced)
                     obj = obj.Dereference().Copy();
                 ctx.Heap.TryInc(ctx, obj);
@@ -358,13 +358,13 @@ namespace Skila.Interpreter
             if (this_context == null)
                 throw new Exception("Internal error");
 
-            ObjectData self = ( executed(this_context, ctx)).ExprValue.GetValue(this_context);
+            ObjectData self = (executed(this_context, ctx)).ExprValue.GetValue(this_context);
             ctx.Heap.TryInc(ctx, self);
 
             ctx.Arguments = null;
             ctx.ThisArgument = self;
 
-            ExecValue ret =  executed(prop.Getter, ctx);
+            ExecValue ret = executed(prop.Getter, ctx);
 
             if (ret.RetValue != null)
                 ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
@@ -379,7 +379,7 @@ namespace Skila.Interpreter
             if (this_context == null)
                 throw new Exception("Internal error");
 
-            ObjectData self = ( executed(this_context, ctx)).ExprValue.GetValue(this_context);
+            ObjectData self = (executed(this_context, ctx)).ExprValue.GetValue(this_context);
             ctx.Heap.TryInc(ctx, self);
 
             var args = new Dictionary<FunctionParameter, ObjectData>();
@@ -391,7 +391,7 @@ namespace Skila.Interpreter
             ctx.Arguments = args;
             ctx.ThisArgument = self;
 
-            ExecValue ret =  executed(prop.Setter, ctx);
+            ExecValue ret = executed(prop.Setter, ctx);
 
             if (ret.RetValue != null)
                 throw new Exception("Internal error");
@@ -402,7 +402,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(Spawn spawn, ExecutionContext ctx)
         {
-            FunctionDefinition func =  prepareFunctionCall(spawn.Call, ref ctx);
+            FunctionDefinition func = prepareFunctionCall(spawn.Call, ref ctx);
 
             var ctx_clone = ctx.Clone();
             ctx.Routines.Run(() => executed(func, ctx_clone));
@@ -412,9 +412,9 @@ namespace Skila.Interpreter
 
         private ExecValue execute(FunctionCall call, ExecutionContext ctx)
         {
-            FunctionDefinition func =  prepareFunctionCall(call, ref ctx);
+            FunctionDefinition func = prepareFunctionCall(call, ref ctx);
 
-            ExecValue ret =  executed(func, ctx);
+            ExecValue ret = executed(func, ctx);
 
             if (ret.RetValue != null)
                 ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: call.IsRead);
@@ -427,7 +427,7 @@ namespace Skila.Interpreter
             ObjectData self;
             if (call.Resolution.MetaThisArgument != null)
             {
-                ExecValue this_exec =  executed(call.Resolution.MetaThisArgument.Expression, ctx);
+                ExecValue this_exec = executed(call.Resolution.MetaThisArgument.Expression, ctx);
                 self = this_exec.ExprValue.GetValue(call.Name.Prefix);
                 ctx.Heap.TryInc(ctx, self);
             }
@@ -437,7 +437,7 @@ namespace Skila.Interpreter
             var args = new Dictionary<FunctionParameter, ObjectData>();
             foreach (FunctionArgument arg in call.Arguments)
             {
-                ExecValue arg_exec =  executed(arg.Expression, ctx);
+                ExecValue arg_exec = executed(arg.Expression, ctx);
                 ObjectData arg_obj = arg_exec.ExprValue.GetValue(arg);
                 ctx.Heap.TryInc(ctx, arg_obj);
 
@@ -448,8 +448,61 @@ namespace Skila.Interpreter
             ctx.ThisArgument = self;
 
             FunctionDefinition target_func = call.Resolution.TargetInstance.Target.CastFunction();
-            if (call.Resolution.IsVirtualCall)
-                target_func = self.VirtualTable.GetDerived(target_func);
+            if (call.Resolution.MetaThisArgument != null && ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
+            {
+                bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && target_func.OwnerType().IsInterface) 
+                    || target_func.OwnerType().IsProtocol;
+                bool classic_virtual = target_func.IsVirtual;
+
+                if (duck_virtual)
+                {
+                    // we know "this" is either pointer or reference so we have to get inner type 
+                    // in order to get virtual table for it
+                    IEntityInstance inner_type = call.Resolution.MetaThisArgument.Evaluation
+                        .Cast<EntityInstance>().TemplateArguments.Single();
+
+                    // todo: optimize it
+                    // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
+                    // of such cases as this
+                    // let b *B = new C();
+                    // let a *IA = b;
+                    // on the second line the static types are "*B" -> "*IA" so the virtual table is built in type
+                    // B, not C, but in runtime we have C at hand and C does not have any virtual table, because
+                    // types "*C" -> "*IA" were never matched
+
+                    bool found_duck = false;
+
+                    foreach (EntityInstance ancestor in self.RunTimeTypeInstance.Target.CastType().Inheritance
+                        .AncestorsIncludingObject.Select(it => it.TranslateThrough(self.RunTimeTypeInstance))
+                        .Concat(self.RunTimeTypeInstance))
+                    {
+                        if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
+                        {
+                            if (!vtable.TryGetDerived(ref target_func))
+                                throw new Exception("Internal error");
+                            found_duck = true;
+                            break;
+                        }
+                    }
+
+                    if (!found_duck)
+                        throw new Exception("Internal error");
+                }
+
+                if (duck_virtual || target_func.IsVirtual)
+                {
+                    if (!self.InheritanceVirtualTable.TryGetDerived(ref target_func))
+                    {
+                        // it is legal in duck mode to have a miss, but it case of classis virtual call
+                        // we simply HAVE TO have the entry for each virtual function
+                        if (!duck_virtual)
+                            throw new Exception("Internal error");
+                    }
+                }
+            }
+
+            if (target_func == null)
+                throw new Exception("Internal error");
 
             return target_func;
         }
@@ -468,11 +521,11 @@ namespace Skila.Interpreter
             IEntity target = name.Binding.Match.Target;
 
             if (target is Property)
-                return  callPropertyGetter(name, ctx);
+                return callPropertyGetter(name, ctx);
 
             if (name.Prefix != null)
             {
-                ExecValue prefix_exec =  executed(name.Prefix, ctx);
+                ExecValue prefix_exec = executed(name.Prefix, ctx);
                 ObjectData prefix_obj = prefix_exec.ExprValue.GetValue(name.Prefix);
                 return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
@@ -495,7 +548,11 @@ namespace Skila.Interpreter
 
         private ExecValue execute(Assignment assign, ExecutionContext ctx)
         {
-            ExecValue rhs_val =  executed(assign.RhsValue, ctx);
+            if (assign.DebugId.Id == 8948)
+            {
+                ;
+            }
+            ExecValue rhs_val = executed(assign.RhsValue, ctx);
 
             if (assign.Lhs.IsSink())
             {
@@ -512,11 +569,11 @@ namespace Skila.Interpreter
 
                 if (assign.Lhs.Cast<NameReference>().Binding.Match.Target is Property)
                 {
-                     callPropertySetter(assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj, ctx);
+                    callPropertySetter(assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj, ctx);
                 }
                 else
                 {
-                    lhs =  executed(assign.Lhs, ctx);
+                    lhs = executed(assign.Lhs, ctx);
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -531,9 +588,14 @@ namespace Skila.Interpreter
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(decl.Evaluation));
             else
-                rhs_val =  executed(decl.InitValue, ctx);
+                rhs_val = executed(decl.InitValue, ctx);
 
             ObjectData rhs_obj = rhs_val.ExprValue.GetValue(decl.InitValue);
+            if (decl.DebugId.Id == 8919)
+            {
+                ;
+            }
+
             // if (decl.InitValue != null && decl.InitValue.IsDereferenced)
             //   rhs_obj = rhs_obj.Dereference();
             ctx.Heap.TryInc(ctx, rhs_obj);

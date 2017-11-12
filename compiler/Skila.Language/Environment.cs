@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
-using Skila.Language.Semantics;
-using NaiveLanguageTools.Common;
 using Skila.Language.Flow;
 using Skila.Language.Extensions;
 
@@ -13,9 +10,9 @@ namespace Skila.Language
 {
     public sealed class Environment
     {
-        public static Environment Create()
+        public static Environment Create(IOptions options = null)
         {
-            return new Environment();
+            return new Environment(options);
         }
 
         private readonly List<TypeDefinition> functionTypes;
@@ -45,14 +42,17 @@ namespace Skila.Language
         public FunctionDefinition OptionValueConstructor { get; }
         public FunctionDefinition OptionEmptyConstructor { get; }
 
-        private Environment()
+        public IOptions Options { get; }
+        private Environment(IOptions options)
         {
+            this.Options = options ?? new Options();
+
             this.Root = Namespace.Create(NameFactory.RootNamespace);
             this.SystemNamespace = this.Root.AddNode(Namespace.Create(NameFactory.SystemNamespace));
             this.ConcurrencyNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.ConcurrencyNamespace));
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
 
-            this.ObjectType = this.Root.AddNode(TypeDefinition.CreateProtocol(EntityModifier.Const,
+            this.ObjectType = this.Root.AddNode(TypeDefinition.CreateInterface(EntityModifier.Const,
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
 
             this.IntType = this.Root.AddNode(TypeBuilder.Create(NameFactory.IntTypeName)
@@ -113,11 +113,11 @@ namespace Skila.Language
 
             this.ISequenceType = this.CollectionsNamespace.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.ISequenceTypeName, "T", VarianceMode.Out))
-                    .Modifier(EntityModifier.Protocol)
+                    .Modifier(EntityModifier.Interface)
                     .Parents(NameFactory.ObjectTypeReference()));
             this.IIterableType = this.CollectionsNamespace.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.IIterableTypeName, "T", VarianceMode.Out))
-                    .Modifier(EntityModifier.Protocol)
+                    .Modifier(EntityModifier.Interface)
                     .Parents(NameFactory.ObjectTypeReference()));
 
             this.functionTypes = new List<TypeDefinition>();
@@ -192,7 +192,7 @@ namespace Skila.Language
         private static TypeDefinition createChannelType()
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
-                    TemplateParametersBuffer.Create().Add("T", VarianceMode.None, EntityModifier.Const, null, null).Values))
+                    TemplateParametersBuffer.Create().Add("T").With(EntityModifier.Const).Values))
                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
                 .With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelSend),
                     new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
@@ -308,6 +308,29 @@ TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
             return instance.Enumerate().All(it => it.IsOfType( PointerType));
         }
 
+    /*    public bool IsPointerLikeOfType(IEntityInstance instance,out IEnumerable<IEntityInstance> innerTypes)
+        {
+            var inner = new List<IEntityInstance>();
+            foreach (EntityInstance elem_instance in instance.Enumerate())
+            {
+                if (elem_instance.IsOfType(PointerType) || elem_instance.IsOfType(ReferenceType))
+                {
+                    inner.Add(elem_instance.TemplateArguments.Single());
+                }
+                else
+                {
+                    innerTypes = null;
+                    return false;
+                }
+            }
+
+            innerTypes = inner;
+            return true;
+        }*/
+        public bool IsPointerLikeOfType(IEntityInstance instance)
+        {
+            return instance.Enumerate().All(it => it.IsOfType(PointerType) || it.IsOfType(ReferenceType));
+        }
         public bool IsOfUnitType(INameReference typeName)
         {
             return typeName.Evaluation.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);

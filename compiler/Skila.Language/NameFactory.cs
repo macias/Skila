@@ -154,6 +154,10 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, NameFactory.PointerTypeName, name);
         }
+        public static NameReference PointerTypeReference(string typeName)
+        {
+            return PointerTypeReference(NameReference.Create(typeName));
+        }
         public static NameReference ReferenceTypeReference(INameReference name)
         {
             return NameReference.Create(NameReference.Root, NameFactory.ReferenceTypeName, name);

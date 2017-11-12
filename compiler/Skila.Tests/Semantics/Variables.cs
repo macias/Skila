@@ -174,8 +174,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(func_def, foo_ref.Binding.Match.Target);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(foo_ref, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, foo_ref));
 
             return resolver;
         }

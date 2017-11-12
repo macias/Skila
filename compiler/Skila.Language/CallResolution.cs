@@ -25,7 +25,7 @@ namespace Skila.Language
         internal static CallResolution Create(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
-            CallContext callContext, 
+            CallContext callContext,
             EntityInstance targetInstance)
         {
             if (targetInstance.Target.IsFunction())
@@ -72,8 +72,6 @@ namespace Skila.Language
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
 
-        public bool IsVirtualCall { get; }
-
         private CallResolution(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
@@ -81,7 +79,7 @@ namespace Skila.Language
             EntityInstance bindingMatch,
             EntityInstance targetInstance)
         {
-            if (this.DebugId.Id ==  11109)
+            if (this.DebugId.Id == 11109)
             {
                 ;
             }
@@ -90,10 +88,6 @@ namespace Skila.Language
             this.TargetInstance = targetInstance;
             this.argumentsProvider = argumentsProvider;
             this.templateArguments = templateArguments.StoreReadOnly();
-
-            this.IsVirtualCall = this.MetaThisArgument!=null 
-                && (ctx.Env.IsPointerOfType(this.MetaThisArgument.Evaluation) || ctx.Env.IsReferenceOfType(this.MetaThisArgument.Evaluation))
-                && this.TargetInstance.Target.CastFunction().IsVirtual;
 
             extractParameters(ctx, callContext.Evaluation, this.TargetInstance,
                 out this.signature, out this.translatedParamEvaluations, out this.translatedResultEvaluation);
@@ -182,8 +176,13 @@ namespace Skila.Language
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
+                if (arg.DebugId.Id==8886)
+                {
+                    ;
+                }
                 IEntityInstance param_eval = this.GetTransParamEvalByArgIndex(arg.Index);
-                if (arg.Evaluation.MatchesTarget(ctx, param_eval, allowSlicing: false) == TypeMatch.No)
+                TypeMatch match = arg.Evaluation.MatchesTarget(ctx, param_eval, allowSlicing: false);
+                if (match == TypeMatch.No)
                     return false;
             }
 
@@ -261,6 +260,10 @@ namespace Skila.Language
 
         private IReadOnlyCollection<INameReference> inferTemplateArguments(ComputationContext ctx)
         {
+            if (this.DebugId.Id==11172)
+            {
+                ;
+            }
             if (!this.directlyTargetsFunction || !this.TargetInstance.MissingTemplateArguments)
                 return null;
 
@@ -320,7 +323,7 @@ namespace Skila.Language
                 return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter, argType) };
             else
             {
-                var arg_type_instance = paramType as EntityInstance;
+                var arg_type_instance = argType as EntityInstance;
                 if (arg_type_instance == null || arg_type_instance.TemplateArguments.Count != param_type_instance.TemplateArguments.Count)
                     return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 

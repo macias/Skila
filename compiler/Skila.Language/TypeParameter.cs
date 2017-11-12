@@ -21,6 +21,7 @@ namespace Skila.Language
         public EntityModifier ConstraintModifier { get; }
         public IReadOnlyCollection<NameReference> InheritsNames { get; }
         public IReadOnlyCollection<NameReference> BaseOfNames { get; }
+        public IReadOnlyCollection<FunctionDefinition> Functions { get; }
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
@@ -30,6 +31,7 @@ namespace Skila.Language
             string name,
             VarianceMode variance,
             EntityModifier constraintModifier,
+            IEnumerable<FunctionDefinition> functions,
             IEnumerable<NameReference> inherits,
             IEnumerable<NameReference> baseOf)
             : base()
@@ -40,11 +42,11 @@ namespace Skila.Language
             this.Index = index;
             this.Name = name;
             this.Variance = variance;
-            this.ConstraintModifier = constraintModifier;
+            this.ConstraintModifier = constraintModifier ?? EntityModifier.None;
+            this.Functions = (functions ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.InheritsNames = (inherits ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
             this.BaseOfNames = (baseOf ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
-            this.AssociatedType = TypeDefinition.CreateTypeParameter(this.ConstraintModifier, NameDefinition.Create(Name), 
-                InheritsNames, this);
+            this.AssociatedType = TypeDefinition.CreateTypeParameter( this);
             this.InstanceOf = AssociatedType.GetInstanceOf(null);
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));

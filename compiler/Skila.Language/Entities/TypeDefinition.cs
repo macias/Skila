@@ -6,6 +6,7 @@ using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Flow;
+using System;
 
 namespace Skila.Language.Entities
 {
@@ -31,9 +32,9 @@ namespace Skila.Language.Entities
         {
             return new TypeDefinition(false, modifier, false, name, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateProtocol(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
+        public static TypeDefinition CreateInterface(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier | EntityModifier.Protocol, false, name, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier | EntityModifier.Interface, false, name, parents, null, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition CreateHeapOnly(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents = null)
         {
@@ -46,18 +47,22 @@ namespace Skila.Language.Entities
         }
 
         // used for creating embedded type definitions of type parameters, e.g. Tuple<T1,T2>, here we create T1 and T2
-        public static TypeDefinition CreateTypeParameter(EntityModifier modifier, NameDefinition name, IEnumerable<NameReference> parents,
-            TemplateParameter typeParameter)
+        public static TypeDefinition CreateTypeParameter(TemplateParameter typeParameter)
         {
-            return new TypeDefinition(false, modifier, false, name, parents, null, null, typeParameter);
+            EntityModifier modifier = typeParameter.ConstraintModifier;
+            if (typeParameter.Functions.Any())
+                modifier = modifier | EntityModifier.Protocol;
+            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name),
+                typeParameter.InheritsNames, typeParameter.Functions, null, typeParameter);
         }
 
 
         public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None, NameDefinition.Create(NameFactory.JokerTypeName), allowSlicing: true);
 
-        public bool IsTypeImplementation => !this.IsProtocol;
+        public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
+        public bool IsInterface => this.Modifier.HasInterface;
         public bool IsProtocol => this.Modifier.HasProtocol;
-        public bool IsAbstract => this.IsProtocol || this.Modifier.HasAbstract;
+        public bool IsAbstract => this.IsInterface || this.Modifier.HasAbstract || this.IsProtocol;
 
         public bool IsJoker => this.Name.Name == NameFactory.JokerTypeName;
 
@@ -78,10 +83,7 @@ namespace Skila.Language.Entities
 
         public bool IsPlain { get; }
 
-        // base method -> derived (here) method
-        private readonly Dictionary<FunctionDefinition, FunctionDefinition> methodDerivations;
-
-        public IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> VirtualMapping => methodDerivations;
+        public VirtualTable InheritanceVirtualTable { get; private set; }
 
         private TypeDefinition(bool isPlain,
             EntityModifier modifier,
@@ -102,8 +104,6 @@ namespace Skila.Language.Entities
             addAutoConstructors();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
-
-            this.methodDerivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
 
             constructionCompleted = true;
         }
@@ -130,35 +130,39 @@ namespace Skila.Language.Entities
 
 
                 {
+                    // base method -> derived (here) method
+                    var derivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
                     HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
                     foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
                     {
-                        foreach (FunctionDefinition base_func in ancestor.Target.CastType().NestedFunctions
-                            .Where(it => !it.IsSealed))
+                        foreach (Tuple<FunctionDefinition, FunctionDefinition> pair in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
                         {
-                            if (base_func.DebugId.Id == 8849)
-                            {
-                                ;
-                            }
-                            bool found_derived = false;
+                            FunctionDefinition base_func = pair.Item1;
+                            FunctionDefinition derived_func = pair.Item2;
 
-                            foreach (FunctionDefinition derived_func in functions)
+                            if (derived_func == null)
                             {
-                                if (FunctionDefinitionExtension.IsDerivedOf(ctx, derived_func, base_func, ancestor))
+                                if (base_func.IsAbstract)
+                                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, base_func);
+                            }
+                            else
+                            {
+                                if (!derived_func.Modifier.HasDerived)
+                                    ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
+
+                                if (!base_func.IsSealed)
                                 {
-                                    if (!derived_func.Modifier.HasDerived)
-                                        ctx.AddError(ErrorCode.MissingDerivedModifier, derived_func);
-                                    functions.Remove(derived_func);
-                                    this.methodDerivations.Add(base_func,derived_func);
-                                    found_derived = true;
-                                    break;
+                                    if (!functions.Remove(derived_func))
+                                        throw new System.Exception("Internal error");
+                                    derivations.Add(base_func, derived_func);
                                 }
+                                else if (derived_func.Modifier.HasDerived)
+                                    ctx.AddError(ErrorCode.CannotDeriveSealedMethod, derived_func);
                             }
-
-                            if (!found_derived && base_func.IsAbstract)
-                                ctx.AddError(ErrorCode.MissingFunctionImplementation, this, base_func);
                         }
                     }
+
+                    this.InheritanceVirtualTable = new VirtualTable(derivations);
                 }
 
                 if (!this.IsAbstract)
@@ -185,11 +189,12 @@ namespace Skila.Language.Entities
                     }
                 }
             }
+
         }
 
         private void addAutoConstructors()
         {
-            if (this.IsJoker || this.IsProtocol)
+            if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol)
                 return;
 
             if (this.DebugId.Id == 1564)
@@ -270,7 +275,7 @@ namespace Skila.Language.Entities
                 if (!this.NestedFunctions.Any(it => it.Name.Name == NameFactory.NewConstructorName
                         && it.Name.Arity == init_cons.Name.Arity && it.NOT_USED_CounterpartParameters(init_cons)))
                 {
-                    
+
                 }
             }
 

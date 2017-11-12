@@ -54,7 +54,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorStaticMemberReference()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { StaticMemberOnlyThroughTypeName = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
@@ -68,7 +68,7 @@ namespace Skila.Tests.Semantics
                                     VariableDeclaration.CreateStatement("f",NameReference.Create("Foo"),Undef.Create()),
                                     Return.Create(field_ref) })));
 
-            var resolver = NameResolver.Create(env, new Options() { StaticMemberOnlyThroughTypeName = true });
+            var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, field_ref));

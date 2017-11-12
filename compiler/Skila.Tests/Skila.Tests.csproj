@@ -52,16 +52,19 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Execution\Concurrency.cs" />
+    <Compile Include="Execution\Interfaces.cs" />
     <Compile Include="Execution\Inheritance.cs" />
     <Compile Include="Execution\Properties.cs" />
     <Compile Include="Execution\Pointers.cs" />
     <Compile Include="Execution\Objects.cs" />
     <Compile Include="Execution\Flow.cs" />
     <Compile Include="Execution\FunctionCalls.cs" />
+    <Compile Include="Execution\Templates.cs" />
     <Compile Include="Semantics\CompilerProtection.cs" />
     <Compile Include="Semantics\Concurrency.cs" />
     <Compile Include="Semantics\Inheritance.cs" />
-    <Compile Include="Semantics\Protocols.cs" />
+    <Compile Include="Semantics\Templates.cs" />
+    <Compile Include="Semantics\Interfaces.cs" />
     <Compile Include="Semantics\MemoryClasses.cs" />
     <Compile Include="Semantics\Flow.cs" />
     <Compile Include="Semantics\Expressions.cs" />

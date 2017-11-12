@@ -170,6 +170,7 @@
     <Compile Include="TypeParameter.cs" />
     <Compile Include="NameReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VirtualTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Documentation\References.md" />

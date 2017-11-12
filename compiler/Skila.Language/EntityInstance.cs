@@ -26,6 +26,7 @@ namespace Skila.Language
             return target.GetInstanceOf(arguments.Select(it => it.Evaluated(ctx)));
         }
 
+
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
 #endif
@@ -65,6 +66,8 @@ namespace Skila.Language
             }
         }
 
+        private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
+
         private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments)
         {
             if (target == null)
@@ -74,8 +77,17 @@ namespace Skila.Language
             this.NameOf = NameReference.Create(null, target.Name.Name, arguments.Select(it => it.NameOf), target: this);
             this.Target = target;
             this.TemplateArguments = arguments.StoreReadOnlyList();
+            this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
 
+        internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
+        {
+            this.duckVirtualTables.Add(target, vtable);
+        }
+        public bool TryGetDuckVirtualTable(EntityInstance target, out VirtualTable vtable)
+        {
+            return this.duckVirtualTables.TryGetValue(target, out vtable);
+        }
 
         public override string ToString()
         {
@@ -122,7 +134,7 @@ namespace Skila.Language
 
         public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
         {
-            if (closedTemplate.DebugId.Id==11091 && this.DebugId.Id==1029)
+            if (closedTemplate.DebugId.Id == 11091 && this.DebugId.Id == 1029)
             {
                 ;
             }
@@ -138,7 +150,7 @@ namespace Skila.Language
                 translated = true;
                 return closedTemplate.TemplateArguments[this.TargetType.TemplateParameter.Index];
             }
-            else 
+            else
             {
                 EntityInstance self = this;
                 foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
@@ -202,10 +214,16 @@ namespace Skila.Language
             return true;
         }
 
-        public ConstraintMatch ArgumentMatchesConstraintsOf(ComputationContext ctx, EntityInstance closedTemplate, TemplateParameter param)
+        public ConstraintMatch ArgumentMatchesConstraintsOf(ComputationContext ctx, EntityInstance closedTemplate,
+            TemplateParameter param)
         {
+            if (this.DebugId.Id == 11139)
+            {
+                ;
+            }
             if (param.ConstraintModifier.HasConst && !this.IsImmutableType(ctx))
                 return ConstraintMatch.ConstViolation;
+
 
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.TranslateInherits(closedTemplate))
@@ -213,6 +231,16 @@ namespace Skila.Language
                 if (TypeMatch.No == TypeMatcher.Matches(ctx, false, this, constraint_inherits, allowSlicing: true))
                     return ConstraintMatch.InheritsViolation;
             }
+
+            {
+                VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf);
+                //FunctionDefinition missed_base = TypeDefinitionExtension.PairDerivations(ctx, param.AssociatedType.InstanceOf, this.Target.CastType().NestedFunctions)
+                  //  .Where(it => it.Item2 == null).Select(it => it.Item1).FirstOrDefault();
+                //if (missed_base != null)
+                if (vtable==null)
+                    return ConstraintMatch.MissingFunction;
+            }
+
 
             // 'base-of' part of constraint
             IEnumerable<IEntityInstance> arg_bases = (this.TargetsTemplateParameter

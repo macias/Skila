@@ -6,5 +6,6 @@
         ConstViolation,
         BaseViolation,
         InheritsViolation,
+        MissingFunction,
     }
 }

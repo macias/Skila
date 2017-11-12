@@ -19,12 +19,12 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-            //new Semantics.Inheritance().ProperBasicMethodDerivation();
-            // new Protocols().ErrorCallingConstructor();
+            // new Semantics.Templates().ErrorHasConstraint();
+            //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
-            // new Mutability().ErrorViolatingConstConstraint();
+             //new Mutability().ErrorViolatingConstConstraint();
             //  new MemoryClasses().ErrorHeapTypeOnStack();
             // new NameResolution().ErrorCircularReference();
             //  new Semantics.FunctionCalls().ErrorAmbiguousCallWithDistinctOutcomeTypes();
@@ -33,7 +33,7 @@ namespace Skila.Tests
             //new Expressions().ErrorIgnoringFunctionResult();
             //new MethodDefinitions().Basics();
             //new FunctionDefinitions().VariadicParametersInvalidLimits();
-           // new TypeMatching().UnionMatching();
+            // new TypeMatching().UnionMatching();
             //  new Flow().ErrorReadingOtherIfBlocks();
             //new Variables().DetectingUsage();
             // new Types().ErrorIncorrectMethodsForType();
@@ -42,7 +42,9 @@ namespace Skila.Tests
             //new Pointers().DereferenceOnAssignment();
             //new Execution.FunctionCalls().LocalVariablesLeakCheck();
             //new Execution.Concurrency().SingleMessage();
-            new Execution.Inheritance().VirtualCall();
+            //new Execution.Inheritance().DuckDeepVirtualCall();
+            //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
+            new Execution.Templates().HasConstraint();
 
             {
                 double start = Stopwatch.GetTimestamp();

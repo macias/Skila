@@ -9,11 +9,27 @@ namespace Skila.Language
 {
     public sealed class TypeMatcher
     {
-        private static bool templateMatches(ComputationContext ctx, bool inversedVariance, EntityInstance input, EntityInstance target, bool allowSlicing)
+        private static bool templateMatches(ComputationContext ctx, bool inversedVariance, EntityInstance input,
+            EntityInstance target, bool allowSlicing)
         {
             if (input.IsJoker || target.IsJoker)
                 return true;
 
+            bool matches = strictTemplateMatches(ctx, inversedVariance, input, target, allowSlicing);
+
+            TypeDefinition target_type = target.Target.CastType();
+
+            if (matches || (!(ctx.Env.Options.InterfaceDuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
+                return matches;
+
+            VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target);
+
+            return vtable != null;
+        }
+
+        private static bool strictTemplateMatches(ComputationContext ctx, bool inversedVariance,
+            EntityInstance input, EntityInstance target, bool allowSlicing)
+        {
             if (input.Target != target.Target)
                 return false;
 
@@ -119,7 +135,7 @@ namespace Skila.Language
                 return TypeMatch.No;
             }
 
-            foreach (EntityInstance family_instance in input.Inheritance(ctx).AncestorsIncludingObject.Concat(input))
+            foreach (EntityInstance family_instance in new[] { input}.Concat( input.Inheritance(ctx).AncestorsIncludingObject))
             {
                 bool match = templateMatches(ctx, inversedVariance, family_instance, target, allowSlicing);
                 if (match)
