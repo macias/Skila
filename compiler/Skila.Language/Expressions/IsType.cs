@@ -61,7 +61,7 @@ namespace Skila.Language.Expressions
                             continue;
 
                         // this error is valid as long we don't allow mixes of value types, like "Int|Bool"
-                        if (!instance.Target.CastType().AllowSlicedSubstitution)
+                        if (!instance.TargetType.AllowSlicedSubstitution)
                         {
                             // value types are known in advance (in compilation time) so checking their types
                             // in runtime does not make sense

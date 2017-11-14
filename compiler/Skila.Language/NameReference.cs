@@ -152,7 +152,7 @@ namespace Skila.Language
                         // referencing static member?
                         if (this.Prefix is NameReference prefix_ref && prefix_ref.Binding.Match.Target.IsType())
                         {
-                            TypeDefinition target_type = prefix_ref.Binding.Match.Target.CastType();
+                            TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
                             this.Binding.Set(target_type.FindEntities(this)
                                 .Where(it => it.Modifier.HasStatic)
                                 .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments)));

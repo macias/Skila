@@ -60,7 +60,7 @@ namespace Skila.Language
                     if (!instance.Target.IsType())
                         continue;
 
-                    if (instance.Target.CastType().AllowSlicedSubstitution)
+                    if (instance.TargetType.AllowSlicedSubstitution)
                         found_slicing_type = true;
                     else
                         ++found_non_slicing_type;

@@ -23,7 +23,7 @@ namespace Skila.Interpreter
 
         public static ObjectData Create(IEntityInstance typeInstance, object value)
         {
-            TypeDefinition type_def = typeInstance.Cast<EntityInstance>().Target.CastType();
+            TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
             if (type_def.IsPlain)
                 return new ObjectData(true, value, typeInstance);
             else
@@ -73,7 +73,7 @@ namespace Skila.Interpreter
             {
                 if (this.isDisposed)
                     throw new ObjectDisposedException($"{this}");
-                return this.RunTimeTypeInstance.Target.CastType().InheritanceVirtualTable;
+                return this.RunTimeTypeInstance.TargetType.InheritanceVirtualTable;
             }
         }
         public EntityInstance RunTimeTypeInstance => this.data.RunTimeTypeInstance;
@@ -99,7 +99,7 @@ namespace Skila.Interpreter
                 if (!this.IsPlain)
                 {
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
-                    foreach (VariableDeclaration field in this.RunTimeTypeInstance.Target.CastType().AllNestedFields)
+                    foreach (VariableDeclaration field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
                     {
                         EntityInstance field_type = field.Evaluation.Cast<EntityInstance>();
                         field_type = field_type.TranslateThrough(typeInstance);

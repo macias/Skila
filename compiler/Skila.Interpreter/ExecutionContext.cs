@@ -13,7 +13,8 @@ namespace Skila.Interpreter
         public Environment Env { get; }
         public VariableRegistry LocalVariables { get; set; }
         public ObjectData ThisArgument { get; set; }
-        public Dictionary<FunctionParameter,ObjectData> Arguments { get; set; }
+        public Dictionary<FunctionParameter,ObjectData> FunctionArguments { get; set; }
+        public IReadOnlyList<IEntityInstance> TemplateArguments { get; set; }
         internal Heap Heap { get; }
         public RoutineRegistry Routines { get; }
 
@@ -29,7 +30,7 @@ namespace Skila.Interpreter
             this.Heap = src.Heap;
             this.Routines = src.Routines;
             this.ThisArgument = src.ThisArgument;
-            this.Arguments = src.Arguments;
+            this.FunctionArguments = src.FunctionArguments;
         }
 
         internal ExecutionContext Clone()

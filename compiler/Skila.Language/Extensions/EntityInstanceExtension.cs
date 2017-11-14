@@ -16,11 +16,11 @@ namespace Skila.Language.Extensions
             VirtualTable vtable;
             if (!input.TryGetDuckVirtualTable(target, out vtable))
             {
-                vtable = new VirtualTable(TypeDefinitionExtension.PairDerivations(ctx, target, input.Target.CastType().NestedFunctions)
+                vtable = new VirtualTable(TypeDefinitionExtension.PairDerivations(ctx, target, input.TargetType.NestedFunctions)
                     .Where(it => it.Derived != null)
                     .ToDictionary(it => it.Base, it => it.Derived));
 
-                foreach (FunctionDefinition base_func in target.Target.CastType().NestedFunctions)
+                foreach (FunctionDefinition base_func in target.TargetType.NestedFunctions)
                     if (base_func.IsAbstract && !vtable.HasDerived(base_func))
                     {
                         vtable = null;

@@ -119,7 +119,7 @@ namespace Skila.Language.Entities
                 {
                     if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
                     {
-                        TypeDefinition type_def = type_instance.Target.CastType();
+                        TypeDefinition type_def = type_instance.TargetType;
                         type_def.Evaluated(ctx);
                         if (!type_def.HasDefaultPublicConstructor())
                         {
@@ -165,7 +165,7 @@ namespace Skila.Language.Entities
 
                 if (this.Evaluation.Enumerate()
                     .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
-                    .Any(it => it.Target.CastType().Modifier.HasHeapOnly))
+                    .Any(it => it.TargetType.Modifier.HasHeapOnly))
                     ctx.AddError(ErrorCode.HeapTypeOnStack, this);
             }
         }

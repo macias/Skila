@@ -11,6 +11,51 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Templates
     {
+        public IErrorReporter TODO_ConditionalConstraint()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Say")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(IntLiteral.Create("2"))
+                }))
+                .Modifier(EntityModifier.Derived))
+                .Parents("ISay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(FunctionCall.Create(NameReference.Create("s","say")))
+                }))
+                .Parameters(FunctionParameter.Create("s", NameFactory.PointerTypeReference("T")))
+                // this is constraint on function, meaning function will be available when T inherits from ISay
+                .Constraints(ConstraintBuilder.Create("T").Inherits("ISay"))));
+
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("g",null,
+                        ExpressionFactory.StackConstructorCall(NameReference.Create("Greeter",NameReference.Create("Say")))),
+                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Say"))),
+                    Return.Create(FunctionCall.Create(NameReference.Create("g","say"),
+                        FunctionArgument.Create(NameReference.Create("y"))))
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
         [TestMethod]
         public void HasConstraintWithPointer()
         {
@@ -51,8 +96,8 @@ namespace Skila.Tests.Execution
             Assert.AreEqual(2, result.RetValue.PlainValue);
         }
 
-        //[TestMethod]
-        public void TODO_HasConstraintWithValue()
+        [TestMethod]
+        public void HasConstraintWithValue()
         {
             var env = Environment.Create();
             var root_ns = env.Root;

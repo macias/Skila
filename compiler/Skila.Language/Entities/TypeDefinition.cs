@@ -57,11 +57,11 @@ namespace Skila.Language.Entities
         // used for creating embedded type definitions of type parameters, e.g. Tuple<T1,T2>, here we create T1 and T2
         public static TypeDefinition CreateTypeParameter(TemplateParameter typeParameter)
         {
-            EntityModifier modifier = typeParameter.ConstraintModifier;
-            if (typeParameter.Functions.Any())
+            EntityModifier modifier = typeParameter.Constraint.Modifier;
+            if (typeParameter.Constraint.Functions.Any())
                 modifier = modifier | EntityModifier.Protocol;
             return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name),null,
-                typeParameter.InheritsNames, typeParameter.Functions, null, typeParameter);
+                typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions, null, typeParameter);
         }
 
 
@@ -135,7 +135,7 @@ namespace Skila.Language.Entities
 
 
                 foreach (NameReference parent in this.ParentNames.Skip(1))
-                    if (parent.Evaluation.Cast<EntityInstance>().Target.CastType().IsTypeImplementation)
+                    if (parent.Evaluation.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                         ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
 
 
@@ -260,7 +260,7 @@ namespace Skila.Language.Entities
        && it.Modifier.HasImplicit
        && it.Parameters.Count == 1
        && input.MatchesTarget(ctx, it.Parameters.Single().TypeName.Evaluated(ctx),
-       input.Target.CastType().AllowSlicedSubstitution) == TypeMatch.Pass);
+       input.TargetType.AllowSlicedSubstitution) == TypeMatch.Pass);
 }*/
         internal IEnumerable<FunctionDefinition> ImplicitInConverters()
         {

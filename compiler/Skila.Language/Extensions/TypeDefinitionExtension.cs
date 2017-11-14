@@ -17,7 +17,7 @@ namespace Skila.Language.Extensions
             EntityInstance baseInstance,
             IEnumerable<FunctionDefinition> derivedFunctions)
         {
-            foreach (FunctionDefinition base_func in baseInstance.Target.CastType().NestedFunctions
+            foreach (FunctionDefinition base_func in baseInstance.TargetType.NestedFunctions
                 .Where(it => !it.IsInitConstructor() && !it.IsZeroConstructor()))
             {
                 FunctionDefinition derived_func = derivedFunctions

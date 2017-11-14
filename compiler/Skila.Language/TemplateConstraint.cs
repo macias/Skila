@@ -13,7 +13,7 @@ namespace Skila.Language
     {
         public NameReference Name { get; }
         // for example "const" meaning the type argument has to be immutable
-        public EntityModifier ConstraintModifier { get; }
+        public EntityModifier Modifier { get; }
         public IReadOnlyCollection<NameReference> InheritsNames { get; }
         public IReadOnlyCollection<NameReference> BaseOfNames { get; }
         public IReadOnlyCollection<FunctionDefinition> Functions { get; }
@@ -33,7 +33,7 @@ namespace Skila.Language
                 throw new ArgumentNullException();
 
             this.Name = name;
-            this.ConstraintModifier = constraintModifier ?? EntityModifier.None;
+            this.Modifier = constraintModifier ?? EntityModifier.None;
             this.Functions = (functions ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.InheritsNames = (inherits ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
             this.BaseOfNames = (baseOf ?? Enumerable.Empty<NameReference>()).StoreReadOnly();

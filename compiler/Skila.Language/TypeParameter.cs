@@ -18,12 +18,12 @@ namespace Skila.Language
         public string Name { get; }
         public VarianceMode Variance { get; }
 
-        private TemplateConstraint constraint;
+        public TemplateConstraint Constraint { get; private set; }
         // for example "const" meaning the type argument has to be immutable
-        public EntityModifier ConstraintModifier => this.constraint.ConstraintModifier;
-        public IReadOnlyCollection<NameReference> InheritsNames => this.constraint.InheritsNames;
-        public IReadOnlyCollection<NameReference> BaseOfNames => this.constraint.BaseOfNames;
-        public IReadOnlyCollection<FunctionDefinition> Functions => this.constraint.Functions;
+        public EntityModifier ConstraintModifier => this.Constraint.Modifier;
+        public IReadOnlyCollection<NameReference> InheritsNames => this.Constraint.InheritsNames;
+        public IReadOnlyCollection<NameReference> BaseOfNames => this.Constraint.BaseOfNames;
+        public IReadOnlyCollection<FunctionDefinition> Functions => this.Constraint.Functions;
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
@@ -31,8 +31,8 @@ namespace Skila.Language
         {
             get
             {
-                if (this.constraint != null)
-                    yield return this.constraint;
+                if (this.Constraint != null)
+                    yield return this.Constraint;
             }
         }
 
@@ -51,10 +51,10 @@ namespace Skila.Language
 
         public void SetConstraint(TemplateConstraint constraint)
         {
-            if (this.constraint != null)
+            if (this.Constraint != null)
                 throw new InvalidOperationException();
 
-            this.constraint = constraint ?? new TemplateConstraint(NameReference.Create(this.Name), null, null, null, null);
+            this.Constraint = constraint ?? new TemplateConstraint(NameReference.Create(this.Name), null, null, null, null);
 
             this.AssociatedType = TypeDefinition.CreateTypeParameter(this);
             this.InstanceOf = AssociatedType.GetInstanceOf(null);

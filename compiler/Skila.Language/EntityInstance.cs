@@ -35,7 +35,7 @@ namespace Skila.Language
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
         public IEntity Target { get; }
-        public TypeDefinition TargetType => this.Target.Cast<TypeDefinition>();
+        public TypeDefinition TargetType => this.Target.CastType();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
@@ -105,7 +105,7 @@ namespace Skila.Language
         public bool IsValueType(ComputationContext ctx)
         {
             return !ctx.Env.IsReferenceOfType(this) && !ctx.Env.IsPointerOfType(this)
-                && !(this.Target.IsType() && this.Target.CastType().Modifier.HasHeapOnly);
+                && !(this.Target.IsType() && this.TargetType.Modifier.HasHeapOnly);
         }
 
         public IEntityInstance Evaluated(ComputationContext ctx)
@@ -234,8 +234,8 @@ namespace Skila.Language
 
             {
                 VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf);
-                //FunctionDefinition missed_base = TypeDefinitionExtension.PairDerivations(ctx, param.AssociatedType.InstanceOf, this.Target.CastType().NestedFunctions)
-                  //  .Where(it => it.Item2 == null).Select(it => it.Item1).FirstOrDefault();
+                //FunctionDefinition missed_base = TypeDefinitionExtension.PairDerivations(ctx, param.AssociatedType.InstanceOf, this.TargetType.NestedFunctions)
+                //  .Where(it => it.Item2 == null).Select(it => it.Item1).FirstOrDefault();
                 //if (missed_base != null)
                 if (vtable==null)
                     return ConstraintMatch.MissingFunction;

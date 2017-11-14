@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             // new Semantics.Templates().ErrorHasConstraint();
-            new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
+            //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
@@ -44,7 +44,7 @@ namespace Skila.Tests
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Inheritance().DuckDeepVirtualCall();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
-            // new Execution.Templates().TODO_HasConstraintWithValue();
+            new Execution.Templates().HasConstraintWithValue();
 
             {
                 double start = Stopwatch.GetTimestamp();

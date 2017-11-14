@@ -19,6 +19,10 @@ namespace Skila.Language
         {
             return new FunctionParameter(name, typeName, variadic, defaultValue, isNameRequired: isNameRequired);
         }
+        public static FunctionParameter Create(string name, INameReference typeName)
+        {
+            return new FunctionParameter(name, typeName,  Variadic.None, null, isNameRequired: false);
+        }
 
         public bool IsNameRequired { get; }
         public bool IsOptional => this.DefaultValue != null;

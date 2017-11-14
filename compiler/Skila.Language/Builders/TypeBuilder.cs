@@ -20,9 +20,13 @@ namespace Skila.Language.Builders
             typeParameters.ForEach(it => buff.Add(it, VarianceMode.None));
             return new TypeBuilder(NameDefinition.Create(name, buff.Values));
         }
-        internal static TypeBuilder CreateInterface(EntityModifier modifier, NameDefinition name)
+        public static TypeBuilder CreateInterface(string name, EntityModifier modifier = null)
         {
-            return new TypeBuilder(name).Modifier(modifier | EntityModifier.Interface);
+            return CreateInterface(NameDefinition.Create(name), modifier);
+        }
+        public static TypeBuilder CreateInterface(NameDefinition name, EntityModifier modifier = null)
+        {
+            return new TypeBuilder(name).Modifier(EntityModifier.Interface | modifier);
         }
 
 

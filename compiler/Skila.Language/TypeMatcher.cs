@@ -17,7 +17,7 @@ namespace Skila.Language
 
             bool matches = strictTemplateMatches(ctx, inversedVariance, input, target, allowSlicing);
 
-            TypeDefinition target_type = target.Target.CastType();
+            TypeDefinition target_type = target.TargetType;
 
             if (matches || (!(ctx.Env.Options.InterfaceDuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
                 return matches;
@@ -64,8 +64,8 @@ namespace Skila.Language
                 return TypeMatch.Pass;
 
             {
-                IEnumerable<FunctionDefinition> in_conv = target.Target.CastType().ImplicitInConverters().StoreReadOnly();
-                bool conv_slicing_sub = input.Target.CastType().AllowSlicedSubstitution;
+                IEnumerable<FunctionDefinition> in_conv = target.TargetType.ImplicitInConverters().StoreReadOnly();
+                bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;
                 foreach (FunctionDefinition func in in_conv)
                 {
                     IEntityInstance conv_type = func.Parameters.Single().TypeName.Evaluated(ctx).TranslateThrough(target);
@@ -110,8 +110,8 @@ namespace Skila.Language
             }
 
             {
-                IEnumerable<FunctionDefinition> out_conv = input.Target.CastType().ImplicitOutConverters().StoreReadOnly();
-                bool conv_slicing_sub = input.Target.CastType().AllowSlicedSubstitution;
+                IEnumerable<FunctionDefinition> out_conv = input.TargetType.ImplicitOutConverters().StoreReadOnly();
+                bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;
                 foreach (FunctionDefinition func in out_conv)
                 {
                     IEntityInstance conv_type = func.ResultTypeName.Evaluated(ctx).TranslateThrough(input);
@@ -127,7 +127,7 @@ namespace Skila.Language
                 }
             }
 
-            if (target.Target.CastType().AllowSlicedSubstitution)
+            if (target.TargetType.AllowSlicedSubstitution)
                 allowSlicing = true;
             else if (!allowSlicing)
             {

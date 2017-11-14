@@ -52,8 +52,8 @@ namespace Skila.Language
             this.ConcurrencyNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.ConcurrencyNamespace));
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
 
-            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(EntityModifier.Const,
-                NameDefinition.Create(NameFactory.ObjectTypeName)));
+            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
+                NameDefinition.Create(NameFactory.ObjectTypeName), EntityModifier.Const));
 
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Plain(true)

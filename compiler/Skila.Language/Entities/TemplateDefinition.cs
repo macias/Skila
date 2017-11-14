@@ -32,7 +32,7 @@ namespace Skila.Language.Entities
         public IEnumerable<IEntity> NestedEntities => this.ownedNodes.WhereType<IEntity>();
 
         public override IEnumerable<INode> OwnedNodes => this.ownedNodes.Concat(this.Name)
-            //.Concat(this.Constraints)
+            .Concat(this.Constraints)
             .Where(it => it!=null);
 
         // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on
@@ -45,6 +45,10 @@ namespace Skila.Language.Entities
 
         public EntityModifier Modifier { get; }
         public IEnumerable< TemplateConstraint> Constraints { get; }
+        // constraints that sets the availability of the entire template
+        // for example "Array<T>" can have method "copy" present with conditional on the method (not entire type)
+        // that T has method "copy" itself, otherwise the method "Array.copy" is not available
+        public IEnumerable<TemplateConstraint> Conditionals { get; }
 
         // used to protect ourselves against adding extra nodes after the object is built
         // used in functions and types, not namespaces
@@ -73,11 +77,18 @@ namespace Skila.Language.Entities
                     return true;
                 }, aa => aa.Count.GetHashCode() ^ aa.Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a))));
 
-            foreach (TemplateParameter param in name.Parameters)
             {
-                TemplateConstraint constraint = this.Constraints.SingleOrDefault(it => it.Name.Name==param.Name);
-                param.SetConstraint(constraint);
-                this.AddNode(param.AssociatedType);
+                var set = this.Constraints.ToHashSet();
+                foreach (TemplateParameter param in name.Parameters)
+                {
+                    TemplateConstraint constraint = this.Constraints.SingleOrDefault(it => it.Name.Name == param.Name);
+                    param.SetConstraint(constraint);
+                    set.Remove(constraint);
+
+                    this.AddNode(param.AssociatedType);
+                }
+
+                this.Conditionals = set;
             }
 
             this.instanceOf = new Lazy<EntityInstance>(() => this.GetInstanceOf(this.Name.Parameters.Select(it => it.InstanceOf)));

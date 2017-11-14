@@ -19,12 +19,27 @@ namespace Skila.Language.Builders
         {
             return new FunctionBuilder(name, parameters, callMode, result, body);
         }
+        public static FunctionBuilder Create(
+                   string name,                   
+                   ExpressionReadMode callMode,
+                   INameReference result,
+                   Block body)
+        {
+            return new FunctionBuilder(NameDefinition.Create( name), null, callMode, result, body);
+        }
         public static FunctionBuilder CreateDeclaration(
                        NameDefinition name,
                        ExpressionReadMode callMode,
                        INameReference result)
         {
             return new FunctionBuilder(name, null, callMode, result, null);
+        }
+        public static FunctionBuilder CreateDeclaration(
+                       string name,
+                       ExpressionReadMode callMode,
+                       INameReference result)
+        {
+            return CreateDeclaration(NameDefinition.Create(name),callMode,result);
         }
         public static FunctionBuilder Create(
                    NameDefinition name,
