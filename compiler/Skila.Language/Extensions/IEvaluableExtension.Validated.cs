@@ -95,7 +95,10 @@ namespace Skila.Language.Extensions
 
             node.OwnedNodes.ForEach(it => Validated(it, ctx));
 
-            (node as IEvaluable)?.Validate(ctx);
+            if (evaluable != null)
+                evaluable.Validate(ctx);
+            else if (node is IVerificable verificable)
+                verificable.Verify(ctx);
 
             if (node is IFunctionExit)
                 result.AddExit();

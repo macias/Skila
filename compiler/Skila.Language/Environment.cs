@@ -53,13 +53,10 @@ namespace Skila.Language
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
 
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
-                NameDefinition.Create(NameFactory.ObjectTypeName)
-                //, EntityModifier.Const
-                ));
+                NameDefinition.Create(NameFactory.ObjectTypeName)));
 
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Plain(true)
-               // .Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
@@ -72,7 +69,6 @@ namespace Skila.Language
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Plain(true)
-                //.Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             // spread functions family
@@ -123,14 +119,11 @@ namespace Skila.Language
 
             this.functionTypes = new List<TypeDefinition>();
 
-            //            this.ObjectType = root.AddNode(TypeDefinition.CreateValue(EntityModifier.None, NameDefinition.Create(NameFactory.ObjectTypeName)));
             this.VoidType = Root.AddBuilder(TypeBuilder.Create(NameFactory.VoidTypeName)
-                //.Modifier(EntityModifier.Const)
                 .Plain(true));
 
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Plain(true)
-                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                     new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
@@ -141,13 +134,11 @@ namespace Skila.Language
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
-                //.Modifier(EntityModifier.Const)
                 .Plain(true)
                 .Parents(NameFactory.ObjectTypeReference()));
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Plain(true)
-                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
@@ -158,7 +149,6 @@ namespace Skila.Language
                   Block.CreateStatement(new IExpression[] { })));*/
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
                 .Plain(true)
-                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
 
@@ -167,14 +157,14 @@ namespace Skila.Language
                 Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
 
             this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
-                .Modifier(EntityModifier.HeapOnly )//| EntityModifier.Const)
-                //.Slicing(true)
+                .Modifier(EntityModifier.HeapOnly)
+                                                  //.Slicing(true)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
 
             this.ExceptionType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.ExceptionTypeName)
-                .Modifier(EntityModifier.HeapOnly)// | EntityModifier.Const)
+                .Modifier(EntityModifier.HeapOnly)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             {
@@ -193,7 +183,7 @@ namespace Skila.Language
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
                     TemplateParametersBuffer.Create().Add("T").Values))
-                .Modifier(EntityModifier.HeapOnly)// | EntityModifier.Const)
+                .Modifier(EntityModifier.HeapOnly)
                 .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {

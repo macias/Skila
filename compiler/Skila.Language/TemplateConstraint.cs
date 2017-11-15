@@ -5,11 +5,12 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using Skila.Language.Semantics;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateConstraint : Node
+    public sealed class TemplateConstraint : Node,IVerificable
     {
         public NameReference Name { get; }
         // for example "const" means the type argument has to be immutable
@@ -46,19 +47,28 @@ namespace Skila.Language
             return Name.ToString();
         }
 
-  /*      public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
+        public void Verify(ComputationContext ctx)
         {
-            return InheritsNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
-                .Select(it => it.TranslateThrough(closedTemplate));
-        }
-        public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
-        {
-            return BaseOfNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
-                .Select(it => it.TranslateThrough(closedTemplate));
+            foreach (NameReference base_of in this.BaseOfNames)
+                // we allow slicing because we just need if the hierarchy is not reversed, not to pass actual values
+                if (this.InheritsNames.Any(it
+                    => it.Evaluation.MatchesTarget(ctx, base_of.Evaluation, allowSlicing: true) == TypeMatch.Pass))
+                    ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);
         }
 
-*/
+        /*      public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
+              {
+                  return InheritsNames.Select(it => it.Binding.Match)
+                      .WhereType<EntityInstance>()
+                      .Select(it => it.TranslateThrough(closedTemplate));
+              }
+              public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
+              {
+                  return BaseOfNames.Select(it => it.Binding.Match)
+                      .WhereType<EntityInstance>()
+                      .Select(it => it.TranslateThrough(closedTemplate));
+              }
+
+      */
     }
 }

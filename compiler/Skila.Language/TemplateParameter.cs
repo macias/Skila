@@ -78,6 +78,5 @@ namespace Skila.Language
                 .Select(it => it.TranslateThrough(closedTemplate));
         }
 
-
     }
 }

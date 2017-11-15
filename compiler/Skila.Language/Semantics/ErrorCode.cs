@@ -59,5 +59,6 @@
         SealedTypeWithBaseMethod = 55,
         CannotDeriveSealedMethod = 56,
         ViolatedHasFunctionConstraint = 57,
+        ConstraintConflictingTypeHierarchy = 58,
     }
 }

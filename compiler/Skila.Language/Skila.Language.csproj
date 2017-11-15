@@ -69,6 +69,7 @@
     <Compile Include="Extensions\TemplateParameterExtension.cs" />
     <Compile Include="Flow\Throw.cs" />
     <Compile Include="IEntityScope.cs" />
+    <Compile Include="IVerificable.cs" />
     <Compile Include="IOptions.cs" />
     <Compile Include="FunctionDerivation.cs" />
     <Compile Include="Options.cs" />
@@ -167,10 +168,10 @@
     <Compile Include="NameDefinition.cs" />
     <Compile Include="Extensions\Tools.cs" />
     <Compile Include="Entities\VariableDeclaration.cs" />
-    <Compile Include="TemplateParametersBuffer.cs" />
+    <Compile Include="Builders\TemplateParametersBuffer.cs" />
     <Compile Include="TypeMatch.cs" />
     <Compile Include="VarianceMode.cs" />
-    <Compile Include="TypeParameter.cs" />
+    <Compile Include="TemplateParameter.cs" />
     <Compile Include="NameReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VirtualTable.cs" />

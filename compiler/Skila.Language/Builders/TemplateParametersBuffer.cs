@@ -1,9 +1,7 @@
-﻿using Skila.Language.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Skila.Language
+namespace Skila.Language.Builders
 {
     public sealed class TemplateParametersBuffer
     {

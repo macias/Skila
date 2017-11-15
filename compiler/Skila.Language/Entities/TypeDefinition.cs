@@ -51,7 +51,6 @@ namespace Skila.Language.Entities
         public static TypeDefinition CreateFunctor(NameDefinition name, IFunctionSignature signature)
         {
             return new TypeDefinition(false,
-                //EntityModifier.Const, 
                 EntityModifier.None,
                 false, name, null, new[] { NameFactory.ObjectTypeReference() }, null,
                 signature, typeParameter: null);
@@ -63,6 +62,8 @@ namespace Skila.Language.Entities
             EntityModifier modifier = typeParameter.Constraint.Modifier;
             if (typeParameter.Constraint.Functions.Any())
                 modifier |= EntityModifier.Protocol;
+            else
+                modifier |= EntityModifier.Base;
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name), null,
@@ -132,7 +133,7 @@ namespace Skila.Language.Entities
 
             base.Evaluate(ctx);
 
-            if (this.DebugId.Id == 286)
+            if (this.DebugId.Id == 3945)
             {
                 ;
             }
@@ -191,7 +192,7 @@ namespace Skila.Language.Entities
             {
                 foreach (NameReference parent in this.ParentNames)
                     if (!parent.Evaluation.IsImmutableType(ctx))
-                        ctx.AddError(ErrorCode.ImmutableInheritsMutable, this.IsTemplateParameter ? this.TemplateParameter.Cast<INode>() : this.Cast<INode>());
+                        ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
 
                 foreach (VariableDeclaration field in this.AllNestedFields)
                 {
@@ -316,9 +317,7 @@ namespace Skila.Language.Entities
                 if (!this.Modifier.HasHeapOnly && parent.Target.Modifier.HasHeapOnly)
                     ctx.AddError(ErrorCode.CrossInheritingHeapOnlyType, parent_name);
 
-                // if this is template parameter the parent-child "inheritance" is not actually an inheritance
-                // but constraint, so do not report an error
-                if (!this.IsTemplateParameter && parent.Target.Modifier.HasSealed)
+                if (parent.Target.Modifier.HasSealed)
                     ctx.AddError(ErrorCode.InheritingSealedType, parent_name);
 
                 if (!parent.TargetType.computeAncestors(ctx, visited))

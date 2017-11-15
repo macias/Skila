@@ -57,6 +57,10 @@ namespace Skila.Language.Builders
             this.inherits = inherits;
             return this;
         }
+        public ConstraintBuilder BaseOf(params string[] baseOf)
+        {
+            return BaseOf(baseOf.Select(it => NameReference.Create(it)).ToArray());
+        }
         public ConstraintBuilder BaseOf(params NameReference[] baseOf)
         {
             if (this.baseOf != null || this.build != null)

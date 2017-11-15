@@ -11,7 +11,6 @@ namespace Skila.Language
 
         void Evaluate(ComputationContext ctx);
         void Validate(ComputationContext ctx);
-
     }
 
 }

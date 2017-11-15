@@ -24,7 +24,6 @@ namespace Skila.Tests.Semantics
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
-               //.Modifier(EntityModifier.Const)
                .With(decl1)
                .With(decl2));
 
@@ -45,13 +44,12 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
-            root_ns.AddBuilder(TypeBuilder.Create("Foo"));//.Modifier(EntityModifier.Const));
+            root_ns.AddBuilder(TypeBuilder.Create("Foo"));
 
             VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
-               //.Modifier(EntityModifier.Const)
                .Constraints(ConstraintBuilder.Create("T")
                .Modifier(EntityModifier.Const))
                .With(field));
@@ -112,15 +110,14 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
                 .Modifier(EntityModifier.Base | EntityModifier.Mutable));
 
-            TypeDefinition child_type = root_ns.AddBuilder(TypeBuilder.Create("Child")
-                .Parents("Parent")
-                //.Modifier(EntityModifier.Const)
-                );
+            NameReference parent_name = NameReference.Create("Parent");
+            root_ns.AddBuilder(TypeBuilder.Create("Child")
+                .Parents(parent_name));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ImmutableInheritsMutable, child_type));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ImmutableInheritsMutable, parent_name));
 
             return resolver;
         }

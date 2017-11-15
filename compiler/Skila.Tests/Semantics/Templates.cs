@@ -21,24 +21,55 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Mut").Modifier(EntityModifier.Mutable));
 
-            IEnumerable<TemplateParameter> template_params = TemplateParametersBuffer.Create().Add("T").Values;
-            TemplateParameter template_param = template_params.Single();
+            NameReference parent_constraint = NameReference.Create("Mut");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
-                template_params),
+                TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)
-                    .Inherits("Mut")));
+                    .Inherits(parent_constraint)));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ImmutableInheritsMutable, template_param));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ImmutableInheritsMutable, parent_constraint));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InheritingSealedType, parent_constraint));
 
             return resolver;
         }
+
+        [TestMethod]
+        public IErrorReporter ErrorConflictingTypesConstraint()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Parent")
+                .Modifier(EntityModifier.Base));
+            root_ns.AddBuilder(TypeBuilder.Create("Child").Parents("Parent"));
+
+            NameReference baseof_name = NameReference.Create("Parent");
+            NameReference parent_name = NameReference.Create("Child");
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+                TemplateParametersBuffer.Create().Add("T").Values),
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement())
+                .Constraints(ConstraintBuilder.Create("T")
+                    .BaseOf(baseof_name)
+                    .Inherits(parent_name)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConstraintConflictingTypeHierarchy, baseof_name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InheritingSealedType, parent_name));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorHasConstraint()
         {

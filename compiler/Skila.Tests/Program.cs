@@ -16,7 +16,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-             new Semantics.Templates().ErrorConflictingConstConstraint();
+             new Semantics.Templates().ErrorConflictingTypesConstraint();
             //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
