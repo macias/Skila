@@ -8,10 +8,7 @@ using Skila.Language;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using NaiveLanguageTools.Common;
-using Skila.Tests.Execution;
-using Skila.Tests.Semantics;
-using System.Threading;
-using System.Threading.Tasks;
+using Skila.Interpreter;
 
 namespace Skila.Tests
 {
@@ -19,7 +16,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-            // new Semantics.Templates().ErrorHasConstraint();
+             new Semantics.Templates().ErrorConflictingConstConstraint();
             //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
@@ -44,11 +41,12 @@ namespace Skila.Tests
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Inheritance().DuckDeepVirtualCall();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
-            new Execution.Templates().HasConstraintWithValue();
+            //new Execution.Templates().HasConstraintWithValue();
+            //new Execution.Closures().TODO_PassingLocalVariables();
 
             {
                 double start = Stopwatch.GetTimestamp();
-                runTest(nameof(Semantics), checkErrorCoverage: true);
+                runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
                 Console.WriteLine($"Semantics time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
             }
@@ -57,14 +55,14 @@ namespace Skila.Tests
 
             {
                 double start = Stopwatch.GetTimestamp();
-                runTest(nameof(Execution), checkErrorCoverage: false);
+                runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
 
                 Console.WriteLine($"Interpretation time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
             }
             Console.ReadLine();
         }
 
-        private static void runTest(string @namespace, bool checkErrorCoverage)
+        private static void runTest<T>(string @namespace, bool checkErrorCoverage)
         {
             HashSet<ErrorCode> reported_errors = checkErrorCoverage ? new HashSet<ErrorCode>() : null;
             var missed_atrr = new List<string>();
@@ -76,7 +74,7 @@ namespace Skila.Tests
                 .Where(it => it.Namespace.EndsWith(@namespace))
                 .OrderBy(it => it.Name))
             {
-                missed_atrr.AddRange(runTest(type, ref total, ref failed, reported_errors));
+                missed_atrr.AddRange(runTest<T>(type, ref total, ref failed, reported_errors));
             }
 
             if (checkErrorCoverage)
@@ -134,7 +132,7 @@ namespace Skila.Tests
             }
         }
 
-        private static IEnumerable<string> runTest(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
+        private static IEnumerable<string> runTest<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
         {
             int init_fails = failed;
 
@@ -154,8 +152,11 @@ namespace Skila.Tests
                     {
                         string test_name = $"{type.Name}.{method.Name}";
                         Console.Write(test_name);
-                        var reporter = method.Invoke(test, new object[] { }).Cast<IErrorReporter>();
-                        errors?.AddRange(reporter.Errors.Select(it => it.Code));
+                        // this is not just dumb casting -- it checks if the given test returns the expected object
+                        // so for example, semantic test is not mixed with interpretation test
+                        T result = method.Invoke(test, new object[] { }).Cast<T>();
+                        if (result is IErrorReporter reporter)
+                            errors.AddRange(reporter.Errors.Select(it => it.Code));
                         Console.Write(new string('\b', test_name.Length) + new string(' ', test_name.Length) + new string('\b', test_name.Length));
                     }
 

@@ -3,6 +3,7 @@ using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
+using Skila.Language.Flow;
 
 namespace Skila.Tests.Semantics
 {
@@ -12,6 +13,7 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class CompilerProtection
     {
+
         [TestMethod]
         public IErrorReporter Environment()
         {
@@ -43,6 +45,21 @@ namespace Skila.Tests.Semantics
             var decl = root_ns.AddNode(
                 VariableDeclaration.CreateStatement("x",
                     NameReference.Create("Foo", NameFactory.IntTypeReference()), IntLiteral.Create("5")));
+
+            var resolver = NameResolver.Create(env);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter CircularMutabilityCheck()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
+                // same type as current type -> circular reference
+                .With(VariableDeclaration.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
 
             var resolver = NameResolver.Create(env);
 

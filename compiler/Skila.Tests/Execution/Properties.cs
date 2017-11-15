@@ -12,12 +12,13 @@ namespace Skila.Tests.Execution
     public class Properties
     {
         [TestMethod]
-        public void AutoProperties()
+        public IInterpreter AutoProperties()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
                 .With(Property.Create("x", NameFactory.IntTypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.IntTypeReference(), IntLiteral.Create("1"),EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.IntTypeReference()) },
@@ -39,6 +40,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

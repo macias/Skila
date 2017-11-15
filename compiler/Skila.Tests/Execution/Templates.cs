@@ -11,7 +11,7 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Templates
     {
-        public IErrorReporter TODO_ConditionalConstraint()
+        public IInterpreter TODO_ConditionalConstraint()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -49,15 +49,16 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NameReference.Create("y"))))
                 })));
 
-            var resolver = NameResolver.Create(env);
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(2, result.RetValue.PlainValue);
 
-            return resolver;
+            return interpreter;
         }
 
         [TestMethod]
-        public void HasConstraintWithPointer()
+        public IInterpreter HasConstraintWithPointer()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -94,10 +95,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void HasConstraintWithValue()
+        public IInterpreter HasConstraintWithValue()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -134,6 +137,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

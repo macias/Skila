@@ -6,12 +6,39 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using System.Collections.Generic;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Templates
     {
+        [TestMethod]
+        public IErrorReporter ErrorConflictingConstConstraint()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mut").Modifier(EntityModifier.Mutable));
+
+            IEnumerable<TemplateParameter> template_params = TemplateParametersBuffer.Create().Add("T").Values;
+            TemplateParameter template_param = template_params.Single();
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+                template_params),
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement())
+                .Constraints(ConstraintBuilder.Create("T")
+                    .Modifier(EntityModifier.Const)
+                    .Inherits("Mut")));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ImmutableInheritsMutable, template_param));
+
+            return resolver;
+        }
         [TestMethod]
         public IErrorReporter ErrorHasConstraint()
         {

@@ -35,8 +35,15 @@ namespace Skila.Language.Entities
             FunctionCall chainCall,
             Block body)
         {
-            return new FunctionDefinition( ExpressionReadMode.CannotBeRead, modifier,
-                name,constraints, parameters, callMode, result, chainCall, body);
+            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
+                name, constraints, parameters, callMode, result, chainCall, body);
+        }
+        public static FunctionDefinition CreateLambda(INameReference result,
+            Block body,
+            params FunctionParameter[] parameters)
+        {
+            return new FunctionDefinition(ExpressionReadMode.ReadRequired, null,
+                NameDefinition.Create(""), null, parameters, ExpressionReadMode.ReadRequired, result, null, body);
         }
         public static FunctionDefinition CreateInitConstructor(
             EntityModifier modifier,
@@ -44,7 +51,7 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
-                                NameFactory.InitConstructorNameDefinition(),null,
+                                NameFactory.InitConstructorNameDefinition(), null,
                                 parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
         public static FunctionDefinition CreateHeapConstructor(
@@ -53,16 +60,16 @@ namespace Skila.Language.Entities
             NameReference typeName,
             Block body)
         {
-            return new FunctionDefinition( ExpressionReadMode.CannotBeRead,
+            return new FunctionDefinition(ExpressionReadMode.CannotBeRead,
                 modifier | EntityModifier.Static,
-                NameFactory.NewConstructorNameDefinition(),null,
+                NameFactory.NewConstructorNameDefinition(), null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
                 chainCall: null, body: body);
         }
         public static FunctionDefinition CreateZeroConstructor(Block body)
         {
-            return new FunctionDefinition( ExpressionReadMode.CannotBeRead, EntityModifier.None,
-                                NameFactory.ZeroConstructorNameDefinition(),null,
+            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, EntityModifier.None,
+                                NameFactory.ZeroConstructorNameDefinition(), null,
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
 
@@ -106,7 +113,7 @@ namespace Skila.Language.Entities
             INameReference result,
             FunctionCall chainCall,
             Block body)
-            : base(modifier, name,constraints)
+            : base(modifier, name, constraints)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 

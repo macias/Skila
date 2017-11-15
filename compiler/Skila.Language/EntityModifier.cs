@@ -17,7 +17,8 @@ namespace Skila.Language
             Private,
             Reassignable, // "var x ..."
             //InOut // for parameters only, reassignment is visible outside function
-            Const, // for (deeply) immutable types 
+            Mutable, // to allow (deeply) mutable types, used when defining types
+            Const, // reverse of "Mutable", used in constraints
             Base, // unseal types
             Interface,
             Protocol, // same as interface, but supports duck type matching 
@@ -32,12 +33,13 @@ namespace Skila.Language
         public static readonly EntityModifier Public = new EntityModifier(ModifierIndex.Public);
         public static readonly EntityModifier Private = new EntityModifier(ModifierIndex.Private);
         public static readonly EntityModifier Reassignable = new EntityModifier(ModifierIndex.Reassignable);
-        public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
+        public static readonly EntityModifier Mutable = new EntityModifier(ModifierIndex.Mutable);
         public static readonly EntityModifier Base = new EntityModifier(ModifierIndex.Base);
         public static readonly EntityModifier Interface = new EntityModifier(ModifierIndex.Interface);
         public static readonly EntityModifier Protocol = new EntityModifier(ModifierIndex.Protocol);
         public static readonly EntityModifier Derived = new EntityModifier(ModifierIndex.Derived);
         public static readonly EntityModifier Abstract = new EntityModifier(ModifierIndex.Abstract);
+        public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -48,6 +50,7 @@ namespace Skila.Language
         public bool HasPublic => this.flags[(int)ModifierIndex.Public] > 0;
         public bool HasPrivate => this.flags[(int)ModifierIndex.Private] > 0;
         public bool HasReassignable => this.flags[(int)ModifierIndex.Reassignable] > 0;
+        public bool HasMutable => this.flags[(int)ModifierIndex.Mutable] > 0;
         public bool HasConst => this.flags[(int)ModifierIndex.Const] > 0;
         public bool HasBase => this.flags[(int)ModifierIndex.Base] > 0;
         public bool HasInterface => this.flags[(int)ModifierIndex.Interface] > 0;
@@ -56,6 +59,7 @@ namespace Skila.Language
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
 
         public bool HasSealed => !this.HasBase && !this.HasInterface;
+        public bool HasImmutable => !this.HasMutable;
 
         private EntityModifier(ModifierIndex index)
         {

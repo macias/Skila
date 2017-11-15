@@ -16,41 +16,44 @@ namespace Skila.Language.Entities
         public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints, bool allowSlicing,
             IEnumerable<NameReference> parents, IEnumerable<INode> features)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name,constraints, parents, features, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, features, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             bool allowSlicing,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name,constraints, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, null, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition Create(EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             bool allowSlicing,
             IEnumerable<NameReference> parents = null, IEnumerable<IEntity> entities = null)
         {
-            return new TypeDefinition(false, modifier, allowSlicing, name,constraints,
+            return new TypeDefinition(false, modifier, allowSlicing, name, constraints,
                 parents, entities, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition CreateValue(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier, false, name,constraints, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier, false, name, constraints, parents, null, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition CreateInterface(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier | EntityModifier.Interface, false, name,constraints, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier | EntityModifier.Interface, false, name, constraints, parents, null, functorSignature: null, typeParameter: null);
         }
         public static TypeDefinition CreateHeapOnly(EntityModifier modifier, NameDefinition name, IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(false, modifier | EntityModifier.HeapOnly, true, name,constraints, parents, null, functorSignature: null, typeParameter: null);
+            return new TypeDefinition(false, modifier | EntityModifier.HeapOnly, true, name, constraints, parents, null, functorSignature: null, typeParameter: null);
         }
-        public static TypeDefinition CreateFunctor(NameDefinition name,  IFunctionSignature signature)
+        public static TypeDefinition CreateFunctor(NameDefinition name, IFunctionSignature signature)
         {
-            return new TypeDefinition(false, EntityModifier.Const, false, name,null, new[] { NameFactory.ObjectTypeReference() }, null,
+            return new TypeDefinition(false,
+                //EntityModifier.Const, 
+                EntityModifier.None,
+                false, name, null, new[] { NameFactory.ObjectTypeReference() }, null,
                 signature, typeParameter: null);
         }
 
@@ -59,14 +62,16 @@ namespace Skila.Language.Entities
         {
             EntityModifier modifier = typeParameter.Constraint.Modifier;
             if (typeParameter.Constraint.Functions.Any())
-                modifier = modifier | EntityModifier.Protocol;
-            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name),null,
+                modifier |= EntityModifier.Protocol;
+            if (!modifier.HasConst)
+                modifier |= EntityModifier.Mutable;
+            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name), null,
                 typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions, null, typeParameter);
         }
 
 
-        public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None, 
-            NameDefinition.Create(NameFactory.JokerTypeName),null, allowSlicing: true);
+        public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None,
+            NameDefinition.Create(NameFactory.JokerTypeName), null, allowSlicing: true);
 
         public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
         public bool IsInterface => this.Modifier.HasInterface;
@@ -102,7 +107,7 @@ namespace Skila.Language.Entities
             IEnumerable<NameReference> parents,
             IEnumerable<INode> features,
             IFunctionSignature functorSignature,
-            TemplateParameter typeParameter) : base(modifier, name,constraints)
+            TemplateParameter typeParameter) : base(modifier, name, constraints)
         {
             this.IsPlain = isPlain;
             this.AllowSlicedSubstitution = allowSlicing;
@@ -120,80 +125,80 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (!IsComputed)
+            if (IsComputed)
+                return;
+
+            IsComputed = true;
+
+            base.Evaluate(ctx);
+
+            if (this.DebugId.Id == 286)
             {
-                IsComputed = true;
+                ;
+            }
 
-                base.Evaluate(ctx);
+            computeAncestors(ctx, new HashSet<TypeDefinition>());
 
-                if (this.DebugId.Id == 286)
+
+            foreach (NameReference parent in this.ParentNames.Skip(1))
+                if (parent.Evaluation.Cast<EntityInstance>().TargetType.IsTypeImplementation)
+                    ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
+
+
+            {
+                // base method -> derived (here) method
+                var derivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
+                HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
+                foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
                 {
-                    ;
-                }
-
-                computeAncestors(ctx, new HashSet<TypeDefinition>());
-
-
-                foreach (NameReference parent in this.ParentNames.Skip(1))
-                    if (parent.Evaluation.Cast<EntityInstance>().TargetType.IsTypeImplementation)
-                        ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
-
-
-                {
-                    // base method -> derived (here) method
-                    var derivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
-                    HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
-                    foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+                    foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
                     {
-                        foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
+                        if (deriv_info.Derived == null)
                         {
-                            if (deriv_info.Derived == null)
-                            {
-                                if (deriv_info.Base.IsAbstract)
-                                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
-                            }
-                            else
-                            {
-                                if (!deriv_info.Derived.Modifier.HasDerived)
-                                    ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
+                            if (deriv_info.Base.IsAbstract)
+                                ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
+                        }
+                        else
+                        {
+                            if (!deriv_info.Derived.Modifier.HasDerived)
+                                ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
-                                if (!deriv_info.Base.IsSealed)
-                                {
-                                    if (!functions.Remove(deriv_info.Derived))
-                                        throw new System.Exception("Internal error");
-                                    derivations.Add(deriv_info.Base, deriv_info.Derived);
-                                }
-                                else if (deriv_info.Derived.Modifier.HasDerived)
-                                    ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
+                            if (!deriv_info.Base.IsSealed)
+                            {
+                                if (!functions.Remove(deriv_info.Derived))
+                                    throw new System.Exception("Internal error");
+                                derivations.Add(deriv_info.Base, deriv_info.Derived);
                             }
+                            else if (deriv_info.Derived.Modifier.HasDerived)
+                                ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
                         }
                     }
-
-                    this.InheritanceVirtualTable = new VirtualTable(derivations);
                 }
 
-                if (!this.IsAbstract)
-                {
-                    foreach (FunctionDefinition func in this.NestedFunctions)
-                        if (func.IsAbstract)
-                            ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
-                        else if (func.Modifier.HasBase && this.Modifier.HasSealed)
-                            ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
-                }
+                this.InheritanceVirtualTable = new VirtualTable(derivations);
+            }
 
-                if (this.Modifier.HasConst)
-                {
-                    foreach (NameReference parent in this.ParentNames)
-                        if (!parent.Evaluation.IsImmutableType(ctx))
-                            ctx.AddError(ErrorCode.ImmutableInheritsMutable, this);
+            if (!this.IsAbstract)
+            {
+                foreach (FunctionDefinition func in this.NestedFunctions)
+                    if (func.IsAbstract)
+                        ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
+                    else if (func.Modifier.HasBase && this.Modifier.HasSealed)
+                        ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
+            }
 
-                    foreach (VariableDeclaration field in this.AllNestedFields)
-                    {
-                        if (field.Modifier.HasReassignable)
-                            ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                        if (!field.Evaluated(ctx).IsImmutableType(ctx))
-                            ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
-                    }
+            if (this.Modifier.HasImmutable)
+            {
+                foreach (NameReference parent in this.ParentNames)
+                    if (!parent.Evaluation.IsImmutableType(ctx))
+                        ctx.AddError(ErrorCode.ImmutableInheritsMutable, this.IsTemplateParameter ? this.TemplateParameter.Cast<INode>() : this.Cast<INode>());
+
+                foreach (VariableDeclaration field in this.AllNestedFields)
+                {
+                    if (field.Modifier.HasReassignable)
+                        ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
+                    if (!field.Evaluated(ctx).IsImmutableType(ctx))
+                        ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
             }
 

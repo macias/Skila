@@ -19,10 +19,11 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
-                .With(FunctionBuilder.Create(NameDefinition.Create("empty"),new[] {
+                .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {
                     FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
-                        null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), 
+                        null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
                         Block.CreateStatement())));
 
             FunctionArgument mutable_arg = FunctionArgument.Create(NameReference.Create("r"));

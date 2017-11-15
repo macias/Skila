@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Linq;
 using Skila.Language;
-using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Expressions;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
-using System.Threading.Tasks;
 
 namespace Skila.Interpreter
 {
-    public sealed class Interpreter
+    public sealed class Interpreter : IInterpreter
     {
         private ExecValue execute(FunctionDefinition func, ExecutionContext ctx)
         {

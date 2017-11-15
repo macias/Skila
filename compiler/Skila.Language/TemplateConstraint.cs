@@ -12,7 +12,7 @@ namespace Skila.Language
     public sealed class TemplateConstraint : Node
     {
         public NameReference Name { get; }
-        // for example "const" meaning the type argument has to be immutable
+        // for example "const" means the type argument has to be immutable
         public EntityModifier Modifier { get; }
         public IReadOnlyCollection<NameReference> InheritsNames { get; }
         public IReadOnlyCollection<NameReference> BaseOfNames { get; }

@@ -53,15 +53,17 @@ namespace Skila.Language
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
 
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
-                NameDefinition.Create(NameFactory.ObjectTypeName), EntityModifier.Const));
+                NameDefinition.Create(NameFactory.ObjectTypeName)
+                //, EntityModifier.Const
+                ));
 
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Plain(true)
-                .Modifier(EntityModifier.Const)
+               // .Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) }, 
+                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
@@ -70,7 +72,7 @@ namespace Skila.Language
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Plain(true)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             // spread functions family
@@ -123,15 +125,15 @@ namespace Skila.Language
 
             //            this.ObjectType = root.AddNode(TypeDefinition.CreateValue(EntityModifier.None, NameDefinition.Create(NameFactory.ObjectTypeName)));
             this.VoidType = Root.AddBuilder(TypeBuilder.Create(NameFactory.VoidTypeName)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .Plain(true));
 
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Plain(true)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) }, 
+                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -139,13 +141,13 @@ namespace Skila.Language
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .Plain(true)
                 .Parents(NameFactory.ObjectTypeReference()));
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Plain(true)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
@@ -156,7 +158,7 @@ namespace Skila.Language
                   Block.CreateStatement(new IExpression[] { })));*/
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
                 .Plain(true)
-                .Modifier(EntityModifier.Const)
+                //.Modifier(EntityModifier.Const)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private, null, Block.CreateStatement()))
                 .Slicing(true));
 
@@ -165,19 +167,19 @@ namespace Skila.Language
                 Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
 
             this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
-                .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
+                .Modifier(EntityModifier.HeapOnly )//| EntityModifier.Const)
                 //.Slicing(true)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
 
             this.ExceptionType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.ExceptionTypeName)
-                .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
+                .Modifier(EntityModifier.HeapOnly)// | EntityModifier.Const)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             {
                 FunctionDefinition empty, value;
-                this.OptionType = this.SystemNamespace.AddNode(createOptionType(out empty,out value));
+                this.OptionType = this.SystemNamespace.AddNode(createOptionType(out empty, out value));
                 this.OptionEmptyConstructor = empty;
                 this.OptionValueConstructor = value;
             }
@@ -191,14 +193,14 @@ namespace Skila.Language
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
                     TemplateParametersBuffer.Create().Add("T").Values))
-                .Modifier(EntityModifier.HeapOnly | EntityModifier.Const)
+                .Modifier(EntityModifier.HeapOnly)// | EntityModifier.Const)
                 .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))
                     .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose),ExpressionReadMode.CannotBeRead, 
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), ExpressionReadMode.CannotBeRead,
                     NameFactory.VoidTypeReference(), Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
@@ -233,9 +235,9 @@ namespace Skila.Language
                                             BoolLiteral.CreateFalse())
                                     }));
 
-            return TypeBuilder.Create(
-NameDefinition.Create(NameFactory.OptionTypeName,
-TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
+            return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
+                                TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
+                            .Modifier(EntityModifier.Mutable)
                             .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 null,
                                 new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(), NameReference.Create(has_value_field)) },
@@ -302,28 +304,28 @@ TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
         }
         public bool IsPointerOfType(IEntityInstance instance)
         {
-            return instance.Enumerate().All(it => it.IsOfType( PointerType));
+            return instance.Enumerate().All(it => it.IsOfType(PointerType));
         }
 
-    /*    public bool IsPointerLikeOfType(IEntityInstance instance,out IEnumerable<IEntityInstance> innerTypes)
-        {
-            var inner = new List<IEntityInstance>();
-            foreach (EntityInstance elem_instance in instance.Enumerate())
+        /*    public bool IsPointerLikeOfType(IEntityInstance instance,out IEnumerable<IEntityInstance> innerTypes)
             {
-                if (elem_instance.IsOfType(PointerType) || elem_instance.IsOfType(ReferenceType))
+                var inner = new List<IEntityInstance>();
+                foreach (EntityInstance elem_instance in instance.Enumerate())
                 {
-                    inner.Add(elem_instance.TemplateArguments.Single());
+                    if (elem_instance.IsOfType(PointerType) || elem_instance.IsOfType(ReferenceType))
+                    {
+                        inner.Add(elem_instance.TemplateArguments.Single());
+                    }
+                    else
+                    {
+                        innerTypes = null;
+                        return false;
+                    }
                 }
-                else
-                {
-                    innerTypes = null;
-                    return false;
-                }
-            }
 
-            innerTypes = inner;
-            return true;
-        }*/
+                innerTypes = inner;
+                return true;
+            }*/
         public bool IsPointerLikeOfType(IEntityInstance instance)
         {
             return instance.Enumerate().All(it => it.IsOfType(PointerType) || it.IsOfType(ReferenceType));

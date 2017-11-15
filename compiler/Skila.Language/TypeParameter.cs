@@ -19,11 +19,6 @@ namespace Skila.Language
         public VarianceMode Variance { get; }
 
         public TemplateConstraint Constraint { get; private set; }
-        // for example "const" meaning the type argument has to be immutable
-        public EntityModifier ConstraintModifier => this.Constraint.Modifier;
-        public IReadOnlyCollection<NameReference> InheritsNames => this.Constraint.InheritsNames;
-        public IReadOnlyCollection<NameReference> BaseOfNames => this.Constraint.BaseOfNames;
-        public IReadOnlyCollection<FunctionDefinition> Functions => this.Constraint.Functions;
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
@@ -72,13 +67,13 @@ namespace Skila.Language
 
         public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
         {
-            return InheritsNames.Select(it => it.Binding.Match)
+            return this.Constraint.InheritsNames.Select(it => it.Binding.Match)
                 .WhereType<EntityInstance>()
                 .Select(it => it.TranslateThrough(closedTemplate));
         }
         public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
         {
-            return BaseOfNames.Select(it => it.Binding.Match)
+            return this.Constraint.BaseOfNames.Select(it => it.Binding.Match)
                 .WhereType<EntityInstance>()
                 .Select(it => it.TranslateThrough(closedTemplate));
         }

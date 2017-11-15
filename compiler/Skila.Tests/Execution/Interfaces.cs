@@ -12,16 +12,16 @@ namespace Skila.Tests.Execution
     public class Interfaces
     {
         [TestMethod]
-        public void DuckVirtualCallInterface()
+        public IInterpreter DuckVirtualCallInterface()
         {
-            duckVirtualCall(new Options() { InterfaceDuckTyping = true });
+          return  duckVirtualCall(new Options() { InterfaceDuckTyping = true });
         }
         [TestMethod]
-        public void DuckVirtualCallProtocol()
+        public IInterpreter DuckVirtualCallProtocol()
         {
-            duckVirtualCall(new Options() { InterfaceDuckTyping = false });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = false });
         }
-        private void duckVirtualCall(IOptions options)
+        private IInterpreter duckVirtualCall(IOptions options)
         {
             var env = Environment.Create(options);
             var root_ns = env.Root;
@@ -60,20 +60,22 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DuckDeepVirtualCallInterface()
+        public IInterpreter DuckDeepVirtualCallInterface()
         {
-            duckDeepVirtualCall(new Options() { InterfaceDuckTyping = true });
+            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = true });
         }
         [TestMethod]
-        public void DuckDeepVirtualCallProtocol()
+        public IInterpreter DuckDeepVirtualCallProtocol()
         {
-            duckDeepVirtualCall(new Options() { InterfaceDuckTyping = false });
+            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = false });
         }
 
-        private void duckDeepVirtualCall(IOptions options)
+        private IInterpreter duckDeepVirtualCall(IOptions options)
         {
             var env = Environment.Create(options);
             var root_ns = env.Root;
@@ -127,19 +129,21 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
         [TestMethod]
-        public void DuckVirtualCallWithGenericBaseInterface()
+        public IInterpreter DuckVirtualCallWithGenericBaseInterface()
         {
-            duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true });
+           return  duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true });
         }
         [TestMethod]
-        public void DuckVirtualCallWithGenericBaseProtocol()
+        public IInterpreter DuckVirtualCallWithGenericBaseProtocol()
         {
-            duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = false });
+            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = false });
         }
 
-        private void duckVirtualCallWithGenericBase(IOptions options)
+        private IInterpreter duckVirtualCallWithGenericBase(IOptions options)
         {
             var env = Environment.Create(options);
             var root_ns = env.Root;
@@ -176,6 +180,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

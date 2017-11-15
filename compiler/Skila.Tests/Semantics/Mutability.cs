@@ -16,14 +16,15 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Bar"));
+            root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
-               .Modifier(EntityModifier.Const)
+               //.Modifier(EntityModifier.Const)
                .With(decl1)
                .With(decl2));
 
@@ -42,15 +43,17 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Bar"));
-            root_ns.AddBuilder(TypeBuilder.Create("Foo").Modifier(EntityModifier.Const));
+            root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Mutable));
+            root_ns.AddBuilder(TypeBuilder.Create("Foo"));//.Modifier(EntityModifier.Const));
 
             VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
-               .Modifier(EntityModifier.Const)
-               .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
+               //.Modifier(EntityModifier.Const)
+               .Constraints(ConstraintBuilder.Create("T")
+               .Modifier(EntityModifier.Const))
                .With(field));
 
             NameReference wrong_type = NameReference.Create("Point", NameReference.Create("Bar"));
@@ -80,7 +83,8 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Bar"));
+            root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable);
@@ -105,8 +109,13 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Parent").Modifier(EntityModifier.Base));
-            TypeDefinition child_type = root_ns.AddBuilder(TypeBuilder.Create("Child").Parents("Parent").Modifier(EntityModifier.Const));
+            root_ns.AddBuilder(TypeBuilder.Create("Parent")
+                .Modifier(EntityModifier.Base | EntityModifier.Mutable));
+
+            TypeDefinition child_type = root_ns.AddBuilder(TypeBuilder.Create("Child")
+                .Parents("Parent")
+                //.Modifier(EntityModifier.Const)
+                );
 
             var resolver = NameResolver.Create(env);
 

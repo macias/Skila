@@ -49,23 +49,33 @@ namespace Skila.Language
 
         public static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx)
         {
+            // we have to use cache with visited types, because given type A can have a field of type A, 
+            // which would lead to infinite checking
+            return @this.IsImmutableType(ctx, new HashSet<IEntityInstance>());
+        }
+
+        private static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx,HashSet<IEntityInstance> visited)
+        {
+            if (!visited.Add(@this))
+                return true;
+
             foreach (EntityInstance instance in @this.Enumerate())
             {
                 Entities.IEntity target = instance.Target;
                 if (!target.IsType())
                     throw new Exception("Internal error");
 
-                if (!target.Modifier.HasConst)
+                if (!target.Modifier.HasImmutable)
                     return false;
 
                 foreach (VariableDeclaration field in target.CastType().AllNestedFields)
                 {
-                    if (!field.Evaluated(ctx).IsImmutableType(ctx))
+                    IEntityInstance eval = field.Evaluated(ctx);
+                    if (!eval.IsImmutableType(ctx,visited))
                         return false;
                 }
 
-                if ((ctx.Env.IsPointerOfType(instance) || ctx.Env.IsReferenceOfType(instance)) 
-                    && !instance.TemplateArguments.Single().IsImmutableType(ctx))
+                if ((ctx.Env.IsPointerLikeOfType(instance)) && !instance.TemplateArguments.Single().IsImmutableType(ctx,visited))
                     return false;
             }
 

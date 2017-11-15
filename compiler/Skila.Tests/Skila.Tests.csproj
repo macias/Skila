@@ -59,6 +59,7 @@
     <Compile Include="Execution\Objects.cs" />
     <Compile Include="Execution\Flow.cs" />
     <Compile Include="Execution\FunctionCalls.cs" />
+    <Compile Include="Execution\Closures.cs" />
     <Compile Include="Execution\Templates.cs" />
     <Compile Include="Semantics\CompilerProtection.cs" />
     <Compile Include="Semantics\Concurrency.cs" />

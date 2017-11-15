@@ -221,7 +221,7 @@ namespace Skila.Language
             {
                 ;
             }
-            if (param.ConstraintModifier.HasConst && !this.IsImmutableType(ctx))
+            if (param.Constraint.Modifier.HasConst && !this.IsImmutableType(ctx))
                 return ConstraintMatch.ConstViolation;
 
 

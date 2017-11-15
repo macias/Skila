@@ -12,7 +12,7 @@ namespace Skila.Tests.Execution
     public class FunctionCalls
     {
         [TestMethod]
-        public void RawMethods()
+        public IInterpreter RawMethods()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -30,15 +30,18 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void OptionalParameters()
+        public IInterpreter OptionalParameters()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2"), EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create( NameDefinition.Create("pass"), new[] {
                         FunctionParameter.Create("v",NameFactory.IntTypeReference(),Variadic.None,
@@ -64,10 +67,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void UsingFunctionParameter()
+        public IInterpreter UsingFunctionParameter()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -93,10 +98,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void LocalVariablesLeakCheck()
+        public IInterpreter LocalVariablesLeakCheck()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -131,6 +138,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

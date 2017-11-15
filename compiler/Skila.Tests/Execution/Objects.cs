@@ -14,12 +14,13 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
-        public void AccessingObjectFields()
+        public IInterpreter AccessingObjectFields()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -37,6 +38,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

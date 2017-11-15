@@ -2,6 +2,7 @@
 using Skila.Language.Entities;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -102,6 +103,8 @@ namespace Skila.Language.Extensions
                 result.AddInterruption(loop_interrupt);
             else if (node is IAnchor loop)
                 result.RemoveInterruptionFor(loop, isBreak: true);
+            else if (node is FunctionDefinition)
+                result = ValidationData.Create(); // clear it, function scope should not leak any info outside
 
             if (evaluable != null)
                 evaluable.Validation = result;

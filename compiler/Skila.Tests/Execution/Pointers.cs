@@ -4,8 +4,6 @@ using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
-using System;
-using System.Linq;
 using Skila.Interpreter;
 
 namespace Skila.Tests.Execution
@@ -14,7 +12,7 @@ namespace Skila.Tests.Execution
     public class Pointers
     {
         [TestMethod]
-        public void PointerArgumentAutoDereference()
+        public IInterpreter PointerArgumentAutoDereference()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -42,10 +40,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DereferenceOnReturn()
+        public IInterpreter DereferenceOnReturn()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -65,10 +65,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DereferenceOnIfCondition()
+        public IInterpreter DereferenceOnIfCondition()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -89,10 +91,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DiscardedReadout()
+        public IInterpreter DiscardedReadout()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -113,10 +117,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DereferenceOnAssignment()
+        public IInterpreter DereferenceOnAssignment()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -140,10 +146,12 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void DirectRefCountings()
+        public IInterpreter DirectRefCountings()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -174,15 +182,18 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void NestedRefCountings()
+        public IInterpreter NestedRefCountings()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
+                .Modifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
                     Undef.Create(), EntityModifier.Reassignable)));
@@ -204,6 +215,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

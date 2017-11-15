@@ -13,7 +13,7 @@ namespace Skila.Tests.Execution
     public class Concurrency
     {
         [TestMethod]
-        public void ChannelDeadLockOnSend()
+        public IInterpreter ChannelDeadLockOnSend()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -33,10 +33,12 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             int task_id = Task.WaitAny(Task.Delay(2000),Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void ChannelDeadLockOnReceive()
+        public IInterpreter ChannelDeadLockOnReceive()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -55,10 +57,12 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
+
+            return interpreter;
         }
 
         [TestMethod]
-        public void SingleMessage()
+        public IInterpreter SingleMessage()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -92,6 +96,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
     }

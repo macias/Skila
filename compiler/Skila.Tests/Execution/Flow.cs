@@ -14,7 +14,7 @@ namespace Skila.Tests.Execution
     public class Flow
     {
         [TestMethod]
-        public void IfBranches()
+        public IInterpreter IfBranches()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
@@ -32,6 +32,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
 
     }

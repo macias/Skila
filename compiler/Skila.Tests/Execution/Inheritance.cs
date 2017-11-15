@@ -12,7 +12,7 @@ namespace Skila.Tests.Execution
     public class Inheritance
     {
         [TestMethod]
-        public void VirtualCall()
+        public IInterpreter VirtualCall()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -52,6 +52,8 @@ namespace Skila.Tests.Execution
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
         }
     }
 }

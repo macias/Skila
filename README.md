@@ -2,6 +2,6 @@
 
 Another programming language attempt in the making, visit blog at https://aboutskila.wordpress.com/.
 
-**External dlls**
+## Building
 
-Please download NLT dlls from https://sourceforge.net/projects/naivelangtools/.
+To compile Skila please use Visual Studio 2017 or compatible tool. Also download Naive Language Tools from https://sourceforge.net/projects/naivelangtools/.
