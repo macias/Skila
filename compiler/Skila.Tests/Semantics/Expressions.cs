@@ -171,7 +171,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false) },
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.BoolTypeReference(),
@@ -179,13 +179,14 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
-                call));
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
+                call);
+            root_ns.AddNode(decl);
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.CannotReadExpression, resolver.ErrorManager.Errors.Single().Code);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReadExpression,call));
 
             return resolver;
         }

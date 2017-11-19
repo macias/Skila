@@ -386,9 +386,8 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.CannotReadExpression, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(if_ctrl, resolver.ErrorManager.Errors.Single().Node);
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReadExpression, if_ctrl));
 
             return resolver;
         }

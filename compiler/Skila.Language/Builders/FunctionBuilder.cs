@@ -10,6 +10,14 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class FunctionBuilder : IBuilder<FunctionDefinition>
     {
+        public static FunctionBuilder CreateLambda(INameReference result,
+                 Block body,
+                 params FunctionParameter[] parameters)
+        {
+            return FunctionBuilder.Create(NameDefinition.Create(NameFactory.LambdaInvoke), ExpressionReadMode.ReadRequired, result, body)
+                .Parameters(parameters);
+        }
+
         public static FunctionBuilder Create(
                    NameDefinition name,
                    IEnumerable<FunctionParameter> parameters,
@@ -106,13 +114,13 @@ namespace Skila.Language.Builders
 
             this.constraints = constraints;
             return this;
-        }
-
+        }        
 
         public FunctionDefinition Build()
         {
             if (build == null)
-                build = FunctionDefinition.CreateFunction(this.modifier ?? EntityModifier.None,
+                build = FunctionDefinition.CreateFunction(
+                    this.modifier ?? EntityModifier.None,
                     this.name,
                     constraints,
                     parameters?? Enumerable.Empty<FunctionParameter>(), callMode, result,

@@ -110,10 +110,12 @@ namespace Skila.Interpreter
 
             public Data(Data src)
             {
+                // pointer/references sits here, so on copy simply assing the pointer/reference value
                 this.PlainValue = src.PlainValue;
                 this.IsPlain = src.IsPlain;
                 this.RunTimeTypeInstance = src.RunTimeTypeInstance;
-                this.fields = src.fields?.ToDictionary(it => it.Key, it => it.Value);
+                // however make copies of the fields
+                this.fields = src.fields?.ToDictionary(it => it.Key, it => new ObjectData(it.Value));
             }
 
             internal ObjectData GetField(IEntity entity)
@@ -138,20 +140,6 @@ namespace Skila.Interpreter
             this.data = new Data(src.data);
         }
 
-
-        public void Assign(ObjectData source)
-        {
-            if (this.isDisposed)
-                throw new ObjectDisposedException($"{this}");
-            if (source.isDisposed)
-                throw new ObjectDisposedException($"{source}");
-
-            if (this.DebugId.Id == 8803)
-            {
-                ;
-            }
-            this.data = source.data;
-        }
 
         internal ObjectData GetField(IEntity entity)
         {
@@ -204,12 +192,38 @@ namespace Skila.Interpreter
             return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }), this);
         }
 
-        internal ObjectData GetValue(IExpression expr)
+        internal ObjectData TryDereference(Language.Environment env)
+        {
+            if (env.IsPointerLikeOfType(this.RunTimeTypeInstance))
+                return this.Dereference();
+            else
+                return this;
+        }
+        internal ObjectData TryDereference(IExpression expr)
         {
             if (expr != null && expr.IsDereferenced)
                 return this.Dereference();
             else
                 return this;
         }
+
+        public void Assign(ObjectData source)
+        {
+            if (this.isDisposed)
+                throw new ObjectDisposedException($"{this}");
+            if (source.isDisposed)
+                throw new ObjectDisposedException($"{source}");
+
+            if (source.DebugId.Id== 2942 || source.DebugId.Id == 2938)
+            {
+                ;
+            }
+            if (this.DebugId.Id == 2802)
+            {
+                ;
+            }
+            this.data = new Data(source.data);
+        }
+
     }
 }

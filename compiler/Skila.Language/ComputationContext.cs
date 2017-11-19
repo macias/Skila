@@ -13,6 +13,7 @@ namespace Skila.Language
             return new ComputationContext(env);
         }
 
+        internal AutoName AutoName { get; }
         public Environment Env { get; }
         public NameRegistry EvalLocalNames { get; set; }
         public VariableTracker ValAssignTracker { get; set; }
@@ -23,9 +24,10 @@ namespace Skila.Language
 
         private ComputationContext(Environment env) : this()
         {
+            this.Env = env;
             this.ErrorManager = ErrorManager.Create();
-            Env = env;
-            visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
+            this.visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
+            this.AutoName = new AutoName();
         }
 
         internal void AddError(ErrorCode code, INode node, INode context = null)

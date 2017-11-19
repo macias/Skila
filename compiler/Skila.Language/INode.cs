@@ -22,12 +22,6 @@ namespace Skila.Language
 
     public static class INodeExtensions
     {
-        public static void AttachNode<T>(this INode owner, ref T placement,T attached)
-            where T : INode
-        {
-            placement = attached;
-            placement.AttachTo(owner);
-        }
         public static IEnumerable<IScope> EnclosingScopesToRoot(this INode node)
         {
             while (true)
@@ -38,25 +32,10 @@ namespace Skila.Language
                 yield return node.Cast<IScope>();
             }
         }
-        public static IEnumerable<IScope> ScopesFromSelfToRoot(this INode node)
-        {
-            {
-                if (node is IScope scope)
-                    yield return scope;
-            }
-
-            foreach (IScope scope in node.EnclosingScopesToRoot())
-                yield return scope;
-
-        }
         public static S EnclosingScope<S>(this INode @this)
             where S : IScope
         {
             return @this.EnclosingScopesToRoot().WhereType<S>().FirstOrDefault();
-        }
-        public static Namespace RootScope(this INode @this)
-        {
-            return @this.EnclosingScopesToRoot().LastOrDefault() as Namespace;
         }
         public static bool IsType(this INode @this)
         {

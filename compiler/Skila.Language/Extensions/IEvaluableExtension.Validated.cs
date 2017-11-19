@@ -37,7 +37,7 @@ namespace Skila.Language.Extensions
             if (node is IExpression expr)
             {
 
-                if (node.DebugId.Id == 252)
+                if (node.DebugId.Id == 2678)
                 {
                     ;
                 }

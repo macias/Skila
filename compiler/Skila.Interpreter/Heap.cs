@@ -113,10 +113,11 @@ namespace Skila.Interpreter
             }
         }
 
-        internal void AddDisposable()
+        internal void TryAddDisposable<T>(T obj)
         {
-            lock (this.threadLock)
-                ++this.hostDisposables;
+            if (obj is IDisposable)
+                lock (this.threadLock)
+                    ++this.hostDisposables;
         }
     }
 }

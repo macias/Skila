@@ -15,6 +15,8 @@ namespace Skila.Language
             return new Environment(options);
         }
 
+        // at index "i" there is functor which takes "i" in-parameters
+        // so for example at index 2 we have Function<T0,T1,R>
         private readonly List<TypeDefinition> functionTypes;
         public IReadOnlyList<TypeDefinition> FunctionTypes => this.functionTypes;
         public TypeDefinition ReferenceType { get; }
@@ -158,7 +160,7 @@ namespace Skila.Language
 
             this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
                 .Modifier(EntityModifier.HeapOnly)
-                                                  //.Slicing(true)
+                //.Slicing(true)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
@@ -174,8 +176,8 @@ namespace Skila.Language
                 this.OptionValueConstructor = value;
             }
 
-            foreach (int count in Enumerable.Range(0, 15))
-                this.functionTypes.Add(createFunction(Root, count));
+            foreach (int param_count in Enumerable.Range(0, 15))
+                this.functionTypes.Add(createFunction(Root, param_count));
             this.functionTypes.ForEach(it => Root.AddNode(it));
         }
 
@@ -264,8 +266,11 @@ namespace Skila.Language
             }
             type_parameters.Add("R", VarianceMode.Out);
 
-            var function_def = TypeDefinition.CreateFunctor(NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values),
-                new FunctorSignature(function_parameters, NameReference.Create("R")));
+            var function_def = TypeDefinition.CreateFunctionInterface(
+                NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values),
+                new FunctorSignature(function_parameters, NameReference.Create("R"))
+                //@@@FunctionBuilder.CreateDeclaration(NameDefinition.Create(NameFactory.LambdaInvoke),ExpressionReadMode.ReadRequired,NameReference.Create("R"))
+                );
 
             return function_def;
         }
@@ -275,7 +280,7 @@ namespace Skila.Language
             if (instance == null)
                 return false;
 
-            return (instance != null && functionTypes.Any(it => it == instance.Target));
+            return functionTypes.Any(it => it == instance.Target);
         }
 
         internal bool IsOfVoidType(INameReference typeName)

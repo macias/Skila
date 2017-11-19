@@ -16,7 +16,7 @@ namespace Skila.Tests
     {
         public static void Main()
         {
-             new Semantics.Templates().ErrorConflictingTypesConstraint();
+            //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
             //new CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
@@ -24,25 +24,27 @@ namespace Skila.Tests
             //new Mutability().ErrorViolatingConstConstraint();
             //  new MemoryClasses().ErrorHeapTypeOnStack();
             // new NameResolution().ErrorCircularReference();
-            //  new Semantics.FunctionCalls().ErrorAmbiguousCallWithDistinctOutcomeTypes();
+            //new Semantics.FunctionCalls().FunctorArgumentMapping();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-            //new Expressions().ErrorIgnoringFunctionResult();
+            //new Semantics.Expressions().ErrorReadingFunctionVoidResult();
             //new MethodDefinitions().Basics();
             //new FunctionDefinitions().VariadicParametersInvalidLimits();
             // new TypeMatching().UnionMatching();
-            //  new Flow().ErrorReadingOtherIfBlocks();
+            //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Variables().DetectingUsage();
             // new Types().ErrorIncorrectMethodsForType();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
-            //new Pointers().DereferenceOnAssignment();
-            //new Execution.FunctionCalls().LocalVariablesLeakCheck();
+            //  new Execution.Properties().AutoProperties();
+            //new Execution.Objects().AccessingObjectFields();
+            //new Execution.Pointers().DereferenceOnAssignment();
+            // new Execution.FunctionCalls().OptionalParameters();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Inheritance().DuckDeepVirtualCall();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
             //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Closures().TODO_PassingLocalVariables();
+            //new Execution.Closures().ImplicitClosureWithPointer();
 
             {
                 double start = Stopwatch.GetTimestamp();
@@ -84,7 +86,7 @@ namespace Skila.Tests
                 if (all_errors.Any())
                 {
                     var fc = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine();
                     Console.WriteLine("Missed coverage for following errors:");
                     Console.ForegroundColor = fc;
@@ -95,7 +97,7 @@ namespace Skila.Tests
                 if (no_tests.Any())
                 {
                     var fc = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine();
                     Console.WriteLine("Following errors are covered by tests, change their names:");
                     Console.ForegroundColor = fc;
@@ -107,7 +109,7 @@ namespace Skila.Tests
             if (missed_atrr.Any())
             {
                 var fc = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine();
                 Console.WriteLine("Missed unit test attribute:");
                 Console.ForegroundColor = fc;

@@ -5,11 +5,12 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
+using System.Linq;
 
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionArgument : Node, IExpression, IIndexed
+    public sealed class FunctionArgument : Node, IExpression, IIndexed,ILambdaTransfer
     {
         public static FunctionArgument Create(string nameLabel, IExpression expression)
         {
@@ -31,7 +32,7 @@ namespace Skila.Language.Expressions
         public bool IsComputed => this.Evaluation != null;
         private IExpression expression;
         public IExpression Expression => this.expression;
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Expression };
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Expression }.Concat(closures);
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(Expression);
         private Option<int> index;
         public int Index
@@ -45,6 +46,8 @@ namespace Skila.Language.Expressions
             }
         }
 
+        private readonly List<TypeDefinition> closures;
+
         public FunctionParameter MappedTo { get; set; }
         public ExpressionReadMode ReadMode => Expression.ReadMode;
 
@@ -53,6 +56,8 @@ namespace Skila.Language.Expressions
         {
             this.NameLabel = nameLabel;
             this.expression = expression;
+
+            this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -65,14 +70,14 @@ namespace Skila.Language.Expressions
             return (NameLabel == null ? "" : $"{NameLabel}: ") + this.Expression.ToString();
         }
 
-        public bool IsReadingValueOfNode( IExpression node)
+        public bool IsReadingValueOfNode(IExpression node)
         {
             return node == this.Expression;
         }
 
         public void Evaluate(ComputationContext ctx)
         {
-            this.Expression.Evaluated(ctx);
+            this.TrapClosure(ctx,ref this.expression);
         }
 
         internal void DataTransfer(ComputationContext ctx, IEntityInstance targetTypeName)
@@ -83,7 +88,13 @@ namespace Skila.Language.Expressions
 
         public void Validate(ComputationContext ctx)
         {
-            
+
+        }
+
+        public void AddClosure(TypeDefinition closure)
+        {
+            this.closures.Add(closure);
+            closure.AttachTo(this);
         }
     }
 }

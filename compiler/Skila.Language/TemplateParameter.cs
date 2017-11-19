@@ -64,19 +64,5 @@ namespace Skila.Language
                 result += " ";
             return result + Name;
         }
-
-        public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
-        {
-            return this.Constraint.InheritsNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
-                .Select(it => it.TranslateThrough(closedTemplate));
-        }
-        public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
-        {
-            return this.Constraint.BaseOfNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
-                .Select(it => it.TranslateThrough(closedTemplate));
-        }
-
     }
 }

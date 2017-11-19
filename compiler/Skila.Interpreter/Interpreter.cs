@@ -14,6 +14,10 @@ namespace Skila.Interpreter
     {
         private ExecValue execute(FunctionDefinition func, ExecutionContext ctx)
         {
+            if (func.DebugId.Id==2812)
+            {
+                ;
+            }
             if (ctx.ThisArgument != null)
                 ctx.LocalVariables.Add(func.MetaThisParameter, ctx.ThisArgument);
 
@@ -41,22 +45,25 @@ namespace Skila.Interpreter
             }
             else if (owner_type != null && owner_type.IsPlain)
             {
+                // meta-this is always passed as reference or pointer, so we can blindly dereference it
+                ObjectData this_value = ctx.ThisArgument.Dereference();
+
                 if (owner_type == ctx.Env.IntType)
                 {
                     if (func.Name.Name == NameFactory.AddOperator)
                     {
                         ObjectData arg = ctx.FunctionArguments.Values.Single();
-                        return ExecValue.CreateReturn(ObjectData.Create(func.MetaThisParameter.Evaluation,
-                            ctx.ThisArgument.PlainValue.Cast<int>() + arg.PlainValue.Cast<int>()));
+                        return ExecValue.CreateReturn(ObjectData.Create(this_value.RunTimeTypeInstance,
+                            this_value.PlainValue.Cast<int>() + arg.PlainValue.Cast<int>()));
                     }
                     else if (func.IsDefaultInitConstructor())
                     {
-                        ctx.ThisArgument.Assign(ObjectData.Create(func.MetaThisParameter.Evaluation, 0));
+                        this_value.Assign(ObjectData.Create(this_value.RunTimeTypeInstance, 0));
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.IsCopyInitConstructor())
                     {
-                        ctx.ThisArgument.Assign(ctx.FunctionArguments.Values.Single());
+                        this_value.Assign(ctx.FunctionArguments.Values.Single());
                         return ExecValue.CreateReturn(null);
                     }
                     else
@@ -66,18 +73,18 @@ namespace Skila.Interpreter
                 {
                     if (func.IsDefaultInitConstructor())
                     {
-                        ctx.ThisArgument.Assign(ObjectData.Create(func.MetaThisParameter.Evaluation, false));
+                        this_value.Assign(ObjectData.Create(this_value.RunTimeTypeInstance, false));
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.IsCopyInitConstructor())
                     {
-                        ctx.ThisArgument.Assign(ctx.FunctionArguments.Values.Single());
+                        this_value.Assign(ctx.FunctionArguments.Values.Single());
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.Name.Name == NameFactory.NotOperator)
                     {
-                        return ExecValue.CreateReturn(ObjectData.Create(func.MetaThisParameter.Evaluation,
-                            !ctx.ThisArgument.PlainValue.Cast<bool>()));
+                        return ExecValue.CreateReturn(ObjectData.Create(this_value.RunTimeTypeInstance,
+                            !this_value.PlainValue.Cast<bool>()));
                     }
                     else
                         throw new NotImplementedException();
@@ -86,23 +93,24 @@ namespace Skila.Interpreter
                 {
                     if (func.IsDefaultInitConstructor())
                     {
-                        ctx.Heap.AddDisposable();
-                        ObjectData channel_obj = ObjectData.Create(ctx.ThisArgument.RunTimeTypeInstance, Channels.Channel.Create<ObjectData>());
-                        ctx.ThisArgument.Assign(channel_obj);
+                        Channels.IChannel<ObjectData> channel = Channels.Channel.Create<ObjectData>();
+                        ctx.Heap.TryAddDisposable(channel);
+                        ObjectData channel_obj = ObjectData.Create(this_value.RunTimeTypeInstance, channel);
+                        this_value.Assign(channel_obj);
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.Name.Name == NameFactory.ChannelSend)
                     {
                         ObjectData arg = ctx.FunctionArguments.Values.Single();
 
-                        Channels.IChannel<ObjectData> channel = ctx.ThisArgument.PlainValue.Cast<Channels.IChannel<ObjectData>>();
+                        Channels.IChannel<ObjectData> channel = this_value.PlainValue.Cast<Channels.IChannel<ObjectData>>();
                         bool result = channel.Send(arg);
-                        return ExecValue.CreateReturn(ObjectData.Create(func.MetaThisParameter.Evaluation, result));
+                        return ExecValue.CreateReturn(ObjectData.Create(this_value.RunTimeTypeInstance, result));
                     }
                     else if (func.Name.Name == NameFactory.ChannelReceive)
                     {
-                        Channels.IChannel<ObjectData> channel = ctx.ThisArgument.PlainValue.Cast<Channels.IChannel<ObjectData>>();
-                        EntityInstance channel_type = ctx.ThisArgument.RunTimeTypeInstance;
+                        Channels.IChannel<ObjectData> channel = this_value.PlainValue.Cast<Channels.IChannel<ObjectData>>();
+                        EntityInstance channel_type = this_value.RunTimeTypeInstance;
                         IEntityInstance value_type = channel_type.TemplateArguments.Single();
                         // we have to compute Skila Option type (not C# one we use for C# channel type)
                         EntityInstance option_type = ctx.Env.OptionType.GetInstanceOf(new[] { value_type });
@@ -187,7 +195,7 @@ namespace Skila.Interpreter
                 if (cond.IsReturn)
                     return cond;
 
-                cond_obj = cond.ExprValue.GetValue(ifBranch.Condition);
+                cond_obj = cond.ExprValue.TryDereference(ifBranch.Condition);
             }
 
             if (ifBranch.IsElse || cond_obj.PlainValue.Cast<bool>())
@@ -227,7 +235,7 @@ namespace Skila.Interpreter
             return result;
         }
 
-        private ExecValue executed(IExpression node, ExecutionContext ctx)
+        private ExecValue executed(IEvaluable node, ExecutionContext ctx)
         {
             if (ctx.LocalVariables == null && node is IExecutableScope)
                 ctx.LocalVariables = new VariableRegistry();
@@ -352,55 +360,6 @@ namespace Skila.Interpreter
             }
         }
 
-        private ExecValue callPropertyGetter(NameReference name, ExecutionContext ctx)
-        {
-            Property prop = name.Binding.Match.Target.Cast<Property>();
-            IExpression this_context = name.GetContext(prop.Getter);
-            if (this_context == null)
-                throw new Exception("Internal error");
-
-            ObjectData self = (executed(this_context, ctx)).ExprValue.GetValue(this_context);
-            ctx.Heap.TryInc(ctx, self);
-
-            ctx.FunctionArguments = null;
-            ctx.ThisArgument = self;
-
-            ExecValue ret = executed(prop.Getter, ctx);
-
-            if (ret.RetValue != null)
-                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
-
-            return ExecValue.CreateExpression(ret.RetValue);
-        }
-
-        private void callPropertySetter(NameReference name, IExpression value, ObjectData valueData, ExecutionContext ctx)
-        {
-            Property prop = name.Binding.Match.Target.Cast<Property>();
-            IExpression this_context = name.GetContext(prop.Setter);
-            if (this_context == null)
-                throw new Exception("Internal error");
-
-            ObjectData self = (executed(this_context, ctx)).ExprValue.GetValue(this_context);
-            ctx.Heap.TryInc(ctx, self);
-
-            var args = new Dictionary<FunctionParameter, ObjectData>();
-            //foreach (FunctionArgument arg in call.Arguments)
-            {
-                args.Add(prop.Setter.Parameters.First(), valueData);
-            }
-
-            ctx.FunctionArguments = args;
-            ctx.ThisArgument = self;
-
-            ExecValue ret = executed(prop.Setter, ctx);
-
-            if (ret.RetValue != null)
-                throw new Exception("Internal error");
-            //                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: false);
-
-            // return ExecValue.CreateExpression(ret.RetValue);
-        }
-
         private ExecValue execute(Spawn spawn, ExecutionContext ctx)
         {
             FunctionDefinition func = prepareFunctionCall(spawn.Call, ref ctx);
@@ -423,97 +382,168 @@ namespace Skila.Interpreter
             return ExecValue.CreateExpression(ret.RetValue);
         }
 
-        private FunctionDefinition prepareFunctionCall(FunctionCall call, ref ExecutionContext ctx)
+        private ExecValue callPropertyGetter(NameReference name, ExecutionContext ctx)
         {
-            if (call.DebugId.Id == 3861)
+            if (name.DebugId.Id == 2611)
             {
                 ;
             }
-            ObjectData self;
+            Property prop = name.Binding.Match.Target.Cast<Property>();
+            IExpression this_context = name.GetContext(prop.Getter);
+            if (this_context == null)
+                throw new Exception("Internal error");
+
+            ObjectData this_ref = prepareThis(ctx, this_context);
+
+            ctx.FunctionArguments = null;
+            ctx.ThisArgument = this_ref;
+
+            ExecValue ret = executed(prop.Getter, ctx);
+
+            if (ret.RetValue != null)
+                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
+
+            return ExecValue.CreateExpression(ret.RetValue);
+        }
+
+        private void callPropertySetter(NameReference name, IExpression value, ObjectData valueData, ExecutionContext ctx)
+        {
+            Property prop = name.Binding.Match.Target.Cast<Property>();
+            IExpression this_context = name.GetContext(prop.Setter);
+            if (this_context == null)
+                throw new Exception("Internal error");
+
+            ObjectData this_ref = prepareThis(ctx, this_context);
+
+            var args = new Dictionary<FunctionParameter, ObjectData>();
+            args.Add(prop.Setter.Parameters.First(), valueData);
+
+            ctx.FunctionArguments = args;
+            ctx.ThisArgument = this_ref;
+
+            ExecValue ret = executed(prop.Setter, ctx);
+
+            if (ret.RetValue != null)
+                throw new Exception("Internal error");
+            //                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: false);
+
+            // return ExecValue.CreateExpression(ret.RetValue);
+        }
+
+        private ObjectData prepareThis(ExecutionContext ctx, IExpression thisExpr)
+        {
+            ExecValue this_exec = executed(thisExpr, ctx);
+            ObjectData this_obj = this_exec.ExprValue;
+            ctx.Heap.TryInc(ctx, this_obj);
+
+            // if "this" is a value (legal at this point) we have add a reference to it because every function
+            // expect to get either reference or pointer to this instance
+            //if (self == self_value)
+            if (!ctx.Env.IsPointerLikeOfType(this_obj.RunTimeTypeInstance))
+                this_obj = this_obj.Reference(ctx.Env);
+
+            return this_obj;
+        }
+        private FunctionDefinition prepareFunctionCall(FunctionCall call, ref ExecutionContext ctx)
+        {
+            if (call.DebugId.Id == 2522)
+            {
+                ;
+            }
+            ObjectData this_ref;
+            ObjectData this_value;
             if (call.Resolution.MetaThisArgument != null)
             {
-                ExecValue this_exec = executed(call.Resolution.MetaThisArgument.Expression, ctx);
-                self = this_exec.ExprValue.GetValue(call.Name.Prefix);
-                ctx.Heap.TryInc(ctx, self);
+                this_ref = prepareThis(ctx, call.Resolution.MetaThisArgument.Expression);
+                this_value = this_ref.TryDereference(ctx.Env);
             }
             else
-                self = null;
+            {
+                this_ref = null;
+                this_value = null;
+            }
 
             var args = new Dictionary<FunctionParameter, ObjectData>();
             foreach (FunctionArgument arg in call.Arguments)
             {
                 ExecValue arg_exec = executed(arg.Expression, ctx);
-                ObjectData arg_obj = arg_exec.ExprValue.GetValue(arg);
+                ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg);
                 ctx.Heap.TryInc(ctx, arg_obj);
 
                 args.Add(arg.MappedTo, arg_obj);
             }
 
-            FunctionDefinition target_func = call.Resolution.TargetInstance.Target.CastFunction();
-            if (call.Resolution.MetaThisArgument != null)
+            FunctionDefinition target_func = null;
+            IEntity call_target = call.Resolution.TargetInstance.Target;
+
+            if (call_target.IsFunction())
             {
-                EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Cast<EntityInstance>();
-                // first we check if the call is made on the instance of template parameter
-                if (this_eval.TargetType.IsTemplateParameter)
+                target_func = call_target.CastFunction();
+                if (call.Resolution.MetaThisArgument != null)
                 {
-                    TemplateParameter template_param = this_eval.TargetType.TemplateParameter;
-                    // get the argument for given template parameter
-                    EntityInstance template_arg = ctx.TemplateArguments[template_param.Index].Cast<EntityInstance>();
-                    // and then we get the virtual table from argument to parameter
-                    if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
-                        throw new Exception("Internal error");
-                    // ...and once we have the mapping we get target function
-                    else if (!vtable.TryGetDerived(ref target_func))
-                        throw new Exception("Internal error");
-                }
-                else if (ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
-                {
-                    bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && target_func.OwnerType().IsInterface)
-                    || target_func.OwnerType().IsProtocol;
-                    bool classic_virtual = target_func.IsVirtual;
-
-                    if (duck_virtual)
+                    EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Cast<EntityInstance>();
+                    // first we check if the call is made on the instance of template parameter
+                    if (this_eval.TargetType.IsTemplateParameter)
                     {
-                        // we know "this" is either pointer or reference so we have to get inner type 
-                        // in order to get virtual table for it
-                        IEntityInstance inner_type = this_eval.TemplateArguments.Single();
-
-                        // todo: optimize it
-                        // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
-                        // of such cases as this
-                        // let b *B = new C();
-                        // let a *IA = b;
-                        // on the second line the static types are "*B" -> "*IA" so the virtual table is built in type
-                        // B, not C, but in runtime we have C at hand and C does not have any virtual table, because
-                        // types "*C" -> "*IA" were never matched
-
-                        bool found_duck = false;
-
-                        foreach (EntityInstance ancestor in self.RunTimeTypeInstance.TargetType.Inheritance
-                            .AncestorsIncludingObject.Select(it => it.TranslateThrough(self.RunTimeTypeInstance))
-                            .Concat(self.RunTimeTypeInstance))
-                        {
-                            if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
-                            {
-                                if (!vtable.TryGetDerived(ref target_func))
-                                    throw new Exception("Internal error");
-                                found_duck = true;
-                                break;
-                            }
-                        }
-
-                        if (!found_duck)
+                        TemplateParameter template_param = this_eval.TargetType.TemplateParameter;
+                        // get the argument for given template parameter
+                        EntityInstance template_arg = ctx.TemplateArguments[template_param.Index].Cast<EntityInstance>();
+                        // and then we get the virtual table from argument to parameter
+                        if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
+                            throw new Exception("Internal error");
+                        // ...and once we have the mapping we get target function
+                        else if (!vtable.TryGetDerived(ref target_func))
                             throw new Exception("Internal error");
                     }
-
-                    if (duck_virtual || target_func.IsVirtual)
+                    else if (ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
                     {
-                        if (!self.InheritanceVirtualTable.TryGetDerived(ref target_func))
+                        bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && target_func.OwnerType().IsInterface)
+                        || target_func.OwnerType().IsProtocol;
+                        bool classic_virtual = target_func.IsVirtual;
+
+                        if (duck_virtual)
                         {
-                            // it is legal in duck mode to have a miss, but it case of classis virtual call
-                            // we simply HAVE TO have the entry for each virtual function
-                            if (!duck_virtual)
+                            // we know "this" is either pointer or reference so we have to get inner type 
+                            // in order to get virtual table for it
+                            IEntityInstance inner_type = this_eval.TemplateArguments.Single();
+
+                            // todo: optimize it
+                            // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
+                            // of such cases as this
+                            // let b *B = new C();
+                            // let a *IA = b;
+                            // on the second line the static types are "*B" -> "*IA" so the virtual table is built in type
+                            // B, not C, but in runtime we have C at hand and C does not have any virtual table, because
+                            // types "*C" -> "*IA" were never matched
+
+                            bool found_duck = false;
+
+                            foreach (EntityInstance ancestor in this_value.RunTimeTypeInstance.TargetType.Inheritance
+                                .AncestorsIncludingObject.Select(it => it.TranslateThrough(this_value.RunTimeTypeInstance))
+                                .Concat(this_value.RunTimeTypeInstance))
+                            {
+                                if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
+                                {
+                                    if (!vtable.TryGetDerived(ref target_func))
+                                        throw new Exception("Internal error");
+                                    found_duck = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found_duck)
                                 throw new Exception("Internal error");
+                        }
+
+                        if (duck_virtual || target_func.IsVirtual)
+                        {
+                            if (!this_value.InheritanceVirtualTable.TryGetDerived(ref target_func))
+                            {
+                                // it is legal in duck mode to have a miss, but it case of classis virtual call
+                                // we simply HAVE TO have the entry for each virtual function
+                                if (!duck_virtual)
+                                    throw new Exception("Internal error");
+                            }
                         }
                     }
                 }
@@ -523,7 +553,7 @@ namespace Skila.Interpreter
                 throw new Exception("Internal error");
 
             ctx.FunctionArguments = args;
-            ctx.ThisArgument = self;
+            ctx.ThisArgument = this_ref;
             ctx.TemplateArguments = call.Name.TemplateArguments.Select(it => it.Evaluation).StoreReadOnlyList();
 
             return target_func;
@@ -536,7 +566,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(NameReference name, ExecutionContext ctx)
         {
-            if (name.DebugId.Id == 1209)
+            if (name.DebugId.Id == 2475)
             {
                 ;
             }
@@ -548,17 +578,21 @@ namespace Skila.Interpreter
             if (name.Prefix != null)
             {
                 ExecValue prefix_exec = executed(name.Prefix, ctx);
-                ObjectData prefix_obj = prefix_exec.ExprValue.GetValue(name.Prefix);
-                return ExecValue.CreateExpression(prefix_obj.GetField(target));
+                ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name.Prefix);
+                return ExecValue.CreateExpression(prefix_obj.GetField( target));
             }
             else if (ctx.LocalVariables.TryGet(target, out ObjectData info))
                 return ExecValue.CreateExpression(info);
             else if (target is VariableDeclaration decl && decl.IsField())
             {
                 var current_func = name.EnclosingScope<FunctionDefinition>();
-                if (!ctx.LocalVariables.TryGet(current_func.MetaThisParameter, out ObjectData this_data))
+                if (!ctx.LocalVariables.TryGet(current_func.MetaThisParameter, out ObjectData this_ref_data))
                     throw new Exception("Internal error");
-                return ExecValue.CreateExpression(this_data.GetField(target));
+                // this is always pointer/reference so in order to get the value of "this" we have to dereference it
+                ObjectData this_value = this_ref_data.Dereference();
+
+                ObjectData field_data = this_value.GetField(target);
+                return ExecValue.CreateExpression(field_data);
             }
             else if (target is TypeContainerDefinition type_container)
             {
@@ -570,7 +604,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(Assignment assign, ExecutionContext ctx)
         {
-            if (assign.DebugId.Id == 8948)
+            if (assign.DebugId.Id == 2805)
             {
                 ;
             }
@@ -586,7 +620,7 @@ namespace Skila.Interpreter
                     ;
                 }
                 ExecValue lhs;
-                ObjectData rhs_obj = rhs_val.ExprValue.GetValue(assign.RhsValue);
+                ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(assign.RhsValue);
                 ctx.Heap.TryInc(ctx, rhs_obj);
 
                 if (assign.Lhs.Cast<NameReference>().Binding.Match.Target is Property)
@@ -612,8 +646,8 @@ namespace Skila.Interpreter
             else
                 rhs_val = executed(decl.InitValue, ctx);
 
-            ObjectData rhs_obj = rhs_val.ExprValue.GetValue(decl.InitValue);
-            if (decl.DebugId.Id == 8919)
+            ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl.InitValue);
+            if (decl.DebugId.Id == 2560)
             {
                 ;
             }

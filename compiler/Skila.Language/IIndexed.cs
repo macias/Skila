@@ -17,8 +17,8 @@ namespace Skila.Language
             {
                 elem.Index = index;
                 ++index;
+                yield return elem;
             }
-            return @this;
         }
     }
 }

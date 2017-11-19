@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateConstraint : Node,IVerificable
+    public sealed class TemplateConstraint : Node, IVerificable
     {
         public NameReference Name { get; }
         // for example "const" means the type argument has to be immutable
@@ -56,19 +56,19 @@ namespace Skila.Language
                     ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);
         }
 
-        /*      public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
-              {
-                  return InheritsNames.Select(it => it.Binding.Match)
-                      .WhereType<EntityInstance>()
-                      .Select(it => it.TranslateThrough(closedTemplate));
-              }
-              public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
-              {
-                  return BaseOfNames.Select(it => it.Binding.Match)
-                      .WhereType<EntityInstance>()
-                      .Select(it => it.TranslateThrough(closedTemplate));
-              }
+        public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
+        {
+            return InheritsNames.Select(it => it.Binding.Match)
+                .WhereType<EntityInstance>()
+                .Select(it => it.TranslateThrough(closedTemplate));
+        }
+        public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
+        {
+            return BaseOfNames.Select(it => it.Binding.Match)
+                .WhereType<EntityInstance>()
+                .Select(it => it.TranslateThrough(closedTemplate));
+        }
 
-      */
+
     }
 }

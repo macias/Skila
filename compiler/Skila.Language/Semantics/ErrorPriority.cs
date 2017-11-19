@@ -22,6 +22,9 @@ namespace Skila.Language.Semantics
 
             add(ErrorCode.NOTEST_AmbiguousOverloadedCall, 
                 ErrorCode.OverloadingDuplicateFunctionDefinition);
+
+            add(ErrorCode.ExpressionValueNotUsed, 
+                ErrorCode.CannotReadExpression);
         }
         private void add(ErrorCode lower, params ErrorCode[] higherCodes)
         {

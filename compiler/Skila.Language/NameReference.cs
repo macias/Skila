@@ -54,7 +54,7 @@ namespace Skila.Language
         bool INameReference.IsBindingComputed => this.Binding.IsComputed;
 
         public bool IsRoot { get; }
-        public IExpression Prefix { get; }
+        public IExpression Prefix { get; private set; }
         public string Name { get; }
         public IReadOnlyCollection<INameReference> TemplateArguments { get; }
         public Binding Binding { get; }
@@ -105,14 +105,28 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 8809)
+                if (this.DebugId.Id == 2494)
                 {
                     ;
                 }
 
-                if (!this.Binding.IsComputed)
+                if (this.Binding.IsComputed)
                 {
-                    this.TemplateArguments.ForEach(it => it.Evaluate(ctx));
+                    if (this.Prefix != null)
+                    {
+                        bool dereferenced = false;
+                        this.Prefix.Evaluation.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                        if (this.Prefix.DebugId.Id == 2572)
+                        {
+                            ;
+                        }
+                        if (dereferenced)
+                            this.Prefix.IsDereferenced = true;
+                    }
+                }
+                else
+                {
+                    this.TemplateArguments.ForEach(it => it.Evaluated(ctx));
 
                     if (this.IsRoot)
                     {
@@ -121,11 +135,18 @@ namespace Skila.Language
                     }
                     else if (this.Prefix == null)
                     {
-                        IEntity entity;
                         IEnumerable<IEntity> entities;
 
-                        if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet<IEntity>(this, out entity))
+                        if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet<IEntity>(this, out IEntity entity))
+                        {
+                            FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
+                            FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
+
+                            if (local_function != entity_function)
+                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+
                             entities = new[] { entity };
+                        }
                         else
                         {
                             entities = Enumerable.Empty<IEntity>();
@@ -133,7 +154,9 @@ namespace Skila.Language
                             {
                                 entities = scope.FindEntities(this);
                                 if (entities.Any())
+                                {
                                     break;
+                                }
                             }
                         }
 
@@ -159,7 +182,7 @@ namespace Skila.Language
                         }
                         else
                         {
-                            if (this.DebugId.Id == 8809)
+                            if (this.DebugId.Id == 2723)
                             {
                                 ;
                             }
@@ -171,7 +194,12 @@ namespace Skila.Language
                                 .SelectMany(it => it.FindEntities(this))
                                 .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic)
                                 .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments)));
-                            this.Prefix.IsDereferenced = dereferenced;
+                            if (this.Prefix.DebugId.Id == 2572)
+                            {
+                                ;
+                            }
+                            if (dereferenced)
+                                this.Prefix.IsDereferenced = true;
                         }
                     }
 
@@ -182,7 +210,7 @@ namespace Skila.Language
                 EntityInstance instance = this.Binding.Match;
                 IEntityInstance eval;
                 if (instance.Target.IsType() || instance.Target.IsNamespace())
-                    eval  = instance;
+                    eval = instance;
                 else
                     eval = instance.Evaluated(ctx);
 
@@ -197,7 +225,7 @@ namespace Skila.Language
 
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 11176)
+            if (this.DebugId.Id == 2494)
             {
                 ;
             }
@@ -251,15 +279,13 @@ namespace Skila.Language
         }
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {
-            //return entityInstance;
-
-            if (!ctx.Env.IsPointerOfType(entityInstance) && !ctx.Env.IsReferenceOfType(entityInstance))
+            if (!ctx.Env.IsPointerLikeOfType(entityInstance))
                 return entityInstance;
 
             dereferenced = true;
 
             return entityInstance.TemplateArguments.Single()
-                // this is incorrect, just a temporary shortcut
+                // todo: this is incorrect, just a temporary shortcut
                 .Cast<EntityInstance>();
 
         }
@@ -282,6 +308,11 @@ namespace Skila.Language
             if (prefix != null)
                 return prefix;
 
+            // hitting a variable of IFunction type, for example "f(3)", where "f" is
+            // f = (x) => x*x
+            //@@@if (callTarget is VariableDeclaration decl)
+            //  return decl.InstanceOf.NameOf;
+            //else 
             if (!callTarget.IsFunction())
                 return null;
 

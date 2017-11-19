@@ -226,7 +226,7 @@ namespace Skila.Language
 
 
             // 'inherits' part of constraint
-            foreach (EntityInstance constraint_inherits in param.TranslateInherits(closedTemplate))
+            foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
                 if (TypeMatch.No == TypeMatcher.Matches(ctx, false, this, constraint_inherits, allowSlicing: true))
                     return ConstraintMatch.InheritsViolation;
@@ -244,12 +244,12 @@ namespace Skila.Language
 
             // 'base-of' part of constraint
             IEnumerable<IEntityInstance> arg_bases = (this.TargetsTemplateParameter
-                ? this.TargetType.TemplateParameter.TranslateBaseOf(closedTemplate)
+                ? this.TargetType.TemplateParameter.Constraint.TranslateBaseOf(closedTemplate)
                 : Enumerable.Empty<EntityInstance>()
                 )
                 .Concat(this);
 
-            foreach (EntityInstance constraint_base in param.TranslateBaseOf(closedTemplate))
+            foreach (EntityInstance constraint_base in param.Constraint.TranslateBaseOf(closedTemplate))
             {
                 if (!arg_bases.Any(it => TypeMatch.No != constraint_base.MatchesTarget(ctx, it, allowSlicing: true)))
                     return ConstraintMatch.BaseViolation;

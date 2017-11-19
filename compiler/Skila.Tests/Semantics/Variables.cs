@@ -113,9 +113,9 @@ namespace Skila.Tests.Semantics
             root_ns.AddNode(VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), x_ref));
 
             var resolver = NameResolver.Create(env);
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(x_ref, resolver.ErrorManager.Errors.Single().Node);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, x_ref));
 
             return resolver;
         }
@@ -162,11 +162,11 @@ namespace Skila.Tests.Semantics
                 NameFactory.DoubleTypeReference(),
                 Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x",
-                NameReference.Create("Function", NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference()),
+                NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference()),
                 initValue: NameReference.Create("foo")));
             var foo_ref = NameReference.Create("foo");
             root_ns.AddNode(VariableDeclaration.CreateStatement("y",
-                NameReference.Create("Function", NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference()),
+                NameReference.Create(NameFactory.FunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference()),
                 initValue: foo_ref));
 
             var resolver = NameResolver.Create(env);

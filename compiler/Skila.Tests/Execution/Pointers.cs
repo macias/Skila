@@ -132,11 +132,17 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
+                    // p_int *Int = new Int(1)
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),
+                            FunctionArgument.Create(IntLiteral.Create("1")))),
+                    // v_int Int = p_int // automatic dereference
                     VariableDeclaration.CreateStatement("v_int",NameFactory.IntTypeReference(), NameReference.Create("p_int")),
+                    // z_int Int
                     VariableDeclaration.CreateStatement("z_int",NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
+                    // z_int = p_int // automatic derereference
                     Assignment.CreateStatement(NameReference.Create( "z_int"), NameReference.Create("p_int")),
+                    // return v_int.+(z_int) // automatic dereference of the argument
                     Return.Create( FunctionCall.Create(NameReference.Create( NameReference.Create("v_int"),NameFactory.AddOperator),
                         FunctionArgument.Create(NameReference.Create("z_int"))))
                 })));

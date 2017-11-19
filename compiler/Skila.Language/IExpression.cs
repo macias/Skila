@@ -4,10 +4,10 @@
     {
         bool IsDereferenced { get; set; }
         ExpressionReadMode ReadMode { get; }
-        ExecutionFlow Flow { get; }
         bool IsRead { get; set; }
+        ExecutionFlow Flow { get; }
 
+        bool IsReadingValueOfNode(IExpression node);
         bool IsLValue(ComputationContext ctx);
-        bool IsReadingValueOfNode( IExpression node);
     }
 }

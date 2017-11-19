@@ -130,7 +130,7 @@ namespace Skila.Language.Semantics
 
         public bool TryCanRead(NameReference name, out VariableDeclaration varDeclaration)
         {
-            if (name.DebugId.Id == 248)
+            if (name.DebugId.Id == 2494)
             {
                 ;
             }

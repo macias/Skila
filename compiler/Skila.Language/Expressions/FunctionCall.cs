@@ -65,18 +65,38 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 8887)
+                if (this.DebugId.Id == 2496)
                 {
                     ;
                 }
 
-                EntityInstance eval = this.Name.Evaluated(ctx).Cast<EntityInstance>();
+                EntityInstance eval = this.Name.Evaluation.Cast<EntityInstance>();
 
-                this.Arguments.ForEach(it => it.Evaluate(ctx));
+                this.Name.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
+                if (this.Name.IsDereferenced)
+                    eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
+
+                IEnumerable<EntityInstance> matches = null;
+
+                if (!ctx.Env.IsFunctionType(eval) &&
+                    (eval.Target is TypeDefinition closure && closure.FunctorInvokeSignature != null))
+                {
+                    this.Name.DetachFrom(this);
+                    this.Name = NameReference.Create(this.Name, NameFactory.LambdaInvoke);
+                    this.Name.AttachTo(this);
+                    eval = this.Name.Evaluated(ctx).Cast<EntityInstance>();
+                    //matches = new[] { closure.FunctorInvokeSignature.CastFunction().InstanceOf };
+                }
 
                 if (ctx.Env.IsFunctionType(eval))
                 {
-                    IEnumerable<CallResolution> targets = this.Name.Binding.Matches
+                    matches = this.Name.Binding.Matches;
+                }
+
+
+                if (matches != null)
+                {
+                    IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.Target), targetInstance: it))
                         .Where(it => it != null)
@@ -120,8 +140,10 @@ namespace Skila.Language.Expressions
                         // is altered by type inference
 
                         if (this.Resolution.InferredTemplateArguments == null)
+                        {
                             // leave only binding which was used for mapping
                             this.Name.Binding.Filter(it => it == this.Resolution.BindingMatch);
+                        }
                         else
                         {
                             // var name = this.Name;
@@ -138,7 +160,7 @@ namespace Skila.Language.Expressions
                             ;
                         }
 
-                        this.Evaluation = eval.TemplateArguments.Last();
+                        this.Evaluation = this.Resolution.Evaluation;
                     }
                 }
                 else

@@ -10,7 +10,8 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionDefinition : TemplateDefinition, IExpression, INode, IEntity,
+    public sealed class FunctionDefinition : TemplateDefinition,
+        IEntity,
         IExecutableScope, IFunctionSignature, IFunctionOutcome
     {
         public static FunctionDefinition CreateFunction(
@@ -22,7 +23,7 @@ namespace Skila.Language.Entities
             INameReference result,
             Block body)
         {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
+            return new FunctionDefinition(modifier,
                 name, constraints, parameters, callMode, result, chainCall: null, body: body);
         }
         public static FunctionDefinition CreateFunction(
@@ -35,22 +36,16 @@ namespace Skila.Language.Entities
             FunctionCall chainCall,
             Block body)
         {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
+            return new FunctionDefinition(modifier,
                 name, constraints, parameters, callMode, result, chainCall, body);
         }
-        public static FunctionDefinition CreateLambda(INameReference result,
-            Block body,
-            params FunctionParameter[] parameters)
-        {
-            return new FunctionDefinition(ExpressionReadMode.ReadRequired, null,
-                NameDefinition.Create(""), null, parameters, ExpressionReadMode.ReadRequired, result, null, body);
-        }
+
         public static FunctionDefinition CreateInitConstructor(
             EntityModifier modifier,
             IEnumerable<FunctionParameter> parameters,
             Block body)
         {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, modifier,
+            return new FunctionDefinition(modifier,
                                 NameFactory.InitConstructorNameDefinition(), null,
                                 parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
@@ -60,7 +55,7 @@ namespace Skila.Language.Entities
             NameReference typeName,
             Block body)
         {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead,
+            return new FunctionDefinition(
                 modifier | EntityModifier.Static,
                 NameFactory.NewConstructorNameDefinition(), null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
@@ -68,14 +63,10 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateZeroConstructor(Block body)
         {
-            return new FunctionDefinition(ExpressionReadMode.CannotBeRead, EntityModifier.None,
+            return new FunctionDefinition(EntityModifier.None,
                                 NameFactory.ZeroConstructorNameDefinition(), null,
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
-
-        private bool? isRead;
-        public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
-        public bool IsDereferenced { get; set; }
 
         public NameReference FunctorTypeName { get; }
         public INameReference ResultTypeName => this.FunctorTypeName.TemplateArguments.Last();
@@ -84,8 +75,9 @@ namespace Skila.Language.Entities
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
         public ExpressionReadMode CallMode { get; }
-        public ExpressionReadMode ReadMode { get; }
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(UserBody);
+
+        internal LambdaTrap LambdaTrap { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
             .Concat(FunctorTypeName, UserBody)
@@ -96,7 +88,7 @@ namespace Skila.Language.Entities
 
         // we keep this as a shortcut for particular piece of the body (initially chain call is not part of the body)
         private readonly FunctionCall constructorChainCall;
-        private readonly FunctionCall constructorZeroCall;
+        private FunctionCall constructorZeroCall;
 
         public bool IsDeclaration => this.UserBody == null;
         public bool IsAbstract => this.IsDeclaration || this.Modifier.HasAbstract;
@@ -104,12 +96,14 @@ namespace Skila.Language.Entities
         public bool IsSealed => !this.IsAbstract && !this.Modifier.HasBase;
         public bool IsVirtual => this.IsAbstract || this.Modifier.HasDerived || this.Modifier.HasBase;
 
-        private FunctionDefinition(ExpressionReadMode readMode,
-            EntityModifier modifier,
+        public bool IsLambdaInvoker => this.Name.Name == NameFactory.LambdaInvoke;
+        public bool IsLambda => this.EnclosingScope<TemplateDefinition>().IsFunction();
+
+        private FunctionDefinition(EntityModifier modifier,
             NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             IEnumerable<FunctionParameter> parameters,
-            ExpressionReadMode resultMode,
+            ExpressionReadMode callMode,
             INameReference result,
             FunctionCall chainCall,
             Block body)
@@ -118,20 +112,16 @@ namespace Skila.Language.Entities
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
             this.constructorChainCall = chainCall;
-            this.ReadMode = readMode;
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
-            this.FunctorTypeName = NameFactory.CreateFunction(parameters.Select(it => it.TypeName), result);
+            this.FunctorTypeName = NameFactory.CreateFunctionTypeReference(parameters.Select(it => it.TypeName), result);
             this.UserBody = body;
-            this.CallMode = resultMode;
-
-            if (this.IsInitConstructor())
-            {
-                this.constructorZeroCall = FunctionCall.Create(NameReference.Create(NameFactory.ZeroConstructorName));
-                this.UserBody.Prepend(constructorZeroCall);
-            }
+            this.CallMode = callMode;
 
             if (this.constructorChainCall != null)
                 this.UserBody.Prepend(this.constructorChainCall);
+
+            if (this.IsLambdaInvoker)
+                this.LambdaTrap = new LambdaTrap();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
@@ -149,11 +139,17 @@ namespace Skila.Language.Entities
             TypeDefinition owner_type = this.OwnerType();
             if (this.MetaThisParameter == null && owner_type != null) // method
             {
-                NameReference type_name = owner_type.Name.CreateNameReference();
+                NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
                     NameFactory.ReferenceTypeReference(type_name),
                     Variadic.None, null, isNameRequired: false);
                 this.MetaThisParameter.AttachTo(this);
+            }
+
+            if (owner_type!=null && this.IsInitConstructor () && owner_type.ZeroConstructor!=null)
+            {
+                this.constructorZeroCall = FunctionCall.Create(NameReference.Create(NameFactory.ZeroConstructorName));
+                this.UserBody.Prepend(constructorZeroCall);
             }
         }
 
@@ -194,7 +190,6 @@ namespace Skila.Language.Entities
             }
         }
 
-
         public override void Validate(ComputationContext ctx)
         {
             if (!this.IsDeclaration)
@@ -205,15 +200,24 @@ namespace Skila.Language.Entities
                     ctx.AddError(ErrorCode.MissingReturn, this.UserBody);
             }
         }
-        public bool IsLValue(ComputationContext ctx)
-        {
-            return false;
-        }
 
         public bool IsReadingValueOfNode(IExpression node)
         {
             return false;
         }
+
+        #region IExpression
+        // function is an expression only for a moment, as lambda, until it is lifted as closure method
+        // however we have to provide those membes to be compatible with interface
+        bool IExpression.IsDereferenced { get; set; }
+        ExpressionReadMode IExpression.ReadMode => ExpressionReadMode.CannotBeRead;
+        private bool? isRead;
+        bool IExpression.IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue && this.isRead != value) throw new Exception("Internal error"); this.isRead = value; } }
+        bool IExpression.IsLValue(ComputationContext ctx)
+        {
+            return false;
+        }
+        #endregion
     }
 
 }

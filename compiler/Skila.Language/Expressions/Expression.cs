@@ -28,16 +28,16 @@ namespace Skila.Language.Expressions
             this.ReadMode = readMode;
         }
 
-        public virtual void Validate( ComputationContext ctx)
-        {
-
-        }
         public abstract bool IsReadingValueOfNode( IExpression node);
         public abstract void Evaluate(ComputationContext ctx);
 
         public virtual bool IsLValue(ComputationContext ctx)
         {
             return false;
+        }
+        public virtual void Validate(ComputationContext ctx)
+        {
+
         }
 
     }

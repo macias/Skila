@@ -35,7 +35,7 @@ namespace Skila.Language
             else
             {
                 if (callContext.MetaThisArgument != null)
-                    throw new InvalidOperationException("Is it possible?");
+                    throw new InvalidOperationException("Is it possible?"); 
 
                 var functor = targetInstance.Evaluation as EntityInstance;
                 if (functor == null)
@@ -71,6 +71,7 @@ namespace Skila.Language
         private bool directlyTargetsFunction => !this.TargetInstance.TargetTemplate.IsType();
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
+        public IEntityInstance Evaluation => this.translatedResultEvaluation;
 
         private CallResolution(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
@@ -160,7 +161,7 @@ namespace Skila.Language
             out IEntityInstance translatedResultEvaluation)
         {
             if (targetInstance.TargetTemplate.IsType())
-                signature = targetInstance.TargetTemplate.CastType().FunctorSignature;
+                signature = targetInstance.TargetTemplate.CastType().FunctorInvokeSignature;
             else
                 signature = targetInstance.TargetTemplate.CastFunction();
 

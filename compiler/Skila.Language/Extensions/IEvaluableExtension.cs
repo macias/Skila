@@ -12,9 +12,9 @@ namespace Skila.Language.Extensions
 {
     public static partial class IEvaluableExtension
     {
-        private static void validateReadingValues( IExpression node, ComputationContext ctx)
+        private static void validateReadingValues(IExpression node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 7584)
+            if (node.DebugId.Id == 2494)
             {
                 ;
             }
@@ -45,7 +45,7 @@ namespace Skila.Language.Extensions
                 else if (node.ReadMode == ExpressionReadMode.ReadRequired)
                 {
                     if (!parent_reading)
-                        ctx.AddError(ErrorCode.ExpressionValueNotUsed, node);
+                        ctx.AddError(ErrorCode.ExpressionValueNotUsed, node, parent);
                 }
                 else
                     throw new InvalidOperationException();
@@ -117,6 +117,10 @@ namespace Skila.Language.Extensions
             }
             else if (match == TypeMatch.AutoDereference)
             {
+                if (source.DebugId.Id==2572)
+                {
+                    ;
+                }
                 source.IsDereferenced = true;
             }
             else if (match != TypeMatch.Pass)

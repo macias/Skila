@@ -29,10 +29,13 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
+                    // p = Point() // p.x is initialized with 1
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
+                    // p.x = 1+p.x
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
                      FunctionCall.Create(NameReference.Create( IntLiteral.Create("1"), NameFactory.AddOperator),
                      FunctionArgument.Create(NameReference.Create("p","x")))),
+                    // return p.x
                     Return.Create(NameReference.Create("p","x"))
                 })));
 

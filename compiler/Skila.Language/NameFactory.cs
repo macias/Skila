@@ -14,7 +14,7 @@ namespace Skila.Language
         public const string CollectionsNamespace = "Collections";
 
         public const string JokerTypeName = "[[@@]]";
-        public const string FunctionTypeName = "Function";
+        public const string FunctionTypeName = "IFunction";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string ObjectTypeName = "Object";
@@ -33,6 +33,8 @@ namespace Skila.Language
 
         public const string AddOperator = "+";
         public const string NotOperator = "not";
+
+        public const string LambdaInvoke = "invoke";
 
         public const string ChannelSend = "send";
         public const string ChannelClose = "close";
@@ -63,7 +65,7 @@ namespace Skila.Language
             return EntityInstance.Joker.NameOf;
         }*/
 
-        public static NameReference CreateFunction(IEnumerable<INameReference> arguments, INameReference result)
+        public static NameReference CreateFunctionTypeReference(IEnumerable<INameReference> arguments, INameReference result)
         {
             return NameReference.Create(NameReference.Root, FunctionTypeName, arguments.Concat(result).ToArray());
         }

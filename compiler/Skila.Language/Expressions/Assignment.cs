@@ -11,7 +11,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Assignment : Expression
+    public sealed class Assignment : Expression,ILambdaTransfer
     {
         public static Assignment CreateStatement(IExpression lhs, IExpression rhsValue)
         {
@@ -32,13 +32,17 @@ namespace Skila.Language.Expressions
         private IExpression rhsValue;
         public IExpression RhsValue => this.rhsValue;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { RhsValue, Lhs }.Where(it => it != null);
+        private readonly List<TypeDefinition> closures;
+
+        public override IEnumerable<INode> OwnedNodes => new INode[] { RhsValue, Lhs }.Concat(closures).Where(it => it != null);
 
         private Assignment(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue)
             : base(readMode)
         {
             this.Lhs = lhs;
             this.rhsValue = rhsValue;
+
+            this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -48,12 +52,12 @@ namespace Skila.Language.Expressions
             return result;
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
         }
 
-        public override void Validate( ComputationContext ctx)
+        public override void Validate(ComputationContext ctx)
         {
             ctx.ValAssignTracker?.Assigned(this.Lhs);
 
@@ -63,7 +67,9 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = Lhs.Evaluated(ctx);
+                this.TrapClosure(ctx,ref this.rhsValue);
+
+                this.Evaluation = Lhs.Evaluation;
 
                 this.DataTransfer(ctx, ref this.rhsValue, this.Evaluation);
 
@@ -96,6 +102,12 @@ namespace Skila.Language.Expressions
                 if (!this.Lhs.IsLValue(ctx))
                     ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
             }
+        }
+
+        public void AddClosure(TypeDefinition closure)
+        {
+            this.closures.Add(closure);
+            closure.AttachTo(this);
         }
     }
 }

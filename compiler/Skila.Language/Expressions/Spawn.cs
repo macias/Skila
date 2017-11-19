@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
+using Skila.Language.Extensions;
 
 namespace Skila.Language.Expressions
 {
@@ -46,7 +47,7 @@ namespace Skila.Language.Expressions
                     if (!arg.Evaluation.IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.CannotSpawnWithMutableArgument, arg);
 
-                if (this.Call.Resolution.MetaThisArgument != null && !this.Call.Resolution.MetaThisArgument.Evaluation.IsImmutableType(ctx))
+                if (this.Call.Resolution.MetaThisArgument != null && !this.Call.Resolution.MetaThisArgument.Evaluated(ctx).IsImmutableType(ctx))
                     ctx.AddError(ErrorCode.CannotSpawnOnMutableContext, this.Call.Name);
 
             }

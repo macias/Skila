@@ -11,7 +11,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDeclaration : Expression, IEntityVariable
+    public sealed class VariableDeclaration : Expression, IEntityVariable,ILambdaTransfer
     {
         public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
@@ -29,13 +29,16 @@ namespace Skila.Language.Entities
         private IExpression initValue;
         private IExpression autoFieldDefaultInit;
         public IExpression InitValue => this.initValue;
+        private readonly List<TypeDefinition> closures;
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue }
-            .Where(it => it != null);
+            .Where(it => it != null)
+            .Concat(closures);
         public override ExecutionFlow Flow => ExecutionFlow.CreatePath(InitValue);
         public EntityModifier Modifier { get; }
 
-        private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name, INameReference typeName, IExpression initValue)
+        private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name,
+            INameReference typeName, IExpression initValue)
             : base(readMode)
         {
             if (name == null)
@@ -47,6 +50,8 @@ namespace Skila.Language.Entities
             this.initValue = initValue;
 
             this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, null));
+
+            this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -114,7 +119,11 @@ namespace Skila.Language.Entities
                     ;
                 }
 
-                IEntityInstance tn_eval = this.TypeName?.Evaluated(ctx);
+                this.TrapClosure(ctx,ref this.initValue);
+
+                IEntityInstance init_eval = InitValue?.Evaluation;
+
+                IEntityInstance tn_eval = this.TypeName?.Evaluation;
                 if (tn_eval != null && InitValue == null && (this.IsField() || this.isGlobalVariable()))
                 {
                     if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
@@ -131,8 +140,6 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.CannotAutoInitializeCompoundType, this);
                     }
                 }
-
-                IEntityInstance init_eval = InitValue?.Evaluated(ctx);
 
                 IEntityInstance this_eval = null;
 
@@ -168,6 +175,12 @@ namespace Skila.Language.Entities
                     .Any(it => it.TargetType.Modifier.HasHeapOnly))
                     ctx.AddError(ErrorCode.HeapTypeOnStack, this);
             }
+        }
+
+        public void AddClosure(TypeDefinition closure)
+        {
+            this.closures.Add(closure);
+            closure.AttachTo(this);
         }
     }
 }
