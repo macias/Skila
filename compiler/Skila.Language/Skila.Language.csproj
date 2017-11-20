@@ -59,7 +59,6 @@
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
     <Compile Include="LambdaTrap.cs" />
-    <Compile Include="Entities\FunctorSignature.cs" />
     <Compile Include="Entities\Property.cs" />
     <Compile Include="Entities\IEntityVariable.cs" />
     <Compile Include="Expressions\Spawn.cs" />
@@ -95,8 +94,6 @@
     <Compile Include="Builders\TypeBuilder.cs" />
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="ComputationContext.cs" />
-    <Compile Include="Entities\IFunctionOutcome.cs" />
-    <Compile Include="Entities\IFunctionSignature.cs" />
     <Compile Include="ExecutionFlow.cs" />
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Expressions\IFunctionArgumentsProvider.cs" />

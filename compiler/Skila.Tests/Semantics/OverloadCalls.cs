@@ -38,7 +38,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def2, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def2, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -72,8 +72,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def1, call1.Resolution.TargetInstance.Target);
-            Assert.AreEqual(func_def2, call2.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
+            Assert.AreEqual(func_def2, call2.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -105,8 +105,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def1, call1.Resolution.TargetInstance.Target);
-            Assert.AreEqual(func_def2, call2.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
+            Assert.AreEqual(func_def2, call2.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -135,7 +135,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(func_def1, call1.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -164,7 +164,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def1, call1.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }

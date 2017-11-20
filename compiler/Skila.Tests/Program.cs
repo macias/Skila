@@ -24,7 +24,7 @@ namespace Skila.Tests
             //new Mutability().ErrorViolatingConstConstraint();
             //  new MemoryClasses().ErrorHeapTypeOnStack();
             // new NameResolution().ErrorCircularReference();
-            //new Semantics.FunctionCalls().FunctorArgumentMapping();
+            //new Semantics.FunctionCalls().TemplateFunctorArgumentMapping();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
             //new Semantics.Expressions().ErrorReadingFunctionVoidResult();
@@ -32,7 +32,7 @@ namespace Skila.Tests
             //new FunctionDefinitions().VariadicParametersInvalidLimits();
             // new TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
-            //new Variables().DetectingUsage();
+            //new Semantics.Variables().FunctionAssignment();
             // new Types().ErrorIncorrectMethodsForType();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 

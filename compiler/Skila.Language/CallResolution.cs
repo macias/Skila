@@ -16,44 +16,25 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId();
 #endif
 
-        // please note we can map against direct call or call done via variable
-        // Math.Sin(0);
-        // or
-        // var sin = Math.Sin;
-        // sin(0);
-
         internal static CallResolution Create(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
             EntityInstance targetInstance)
         {
-            if (targetInstance.Target.IsFunction())
-                return new CallResolution(ctx, templateArguments, argumentsProvider,
-                    callContext,
-                    bindingMatch: targetInstance, targetInstance: targetInstance);
-            else
-            {
-                if (callContext.MetaThisArgument != null)
-                    throw new InvalidOperationException("Is it possible?"); 
+            // at this point we target true function (any function-like object is converted to closure already)
+            if (!targetInstance.Target.IsFunction())
+                throw new Exception("Internal error");
 
-                var functor = targetInstance.Evaluation as EntityInstance;
-                if (functor == null)
-                    return null;
-                else
-                    return new CallResolution(ctx, templateArguments, argumentsProvider,
-                        callContext,
-                        bindingMatch: targetInstance, targetInstance: functor);
-            }
+            return new CallResolution(ctx, templateArguments, argumentsProvider,
+                    callContext,
+                    targetFunctionInstance: targetInstance);
         }
 
         private const int noMapping = -1;
 
-        // variable (like "my_func") or function itself
-        public EntityInstance BindingMatch { get; }
-        // functor type (like Function<Int,String>) or function itself
-        public EntityInstance TargetInstance { get; }
-        public ExpressionReadMode CallMode => this.directlyTargetsFunction ? this.TargetInstance.TargetTemplate.CastFunction().CallMode : ExpressionReadMode.OptionalUse;
+        public EntityInstance TargetFunctionInstance { get; }
+        public ExpressionReadMode CallMode => this.directlyTargetsFunction ? this.TargetFunctionInstance.TargetTemplate.CastFunction().CallMode : ExpressionReadMode.OptionalUse;
 
         // function arg -> function param indices (not template ones!)
         private readonly IReadOnlyList<int> argParamMapping;
@@ -63,12 +44,12 @@ namespace Skila.Language
 
         private readonly IReadOnlyList<IEntityInstance> translatedParamEvaluations;
         private readonly IEntityInstance translatedResultEvaluation;
-        private readonly IFunctionSignature signature;
+        private FunctionDefinition signature => this.TargetFunctionInstance.TargetTemplate.CastFunction();
         private readonly IFunctionArgumentsProvider argumentsProvider;
         public IReadOnlyList<FunctionArgument> Arguments => this.argumentsProvider.Arguments;
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
         private readonly IReadOnlyCollection<INameReference> templateArguments;
-        private bool directlyTargetsFunction => !this.TargetInstance.TargetTemplate.IsType();
+        private bool directlyTargetsFunction => !this.TargetFunctionInstance.TargetTemplate.IsType();
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
         public IEntityInstance Evaluation => this.translatedResultEvaluation;
@@ -77,21 +58,20 @@ namespace Skila.Language
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
-            EntityInstance bindingMatch,
-            EntityInstance targetInstance)
+            EntityInstance targetFunctionInstance)
         {
             if (this.DebugId.Id == 11109)
             {
                 ;
             }
             this.MetaThisArgument = callContext.MetaThisArgument;
-            this.BindingMatch = bindingMatch;
-            this.TargetInstance = targetInstance;
+            this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
             this.templateArguments = templateArguments.StoreReadOnly();
 
-            extractParameters(ctx, callContext.Evaluation, this.TargetInstance,
-                out this.signature, out this.translatedParamEvaluations, out this.translatedResultEvaluation);
+            extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
+                this.signature,
+                out this.translatedParamEvaluations, out this.translatedResultEvaluation);
 
             {
                 var arg_param_mapping = new List<int>();
@@ -140,10 +120,11 @@ namespace Skila.Language
 
             if (this.InferredTemplateArguments != null)
             {
-                this.TargetInstance = this.TargetInstance.Target.GetInstanceOf(this.InferredTemplateArguments
+                this.TargetFunctionInstance = this.TargetFunctionInstance.Target.GetInstanceOf(this.InferredTemplateArguments
                     .Select(it => it.Evaluated(ctx)));
-                extractParameters(ctx, callContext.Evaluation, this.TargetInstance,
-                    out this.signature, out this.translatedParamEvaluations, out this.translatedResultEvaluation);
+                extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
+                    this.signature,
+                    out this.translatedParamEvaluations, out this.translatedResultEvaluation);
             }
         }
 
@@ -155,29 +136,24 @@ namespace Skila.Language
 
         private static void extractParameters(ComputationContext ctx,
             IEntityInstance objectInstance,
-            EntityInstance targetInstance,
-            out IFunctionSignature signature,
+            EntityInstance targetFunctionInstance,
+            FunctionDefinition signature,
             out IReadOnlyList<IEntityInstance> translatedParamEvaluations,
             out IEntityInstance translatedResultEvaluation)
         {
-            if (targetInstance.TargetTemplate.IsType())
-                signature = targetInstance.TargetTemplate.CastType().FunctorInvokeSignature;
-            else
-                signature = targetInstance.TargetTemplate.CastFunction();
-
             translatedParamEvaluations = signature.Parameters
-                .Select(it => it.Evaluated(ctx).TranslateThrough(objectInstance).TranslateThrough(targetInstance))
+                .Select(it => it.Evaluated(ctx).TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance))
                 .StoreReadOnlyList();
 
             translatedResultEvaluation = signature.ResultTypeName.Evaluated(ctx)
-                .TranslateThrough(objectInstance).TranslateThrough(targetInstance);
+                .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance);
         }
 
         internal bool ArgumentTypesMatchParameters(ComputationContext ctx)
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
-                if (arg.DebugId.Id==8886)
+                if (arg.DebugId.Id == 8886)
                 {
                     ;
                 }
@@ -261,16 +237,16 @@ namespace Skila.Language
 
         private IReadOnlyCollection<INameReference> inferTemplateArguments(ComputationContext ctx)
         {
-            if (this.DebugId.Id==11172)
+            if (this.DebugId.Id == 11172)
             {
                 ;
             }
-            if (!this.directlyTargetsFunction || !this.TargetInstance.MissingTemplateArguments)
+            if (!this.directlyTargetsFunction || !this.TargetFunctionInstance.MissingTemplateArguments)
                 return null;
 
-            FunctionDefinition function = this.TargetInstance.TargetTemplate.CastFunction();
+            FunctionDefinition function = this.TargetFunctionInstance.TargetTemplate.CastFunction();
 
-            IReadOnlyList<TemplateParameter> template_parameters = this.TargetInstance.TargetTemplate.Name.Parameters.StoreReadOnlyList();
+            IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters.StoreReadOnlyList();
 
             var template_param_inference = new Dictionary<TemplateParameter, Tuple<IEntityInstance, bool>>();
             for (int i = 0; i < template_parameters.Count; ++i)
@@ -339,7 +315,7 @@ namespace Skila.Language
         public override string ToString()
         {
             return "(" + this.Arguments.Select(it => it.ToString()).Join(",") + ") -> "
-                + this.TargetInstance.ToString() + "(" + this.signature.Parameters.Select(it => it.ToString()).Join(",") + ")";
+                + this.TargetFunctionInstance.ToString() + "(" + this.signature.Parameters.Select(it => it.ToString()).Join(",") + ")";
         }
 
     }

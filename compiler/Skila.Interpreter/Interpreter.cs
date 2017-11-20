@@ -474,7 +474,7 @@ namespace Skila.Interpreter
             }
 
             FunctionDefinition target_func = null;
-            IEntity call_target = call.Resolution.TargetInstance.Target;
+            IEntity call_target = call.Resolution.TargetFunctionInstance.Target;
 
             if (call_target.IsFunction())
             {

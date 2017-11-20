@@ -10,7 +10,7 @@ using System.Linq;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionArgument : Node, IExpression, IIndexed,ILambdaTransfer
+    public sealed class FunctionArgument : Node, IExpression, IIndexed, ILambdaTransfer
     {
         public static FunctionArgument Create(string nameLabel, IExpression expression)
         {
@@ -77,7 +77,7 @@ namespace Skila.Language.Expressions
 
         public void Evaluate(ComputationContext ctx)
         {
-            this.TrapClosure(ctx,ref this.expression);
+            this.TrapClosure(ctx, ref this.expression);
         }
 
         internal void DataTransfer(ComputationContext ctx, IEntityInstance targetTypeName)

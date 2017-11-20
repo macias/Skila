@@ -208,8 +208,8 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, func_def.FunctorTypeName.Binding.Matches.Count);
-            Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.FunctorTypeName.Binding.Match.Target);
+            Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
+            Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
 
             return resolver;
         }

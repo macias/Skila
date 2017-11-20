@@ -160,21 +160,28 @@ namespace Skila.Tests.Semantics
                     null,isNameRequired: false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    Return.Create(DoubleLiteral.Create("3.3"))
+                })));
+
+            // x *IFunction<Int,Double> = foo
             root_ns.AddNode(VariableDeclaration.CreateStatement("x",
-                NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference()),
+                NameFactory.PointerTypeReference( NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference())),
                 initValue: NameReference.Create("foo")));
             var foo_ref = NameReference.Create("foo");
-            root_ns.AddNode(VariableDeclaration.CreateStatement("y",
-                NameReference.Create(NameFactory.FunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference()),
-                initValue: foo_ref));
-
+            // y *IFunction<Double,Int> = foo
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("y",
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.FunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference())),
+                initValue: foo_ref);
+            root_ns.AddNode(decl);
+                
             var resolver = NameResolver.Create(env);
+
             Assert.AreEqual(1, foo_ref.Binding.Matches.Count);
             Assert.AreEqual(func_def, foo_ref.Binding.Match.Target);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, foo_ref));
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, decl.InitValue));
 
             return resolver;
         }

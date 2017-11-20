@@ -12,6 +12,10 @@ namespace Skila.Language.Extensions
             return @this.NestedFunctions.Where(it => it.IsDefaultInitConstructor())
                  .Any(it => it.Modifier.HasPublic);
         }
+        public static IEnumerable<FunctionDefinition> InvokeFunctions(this TypeDefinition @this)
+        {
+            return @this.NestedFunctions.Where(it => it.Name.Name == NameFactory.LambdaInvoke);
+        }
 
         public static IEnumerable<FunctionDerivation> PairDerivations(ComputationContext ctx,
             EntityInstance baseInstance,

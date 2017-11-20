@@ -12,6 +12,37 @@ namespace Skila.Tests.Execution
     public class Closures
     {
         [TestMethod]
+        public IInterpreter EmptyClosure()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("getIt"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                        Return.Create(IntLiteral.Create("2"))
+                    })));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // f = getIt 
+                    VariableDeclaration.CreateStatement("f",null,NameReference.Create("getIt")),
+                    // return f()
+                    Return.Create(FunctionCall.Create(NameReference.Create("f")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter ImplicitClosureWithValue()
         {
             var env = Environment.Create();

@@ -28,7 +28,8 @@ namespace Skila.Language.Extensions
             TypeDefinition functor = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
                 .With(fields)
                 .With(cons)
-                .WithInvoke(lambda);
+                .With(lambda)
+                .Parents(lambda.TypeName);
 
             return functor;
         }
@@ -39,36 +40,65 @@ namespace Skila.Language.Extensions
             if (funcReference.Owner != null)
                 throw new Exception("Detach it first.");
 
-            const string this_name = "self";
-
-            FunctionDefinition cons = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                new[] { FunctionParameter.Create(this_name, thisObject.Evaluation.NameOf) },
-                Block.CreateStatement(
-                    new[] {
-                        Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, this_name),
-                            NameReference.Create(this_name)),
-                    }));
+            const string meta_this = "self";
 
             FunctionDefinition function = funcReference.Binding.Match.Target.CastFunction();
 
-            FunctionBuilder invoke = FunctionBuilder.Create(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
+            FunctionDefinition cons;
+            NameReference func_field_ref;
+            if (thisObject != null)
+            {
+                cons = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
+                    new[] { FunctionParameter.Create(meta_this, thisObject.Evaluation.NameOf) },
+                    Block.CreateStatement(
+                        new[] {
+                        Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, meta_this),
+                            NameReference.Create(meta_this)),
+                        }));
+
+                func_field_ref = NameReference.Create(NameFactory.ThisVariableName, meta_this);
+            }
+            else
+            {
+                func_field_ref = null;
+                cons = null;
+            }
+
+            NameDefinition invoke_name;
+            if (funcReference.TemplateArguments.Any())
+                invoke_name = NameDefinition.Create(NameFactory.LambdaInvoke);
+            else
+                invoke_name = NameDefinition.Create(NameFactory.LambdaInvoke, function.Name.Parameters);
+
+            IEnumerable<FunctionParameter> trans_parameters = function.Parameters.Select(pit =>
+                           FunctionParameter.Create(pit.Name.Name, pit.TypeName.Evaluated(ctx)
+                               .TranslateThrough(funcReference.Binding.Match).NameOf));
+            FunctionBuilder invoke = FunctionBuilder.Create(invoke_name, ExpressionReadMode.ReadRequired,
                 function.ResultTypeName,
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(
-                            NameReference.Create(NameFactory.ThisVariableName, this_name,funcReference.Name),
+                            NameReference.Create(func_field_ref, funcReference.Name,funcReference.TemplateArguments.ToArray()),
                                 function.Parameters.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray()))
                     }))
-                    .Parameters(function.Parameters.ToArray());
+                    .Parameters(trans_parameters.ToArray());
 
-            VariableDeclaration this_field = VariableDeclaration.CreateStatement(this_name,
-                thisObject.Evaluation.NameOf, Undef.Create());
 
             TypeBuilder closure_builder = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
-                .With(this_field)
-                .With(cons)
-                .WithInvoke(invoke);
-            if (!thisObject.Evaluation.IsImmutableType(ctx))
-                closure_builder.Modifier(EntityModifier.Mutable);
+                .With(invoke)
+                .Parents(function.TypeName);
+
+            if (thisObject != null)
+            {
+                VariableDeclaration this_field = VariableDeclaration.CreateStatement(meta_this,
+                    thisObject.Evaluation.NameOf, Undef.Create());
+                closure_builder
+                    .With(cons)
+                    .With(this_field);
+
+                if (!thisObject.Evaluation.IsImmutableType(ctx))
+                    closure_builder.Modifier(EntityModifier.Mutable);
+            }
+
             return closure_builder;
         }
 
@@ -109,29 +139,32 @@ namespace Skila.Language.Extensions
                 )
             {
                 IExpression this_obj = name_ref.GetContext(func);
-                if (this_obj != null)
+                // example scenario
+                // f = my_object.my_square
+                // f(4)
+
+                // so we have to grab "my_object", make closure around it, and then put it instead of "my_object.my_square"
+
+                name_ref.DetachFrom(node);
+                if (name_ref.Prefix != null)
                 {
-                    // example scenario
-                    // f = my_object.my_square
-                    // f(4)
-
-                    // so we have to grab "my_object", make closure around it, and then put it instead of "my_object.my_square"
-
-                    name_ref.DetachFrom(node);
                     name_ref.Prefix.DetachFrom(name_ref);
                     name_ref.Prefix.IsDereferenced = false; // we have to clear it because we will reuse it
-                    TypeDefinition closure_type = buildTypeOfReference(ctx, name_ref, this_obj);
-                    node.AddClosure(closure_type);
+                }
+                TypeDefinition closure_type = buildTypeOfReference(ctx, name_ref, this_obj);
+                node.AddClosure(closure_type);
 
+                if (this_obj != null)
                     source = ExpressionFactory.HeapConstructorCall(closure_type.InstanceOf.NameOf,
                         FunctionArgument.Create(name_ref.Prefix));
-                    source.AttachTo(node);
+                else
+                    source = ExpressionFactory.HeapConstructorCall(closure_type.InstanceOf.NameOf);
+                source.AttachTo(node);
 
-                    closure_type.Evaluated(ctx);
+                closure_type.Evaluated(ctx);
 
-                    closure_type.FunctorInvokeSignature.Cast<FunctionDefinition>().MetaThisParameter.Evaluated(ctx);
-                    source.Evaluated(ctx);
-                }
+                closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx);
+                source.Evaluated(ctx);
             }
         }
     }

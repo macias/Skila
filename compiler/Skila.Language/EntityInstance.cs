@@ -141,7 +141,7 @@ namespace Skila.Language
             // if to Coll<T,A> there is IColl<A> (this, dependent instance)
             // then what is to Coll<Int,String> (closedTemplate)? answer: IColl<String>
             // and we compute it here
-            // or let's say we have Foo<T> and some method returns T
+            // or let's say we have type Foo<T> and one of its methods returns T
             // then we have instance Foo<String> (closedTemplate), what T is then? (String)
 
             // case: "this" is "T", and "closedTemplate" is "Array<Int>" of template "Array<T>"

@@ -46,6 +46,13 @@ namespace Skila.Language
             bool translated = false;
             return closedTemplate.TranslationOf(@this, ref translated).Cast<T>();
         }
+        public static T TranslateThrough<T>(this T @this, IEnumerable<IEntityInstance> closedTemplates)
+            where T : IEntityInstance
+        {
+            foreach (IEntityInstance closed in closedTemplates)
+                @this = @this.TranslateThrough(closed);
+            return @this;
+        }
 
         public static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx)
         {

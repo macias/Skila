@@ -65,7 +65,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2496)
+                if (this.DebugId.Id == 2493)
                 {
                     ;
                 }
@@ -76,27 +76,25 @@ namespace Skila.Language.Expressions
                 if (this.Name.IsDereferenced)
                     eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
 
-                IEnumerable<EntityInstance> matches = null;
-
                 if (!ctx.Env.IsFunctionType(eval) &&
-                    (eval.Target is TypeDefinition closure && closure.FunctorInvokeSignature != null))
+                    (eval.Target is TypeDefinition closure && closure.InvokeFunctions().Any()))
                 {
+                    // if we call a "closure", like my_closure() it is implicit calling "invoke"
+                    // so make it explicit on the fly
                     this.Name.DetachFrom(this);
                     this.Name = NameReference.Create(this.Name, NameFactory.LambdaInvoke);
                     this.Name.AttachTo(this);
                     eval = this.Name.Evaluated(ctx).Cast<EntityInstance>();
-                    //matches = new[] { closure.FunctorInvokeSignature.CastFunction().InstanceOf };
                 }
 
-                if (ctx.Env.IsFunctionType(eval))
+                if (!ctx.Env.IsFunctionType(eval))
                 {
-                    matches = this.Name.Binding.Matches;
+                    this.resolution = new Option<CallResolution>(null);
+                    ctx.AddError(ErrorCode.NotFunctionType, this.Name);
                 }
-
-
-                if (matches != null)
+                else
                 {
-                    IEnumerable<CallResolution> targets = matches
+                    IEnumerable<CallResolution> targets = this.Name.Binding.Matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.Target), targetInstance: it))
                         .Where(it => it != null)
@@ -122,7 +120,7 @@ namespace Skila.Language.Expressions
                     {
                         if (targets.Count() > 1)
                         {
-                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this, targets.Select(it => it.TargetInstance.Target));
+                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this, targets.Select(it => it.TargetFunctionInstance.Target));
                         }
 
                         this.Resolution.SetMappings();
@@ -142,17 +140,15 @@ namespace Skila.Language.Expressions
                         if (this.Resolution.InferredTemplateArguments == null)
                         {
                             // leave only binding which was used for mapping
-                            this.Name.Binding.Filter(it => it == this.Resolution.BindingMatch);
+                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance); 
                         }
                         else
                         {
-                            // var name = this.Name;
                             this.Name = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
 
                             eval = this.Name.Evaluated(ctx) as EntityInstance;
-                            //    this.Name = name;
 
-                            this.Name.Binding.Filter(it => it == this.Resolution.TargetInstance);
+                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
                         }
 
                         if (this.DebugId.Id == 228)
@@ -162,11 +158,6 @@ namespace Skila.Language.Expressions
 
                         this.Evaluation = this.Resolution.Evaluation;
                     }
-                }
-                else
-                {
-                    this.resolution = new Option<CallResolution>(null);
-                    ctx.AddError(ErrorCode.NotFunctionType, this.Name);
                 }
 
 
@@ -179,7 +170,8 @@ namespace Skila.Language.Expressions
                 if (this.Resolution != null)
                 {
                     foreach (var group in this.Resolution.GetArgumentsMultipleTargeted())
-                        // we only report second "override" because if there are more it is more likely user forgot to mark parameter variadic
+                        // we only report second "override" because if there are more 
+                        // it is more likely user forgot to mark parameter variadic
                         ctx.ErrorManager.AddError(ErrorCode.ArgumentForFunctionAlreadyGiven, group.Skip(1).FirstOrDefault());
 
                     foreach (FunctionParameter param in this.Resolution.GetUnfulfilledVariadicParameters())

@@ -13,19 +13,20 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class TypeDefinition : TypeContainerDefinition
     {
-        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name, 
+        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints, bool allowSlicing,
-            IEnumerable<NameReference> parents, IEnumerable<INode> features,FunctionDefinition invokeSignature)
+            IEnumerable<NameReference> parents, IEnumerable<INode> features)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, features, 
-                invokeSignature: invokeSignature, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, features,
+                typeParameter: null);
         }
         public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             bool allowSlicing,
             IEnumerable<NameReference> parents = null)
         {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, null, invokeSignature: null, typeParameter: null);
+            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, null,
+                typeParameter: null);
         }
         public static TypeDefinition Create(EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
@@ -33,15 +34,16 @@ namespace Skila.Language.Entities
             IEnumerable<NameReference> parents = null, IEnumerable<IEntity> entities = null)
         {
             return new TypeDefinition(false, modifier, allowSlicing, name, constraints,
-                parents, entities, invokeSignature: null, typeParameter: null);
+                parents, entities,
+                typeParameter: null);
         }
-        public static TypeDefinition CreateFunctionInterface(NameDefinition name, IFunctionSignature invokeSignature)
+        public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
             return new TypeDefinition(false,
                 EntityModifier.Interface,
                 false, name, null, new[] { NameFactory.ObjectTypeReference() },
-                null,
-                invokeSignature, typeParameter: null);
+                features: null,
+                typeParameter: null);
         }
 
         // used for creating embedded type definitions of type parameters, e.g. Tuple<T1,T2>, here we create T1 and T2
@@ -55,7 +57,8 @@ namespace Skila.Language.Entities
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name), null,
-                typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions, null, typeParameter);
+                typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions,
+                typeParameter);
         }
 
 
@@ -75,10 +78,8 @@ namespace Skila.Language.Entities
         //public IEnumerable<EntityInstance> ParentTypes => this.ParentNames.Select(it => it.Binding.Match).WhereType<EntityInstance>();
         public TypeInheritance Inheritance { get; private set; }
         private bool inheritanceComputed => this.Inheritance != null;
-        public IFunctionSignature FunctorInvokeSignature { get; } //@@@
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
-            .Concat(this.FunctorInvokeSignature)
             .Concat(this.ParentNames)
             .Where(it => it != null);
 
@@ -91,7 +92,7 @@ namespace Skila.Language.Entities
         private readonly FunctionDefinition zeroConstructor;
         public FunctionDefinition ZeroConstructor => this.zeroConstructor;
 
-       // public FunctionDefinition InvokeLambda => this.NestedFunctions.Single(it => it.Name.Name == NameFactory.LambdaInvoke);
+        // public FunctionDefinition InvokeLambda => this.NestedFunctions.Single(it => it.Name.Name == NameFactory.LambdaInvoke);
 
         private TypeDefinition(bool isPlain,
             EntityModifier modifier,
@@ -100,13 +101,11 @@ namespace Skila.Language.Entities
             IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents,
             IEnumerable<INode> features,
-            IFunctionSignature invokeSignature,
             TemplateParameter typeParameter) : base(modifier, name, constraints)
         {
             this.IsPlain = isPlain;
             this.AllowSlicedSubstitution = allowSlicing;
             this.TemplateParameter = typeParameter;
-            this.FunctorInvokeSignature = invokeSignature;
             this.ParentNames = (parents ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
 
             features?.ForEach(it => AddNode(it));

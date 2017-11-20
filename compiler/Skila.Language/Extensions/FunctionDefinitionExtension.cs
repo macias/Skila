@@ -9,6 +9,17 @@ namespace Skila.Language.Extensions
 {
     public static class FunctionDefinitionExtension
     {
+        public static bool NOT_USED_CounterpartParameters(this FunctionDefinition @this, FunctionDefinition other)
+        {
+            if (@this.Parameters.Count != other.Parameters.Count)
+                return false;
+
+            foreach (var pair in @this.Parameters.SyncZip(other.Parameters))
+                if (!pair.Item1.NOT_USED_CounterpartParameter(@this, pair.Item2, other))
+                    return false;
+
+            return true;
+        }
         public static bool IsOutConverter(this FunctionDefinition @this)
         {
             return @this.Name.Name == NameFactory.ConvertFunctionName
@@ -117,7 +128,7 @@ namespace Skila.Language.Extensions
             foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters
                 .SyncZip(baseFunc.Name.Parameters))
             {
-                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2,baseTemplate))
+                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2, baseTemplate))
                     return false;
             }
 

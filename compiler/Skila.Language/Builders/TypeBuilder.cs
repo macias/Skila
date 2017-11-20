@@ -32,7 +32,6 @@ namespace Skila.Language.Builders
 
         private readonly NameDefinition name;
         private readonly List<INode> features;
-        private FunctionDefinition invoke;
         private NameReference[] parents;
         private EntityModifier modifier;
         private TypeDefinition build;
@@ -77,14 +76,6 @@ namespace Skila.Language.Builders
             this.features.AddRange(nodes);
             return this;
         }
-        public TypeBuilder WithInvoke(FunctionDefinition func)
-        {
-            if (this.invoke != null || this.build != null)
-                throw new InvalidOperationException();
-
-            this.invoke = func;
-            return this;
-        }
         public TypeBuilder With(IEnumerable<INode> nodes)
         {
             this.features.AddRange(nodes);
@@ -119,8 +110,9 @@ namespace Skila.Language.Builders
                     this.constraints,
                     allowSlicing,
                     this.parents,
-                    features,
-                    this.invoke);
+                    // put fields first so when function refers to variable it is already evaluated (midly hackerish)
+                    // this avoids clearing/restoring local names registry of the evaluated function
+                    features.OrderBy(it => it is VariableDeclaration ? 0 : 1));
             return build;
         }
         public static implicit operator TypeDefinition(TypeBuilder @this)

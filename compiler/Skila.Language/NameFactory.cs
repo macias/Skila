@@ -65,7 +65,7 @@ namespace Skila.Language
             return EntityInstance.Joker.NameOf;
         }*/
 
-        public static NameReference CreateFunctionTypeReference(IEnumerable<INameReference> arguments, INameReference result)
+        public static NameReference FunctionTypeReference(IEnumerable<INameReference> arguments, INameReference result)
         {
             return NameReference.Create(NameReference.Root, FunctionTypeName, arguments.Concat(result).ToArray());
         }

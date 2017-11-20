@@ -105,7 +105,7 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2494)
+                if (this.DebugId.Id == 2801 || this.DebugId.Id == 2799)
                 {
                     ;
                 }
@@ -126,8 +126,6 @@ namespace Skila.Language
                 }
                 else
                 {
-                    this.TemplateArguments.ForEach(it => it.Evaluated(ctx));
-
                     if (this.IsRoot)
                     {
                         this.Binding.Set(new[] { EntityInstance.Create(ctx,ctx.Env.Root,
@@ -165,8 +163,6 @@ namespace Skila.Language
                     }
                     else
                     {
-                        this.Prefix.Evaluated(ctx);
-
                         if (this.DebugId.Id == 1734)
                         {
                             ;
@@ -188,11 +184,13 @@ namespace Skila.Language
                             }
 
                             bool dereferenced = false;
-                            this.Binding.Set(this.Prefix.Evaluation
-                                .Enumerate()
-                                .Select(it => tryDereference(ctx, it, ref dereferenced).TargetTemplate)
-                                .SelectMany(it => it.FindEntities(this))
-                                .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic)
+                            IEnumerable<EntityInstance> prefix_eval_components = this.Prefix.Evaluation.Enumerate();
+                            IEnumerable<TemplateDefinition> prefix_targets = prefix_eval_components
+                                .Select(it => tryDereference(ctx, it, ref dereferenced).TargetTemplate);
+                            IEnumerable<IEntity> entities = prefix_targets.SelectMany(it => it.FindEntities(this))
+                                .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
+
+                            this.Binding.Set(entities
                                 .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments)));
                             if (this.Prefix.DebugId.Id == 2572)
                             {
@@ -212,20 +210,20 @@ namespace Skila.Language
                 if (instance.Target.IsType() || instance.Target.IsNamespace())
                     eval = instance;
                 else
+                {
                     eval = instance.Evaluated(ctx);
+                }
 
                 if (this.Prefix != null)
                     eval = eval.TranslateThrough(this.Prefix.Evaluation);
 
                 this.Evaluation = eval;
-
-                //test(ctx);
             }
         }
 
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 2494)
+            if (this.DebugId.Id == 2773)
             {
                 ;
             }
@@ -308,13 +306,8 @@ namespace Skila.Language
             if (prefix != null)
                 return prefix;
 
-            // hitting a variable of IFunction type, for example "f(3)", where "f" is
-            // f = (x) => x*x
-            //@@@if (callTarget is VariableDeclaration decl)
-            //  return decl.InstanceOf.NameOf;
-            //else 
             if (!callTarget.IsFunction())
-                return null;
+                throw new Exception("Internal error (if it is callable why is not wrapped into closure already)");
 
             TypeDefinition target_type = callTarget.CastFunction().OwnerType();
             FunctionDefinition current_function = this.EnclosingScope<FunctionDefinition>();

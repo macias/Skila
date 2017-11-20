@@ -59,7 +59,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -99,7 +99,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -133,7 +133,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -232,7 +232,7 @@ namespace Skila.Tests.Semantics
                 IntLiteral.Create("1"), isNameRequired: false);
             var param2 = FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.None,
                 IntLiteral.Create("2"), isNameRequired: false);
-            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), 
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 new[] { param1, param2 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
@@ -247,7 +247,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
             Assert.AreEqual(param2, arg2.MappedTo);
 
             return resolver;
@@ -260,7 +260,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null, isNameRequired: false);
-            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), 
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 new[] { param1 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
@@ -437,7 +437,7 @@ namespace Skila.Tests.Semantics
 
             FunctionCall call = FunctionCall.Create(NameReference.Create(NameReference.Create("f"), "foo"),
                 FunctionArgument.Create(IntLiteral.Create("2")));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"), 
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
@@ -452,7 +452,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
@@ -516,11 +516,14 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo", TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values),
-                new[] { FunctionParameter.Create("e", NameReference.Create("T"), Variadic.None, null, false) },
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo", 
+                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values),
+                    new[] { FunctionParameter.Create("e", NameReference.Create("T"), Variadic.None, null, false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    Return.Create(DoubleLiteral.Create("3.3"))
+                })));
 
 
             var call = FunctionCall.Create(NameReference.Create("fooer"), FunctionArgument.Create(NameReference.Create("i")));
@@ -529,13 +532,17 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
+                    // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null,
                         NameReference.Create("foo", NameFactory.IntTypeReference())),
+                    // i Int 
                     VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                    // x = fooer(i)
                     VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                         call),
+                    // _ = x
                     Tools.Readout("x")
-        })));
+            })));
 
             var resolver = NameResolver.Create(env);
 
@@ -582,7 +589,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), 
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
                 Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) }))
@@ -595,7 +602,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(func_def, call.Resolution.TargetInstance.Target);
+            Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
         }
