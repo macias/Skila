@@ -257,17 +257,22 @@ namespace Skila.Language
         private TypeDefinition createFunction(Namespace root, int paramCount)
         {
             var type_parameters = TemplateParametersBuffer.Create();
-            //var function_parameters = new List<FunctionParameter>();
+            var function_parameters = new List<FunctionParameter>();
             foreach (int i in Enumerable.Range(0, paramCount))
             {
                 var type_name = $"T{i}";
                 type_parameters.Add(type_name, VarianceMode.In);
-                //function_parameters.Add(FunctionParameter.Create($"item{i}", NameReference.Create(type_name), Variadic.None, null, isNameRequired: false));
+                function_parameters.Add(FunctionParameter.Create($"item{i}", NameReference.Create(type_name)));
             }
-            type_parameters.Add("R", VarianceMode.Out);
 
-            var function_def = TypeDefinition.CreateFunctionInterface(
-                NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values));
+            const string result_type = "R";
+            type_parameters.Add(result_type, VarianceMode.Out);
+
+            TypeDefinition function_def = TypeBuilder.CreateInterface(
+                NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values))
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired, 
+                    NameReference.Create(result_type))
+                    .Parameters(function_parameters.ToArray()));
 
             return function_def;
         }

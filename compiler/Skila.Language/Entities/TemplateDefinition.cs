@@ -43,7 +43,7 @@ namespace Skila.Language.Entities
         public IEntityInstance Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
 
-        public EntityModifier Modifier { get; }
+        public EntityModifier Modifier { get; protected set; }
         public IEnumerable< TemplateConstraint> Constraints { get; }
         // constraints that sets the availability of the entire template
         // for example "Array<T>" can have method "copy" present with conditional on the method (not entire type)

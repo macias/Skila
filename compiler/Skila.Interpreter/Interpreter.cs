@@ -14,7 +14,7 @@ namespace Skila.Interpreter
     {
         private ExecValue execute(FunctionDefinition func, ExecutionContext ctx)
         {
-            if (func.DebugId.Id==2812)
+            if (func.DebugId.Id == 2812)
             {
                 ;
             }
@@ -446,7 +446,7 @@ namespace Skila.Interpreter
         }
         private FunctionDefinition prepareFunctionCall(FunctionCall call, ref ExecutionContext ctx)
         {
-            if (call.DebugId.Id == 2522)
+            if (call.DebugId.Id == 2476)
             {
                 ;
             }
@@ -473,81 +473,8 @@ namespace Skila.Interpreter
                 args.Add(arg.MappedTo, arg_obj);
             }
 
-            FunctionDefinition target_func = null;
-            IEntity call_target = call.Resolution.TargetFunctionInstance.Target;
-
-            if (call_target.IsFunction())
-            {
-                target_func = call_target.CastFunction();
-                if (call.Resolution.MetaThisArgument != null)
-                {
-                    EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Cast<EntityInstance>();
-                    // first we check if the call is made on the instance of template parameter
-                    if (this_eval.TargetType.IsTemplateParameter)
-                    {
-                        TemplateParameter template_param = this_eval.TargetType.TemplateParameter;
-                        // get the argument for given template parameter
-                        EntityInstance template_arg = ctx.TemplateArguments[template_param.Index].Cast<EntityInstance>();
-                        // and then we get the virtual table from argument to parameter
-                        if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
-                            throw new Exception("Internal error");
-                        // ...and once we have the mapping we get target function
-                        else if (!vtable.TryGetDerived(ref target_func))
-                            throw new Exception("Internal error");
-                    }
-                    else if (ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
-                    {
-                        bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && target_func.OwnerType().IsInterface)
-                        || target_func.OwnerType().IsProtocol;
-                        bool classic_virtual = target_func.IsVirtual;
-
-                        if (duck_virtual)
-                        {
-                            // we know "this" is either pointer or reference so we have to get inner type 
-                            // in order to get virtual table for it
-                            IEntityInstance inner_type = this_eval.TemplateArguments.Single();
-
-                            // todo: optimize it
-                            // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
-                            // of such cases as this
-                            // let b *B = new C();
-                            // let a *IA = b;
-                            // on the second line the static types are "*B" -> "*IA" so the virtual table is built in type
-                            // B, not C, but in runtime we have C at hand and C does not have any virtual table, because
-                            // types "*C" -> "*IA" were never matched
-
-                            bool found_duck = false;
-
-                            foreach (EntityInstance ancestor in this_value.RunTimeTypeInstance.TargetType.Inheritance
-                                .AncestorsIncludingObject.Select(it => it.TranslateThrough(this_value.RunTimeTypeInstance))
-                                .Concat(this_value.RunTimeTypeInstance))
-                            {
-                                if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
-                                {
-                                    if (!vtable.TryGetDerived(ref target_func))
-                                        throw new Exception("Internal error");
-                                    found_duck = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found_duck)
-                                throw new Exception("Internal error");
-                        }
-
-                        if (duck_virtual || target_func.IsVirtual)
-                        {
-                            if (!this_value.InheritanceVirtualTable.TryGetDerived(ref target_func))
-                            {
-                                // it is legal in duck mode to have a miss, but it case of classis virtual call
-                                // we simply HAVE TO have the entry for each virtual function
-                                if (!duck_virtual)
-                                    throw new Exception("Internal error");
-                            }
-                        }
-                    }
-                }
-            }
+            FunctionDefinition target_func = getTargetFunction(ctx, call, this_value,
+                call.Resolution.TargetFunctionInstance.Target.CastFunction());
 
             if (target_func == null)
                 throw new Exception("Internal error");
@@ -557,6 +484,88 @@ namespace Skila.Interpreter
             ctx.TemplateArguments = call.Name.TemplateArguments.Select(it => it.Evaluation).StoreReadOnlyList();
 
             return target_func;
+        }
+
+        private static FunctionDefinition getTargetFunction(ExecutionContext ctx, FunctionCall call, ObjectData thisValue,
+            FunctionDefinition targetFunc)
+        {
+            if (call.Resolution.MetaThisArgument == null)
+                return targetFunc;
+
+
+            EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Cast<EntityInstance>();
+            // first we check if the call is made on the instance of template parameter
+            if (this_eval.TargetType.IsTemplateParameter)
+            {
+                TemplateParameter template_param = this_eval.TargetType.TemplateParameter;
+                // get the argument for given template parameter
+                EntityInstance template_arg = ctx.TemplateArguments[template_param.Index].Cast<EntityInstance>();
+                // and then we get the virtual table from argument to parameter
+                if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
+                    throw new Exception("Internal error");
+                // ...and once we have the mapping we get target function
+                else if (!vtable.TryGetDerived(ref targetFunc))
+                    throw new Exception("Internal error");
+            }
+            else if (ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
+            {
+                // if the runtime type is exactly as the type we are hitting with function
+                // then there is no need to check virtual table, because we already have desired function
+                if (thisValue.RunTimeTypeInstance == targetFunc.OwnerType().InstanceOf)
+                    return targetFunc;
+
+                bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && targetFunc.OwnerType().IsInterface)
+                    || targetFunc.OwnerType().IsProtocol;
+                bool classic_virtual = targetFunc.IsVirtual;
+
+                if (duck_virtual)
+                {
+                    // we know "this" is either pointer or reference so we have to get inner type 
+                    // in order to get virtual table for it
+                    IEntityInstance inner_type = this_eval.TemplateArguments.Single();
+
+                    // todo: optimize it
+                    // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
+                    // of such cases as this
+                    // let b *B = new C();
+                    // let a *IA = b;
+                    // on the second line the static types are "*B" -> "*IA" so the virtual table is built in type
+                    // B, not C, but in runtime we have C at hand and C does not have any virtual table, because
+                    // types "*C" -> "*IA" were never matched
+
+                    bool found_duck = false;
+
+                    foreach (EntityInstance ancestor in thisValue.RunTimeTypeInstance.TargetType.Inheritance
+                        .AncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance))
+                        .Concat(thisValue.RunTimeTypeInstance))
+                    {
+                        if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
+                        {
+                            if (!vtable.TryGetDerived(ref targetFunc))
+                                throw new Exception("Internal error");
+                            found_duck = true;
+                            break;
+                        }
+                    }
+
+                    if (!found_duck)
+                        throw new Exception("Internal error");
+                }
+
+                if (duck_virtual || targetFunc.IsVirtual)
+                {
+                    if (!thisValue.InheritanceVirtualTable.TryGetDerived(ref targetFunc))
+                    {
+                        // it is legal in duck mode to have a miss, but it case of classis virtual call
+                        // we simply HAVE TO have the entry for each virtual function
+                        if (!duck_virtual)
+                            throw new Exception("Internal error");
+                    }
+                }
+            }
+
+
+            return targetFunc;
         }
 
         private ExecValue execute(BoolLiteral literal, ExecutionContext ctx)
@@ -579,7 +588,7 @@ namespace Skila.Interpreter
             {
                 ExecValue prefix_exec = executed(name.Prefix, ctx);
                 ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name.Prefix);
-                return ExecValue.CreateExpression(prefix_obj.GetField( target));
+                return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
             else if (ctx.LocalVariables.TryGet(target, out ObjectData info))
                 return ExecValue.CreateExpression(info);

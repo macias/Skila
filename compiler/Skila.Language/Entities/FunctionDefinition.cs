@@ -38,6 +38,11 @@ namespace Skila.Language.Entities
                 name, constraints, parameters, callMode, result, chainCall, body);
         }
 
+        internal void SetModifier(EntityModifier modifier)
+        {
+            this.Modifier = modifier;
+        }
+
         public static FunctionDefinition CreateInitConstructor(
             EntityModifier modifier,
             IEnumerable<FunctionParameter> parameters,
@@ -66,8 +71,7 @@ namespace Skila.Language.Entities
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
 
-        public NameReference TypeName { get; }
-        public INameReference ResultTypeName => this.TypeName.TemplateArguments.Last();
+        public INameReference ResultTypeName { get; }
         public Block UserBody { get; }
         public IReadOnlyList<FunctionParameter> Parameters { get; }
         public FunctionParameter MetaThisParameter { get; private set; }
@@ -78,8 +82,9 @@ namespace Skila.Language.Entities
         internal LambdaTrap LambdaTrap { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
-            .Concat(TypeName, UserBody)
+            .Concat(UserBody)
             .Concat(this.Parameters)
+            .Concat(this.ResultTypeName)
             .Concat(this.MetaThisParameter)
             .Concat(this.thisNameReference)
             .Where(it => it != null);
@@ -111,7 +116,7 @@ namespace Skila.Language.Entities
 
             this.constructorChainCall = chainCall;
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
-            this.TypeName = NameFactory.FunctionTypeReference(parameters.Select(it => it.TypeName), result);
+            this.ResultTypeName = result;
             this.UserBody = body;
             this.CallMode = callMode;
 
@@ -124,6 +129,11 @@ namespace Skila.Language.Entities
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
             this.constructionCompleted = true;
+        }
+
+        public NameReference CreateFunctionInterface()
+        {
+            return NameFactory.FunctionTypeReference(this.Parameters.Select(it => it.TypeName), this.ResultTypeName);
         }
 
         public override void AttachTo(INode parent)
@@ -153,7 +163,7 @@ namespace Skila.Language.Entities
 
         public override string ToString()
         {
-            return base.ToString() + "(" + this.Parameters.Select(it => it.ToString()).Join(",") + ")";
+            return base.ToString() + "(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
         }
 
         internal NameReference GetThisNameReference()
@@ -173,7 +183,6 @@ namespace Skila.Language.Entities
         {
             if (!this.IsComputed)
             {
-                this.Evaluation = TypeName.Evaluated(ctx);
                 this.IsComputed = true;
 
                 {

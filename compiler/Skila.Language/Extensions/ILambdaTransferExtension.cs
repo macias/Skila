@@ -3,6 +3,7 @@ using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Extensions;
 using Skila.Language.Flow;
+using Skila.Language.Semantics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,11 +26,13 @@ namespace Skila.Language.Extensions
                         NameReference.Create(it.Name.Name)))
                     ));
 
+            lambda.SetModifier(EntityModifier.Derived | lambda.Modifier);
+
             TypeDefinition functor = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
                 .With(fields)
                 .With(cons)
                 .With(lambda)
-                .Parents(lambda.TypeName);
+                .Parents(lambda.CreateFunctionInterface());
 
             return functor;
         }
@@ -64,28 +67,23 @@ namespace Skila.Language.Extensions
                 cons = null;
             }
 
-            NameDefinition invoke_name;
-            if (funcReference.TemplateArguments.Any())
-                invoke_name = NameDefinition.Create(NameFactory.LambdaInvoke);
-            else
-                invoke_name = NameDefinition.Create(NameFactory.LambdaInvoke, function.Name.Parameters);
-
             IEnumerable<FunctionParameter> trans_parameters = function.Parameters.Select(pit =>
                            FunctionParameter.Create(pit.Name.Name, pit.TypeName.Evaluated(ctx)
                                .TranslateThrough(funcReference.Binding.Match).NameOf));
-            FunctionBuilder invoke = FunctionBuilder.Create(invoke_name, ExpressionReadMode.ReadRequired,
+            FunctionDefinition invoke = FunctionBuilder.Create(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
                 function.ResultTypeName,
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(
                             NameReference.Create(func_field_ref, funcReference.Name,funcReference.TemplateArguments.ToArray()),
                                 function.Parameters.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray()))
                     }))
+                    .Modifier(EntityModifier.Derived)
                     .Parameters(trans_parameters.ToArray());
 
 
             TypeBuilder closure_builder = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
                 .With(invoke)
-                .Parents(function.TypeName);
+                .Parents(invoke.CreateFunctionInterface());
 
             if (thisObject != null)
             {
@@ -134,10 +132,10 @@ namespace Skila.Language.Extensions
                 lambda.MetaThisParameter.Evaluated(ctx);
                 source.Evaluated(ctx);
             }
-            else if (source is NameReference name_ref
-                && name_ref.Binding.Match.Target is FunctionDefinition func
-                )
+            else if (source is NameReference name_ref && name_ref.Binding.Match.Target is FunctionDefinition func)
             {
+                if (func.Name.Arity > 0 && !name_ref.TemplateArguments.Any())
+                    ctx.AddError(ErrorCode.SelectingAmbiguousTemplateFunction,name_ref);
                 IExpression this_obj = name_ref.GetContext(func);
                 // example scenario
                 // f = my_object.my_square

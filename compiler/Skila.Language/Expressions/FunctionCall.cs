@@ -69,32 +69,36 @@ namespace Skila.Language.Expressions
                 {
                     ;
                 }
-
-                EntityInstance eval = this.Name.Evaluation.Cast<EntityInstance>();
-
-                this.Name.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
-                if (this.Name.IsDereferenced)
-                    eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
-
-                if (!ctx.Env.IsFunctionType(eval) &&
-                    (eval.Target is TypeDefinition closure && closure.InvokeFunctions().Any()))
                 {
-                    // if we call a "closure", like my_closure() it is implicit calling "invoke"
-                    // so make it explicit on the fly
-                    this.Name.DetachFrom(this);
-                    this.Name = NameReference.Create(this.Name, NameFactory.LambdaInvoke);
-                    this.Name.AttachTo(this);
-                    eval = this.Name.Evaluated(ctx).Cast<EntityInstance>();
+                    EntityInstance eval = this.Name.Evaluation.Cast<EntityInstance>();
+
+                    this.Name.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
+                    if (this.Name.IsDereferenced)
+                        eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
+
+                    if (!(this.Name.Binding.Match.Target is FunctionDefinition)
+                         && eval.Target.Cast<TypeDefinition>().InvokeFunctions().Any())
+                    {
+                        // if we call a "closure", like my_closure() it is implicit calling "invoke"
+                        // so make it explicit on the fly
+                        this.Name.DetachFrom(this);
+                        this.Name = NameReference.Create(this.Name, NameFactory.LambdaInvoke);
+                        this.Name.AttachTo(this);
+                        this.Name.Evaluated(ctx);
+                    }
                 }
 
-                if (!ctx.Env.IsFunctionType(eval))
+                IEnumerable<EntityInstance> matches = this.Name.Binding.Matches
+                    .Where(it => it.Target.IsFunction());
+
+                if (!matches.Any())
                 {
                     this.resolution = new Option<CallResolution>(null);
                     ctx.AddError(ErrorCode.NotFunctionType, this.Name);
                 }
                 else
                 {
-                    IEnumerable<CallResolution> targets = this.Name.Binding.Matches
+                    IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.Target), targetInstance: it))
                         .Where(it => it != null)
@@ -140,13 +144,13 @@ namespace Skila.Language.Expressions
                         if (this.Resolution.InferredTemplateArguments == null)
                         {
                             // leave only binding which was used for mapping
-                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance); 
+                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
                         }
                         else
                         {
                             this.Name = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
 
-                            eval = this.Name.Evaluated(ctx) as EntityInstance;
+                            this.Name.Evaluated(ctx);
 
                             this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
                         }

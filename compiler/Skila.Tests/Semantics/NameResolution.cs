@@ -191,9 +191,8 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
-
-        [TestMethod]
-        public IErrorReporter FunctionTypes()
+//        [TestMethod]
+        public IErrorReporter DEPRECATED_FunctionTypes()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -208,11 +207,11 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
-            Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
+          //  Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
+        //    Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
 
             return resolver;
         }
-
+        
     }
 }

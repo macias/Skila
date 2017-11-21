@@ -403,10 +403,14 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
+                    // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null, NameReference.Create("foo")),
+                    // x Int 
                     VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                    // x Double = fooer(i)
                     VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                         call),
+                    // _ = x
                     Tools.Readout("x")
             })));
 
@@ -516,7 +520,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo", 
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo",
                 TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values),
                     new[] { FunctionParameter.Create("e", NameReference.Create("T"), Variadic.None, null, false) },
                 ExpressionReadMode.OptionalUse,
@@ -549,6 +553,41 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
             Assert.AreEqual(env.IntType.InstanceOf, param_eval);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorAmbiguousTemplateFunction()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo",
+                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values),
+                    new[] { FunctionParameter.Create("e", NameReference.Create("T")) },
+                ExpressionReadMode.OptionalUse,
+                NameFactory.DoubleTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(DoubleLiteral.Create("3.3"))
+                })));
+
+
+            NameReference function_reference = NameReference.Create("foo");
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new[] {
+                    // fooer = foo
+                    VariableDeclaration.CreateStatement("fooer", null, function_reference),
+                    // _ = fooer
+                    Tools.Readout("fooer")
+            })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelectingAmbiguousTemplateFunction, function_reference));
 
             return resolver;
         }
