@@ -167,7 +167,7 @@
     <Compile Include="Entities\TypeDefinition.cs" />
     <Compile Include="NameDefinition.cs" />
     <Compile Include="Extensions\Tools.cs" />
-    <Compile Include="Entities\VariableDefiniton.cs" />
+    <Compile Include="Entities\VariableDeclaration.cs" />
     <Compile Include="Builders\TemplateParametersBuffer.cs" />
     <Compile Include="TypeMatch.cs" />
     <Compile Include="VarianceMode.cs" />

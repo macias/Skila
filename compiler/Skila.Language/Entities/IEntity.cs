@@ -1,5 +1,4 @@
-﻿using Skila.Language.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Skila.Language.Entities
 {

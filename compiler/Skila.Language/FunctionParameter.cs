@@ -25,9 +25,6 @@ namespace Skila.Language
             return new FunctionParameter(name, typeName, Variadic.None, null, isNameRequired: false);
         }
 
-        public bool HasValueOnDeclaration => true;
-        public bool IsDeclaration => this.Owner.CastFunction().IsDeclaration;
-
         public bool IsNameRequired { get; }
         public bool IsOptional => this.DefaultValue != null;
         public Variadic Variadic { get; }
@@ -59,8 +56,18 @@ namespace Skila.Language
             }
         }
 
+        // all regular paramters have to be used, but not meta-this parameter 
+        public bool UsageRequired
+        {
+            get
+            {
+                FunctionDefinition func = this.Owner.CastFunction();
+                return !func.IsDeclaration && func.MetaThisParameter != this;
+            }
+        }
+
         private FunctionParameter(string name, INameReference typeName, Variadic variadic,
-            IExpression defaultValue, bool isNameRequired) 
+            IExpression defaultValue, bool isNameRequired)
         {
             this.Modifier = EntityModifier.None;
             this.Name = NameDefinition.Create(name);
@@ -79,7 +86,7 @@ namespace Skila.Language
             return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName} {Variadic}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 
-        public void Evaluate(ComputationContext ctx) 
+        public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
@@ -99,8 +106,8 @@ namespace Skila.Language
                     ctx.ErrorManager.AddError(ErrorCode.InvalidVariadicLimits, this);
             }
         }
-        
-        public void Validate( ComputationContext ctx)
+
+        public void Validate(ComputationContext ctx)
         {
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace Skila.Language.Semantics
 {
-    public sealed partial class VariableTracker
+    public sealed partial class AssignmentTracker
     {
         private sealed class VariableInfo
         {

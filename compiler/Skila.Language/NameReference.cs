@@ -273,7 +273,7 @@ namespace Skila.Language
             }
 
             if (ctx.ValAssignTracker != null &&
-                !ctx.ValAssignTracker.TryCanRead(this, out IEntityVariable decl)
+                !ctx.ValAssignTracker.TryCanRead(this, out VariableDefiniton decl)
                 && (this.Owner as Assignment)?.Lhs != this)
             {
                 ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);

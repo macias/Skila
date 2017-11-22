@@ -70,9 +70,10 @@ namespace Skila.Language.Extensions
             {
                 foreach (IBindable bindable in ctx.EvalLocalNames.RemoveLayer())
                 {
-                    // do not report variables here, because we have to make difference between
+                    // do not report regular variables here, because we have to make difference between
                     // reading and assigning, loop label does not have such distinction
-                    if (bindable is IAnchor)
+                    // and function parameter is always assigned
+                    if (bindable is IAnchor || (bindable is FunctionParameter param && param.UsageRequired))
                         ctx.AddError(ErrorCode.BindableNotUsed, bindable);
                 }
             }

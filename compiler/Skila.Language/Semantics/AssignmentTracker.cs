@@ -10,7 +10,7 @@ using NaiveLanguageTools.Common;
 namespace Skila.Language.Semantics
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed partial class VariableTracker
+    public sealed partial class AssignmentTracker
     {
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
@@ -18,21 +18,21 @@ namespace Skila.Language.Semantics
 
         private int operationIdCounter;
         private ExecutionMode executionMode;
-        private readonly LayerDictionary<IEntityVariable, VariableInfo> variables;
+        private readonly LayerDictionary<VariableDefiniton, VariableInfo> variables;
 
-        public VariableTracker()
+        public AssignmentTracker()
         {
-            this.variables = new LayerDictionary<IEntityVariable, VariableInfo>();
+            this.variables = new LayerDictionary<VariableDefiniton, VariableInfo>();
             this.executionMode = ExecutionMode.Certain;
         }
 
-        private VariableTracker(VariableTracker src)
+        private AssignmentTracker(AssignmentTracker src)
         {
-            this.variables = new LayerDictionary<IEntityVariable, VariableInfo>();
-            foreach (IEnumerable<IEntityVariable> layer in src.variables.EnumerateLayers())
+            this.variables = new LayerDictionary<VariableDefiniton, VariableInfo>();
+            foreach (IEnumerable<VariableDefiniton> layer in src.variables.EnumerateLayers())
             {
                 this.variables.PushLayer();
-                foreach (IEntityVariable decl in layer)
+                foreach (VariableDefiniton decl in layer)
                     this.variables.Add(decl, src.variables[decl].Clone());
             }
             this.operationIdCounter = src.operationIdCounter;
@@ -44,25 +44,22 @@ namespace Skila.Language.Semantics
             return new TrackingState(this.operationIdCounter, this.executionMode);
         }
 
-        public VariableTracker Clone()
+        public AssignmentTracker Clone()
         {
-            return new VariableTracker(this);
+            return new AssignmentTracker(this);
         }
 
-        internal void Add(IEntityVariable decl)
+        internal void Add(VariableDefiniton decl)
         {
             if (decl.DebugId.Id== 819)
             {
                 ;
             }
-            if (decl.IsDeclaration)
-                return;
-
             this.variables.Add(decl, new VariableInfo(
-                decl.HasValueOnDeclaration ? VariableState.Assigned : VariableState.NotInitialized , ++operationIdCounter));
+                decl.InitValue!=null ? VariableState.Assigned : VariableState.NotInitialized , ++operationIdCounter));
         }
 
-        internal void Add(IEnumerable< IEntityVariable> decls)
+        internal void Add(IEnumerable<VariableDefiniton> decls)
         {
             decls.ForEach(it => this.Add(it));
         }
@@ -73,9 +70,9 @@ namespace Skila.Language.Semantics
                 this.variables.PushLayer();
         }
 
-        internal void Import(VariableTracker branch)
+        internal void Import(AssignmentTracker branch)
         {
-            foreach (KeyValuePair<IEntityVariable, VariableInfo> entry in branch.variables)
+            foreach (KeyValuePair<VariableDefiniton, VariableInfo> entry in branch.variables)
             {
                 if (!this.variables.TryGetValue(entry.Key, out VariableInfo info))
                 {
@@ -94,25 +91,25 @@ namespace Skila.Language.Semantics
                 }
             }
         }
-        internal void Combine(IEnumerable<VariableTracker> branches)
+        internal void Combine(IEnumerable<AssignmentTracker> branches)
         {
-            HashSet<IEntityVariable> set = null;
+            HashSet<VariableDefiniton> set = null;
             // first merge the branches
-            foreach (VariableTracker tracker in branches)
+            foreach (AssignmentTracker tracker in branches)
             {
-                IEnumerable<IEntityVariable> locally_set = tracker.variables
+                IEnumerable<VariableDefiniton> locally_set = tracker.variables
                     .Where(it => it.Value.State == VariableState.Assigned)
                     .Select(it => it.Key);
 
                 if (set == null)
-                    set = new HashSet<IEntityVariable>(locally_set);
+                    set = new HashSet<VariableDefiniton>(locally_set);
                 else
                     set.IntersectWith(locally_set);
             }
 
             // ... then merge the outcome with current tracker
             if (set != null)
-                foreach (IEntityVariable decl in set)
+                foreach (VariableDefiniton decl in set)
                 {
                     if (this.variables.TryGetValue(decl, out VariableInfo info))
                         this.variables[decl].Assign(VariableState.Assigned, ++operationIdCounter);
@@ -133,7 +130,7 @@ namespace Skila.Language.Semantics
 
             var state = this.executionMode == ExecutionMode.Certain ? VariableState.Assigned : VariableState.Maybe;
 
-            IEntityVariable decl = lhs.TryGetVariable();
+            VariableDefiniton decl = lhs.TryGetVariable();
             if (decl != null)
             {
                 if (this.variables.TryGetValue(decl, out VariableInfo info) && info.State != VariableState.Assigned)
@@ -141,13 +138,13 @@ namespace Skila.Language.Semantics
             }
         }
 
-        public bool TryCanRead(NameReference name, out IEntityVariable varDeclaration)
+        public bool TryCanRead(NameReference name, out VariableDefiniton varDeclaration)
         {
             if (name.DebugId.Id == 2494)
             {
                 ;
             }
-            if (name.Binding.Match.Target is IEntityVariable decl)
+            if (name.Binding.Match.Target is VariableDefiniton decl)
             {
                 varDeclaration = decl;
 
@@ -167,7 +164,7 @@ namespace Skila.Language.Semantics
             return true;
         }
 
-        public bool CanRead(IEntityVariable decl)
+        public bool CanRead(VariableDefiniton decl)
         {
             VariableInfo info = this.variables[decl];
             info.IsRead = true;
@@ -182,14 +179,14 @@ namespace Skila.Language.Semantics
         internal void EndTracking(TrackingState trackState)
         {
             // revert all maybes into uninitialized
-            foreach (KeyValuePair<IEntityVariable, VariableInfo> entry in this.variables
+            foreach (KeyValuePair<VariableDefiniton, VariableInfo> entry in this.variables
                 .Where(it => it.Value.State == VariableState.Maybe && it.Value.AssignmentId > trackState.OperationIdCounter).StoreReadOnly())
                 this.variables[entry.Key].Assign(VariableState.NotInitialized, trackState.OperationIdCounter);
 
             this.executionMode = trackState.Mode;
         }
 
-        public IEnumerable<IEntityVariable> RemoveLayer()
+        public IEnumerable<VariableDefiniton> RemoveLayer()
         {
             return this.variables.PopLayer().Where(it => !it.Item2.IsRead && !it.Item2.IsCloned).Select(it => it.Item1);
         }

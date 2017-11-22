@@ -16,7 +16,7 @@ namespace Skila.Language
         internal AutoName AutoName { get; }
         public Environment Env { get; }
         public NameRegistry EvalLocalNames { get; set; }
-        public VariableTracker ValAssignTracker { get; set; }
+        public AssignmentTracker ValAssignTracker { get; set; }
 
         public ErrorManager ErrorManager { get; }
 

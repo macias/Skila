@@ -29,12 +29,12 @@ namespace Skila.Language.Extensions
             ValidationData result = ValidationData.Create();
 
             if (ctx.ValAssignTracker == null && node is IExecutableScope)
-                ctx.ValAssignTracker = new VariableTracker();
+                ctx.ValAssignTracker = new AssignmentTracker();
 
             ctx.ValAssignTracker?.AddLayer(node as IScope);
 
             {
-                if (node is IEntityVariable decl)
+                if (node is VariableDefiniton decl)
                     ctx.ValAssignTracker?.Add(decl);
             }
 
@@ -50,11 +50,11 @@ namespace Skila.Language.Extensions
 
                 validateExecutionPath(node, expr.Flow.AlwaysPath, ctx, ref result);
 
-                VariableTracker parent_tracker = ctx.ValAssignTracker;
+                AssignmentTracker parent_tracker = ctx.ValAssignTracker;
 
                 if (expr.Flow.MaybePaths.Any())
                 {
-                    var branch_trackers = new List<VariableTracker>();
+                    var branch_trackers = new List<AssignmentTracker>();
                     var branch_results = new List<ValidationData>();
 
                     foreach (IEnumerable<IEvaluable> maybes in expr.Flow.MaybePaths)
@@ -92,7 +92,7 @@ namespace Skila.Language.Extensions
 
                 parent_tracker?.EndTracking(track_state.Value);
 
-                foreach (IExpression sub in expr.Flow.Enumerate.WhereType<IExpression>())
+                foreach (IExpression sub in expr.Flow.Enumerate)
                     validateReadingValues(sub, ctx);
             }
 
@@ -120,9 +120,7 @@ namespace Skila.Language.Extensions
             {
                 foreach (IEntityVariable decl in ctx.ValAssignTracker.RemoveLayer())
                 {
-                    // all regular paramters have to be used, but not meta-this parameter 
-                    if (decl.Name.Name != NameFactory.ThisVariableName) 
-                        ctx.AddError(ErrorCode.BindableNotUsed, decl);
+                    ctx.AddError(ErrorCode.BindableNotUsed, decl);
                 }
             }
 

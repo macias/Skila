@@ -77,18 +77,16 @@ namespace Skila.Language.Entities
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
         public ExpressionReadMode CallMode { get; }
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(
-        // parameters are not much of the flow, but we need them for registration as local variables
-            Parameters.Select(it => it.Cast<IEvaluable>()).Concat(MetaThisParameter)
-            .Concat(UserBody));
+        public ExecutionFlow Flow => ExecutionFlow.CreatePath(UserBody);
 
         internal LambdaTrap LambdaTrap { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
-            .Concat(UserBody)
+            // parameters have to go before user body, so they are registered for use
             .Concat(this.Parameters)
-            .Concat(this.ResultTypeName)
             .Concat(this.MetaThisParameter)
+            .Concat(UserBody)
+            .Concat(this.ResultTypeName)
             .Concat(this.thisNameReference)
             .Where(it => it != null);
 

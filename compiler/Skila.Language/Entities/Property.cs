@@ -59,9 +59,6 @@ namespace Skila.Language.Entities
         public NameDefinition Name { get; }
         public INameReference TypeName { get; }
 
-        public bool HasValueOnDeclaration => false;
-        public bool IsDeclaration => false;
-
         private readonly IReadOnlyCollection<FunctionDefinition> getters;
         private readonly IReadOnlyCollection<FunctionDefinition> setters;
         public IReadOnlyCollection<VariableDefiniton> Fields { get; }

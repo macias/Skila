@@ -22,9 +22,6 @@ namespace Skila.Language.Entities
             return new VariableDefiniton(EntityModifier.None, ExpressionReadMode.ReadRequired, name, typeName, initValue);
         }
 
-        public bool HasValueOnDeclaration => this.InitValue != null;
-        public bool IsDeclaration => false;
-
         private readonly Lazy<EntityInstance> instanceOf;
         public EntityInstance InstanceOf => this.instanceOf.Value;
         public NameDefinition Name { get; }
