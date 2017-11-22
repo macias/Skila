@@ -14,26 +14,30 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EntityInstance : IEntityInstance
     {
-        public static EntityInstance RAW_CreateUnregistered(IEntity target, IEnumerable<IEntityInstance> arguments)
+        public static EntityInstance RAW_CreateUnregistered(IEntity target, EntityInstanceSignature signature)
         {
-            return new EntityInstance(target, arguments);
+            return new EntityInstance(target, signature.TemplateArguments, signature.OverrideMutability);
         }
-        internal static EntityInstance Create(ComputationContext ctx, IEntity target, IEnumerable<INameReference> arguments)
+        internal static EntityInstance Create(ComputationContext ctx, IEntity target,
+            IEnumerable<INameReference> arguments, bool overrideMutability)
         {
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return target.GetInstanceOf(arguments.Select(it => it.Evaluated(ctx)));
+            return target.GetInstanceOf(arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
         }
 
 
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstanceOf(null);
+        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstanceOf(null,overrideMutability:false);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
+        // currently modifier only applies to types mutable/immutable and works as notification
+        // that despite the type is immutable we would like to treat is as mutable
+        public bool OverrideMutability { get; }
         public IEntity Target { get; }
         public TypeDefinition TargetType => this.Target.CastType();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
@@ -68,7 +72,7 @@ namespace Skila.Language
 
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
-        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments)
+        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments, bool overrideMutability)
         {
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");
@@ -78,6 +82,7 @@ namespace Skila.Language
             this.Target = target;
             this.TemplateArguments = arguments.StoreReadOnlyList();
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
+            this.OverrideMutability = overrideMutability;
         }
 
         internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
@@ -98,7 +103,7 @@ namespace Skila.Language
                 string args = "";
                 if (this.TemplateArguments.Any())
                     args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                return this.Target.Name.Name + args;
+                return (this.OverrideMutability?"mutable ":"")+this.Target.Name.Name + args;
             }
         }
 
@@ -173,7 +178,7 @@ namespace Skila.Language
                     if (trans)
                     {
                         translated = true;
-                        return self.Target.GetInstanceOf(trans_arguments);
+                        return self.Target.GetInstanceOf(trans_arguments, this.OverrideMutability);
                     }
                     else
                         return self;
@@ -237,7 +242,7 @@ namespace Skila.Language
                 //FunctionDefinition missed_base = TypeDefinitionExtension.PairDerivations(ctx, param.AssociatedType.InstanceOf, this.TargetType.NestedFunctions)
                 //  .Where(it => it.Item2 == null).Select(it => it.Item1).FirstOrDefault();
                 //if (missed_base != null)
-                if (vtable==null)
+                if (vtable == null)
                     return ConstraintMatch.MissingFunction;
             }
 

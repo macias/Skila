@@ -79,6 +79,10 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
+            if (targetTypeName.DebugId.Id== 2793)
+            {
+                ;
+            }
             IEntityInstance src_type = source.Evaluated(ctx);
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, allowSlicing: false);
 

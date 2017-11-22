@@ -121,7 +121,7 @@ namespace Skila.Language
             if (this.InferredTemplateArguments != null)
             {
                 this.TargetFunctionInstance = this.TargetFunctionInstance.Target.GetInstanceOf(this.InferredTemplateArguments
-                    .Select(it => it.Evaluated(ctx)));
+                    .Select(it => it.Evaluated(ctx)), overrideMutability: false);
                 extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                     this.signature,
                     out this.translatedParamEvaluations, out this.translatedResultEvaluation);

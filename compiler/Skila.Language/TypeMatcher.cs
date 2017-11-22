@@ -135,11 +135,20 @@ namespace Skila.Language
                 return TypeMatch.No;
             }
 
-            foreach (EntityInstance family_instance in new[] { input}.Concat( input.Inheritance(ctx).AncestorsIncludingObject))
+            foreach (EntityInstance inherited_input in new[] { input }.Concat(input.Inheritance(ctx).AncestorsIncludingObject))
             {
-                bool match = templateMatches(ctx, inversedVariance, family_instance, target, allowSlicing);
+                bool match = templateMatches(ctx, inversedVariance, inherited_input, target, allowSlicing);
                 if (match)
-                    return TypeMatch.Pass;
+                {
+                    // we cannot shove mutable type in disguise as immutable one, consider such scenario
+                    // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
+                    // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
+                    // this would be disastrous when working concurrently
+                    if (!inherited_input.IsImmutableType(ctx) && target.IsImmutableType(ctx))
+                        return TypeMatch.No;
+                    else
+                        return TypeMatch.Pass;
+                }
             }
 
             return TypeMatch.No;

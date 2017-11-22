@@ -113,7 +113,7 @@ namespace Skila.Interpreter
                         EntityInstance channel_type = this_value.RunTimeTypeInstance;
                         IEntityInstance value_type = channel_type.TemplateArguments.Single();
                         // we have to compute Skila Option type (not C# one we use for C# channel type)
-                        EntityInstance option_type = ctx.Env.OptionType.GetInstanceOf(new[] { value_type });
+                        EntityInstance option_type = ctx.Env.OptionType.GetInstanceOf(new[] { value_type }, overrideMutability: false);
 
                         Option<ObjectData> received = channel.Receive();
 

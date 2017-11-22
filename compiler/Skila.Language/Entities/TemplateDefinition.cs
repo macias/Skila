@@ -33,18 +33,18 @@ namespace Skila.Language.Entities
 
         public override IEnumerable<INode> OwnedNodes => this.ownedNodes.Concat(this.Name)
             .Concat(Conditionals)
-            .Where(it => it!=null);
+            .Where(it => it != null);
 
         // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on
         // the purpose -- to have just single instance per template+arguments
-        private readonly Dictionary<IReadOnlyCollection<IEntityInstance>, EntityInstance> instancesCache;
+        private readonly Dictionary<EntityInstanceSignature, EntityInstance> instancesCache;
 
         public bool IsComputed { get; protected set; }
         public IEntityInstance Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
 
         public EntityModifier Modifier { get; protected set; }
-        public IEnumerable< TemplateConstraint> Constraints { get; }
+        public IEnumerable<TemplateConstraint> Constraints { get; }
         // constraints that sets the availability of the entire template
         // for example "Array<T>" can have method "copy" present with conditional on the method (not entire type)
         // that T has method "copy" itself, otherwise the method "Array.copy" is not available
@@ -58,24 +58,10 @@ namespace Skila.Language.Entities
             IEnumerable<TemplateConstraint> constraints) : base()
         {
             this.Modifier = modifier;
-            this.Constraints = (constraints??Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
+            this.Constraints = (constraints ?? Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
             this.ownedNodes = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
             this.Name = name;
-            this.instancesCache = new Dictionary<IReadOnlyCollection<IEntityInstance>, EntityInstance>(EqualityComparer.Create<IReadOnlyCollection<IEntityInstance>>(
-                (aa, bb) =>
-                {
-                    // please note that for functions we need to cache fully specified names and bare as well, consider
-                    // call<T>(i);
-                    // and
-                    // call(i); // type parameters are inferred
-                    if (aa.Count != bb.Count)
-                        return false;
-
-                    foreach (var ab in aa.Zip(bb, (a, b) => Tuple.Create(a, b)))
-                        if (!ab.Item1.IsSame(ab.Item2, jokerMatchesAll: false))
-                            return false;
-                    return true;
-                }, aa => aa.Count.GetHashCode() ^ aa.Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a))));
+            this.instancesCache = new Dictionary<EntityInstanceSignature, EntityInstance>();
 
             {
                 var set = this.Constraints.ToHashSet();
@@ -91,7 +77,7 @@ namespace Skila.Language.Entities
                 this.Conditionals = set;
             }
 
-            this.instanceOf = new Lazy<EntityInstance>(() => this.GetInstanceOf(this.Name.Parameters.Select(it => it.InstanceOf)));
+            this.instanceOf = new Lazy<EntityInstance>(() => this.GetInstanceOf(this.Name.Parameters.Select(it => it.InstanceOf), overrideMutability: false));
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
@@ -117,15 +103,15 @@ namespace Skila.Language.Entities
             return this.ownedNodes.Contains(elem);
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments)
+        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments,bool overrideMutability)
         {
-            IReadOnlyCollection<IEntityInstance> args = (arguments ?? Enumerable.Empty<IEntityInstance>()).StoreReadOnly();
+            var signature = new EntityInstanceSignature(arguments, overrideMutability);
 
             EntityInstance result;
-            if (!this.instancesCache.TryGetValue(args, out result))
+            if (!this.instancesCache.TryGetValue(signature, out result))
             {
-                result = EntityInstance.RAW_CreateUnregistered(this, args);
-                this.instancesCache.Add(args, result);
+                result = EntityInstance.RAW_CreateUnregistered(this, signature);
+                this.instancesCache.Add(signature, result);
             }
             return result;
         }
@@ -135,7 +121,7 @@ namespace Skila.Language.Entities
             return this.Name.ToString();
         }
 
-        public virtual void Validate( ComputationContext ctx)
+        public virtual void Validate(ComputationContext ctx)
         {
             ;
         }

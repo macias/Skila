@@ -8,6 +8,10 @@ namespace Skila.Language
 {
     public interface IEntityInstance
     {
+#if DEBUG
+        DebugId DebugId { get; } 
+#endif
+
         INameReference NameOf { get; }
         bool DependsOnTypeParameter_UNUSED { get; }
 
@@ -72,7 +76,7 @@ namespace Skila.Language
                 if (!target.IsType())
                     throw new Exception("Internal error");
 
-                if (!target.Modifier.HasImmutable)
+                if (!target.Modifier.HasImmutable || instance.OverrideMutability)
                     return false;
 
                 foreach (VariableDefiniton field in target.CastType().AllNestedFields)

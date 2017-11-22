@@ -87,7 +87,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None: EntityModifier.Reassignable) | modifier;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, null));
+            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this,  EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -97,7 +97,7 @@ namespace Skila.Language.Entities
             return result;
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments)
+        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
         {
             return this.InstanceOf;
         }

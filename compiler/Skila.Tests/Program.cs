@@ -22,7 +22,7 @@ namespace Skila.Tests
             // new Semantics.CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
-            //new Mutability().ErrorViolatingConstConstraint();
+            new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //  new MemoryClasses().ErrorHeapTypeOnStack();
             // new NameResolution().ErrorCircularReference();
             //  new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();

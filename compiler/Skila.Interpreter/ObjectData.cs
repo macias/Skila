@@ -189,7 +189,7 @@ namespace Skila.Interpreter
 
         internal ObjectData Reference(Language.Environment env)
         {
-            return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }), this);
+            return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }, overrideMutability: false), this);
         }
 
         internal ObjectData TryDereference(Language.Environment env)
@@ -214,7 +214,7 @@ namespace Skila.Interpreter
             if (source.isDisposed)
                 throw new ObjectDisposedException($"{source}");
 
-            if (source.DebugId.Id== 2942 || source.DebugId.Id == 2938)
+            if (source.DebugId.Id == 2942 || source.DebugId.Id == 2938)
             {
                 ;
             }

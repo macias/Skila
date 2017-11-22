@@ -11,6 +11,39 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorAssigningMutableToImmutable()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Mutable));
+
+            IExpression mutable_init = ExpressionFactory.HeapConstructorCall(NameReference.Create("Bar"));
+            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new[] {
+                    VariableDefiniton.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                        mutable_init),
+                    Tools.Readout("x"),
+                    // this is OK, we mark target as mutable type and we pass indeed mutable one
+                    VariableDefiniton.CreateStatement("y", 
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
+                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Bar"))),
+                    Tools.Readout("y"),
+            })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, mutable_init));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorImmutableTypes()
         {
             var env = Language.Environment.Create();

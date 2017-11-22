@@ -117,9 +117,9 @@ namespace Skila.Language
             return NameReference.Create(CollectionsNamespaceReference(), ISequenceTypeName, NameReference.Create(templateParamName));
         }
 
-        public static NameReference ObjectTypeReference()
+        public static NameReference ObjectTypeReference(bool overrideMutability = false)
         {
-            return NameReference.Create(NameReference.Root, ObjectTypeName);
+            return NameReference.Create(overrideMutability, NameReference.Root, ObjectTypeName);
         }
 
         public static NameReference SystemNamespaceReference()

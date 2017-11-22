@@ -76,7 +76,7 @@ namespace Skila.Language
             this.defaultValue = defaultValue;
             this.Variadic = variadic;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, null));
+            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -111,7 +111,7 @@ namespace Skila.Language
         {
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments)
+        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments,bool overrideMutability)
         {
             return this.InstanceOf;
         }

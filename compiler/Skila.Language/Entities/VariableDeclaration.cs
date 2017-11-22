@@ -11,7 +11,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDefiniton : Expression, IEntityVariable,ILambdaTransfer
+    public sealed class VariableDefiniton : Expression, IEntityVariable, ILambdaTransfer
     {
         public static VariableDefiniton CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
@@ -49,7 +49,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, null));
+            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.closures = new List<TypeDefinition>();
 
@@ -63,7 +63,7 @@ namespace Skila.Language.Entities
             return result;
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments)
+        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
         {
             return this.InstanceOf;
         }
@@ -119,7 +119,7 @@ namespace Skila.Language.Entities
                     ;
                 }
 
-                this.TrapClosure(ctx,ref this.initValue);
+                this.TrapClosure(ctx, ref this.initValue);
 
                 IEntityInstance init_eval = InitValue?.Evaluation;
 

@@ -6,7 +6,7 @@ namespace Skila.Language.Entities
     {
         EntityModifier Modifier { get; }
 
-        EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments);
+        EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability);
   }
 
     public static class EntityExtensions
