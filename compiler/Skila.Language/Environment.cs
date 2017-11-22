@@ -62,12 +62,17 @@ namespace Skila.Language
                 .Parents(NameFactory.ObjectTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
-                    Block.CreateStatement()))
+                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference()) },
+                    Block.CreateStatement(new[] {
+                       ExpressionFactory.Readout("source"),
+                    })))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) })).
-                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false))));
+                    Block.CreateStatement(new[] {
+                       ExpressionFactory.Readout("x"),
+                        Return.Create(Undef.Create())
+                    })).
+                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference()))));
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Plain(true)
@@ -76,37 +81,52 @@ namespace Skila.Language
             // spread functions family
             {
                 // no limits
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"), Variadic.None, null, isNameRequired: false) },
+                   new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")) },
                    ExpressionReadMode.ReadRequired,
                    NameFactory.ISequenceTypeReference("T"),
-                   Block.CreateStatement(new IExpression[] { decl, Return.Create(NameReference.Create("result")) })));
+                   Block.CreateStatement(new IExpression[] {
+                       ExpressionFactory.Readout("coll"),
+                       decl,
+                       Return.Create(NameReference.Create("result"))
+                   })));
             }
             {
                 // with min limit
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"), Variadic.None, null, isNameRequired: false),
-                        FunctionParameter.Create("min", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false),
+                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
+                        FunctionParameter.Create("min", NameFactory.IntTypeReference()),
                    },
                    ExpressionReadMode.ReadRequired,
                    NameFactory.ISequenceTypeReference("T"),
-                   Block.CreateStatement(new IExpression[] { decl, Return.Create(NameReference.Create("result")) })));
+                   Block.CreateStatement(new IExpression[] {
+                       ExpressionFactory.Readout("coll"),
+                       ExpressionFactory.Readout("min"),
+                       decl,
+                       Return.Create(NameReference.Create("result"))
+                   })));
             }
             {
                 // with min+max limit
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"), Variadic.None, null, isNameRequired: false),
-                        FunctionParameter.Create("min", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false),
-                        FunctionParameter.Create("max", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false),
+                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
+                        FunctionParameter.Create("min", NameFactory.IntTypeReference()),
+                        FunctionParameter.Create("max", NameFactory.IntTypeReference()),
                     },
                     ExpressionReadMode.ReadRequired,
                     NameFactory.ISequenceTypeReference("T"),
-                    Block.CreateStatement(new IExpression[] { decl, Return.Create(NameReference.Create("result")) })));
+                    Block.CreateStatement(new IExpression[] {
+                       ExpressionFactory.Readout("coll"),
+                       ExpressionFactory.Readout("min"),
+                       ExpressionFactory.Readout("max"),
+                        decl,
+                        Return.Create(NameReference.Create("result"))
+                    })));
 
             }
 
@@ -128,8 +148,10 @@ namespace Skila.Language
                 .Plain(true)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
-                    Block.CreateStatement()))
+                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference()) },
+                    Block.CreateStatement(new[] {
+                       ExpressionFactory.Readout("source"),
+                    })))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))
@@ -189,14 +211,21 @@ namespace Skila.Language
                 .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("value"),
+                        ExpressionFactory.Readout(NameFactory.ThisVariableName),
                         Return.Create(Undef.Create())
                     }))
-                    .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
+                    .Parameters(FunctionParameter.Create("value", NameReference.Create("T"))))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), ExpressionReadMode.CannotBeRead,
-                    NameFactory.VoidTypeReference(), Block.CreateStatement()))
+                    NameFactory.VoidTypeReference(), Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout(NameFactory.ThisVariableName)
+                    })))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
-                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))
+                    Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout(NameFactory.ThisVariableName),
+                        Return.Create(Undef.Create())
+                    })))
                 /*.With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelTryReceive),
                     null,
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
@@ -246,8 +275,8 @@ namespace Skila.Language
                                 })).Build() },
                                 null
                             ))
-                            .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))
-                            .With(VariableDeclaration.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
+                            .With(VariableDefiniton.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))
+                            .With(VariableDefiniton.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
                             .With(empty_constructor)
                             .With(value_constructor)
                             .Parents(NameFactory.ObjectTypeReference())
@@ -270,7 +299,7 @@ namespace Skila.Language
 
             TypeDefinition function_def = TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values))
-                .With(FunctionBuilder.CreateDeclaration(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired, 
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
                     NameReference.Create(result_type))
                     .Parameters(function_parameters.ToArray()));
 

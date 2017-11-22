@@ -112,7 +112,7 @@ namespace Skila.Language.Builders
                     this.parents,
                     // put fields first so when function refers to variable it is already evaluated (midly hackerish)
                     // this avoids clearing/restoring local names registry of the evaluated function
-                    features.OrderBy(it => it is VariableDeclaration ? 0 : 1));
+                    features.OrderBy(it => it is VariableDefiniton ? 0 : 1));
             return build;
         }
         public static implicit operator TypeDefinition(TypeBuilder @this)

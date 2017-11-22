@@ -72,9 +72,13 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), new[] { param1, param2 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    ExpressionFactory.Readout("y"),
+                    Return.Create(DoubleLiteral.Create("3.3"))
+                })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), null));
 
             var resolver = NameResolver.Create(env);
 
@@ -95,9 +99,12 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), new[] { param1 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3"))
+                })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), null));
 
             var resolver = NameResolver.Create(env);
 
@@ -116,12 +123,16 @@ namespace Skila.Tests.Semantics
                NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false) },
                ExpressionReadMode.OptionalUse,
                NameFactory.DoubleTypeReference(),
-               Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+               Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                   Return.Create(DoubleLiteral.Create("3.3")) })));
             root_ns.AddBuilder(FunctionBuilder.Create(
                NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.DoubleTypeReference(), Variadic.None, null, false) },
                ExpressionReadMode.OptionalUse,
                NameFactory.DoubleTypeReference(),
-               Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+               Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                   Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 
@@ -141,13 +152,17 @@ namespace Skila.Tests.Semantics
                     null,isNameRequired: false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x",NameFactory.IntTypeReference(),  Variadic.Create(3,4),
                     null, isNameRequired: false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 
@@ -168,14 +183,18 @@ namespace Skila.Tests.Semantics
                 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
             root_ns.AddBuilder(FunctionBuilder.Create(
                NameDefinition.Create("foo"), new[] {
                    FunctionParameter.Create("x",NameFactory.IntTypeReference(),  Variadic.None,IntLiteral.Create("3"), false)
                },
                ExpressionReadMode.OptionalUse,
                NameFactory.DoubleTypeReference(),
-               Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+               Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                   Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 
@@ -198,7 +217,9 @@ namespace Skila.Tests.Semantics
                 },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 
@@ -224,7 +245,9 @@ namespace Skila.Tests.Semantics
                 Variadic.None, IntLiteral.Create("3"), false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 
@@ -244,12 +267,16 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo", "T", VarianceMode.None), new[] { FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, false) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                    Return.Create(DoubleLiteral.Create("3.3")) })));
             root_ns.AddBuilder(FunctionBuilder.Create(
                NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false) },
                 ExpressionReadMode.OptionalUse,
                NameFactory.DoubleTypeReference(),
-               Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) })));
+               Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                   Return.Create(DoubleLiteral.Create("3.3")) })));
 
             var resolver = NameResolver.Create(env);
 

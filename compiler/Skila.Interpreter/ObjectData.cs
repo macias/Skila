@@ -85,7 +85,7 @@ namespace Skila.Interpreter
 #endif
             internal IEnumerable<ObjectData> Fields => this.fields?.Values ?? Enumerable.Empty<ObjectData>();
 
-            private readonly Dictionary<VariableDeclaration, ObjectData> fields;
+            private readonly Dictionary<VariableDefiniton, ObjectData> fields;
 
             public object PlainValue { get; }
             internal bool IsPlain { get; }
@@ -98,8 +98,8 @@ namespace Skila.Interpreter
                 this.RunTimeTypeInstance = typeInstance.Cast<EntityInstance>();
                 if (!this.IsPlain)
                 {
-                    this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
-                    foreach (VariableDeclaration field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
+                    this.fields = new Dictionary<VariableDefiniton, ObjectData>(ReferenceEqualityComparer<VariableDefiniton>.Instance);
+                    foreach (VariableDefiniton field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
                     {
                         EntityInstance field_type = field.Evaluation.Cast<EntityInstance>();
                         field_type = field_type.TranslateThrough(typeInstance);
@@ -120,7 +120,7 @@ namespace Skila.Interpreter
 
             internal ObjectData GetField(IEntity entity)
             {
-                return this.fields[entity.Cast<VariableDeclaration>()];
+                return this.fields[entity.Cast<VariableDefiniton>()];
             }
         }
 

@@ -42,7 +42,7 @@ namespace Skila.Tests.Execution
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2"), EntityModifier.Reassignable))
+                .With(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2"), EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create( NameDefinition.Create("pass"), new[] {
                         FunctionParameter.Create("v",NameFactory.IntTypeReference(),Variadic.None,
                             FunctionCall.Create(NameReference.Create("getme")),isNameRequired:false)
@@ -59,7 +59,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
+                    VariableDefiniton.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("p","pass")))
                 })));
 
@@ -113,7 +113,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.ReadRequired,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("z",null,IntLiteral.Create("2")),
+                    VariableDefiniton.CreateStatement("z",null,IntLiteral.Create("2")),
                     Return.Create( NameReference.Create( "z"))
                 })));
 
@@ -122,8 +122,8 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.ReadRequired,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("z",null,IntLiteral.Create("0")),
-                    VariableDeclaration.CreateStatement("t",null,FunctionCall.Create( NameReference.Create("last"))),
+                    VariableDefiniton.CreateStatement("z",null,IntLiteral.Create("0")),
+                    VariableDefiniton.CreateStatement("t",null,FunctionCall.Create( NameReference.Create("last"))),
                     Return.Create(ExpressionFactory.AddOperator(NameReference.Create("z"),NameReference.Create("t")))
                 })));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

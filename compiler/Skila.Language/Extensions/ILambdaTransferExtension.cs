@@ -13,7 +13,7 @@ namespace Skila.Language.Extensions
     public static class ILambdaTransferExtension
     {
         private static TypeDefinition buildTypeOfLambda(ComputationContext ctx,
-            FunctionDefinition lambda, IEnumerable<VariableDeclaration> fields)
+            FunctionDefinition lambda, IEnumerable<VariableDefiniton> fields)
         {
             if (lambda.Owner != null)
                 throw new Exception("Internal error");
@@ -87,7 +87,7 @@ namespace Skila.Language.Extensions
 
             if (thisObject != null)
             {
-                VariableDeclaration this_field = VariableDeclaration.CreateStatement(meta_this,
+                VariableDefiniton this_field = VariableDefiniton.CreateStatement(meta_this,
                     thisObject.Evaluation.NameOf, Undef.Create());
                 closure_builder
                     .With(cons)

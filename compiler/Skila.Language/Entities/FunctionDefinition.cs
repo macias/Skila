@@ -77,7 +77,10 @@ namespace Skila.Language.Entities
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
         public ExpressionReadMode CallMode { get; }
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(UserBody);
+        public ExecutionFlow Flow => ExecutionFlow.CreatePath(
+        // parameters are not much of the flow, but we need them for registration as local variables
+            Parameters.Select(it => it.Cast<IEvaluable>()).Concat(MetaThisParameter)
+            .Concat(UserBody));
 
         internal LambdaTrap LambdaTrap { get; set; }
 

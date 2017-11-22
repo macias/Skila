@@ -11,16 +11,19 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDeclaration : Expression, IEntityVariable,ILambdaTransfer
+    public sealed class VariableDefiniton : Expression, IEntityVariable,ILambdaTransfer
     {
-        public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
+        public static VariableDefiniton CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
-            return new VariableDeclaration(modifier, ExpressionReadMode.CannotBeRead, name, typeName, initValue);
+            return new VariableDefiniton(modifier, ExpressionReadMode.CannotBeRead, name, typeName, initValue);
         }
-        public static VariableDeclaration CreateExpression(string name, INameReference typeName, IExpression initValue)
+        public static VariableDefiniton CreateExpression(string name, INameReference typeName, IExpression initValue)
         {
-            return new VariableDeclaration(EntityModifier.None, ExpressionReadMode.ReadRequired, name, typeName, initValue);
+            return new VariableDefiniton(EntityModifier.None, ExpressionReadMode.ReadRequired, name, typeName, initValue);
         }
+
+        public bool HasValueOnDeclaration => this.InitValue != null;
+        public bool IsDeclaration => false;
 
         private readonly Lazy<EntityInstance> instanceOf;
         public EntityInstance InstanceOf => this.instanceOf.Value;
@@ -37,7 +40,7 @@ namespace Skila.Language.Entities
         public override ExecutionFlow Flow => ExecutionFlow.CreatePath(InitValue);
         public EntityModifier Modifier { get; }
 
-        private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name,
+        private VariableDefiniton(EntityModifier modifier, ExpressionReadMode readMode, string name,
             INameReference typeName, IExpression initValue)
             : base(readMode)
         {

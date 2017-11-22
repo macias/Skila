@@ -12,9 +12,9 @@ namespace Skila.Language.Extensions
                 ctx.AddError(ErrorCode.NoValueExpression, @this);
         }
 
-        public static VariableDeclaration TryGetVariable(this IExpression lhs)
+        public static VariableDefiniton TryGetVariable(this IExpression lhs)
         {
-            if (lhs is NameReference name_ref && name_ref.Binding.Match.Target is VariableDeclaration decl)
+            if (lhs is NameReference name_ref && name_ref.Binding.Match.Target is VariableDefiniton decl)
                 return decl;
             else
                 return null;

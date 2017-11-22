@@ -1,12 +1,8 @@
-﻿using NaiveLanguageTools.Common;
-using Skila.Language.Entities;
+﻿using Skila.Language.Entities;
 using Skila.Language.Expressions;
-using Skila.Language.Extensions;
-using Skila.Language.Flow;
 using Skila.Language.Semantics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Skila.Language.Extensions
 {
@@ -24,7 +20,7 @@ namespace Skila.Language.Extensions
 
             bool parent_reading = parent.IsReadingValueOfNode(node);
             node.IsRead = parent_reading;
-            if (parent_reading && ctx.ValAssignTracker != null && node is VariableDeclaration decl)
+            if (parent_reading && ctx.ValAssignTracker != null && node is VariableDefiniton decl)
             {
                 if (!ctx.ValAssignTracker.CanRead(decl))
                     ctx.AddError(ErrorCode.VariableNotInitialized, parent, decl);
@@ -52,14 +48,14 @@ namespace Skila.Language.Extensions
             }
         }
 
-        private static void validateExecutionPath(INode node, IEnumerable<IExpression> path,
+        private static void validateExecutionPath(INode node, IEnumerable<IEvaluable> path,
             ComputationContext ctx, ref ValidationData result)
         {
             if (node.DebugId.Id == 259)
             {
                 ;
             }
-            foreach (IExpression step in path)
+            foreach (IEvaluable step in path)
             {
                 if (!result.UnreachableCodeFound && (result.IsTerminated))
                 {

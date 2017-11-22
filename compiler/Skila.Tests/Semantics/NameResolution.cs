@@ -23,8 +23,8 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
-                    VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
+                    VariableDefiniton.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
+                    VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
                     Tools.Readout("a"),
                     Tools.Readout("x")
                 })));
@@ -44,7 +44,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
-            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), x_ref);
+            var decl = VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), x_ref);
 
             root_ns.AddNode(decl);
 
@@ -62,8 +62,8 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
-            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2")));
+            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
+            var second_decl = root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2")));
 
             var resolver = NameResolver.Create(env);
 

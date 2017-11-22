@@ -37,7 +37,7 @@ namespace Skila.Language
 
             return new ExecutionFlow(always, postMaybes, maybePath);
         }
-        public static ExecutionFlow CreatePath(IEnumerable<IExpression> path)
+        public static ExecutionFlow CreatePath(IEnumerable<IEvaluable> path)
         {
             return new ExecutionFlow(path, null);
         }
@@ -46,20 +46,21 @@ namespace Skila.Language
             return CreatePath(new[] { expr });
         }
 
-        public IEnumerable<IExpression> Enumerate => AlwaysPath.Concat(MaybePaths.Flatten()).Concat(PostMaybes);
+        public IEnumerable<IEvaluable> Enumerate => AlwaysPath.Concat(MaybePaths.Flatten()).Concat(PostMaybes);
 
 
         public bool ExhaustiveMaybes { get; }
-        public IEnumerable<IExpression> AlwaysPath { get; }
+        public IEnumerable<IEvaluable> AlwaysPath { get; }
         // this is fork, not a sequence
         public IReadOnlyCollection<IEnumerable<IExpression>> MaybePaths { get; }
         // executed on loop-continue, but not break, post maybe follows first maybe path
         public IEnumerable<IExpression> PostMaybes { get; }
 
-        public ExecutionFlow(IEnumerable<IExpression> always, IEnumerable<IExpression> postMaybes,
+        // we make always path exceptional to accomodate FunctionParameter type
+        public ExecutionFlow(IEnumerable<IEvaluable> always, IEnumerable<IExpression> postMaybes,
             params IEnumerable<IExpression>[] maybes)
         {
-            this.AlwaysPath = (always?.Where(it => it != null) ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
+            this.AlwaysPath = (always?.Where(it => it != null) ?? Enumerable.Empty<IEvaluable>()).StoreReadOnly();
             this.MaybePaths = (maybes ?? Enumerable.Empty<IEnumerable<IExpression>>()).StoreReadOnly();
             this.PostMaybes = (postMaybes ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             if (this.MaybePaths.Count > 2)

@@ -141,7 +141,7 @@ namespace Skila.Language
                             FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
 
                             if (local_function != entity_function)
-                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDefiniton);
 
                             entities = new[] { entity };
                         }
@@ -241,6 +241,10 @@ namespace Skila.Language
                 }
             });
 
+            if (this.Binding.Match.Target.DebugId.Id== 489)
+            {
+                ;
+            }
             if (!this.Binding.Matches.Any())
             {
                 if (mismatch == ConstraintMatch.BaseViolation)
@@ -269,7 +273,7 @@ namespace Skila.Language
             }
 
             if (ctx.ValAssignTracker != null &&
-                !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl)
+                !ctx.ValAssignTracker.TryCanRead(this, out IEntityVariable decl)
                 && (this.Owner as Assignment)?.Lhs != this)
             {
                 ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);

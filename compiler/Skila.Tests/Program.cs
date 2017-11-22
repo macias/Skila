@@ -19,16 +19,16 @@ namespace Skila.Tests
         {
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
-            //new CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Mutability().ErrorViolatingConstConstraint();
             //  new MemoryClasses().ErrorHeapTypeOnStack();
             // new NameResolution().ErrorCircularReference();
-           new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
+            //  new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-            //new Semantics.Expressions().ErrorReadingFunctionVoidResult();
+            // new Semantics.Expressions().ErrorIgnoringParameters();
             //new MethodDefinitions().Basics();
             //new FunctionDefinitions().VariadicParametersInvalidLimits();
             // new TypeMatching().UnionMatching();

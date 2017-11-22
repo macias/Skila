@@ -7,6 +7,7 @@ using Skila.Language.Entities;
 using Skila.Language.Comparers;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
+using Skila.Language.Expressions;
 
 namespace Skila.Language
 {
@@ -21,8 +22,11 @@ namespace Skila.Language
         }
         public static FunctionParameter Create(string name, INameReference typeName)
         {
-            return new FunctionParameter(name, typeName,  Variadic.None, null, isNameRequired: false);
+            return new FunctionParameter(name, typeName, Variadic.None, null, isNameRequired: false);
         }
+
+        public bool HasValueOnDeclaration => true;
+        public bool IsDeclaration => this.Owner.CastFunction().IsDeclaration;
 
         public bool IsNameRequired { get; }
         public bool IsOptional => this.DefaultValue != null;
@@ -49,13 +53,14 @@ namespace Skila.Language
             get { return index.Value; }
             set
             {
-                if (this.index.HasValue && this.index.Value!=value)
+                if (this.index.HasValue && this.index.Value != value)
                     throw new InvalidOperationException("Index is already set.");
                 this.index = new Option<int>(value);
             }
         }
 
-        private FunctionParameter(string name, INameReference typeName, Variadic variadic, IExpression defaultValue, bool isNameRequired)
+        private FunctionParameter(string name, INameReference typeName, Variadic variadic,
+            IExpression defaultValue, bool isNameRequired) 
         {
             this.Modifier = EntityModifier.None;
             this.Name = NameDefinition.Create(name);
@@ -74,11 +79,11 @@ namespace Skila.Language
             return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName} {Variadic}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 
-        public void Evaluate(ComputationContext ctx)
+        public void Evaluate(ComputationContext ctx) 
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.TypeName.Evaluated(ctx);
+                this.Evaluation = this.TypeName.Evaluation;
 
                 this.DataTransfer(ctx, ref this.defaultValue, this.Evaluation);
 
@@ -94,7 +99,7 @@ namespace Skila.Language
                     ctx.ErrorManager.AddError(ErrorCode.InvalidVariadicLimits, this);
             }
         }
-
+        
         public void Validate( ComputationContext ctx)
         {
         }
@@ -104,9 +109,9 @@ namespace Skila.Language
             return this.InstanceOf;
         }
 
-        public bool IsReadingValueOfNode( IExpression node)
+        public bool IsReadingValueOfNode(IExpression node)
         {
-            return false;
+            return true;
         }
 
         internal bool NOT_USED_CounterpartParameter(INode thisScope, FunctionParameter other, INode otherScope)

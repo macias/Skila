@@ -12,6 +12,10 @@ namespace Skila.Language.Extensions
     {
         public static ValidationData Validated(this INode node, ComputationContext ctx)
         {
+            if (node.DebugId.Id == 489)
+            {
+                ;
+            }
             var evaluable = node as IEvaluable;
 
             if (evaluable != null && evaluable.Validation != null)
@@ -30,7 +34,7 @@ namespace Skila.Language.Extensions
             ctx.ValAssignTracker?.AddLayer(node as IScope);
 
             {
-                if (node is VariableDeclaration decl)
+                if (node is IEntityVariable decl)
                     ctx.ValAssignTracker?.Add(decl);
             }
 
@@ -53,7 +57,7 @@ namespace Skila.Language.Extensions
                     var branch_trackers = new List<VariableTracker>();
                     var branch_results = new List<ValidationData>();
 
-                    foreach (IEnumerable<IExpression> maybes in expr.Flow.MaybePaths)
+                    foreach (IEnumerable<IEvaluable> maybes in expr.Flow.MaybePaths)
                     {
                         ctx.ValAssignTracker = parent_tracker?.Clone();
                         ValidationData branch_result = result.Clone();
@@ -88,7 +92,7 @@ namespace Skila.Language.Extensions
 
                 parent_tracker?.EndTracking(track_state.Value);
 
-                foreach (IExpression sub in expr.Flow.Enumerate)
+                foreach (IExpression sub in expr.Flow.Enumerate.WhereType<IExpression>())
                     validateReadingValues(sub, ctx);
             }
 
@@ -114,9 +118,11 @@ namespace Skila.Language.Extensions
 
             if (node is IScope && ctx.ValAssignTracker != null)
             {
-                foreach (VariableDeclaration decl in ctx.ValAssignTracker.RemoveLayer())
+                foreach (IEntityVariable decl in ctx.ValAssignTracker.RemoveLayer())
                 {
-                    ctx.AddError(ErrorCode.BindableNotUsed, decl);
+                    // all regular paramters have to be used, but not meta-this parameter 
+                    if (decl.Name.Name != NameFactory.ThisVariableName) 
+                        ctx.AddError(ErrorCode.BindableNotUsed, decl);
                 }
             }
 

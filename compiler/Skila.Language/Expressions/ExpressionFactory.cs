@@ -6,6 +6,15 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static IExpression Readout(string name)
+        {
+            return Readout(NameReference.Create(name));
+        }
+        public static IExpression Readout(IExpression expr)
+        {
+            return Assignment.CreateStatement(NameReference.Sink(), expr);
+        }
+
         public static IExpression HeapConstructorCall(NameReference innerTypeName)
         {
 #if USE_NEW_CONS
@@ -45,7 +54,7 @@ namespace Skila.Language.Expressions
             bool useHeap, params FunctionArgument[] arguments)
         {
             const string local_this = "__this__";
-            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
+            var var_decl = VariableDefiniton.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
             var init_call = FunctionCall.Create(constructorReference, arguments);

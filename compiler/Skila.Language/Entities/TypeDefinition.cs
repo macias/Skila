@@ -186,7 +186,7 @@ namespace Skila.Language.Entities
                     if (!parent.Evaluation.IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
 
-                foreach (VariableDeclaration field in this.AllNestedFields)
+                foreach (VariableDefiniton field in this.AllNestedFields)
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);

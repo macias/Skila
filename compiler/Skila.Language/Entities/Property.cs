@@ -16,9 +16,9 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope
     {
-        public static VariableDeclaration CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
+        public static VariableDefiniton CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
-            return VariableDeclaration.CreateStatement(NameFactory.PropertyAutoField, typeName, initValue, modifier);
+            return VariableDefiniton.CreateStatement(NameFactory.PropertyAutoField, typeName, initValue, modifier);
         }
         public static FunctionDefinition CreateAutoGetter(INameReference typeName)
         {
@@ -46,7 +46,7 @@ namespace Skila.Language.Entities
         }
 
         public static Property Create(string name, INameReference typeName,
-            IEnumerable<VariableDeclaration> fields,
+            IEnumerable<VariableDefiniton> fields,
             IEnumerable<FunctionDefinition> getters,
             IEnumerable<FunctionDefinition> setters,
             EntityModifier modifier = null)
@@ -59,9 +59,12 @@ namespace Skila.Language.Entities
         public NameDefinition Name { get; }
         public INameReference TypeName { get; }
 
+        public bool HasValueOnDeclaration => false;
+        public bool IsDeclaration => false;
+
         private readonly IReadOnlyCollection<FunctionDefinition> getters;
         private readonly IReadOnlyCollection<FunctionDefinition> setters;
-        public IReadOnlyCollection<VariableDeclaration> Fields { get; }
+        public IReadOnlyCollection<VariableDefiniton> Fields { get; }
 
         public FunctionDefinition Getter { get { return getters.FirstOrDefault(); } }
         public FunctionDefinition Setter { get { return setters.FirstOrDefault(); } }
@@ -75,14 +78,14 @@ namespace Skila.Language.Entities
         public bool IsComputed => this.Evaluation != null;
 
         private Property(EntityModifier modifier, string name, INameReference typeName,
-            IEnumerable<VariableDeclaration> fields, IEnumerable<FunctionDefinition> getters, IEnumerable<FunctionDefinition> setters)
+            IEnumerable<VariableDefiniton> fields, IEnumerable<FunctionDefinition> getters, IEnumerable<FunctionDefinition> setters)
         {
             if (name == null)
                 throw new ArgumentNullException();
 
             this.Name = NameDefinition.Create(name);
             this.TypeName = typeName;
-            this.Fields = (fields ?? Enumerable.Empty<VariableDeclaration>()).StoreReadOnly();
+            this.Fields = (fields ?? Enumerable.Empty<VariableDefiniton>()).StoreReadOnly();
             this.getters = (getters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None: EntityModifier.Reassignable) | modifier;

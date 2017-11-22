@@ -21,14 +21,14 @@ namespace Skila.Tests.Execution
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
-                .With(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable)));
+                .With(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDefiniton.CreateStatement("y", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
+                    VariableDefiniton.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
                      IntLiteral.Create("2")),
                     Return.Create(NameReference.Create(NameReference.Create("p"),"x"))

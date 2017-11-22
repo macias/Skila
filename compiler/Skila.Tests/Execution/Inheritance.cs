@@ -43,7 +43,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
+                    VariableDefiniton.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
                         ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));

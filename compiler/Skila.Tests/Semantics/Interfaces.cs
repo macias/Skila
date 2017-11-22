@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
+                    VariableDefiniton.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructorCall(typename,out cons_ref)),
                     Tools.Readout("x")
                 })));
@@ -73,6 +73,7 @@ namespace Skila.Tests.Semantics
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("x"),
                         Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))));
 
@@ -81,7 +82,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
+                    VariableDefiniton.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructorCall(NameReference.Create("X"))),
                     Tools.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
@@ -122,7 +123,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value),
+                    VariableDefiniton.CreateStatement("i", NameReference.Create("IX"), init_value),
                     Tools.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
                 })));

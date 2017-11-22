@@ -39,11 +39,13 @@ namespace Skila.Tests.Semantics
                     // converting itself
                     FunctionParameter.Create("value", NameReference.Create("Foo", NameReference.Create("T")), Variadic.None,
                         null, isNameRequired: false) },
-                    Block.CreateStatement())
+                    Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("value")
+                    }))
                 ));
 
             var decl = root_ns.AddNode(
-                VariableDeclaration.CreateStatement("x",
+                VariableDefiniton.CreateStatement("x",
                     NameReference.Create("Foo", NameFactory.IntTypeReference()), IntLiteral.Create("5")));
 
             var resolver = NameResolver.Create(env);
@@ -59,7 +61,7 @@ namespace Skila.Tests.Semantics
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
                 // same type as current type -> circular reference
-                .With(VariableDeclaration.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
+                .With(VariableDefiniton.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
 
             var resolver = NameResolver.Create(env);
 

@@ -42,9 +42,9 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("g",null,
+                    VariableDefiniton.CreateStatement("g",null,
                         ExpressionFactory.StackConstructorCall(NameReference.Create("Greeter",NameReference.Create("Say")))),
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Say"))),
+                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Say"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("g","say"),
                         FunctionArgument.Create(NameReference.Create("y"))))
                 })));
@@ -87,7 +87,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
+                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
                     Return.Create(call)
                 })));
 
@@ -113,7 +113,7 @@ namespace Skila.Tests.Execution
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
                      }))
                      .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
-                     .Parameters(FunctionParameter.Create("t", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)));
+                     .Parameters(FunctionParameter.Create("t", NameReference.Create("T"))));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
                 .With(FunctionBuilder.Create(NameDefinition.Create("getMe"),
@@ -129,7 +129,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Y"))),
+                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Y"))),
                     Return.Create(call)
                 })));
 

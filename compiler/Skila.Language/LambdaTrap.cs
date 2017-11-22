@@ -12,25 +12,25 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     internal sealed class LambdaTrap
     {
-        private readonly Dictionary<VariableDeclaration, VariableDeclaration> escapingVariableToFieldMapping;
-        public IEnumerable<VariableDeclaration> Fields => this.escapingVariableToFieldMapping.Values;
+        private readonly Dictionary<VariableDefiniton, VariableDefiniton> escapingVariableToFieldMapping;
+        public IEnumerable<VariableDefiniton> Fields => this.escapingVariableToFieldMapping.Values;
 
         public LambdaTrap()
         {
-            this.escapingVariableToFieldMapping = new Dictionary<VariableDeclaration, VariableDeclaration>();
+            this.escapingVariableToFieldMapping = new Dictionary<VariableDefiniton, VariableDefiniton>();
         }
 
-        internal VariableDeclaration HijackEscapingReference(VariableDeclaration localVariable)
+        internal VariableDefiniton HijackEscapingReference(VariableDefiniton localVariable)
         {
             // we replace here the escaping local variable (or rather variable that breaks lambda barrier)
             // with field of the type which soon will be created
             if (localVariable == null)
                 throw new Exception("Internal error");
 
-            VariableDeclaration field;
+            VariableDefiniton field;
             if (!this.escapingVariableToFieldMapping.TryGetValue(localVariable, out field))
             {
-                field = VariableDeclaration.CreateStatement(localVariable.Name.Name, localVariable.Evaluation.NameOf, Undef.Create());
+                field = VariableDefiniton.CreateStatement(localVariable.Name.Name, localVariable.Evaluation.NameOf, Undef.Create());
                 this.escapingVariableToFieldMapping.Add(localVariable, field);
             }
 

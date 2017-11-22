@@ -17,11 +17,11 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl1 = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create());
             root_ns.AddNode(decl1);
 
-            var decl2 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl2 = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Static);
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -48,7 +48,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl = VariableDeclaration.CreateStatement("bar", NameFactory.StringTypeReference(),
+            var decl = VariableDefiniton.CreateStatement("bar", NameFactory.StringTypeReference(),
                 initValue: StringLiteral.Create("hi"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -74,8 +74,8 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
+            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -98,9 +98,9 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create());
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -133,9 +133,10 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(Enumerable.Empty<IExpression>()))
-                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
-                    Variadic.None, null, false)));
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("x"),
+                }))
+                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()))));
 
             var resolver = NameResolver.Create(env);
 

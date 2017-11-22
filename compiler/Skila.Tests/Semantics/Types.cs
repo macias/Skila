@@ -19,7 +19,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point")).With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null)));
+            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point")).With(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), null)));
 
             var resolver = NameResolver.Create(env);
 
@@ -38,8 +38,10 @@ namespace Skila.Tests.Semantics
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
                     new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
-                    Block.CreateStatement())));
-            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null);
+                    Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("a"),
+                    }))));
+            VariableDefiniton field_decl = VariableDefiniton.CreateStatement("x", NameReference.Create("Bar"), null);
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
                 .With(field_decl));
 
@@ -58,14 +60,14 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, EntityModifier.Static)));
+                .With(VariableDefiniton.CreateStatement("field", NameFactory.DoubleTypeReference(), null, EntityModifier.Static)));
 
             NameReference field_ref = NameReference.Create("f", "field");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.DoubleTypeReference(),
                                 Block.CreateStatement(new IExpression[] {
-                                    VariableDeclaration.CreateStatement("f",NameReference.Create("Foo"),Undef.Create()),
+                                    VariableDefiniton.CreateStatement("f",NameReference.Create("Foo"),Undef.Create()),
                                     Return.Create(field_ref) })));
 
             var resolver = NameResolver.Create(env);
@@ -84,7 +86,7 @@ namespace Skila.Tests.Semantics
 
             NameReference field_ref = NameReference.Create("field");
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null))
+                .With(VariableDefiniton.CreateStatement("field", NameFactory.DoubleTypeReference(), null))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.DoubleTypeReference(),

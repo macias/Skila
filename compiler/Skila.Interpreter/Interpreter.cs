@@ -256,7 +256,7 @@ namespace Skila.Interpreter
             {
                 result = execute(func, ctx);
             }
-            else if (node is VariableDeclaration decl)
+            else if (node is VariableDefiniton decl)
             {
                 result = execute(decl, ctx);
             }
@@ -592,7 +592,7 @@ namespace Skila.Interpreter
             }
             else if (ctx.LocalVariables.TryGet(target, out ObjectData info))
                 return ExecValue.CreateExpression(info);
-            else if (target is VariableDeclaration decl && decl.IsField())
+            else if (target is VariableDefiniton decl && decl.IsField())
             {
                 var current_func = name.EnclosingScope<FunctionDefinition>();
                 if (!ctx.LocalVariables.TryGet(current_func.MetaThisParameter, out ObjectData this_ref_data))
@@ -647,7 +647,7 @@ namespace Skila.Interpreter
             return rhs_val;
         }
 
-        private ExecValue execute(VariableDeclaration decl, ExecutionContext ctx)
+        private ExecValue execute(VariableDefiniton decl, ExecutionContext ctx)
         {
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())

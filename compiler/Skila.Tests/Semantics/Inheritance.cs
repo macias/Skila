@@ -214,6 +214,7 @@ namespace Skila.Tests.Semantics
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("x"),
                         Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))
                     .Modifier(EntityModifier.Derived))
@@ -250,6 +251,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("x"),
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Modifier(EntityModifier.Derived))
@@ -288,6 +290,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout("x"),
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))

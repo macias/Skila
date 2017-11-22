@@ -23,7 +23,7 @@ namespace Skila.Language.Entities
         public IEnumerable<TypeDefinition> NestedTypes => this.NestedTemplates.WhereType<TypeDefinition>();
         public IEnumerable<FunctionDefinition> NestedFunctions => this.NestedTemplates.WhereType<FunctionDefinition>();
         // directly nested fields + property fields
-        public IEnumerable<VariableDeclaration> AllNestedFields => this.ownedNodes.WhereType<VariableDeclaration>()
+        public IEnumerable<VariableDefiniton> AllNestedFields => this.ownedNodes.WhereType<VariableDefiniton>()
             .Concat(this.NestedProperties.SelectMany(it => it.Fields));
         public IEnumerable<Property> NestedProperties => this.ownedNodes.WhereType<Property>();
         public IEnumerable<Namespace> NestedNamespaces => this.NestedTemplates.WhereType<Namespace>();
