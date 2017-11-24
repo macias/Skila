@@ -6,5 +6,7 @@
         bool StaticMemberOnlyThroughTypeName { get; }
         // you can substitute prototype with any type as long all methods are covered
         bool InterfaceDuckTyping { get; }
+        // when true, inner scope variable can shadow outer scope variable (with the same name)
+        bool ScopeShadowing { get; }
     }
 }

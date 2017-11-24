@@ -79,7 +79,7 @@ namespace Skila.Language
                 if (!target.Modifier.HasImmutable || instance.OverrideMutability)
                     return false;
 
-                foreach (VariableDefiniton field in target.CastType().AllNestedFields)
+                foreach (VariableDeclaration field in target.CastType().AllNestedFields)
                 {
                     IEntityInstance eval = field.Evaluated(ctx);
                     if (!eval.IsImmutableType(ctx,visited))

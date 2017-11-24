@@ -31,7 +31,7 @@ namespace Skila.Language
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstanceOf(null,overrideMutability:false);
+        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstanceOf(null, overrideMutability: false);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -103,7 +103,7 @@ namespace Skila.Language
                 string args = "";
                 if (this.TemplateArguments.Any())
                     args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                return (this.OverrideMutability?"mutable ":"")+this.Target.Name.Name + args;
+                return (this.OverrideMutability ? "mutable " : "") + this.Target.Name.Name + args;
             }
         }
 

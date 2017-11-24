@@ -18,7 +18,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var decl = VariableDefiniton.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable);
+            var decl = VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable);
             NameReference var_ref = NameReference.Create("s");
             var if_assign = IfBranch.CreateIf(BoolLiteral.CreateFalse(),
                 new[] { Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("3")) });
@@ -29,7 +29,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new IExpression[] {
                     decl,
                     if_assign,
-                    VariableDefiniton.CreateStatement("x", null, var_ref),
+                    VariableDeclaration.CreateStatement("x", null, var_ref),
                     Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("x"))
                 })));
 
@@ -58,9 +58,9 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
                     loop,
-                    VariableDefiniton.CreateStatement("x", null, var_ref),
+                    VariableDeclaration.CreateStatement("x", null, var_ref),
                     Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("x"))
             })));
 
@@ -98,19 +98,19 @@ namespace Skila.Tests.Semantics
                         body: new IExpression[] {
                         if_double_jump,
                         unreachable_assign,
-                        VariableDefiniton.CreateStatement("m1",null,NameReference.Create("s")),
+                        VariableDeclaration.CreateStatement("m1",null,NameReference.Create("s")),
                         Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m1"))
                     });
                 // since step is executed after the body is executed, from its POV the variable can be read
                 var outer_loop = Loop.CreateFor(NameDefinition.Create("outer"),
                         init: null,
                         preCheck: null,
-                        step: new IExpression[] { VariableDefiniton.CreateStatement("m3", null, NameReference.Create("s")),
+                        step: new IExpression[] { VariableDeclaration.CreateStatement("m3", null, NameReference.Create("s")),
                                                   Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m3")) },
                         body: new IExpression[] {
                         inner_loop,
                         Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("44")),
-                        VariableDefiniton.CreateStatement("m2",null,NameReference.Create("s")),
+                        VariableDeclaration.CreateStatement("m2",null,NameReference.Create("s")),
                         Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m2"))
                     });
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -118,7 +118,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.VoidTypeReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
                     outer_loop,
                     Assignment.CreateStatement(NameReference.Sink(), var_ref)
                     })));
@@ -143,7 +143,7 @@ namespace Skila.Tests.Semantics
 
             var if_break = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { LoopInterrupt.CreateBreak() });
             var loop = Loop.CreateFor(null, null, null, new IExpression[] {
-                    VariableDefiniton.CreateStatement("b", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("b", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
                     if_break,
                     Assignment.CreateStatement(NameReference.Create("b"), IntLiteral.Create("5")),
                     Tools.Readout("b"), // safe to read it because locally "b" is initialized
@@ -153,7 +153,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
                     loop,
                     Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("3")),
                     Tools.Readout("s")
@@ -182,7 +182,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
                     return_or_assign,
                     Tools.Readout("s")
                 })));
@@ -252,7 +252,7 @@ namespace Skila.Tests.Semantics
 
             var dead_step = Tools.Readout("i");
             var loop = Loop.CreateFor(NameDefinition.Create("pool"),
-                init: new[] { VariableDefiniton.CreateStatement("i", null, IntLiteral.Create("5")) },
+                init: new[] { VariableDeclaration.CreateStatement("i", null, IntLiteral.Create("5")) },
                 preCheck: BoolLiteral.CreateTrue(),
                 step: new[] { dead_step },
                 body: new IExpression[] { LoopInterrupt.CreateBreak("pool") });
@@ -285,7 +285,7 @@ namespace Skila.Tests.Semantics
             var dead_return = Return.Create();
             var dead_step = Tools.Readout("i");
             var loop = Loop.CreateFor(NameDefinition.Create("pool"),
-                init: new[] { VariableDefiniton.CreateStatement("i", null, IntLiteral.Create("5")) },
+                init: new[] { VariableDeclaration.CreateStatement("i", null, IntLiteral.Create("5")) },
                 preCheck: BoolLiteral.CreateTrue(),
                 step: new[] { dead_step },
                 body: new IExpression[] { LoopInterrupt.CreateBreak("pool"), dead_return });
@@ -365,7 +365,7 @@ namespace Skila.Tests.Semantics
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal },
                 IfBranch.CreateElse(new[] { int_literal }));
-            var decl = VariableDefiniton.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
             root_ns.AddNode(decl);
 
@@ -388,7 +388,7 @@ namespace Skila.Tests.Semantics
             var str_literal = DoubleLiteral.Create("3.3");
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal });
-            var decl = VariableDefiniton.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
             root_ns.AddNode(decl);
 
@@ -410,7 +410,7 @@ namespace Skila.Tests.Semantics
 
             var if_ctrl = IfBranch.CreateIf(str_literal, new[] { IntLiteral.Create("5") },
                 IfBranch.CreateElse(new[] { IntLiteral.Create("5") }));
-            var decl = VariableDefiniton.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
             root_ns.AddNode(decl);
 
@@ -430,7 +430,7 @@ namespace Skila.Tests.Semantics
 
             var str_literal = DoubleLiteral.Create("3.3");
 
-            var loop = Loop.CreateFor(init: new[] { VariableDefiniton.CreateStatement("x", null, IntLiteral.Create("5")) },
+            var loop = Loop.CreateFor(init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
                 preCheck: str_literal,
                 step: new[] { Tools.Readout("x") },
                 body: new IExpression[] { });
@@ -452,7 +452,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
-                init: new[] { VariableDefiniton.CreateStatement("x", null, IntLiteral.Create("5")) },
+                init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
                 preCheck: BoolLiteral.CreateTrue(),
                 step: null,
                 body: new[] {
@@ -476,7 +476,7 @@ namespace Skila.Tests.Semantics
 
             var step = Tools.Readout("x");
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
-                init: new[] { VariableDefiniton.CreateStatement("x", null, IntLiteral.Create("5")) },
+                init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
                 preCheck: BoolLiteral.CreateTrue(),
                 step: new[] { step },
                 body: new[] { LoopInterrupt.CreateBreak("foo") });
@@ -499,7 +499,7 @@ namespace Skila.Tests.Semantics
 
             var step = Tools.Readout("x");
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
-                init: new[] { VariableDefiniton.CreateStatement("x", null, IntLiteral.Create("5")) },
+                init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
                 preCheck: BoolLiteral.CreateTrue(),
                 step: new[] { step },
                 body: new[] { LoopInterrupt.CreateContinue("foo") });
@@ -544,7 +544,7 @@ namespace Skila.Tests.Semantics
             var if_ctrl = IfBranch.CreateIf(cond, new[] { IntLiteral.Create("5") },
                 IfBranch.CreateElse(new[] { IntLiteral.Create("5") },
                 IfBranch.CreateElse(new[] { IntLiteral.Create("5") })));
-            var decl = VariableDefiniton.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
             root_ns.AddNode(decl);
 
@@ -565,11 +565,11 @@ namespace Skila.Tests.Semantics
             var wrong_name_ref = NameReference.Create("y");
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
-                new IExpression[] { VariableDefiniton.CreateStatement("y", null, BoolLiteral.CreateTrue()),
+                new IExpression[] { VariableDeclaration.CreateStatement("y", null, BoolLiteral.CreateTrue()),
                                     NameReference.Create( "y")
                 },
                     IfBranch.CreateElse(new[] { wrong_name_ref }));
-            var decl = VariableDefiniton.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
             root_ns.AddNode(decl);
 

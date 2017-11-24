@@ -57,7 +57,12 @@
     <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
+    <Compile Include="Data\LayerDictionary.Flat.cs" />
+    <Compile Include="Data\LayerDictionary.cs" />
+    <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
+    <Compile Include="ILocalBindable.cs" />
+    <Compile Include="INameRegistry.cs" />
     <Compile Include="LambdaTrap.cs" />
     <Compile Include="Entities\Property.cs" />
     <Compile Include="Entities\IEntityVariable.cs" />
@@ -92,7 +97,7 @@
     <Compile Include="Builders\IBuilder.cs" />
     <Compile Include="Builders\FunctionBuilder.cs" />
     <Compile Include="Builders\TypeBuilder.cs" />
-    <Compile Include="Data\LayerDictionary.cs" />
+    <Compile Include="Data\LayerDictionary.Stacked.cs" />
     <Compile Include="ComputationContext.cs" />
     <Compile Include="ExecutionFlow.cs" />
     <Compile Include="Expressions\Expression.cs" />

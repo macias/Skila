@@ -10,44 +10,50 @@ using System;
 namespace Skila.Interpreter
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableRegistry
+    public sealed class VariableRegistry : INameRegistry
     {
-        private readonly LayerDictionary< IBindable, ObjectData> bag;
+        private readonly ILayerDictionary<ILocalBindable, ObjectData> bag;
 
-        public VariableRegistry()
+        public VariableRegistry(bool shadowing)
         {
-            this.bag = new LayerDictionary< IBindable, ObjectData>(ReferenceEqualityComparer<IBindable>.Instance);
+            this.bag = LayerDictionary.Create<ILocalBindable, ObjectData>(shadowing,ReferenceEqualityComparer<ILocalBindable>.Instance);
         }
 
-        internal void AddLayer(IScope scope)
+        public void AddLayer(IScope scope)
         {
             if (scope != null)
                 this.bag.PushLayer();
         }
 
-        internal IEnumerable<Tuple<IBindable, ObjectData>> RemoveLayer()
+        internal IEnumerable<Tuple<ILocalBindable, ObjectData>> RemoveLayer()
         {
-             return this.bag.PopLayer();
+            return this.bag.PopLayer();
         }
 
-        internal bool Add(IBindable bindable, ObjectData value)
+        internal bool Add(ILocalBindable bindable, ObjectData value)
         {
-            if (bindable.DebugId.Id==2797)
+            if (bindable.DebugId.Id == 2797)
             {
                 ;
             }
-            bool result = this.bag.Add(bindable,value);
+            bool result = this.bag.Add(bindable, value);
             return result;
         }
 
-        internal bool TryGet(IBindable name,out ObjectData info)
+        internal bool TryGet(ILocalBindable bindable, out ObjectData info)
         {
-            return this.bag.TryGetValue(name, out info);
+            if (bindable == null)
+            {
+                info = null;
+                return false;
+            }
+            else
+                return this.bag.TryGetValue(bindable, out info);
         }
 
         public override string ToString()
         {
-            IReadOnlyList<IBindable> keys = this.bag.Keys.StoreReadOnlyList();
+            IReadOnlyList<ILocalBindable> keys = this.bag.Keys.StoreReadOnlyList();
             string result = keys.Select(it => it.Name.ToString()).Join(", ");
             if (keys.Count > 10)
                 result += " ...";

@@ -28,14 +28,17 @@ namespace Skila.Language.Extensions
 
             ValidationData result = ValidationData.Create();
 
-            if (ctx.ValAssignTracker == null && node is IExecutableScope)
-                ctx.ValAssignTracker = new AssignmentTracker();
-
-            ctx.ValAssignTracker?.AddLayer(node as IScope);
+            INameRegistryExtension.EnterNode(node, ref ctx.ValAssignTracker, () => new AssignmentTracker(ctx.Env.Options.ScopeShadowing));
 
             {
-                if (node is VariableDefiniton decl)
+                if (node is VariableDeclaration decl)
+                {
+                    if (decl.DebugId.Id==2548)
+                    {
+                        ;
+                    }
                     ctx.ValAssignTracker?.Add(decl);
+                }
             }
 
             if (node is IExpression expr)

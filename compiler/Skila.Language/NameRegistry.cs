@@ -5,38 +5,39 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Comparers;
 using Skila.Language.Data;
 using Skila.Language.Extensions;
+using Skila.Language.Entities;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameRegistry
+    public sealed class NameRegistry : INameRegistry
     {
-        private readonly LayerDictionary< ITemplateName, LocalInfo> bag;
+        private readonly ILayerDictionary<ITemplateName, LocalInfo> bag;
 
-        public NameRegistry()
+        public NameRegistry(bool shadowing)
         {
-            this.bag = new LayerDictionary< ITemplateName, LocalInfo>(EntityNameArityComparer.Instance);
+            this.bag = LayerDictionary.Create<ITemplateName, LocalInfo>(shadowing,EntityNameArityComparer.Instance);
         }
 
-        internal void AddLayer(IScope scope)
+        public void AddLayer(IScope scope)
         {
             if (scope != null)
                 this.bag.PushLayer();
         }
 
-        internal IEnumerable<IBindable> RemoveLayer()
+        internal IEnumerable<ILocalBindable> RemoveLayer()
         {
             return this.bag.PopLayer().Where(it => !it.Item2.Used).Select(it => it.Item2.Bindable);
         }
 
-        internal bool Add(IBindable bindable)
+        internal bool Add(ILocalBindable bindable)
         {
-            bool result = this.bag.Add(bindable.Name,new LocalInfo( bindable));
+            bool result = this.bag.Add(bindable.Name, new LocalInfo(bindable));
             return result;
         }
 
-        internal bool TryGet<T>(ITemplateName name,out T value)
-            where T : class,IBindable
+        internal bool TryGet<T>(ITemplateName name, out T value)
+            where T : class, IBindable
         {
             LocalInfo info;
             if (!this.bag.TryGetValue(name, out info))

@@ -54,7 +54,7 @@ namespace Skila.Language.Expressions
             bool useHeap, params FunctionArgument[] arguments)
         {
             const string local_this = "__this__";
-            var var_decl = VariableDefiniton.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
+            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
             var init_call = FunctionCall.Create(constructorReference, arguments);
@@ -65,6 +65,10 @@ namespace Skila.Language.Expressions
         public static IExpression AddOperator(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
+        }
+        public static IExpression EqualOperator(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.EqualOperator), FunctionArgument.Create(rhs));
         }
         public static IExpression NotOperator(IExpression expr)
         {

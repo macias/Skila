@@ -30,8 +30,10 @@ namespace Skila.Language
         public const string IIterableTypeName = "IIterable";
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
+        public const string SelfFunctionName = "self";
 
         public const string AddOperator = "+";
+        public const string EqualOperator = "==";
         public const string NotOperator = "not";
 
         public const string LambdaInvoke = "invoke";

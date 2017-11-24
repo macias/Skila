@@ -45,10 +45,33 @@ namespace Skila.Tests.Semantics
                 ));
 
             var decl = root_ns.AddNode(
-                VariableDefiniton.CreateStatement("x",
+                VariableDeclaration.CreateStatement("x",
                     NameReference.Create("Foo", NameFactory.IntTypeReference()), IntLiteral.Create("5")));
 
             var resolver = NameResolver.Create(env);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter CrossRecursiveCalls()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("foo")
+                .With(FunctionBuilder.Create("a", ExpressionReadMode.CannotBeRead,NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new[] {
+                    FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "b"))
+                })))
+                .With(FunctionBuilder.Create("b", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new[] {
+                    FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "a"))
+                }))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
 
             return resolver;
         }
@@ -61,7 +84,7 @@ namespace Skila.Tests.Semantics
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
                 // same type as current type -> circular reference
-                .With(VariableDefiniton.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
+                .With(VariableDeclaration.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
 
             var resolver = NameResolver.Create(env);
 

@@ -17,11 +17,11 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl1 = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create());
             root_ns.AddNode(decl1);
 
-            var decl2 = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl2 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Static);
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -48,7 +48,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl = VariableDefiniton.CreateStatement("bar", NameFactory.StringTypeReference(),
+            var decl = VariableDeclaration.CreateStatement("bar", NameFactory.StringTypeReference(),
                 initValue: StringLiteral.Create("hi"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -74,8 +74,8 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
-            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -98,9 +98,9 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                 initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -122,14 +122,14 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            var main_def = root_ns.AddBuilder(FunctionBuilder.Create(
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create( IntLiteral.Create("5")))
                 })));
-            var foo_def = root_ns.AddBuilder(FunctionBuilder.Create(
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
@@ -140,7 +140,7 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
 
             return resolver;
         }

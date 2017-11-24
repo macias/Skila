@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("x",NameReference.Create("IX"),
+                    VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructorCall(typename,out cons_ref)),
                     Tools.Readout("x")
                 })));
@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructorCall(NameReference.Create("X"))),
                     Tools.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
@@ -123,7 +123,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i", NameReference.Create("IX"), init_value),
+                    VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value),
                     Tools.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
                 })));

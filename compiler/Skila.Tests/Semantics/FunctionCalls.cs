@@ -53,7 +53,7 @@ namespace Skila.Tests.Semantics
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo").With(func_def));
 
             var call = FunctionCall.Create(NameReference.Create(NameReference.Create("Foo"), "foo"));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -85,7 +85,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new IExpression[] {
                     // just playing with declaration-expression
                     Assignment.CreateStatement(NameReference.Sink(),
-                        VariableDefiniton.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
+                        VariableDeclaration.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
                     Return.Create(NameReference.Create("result"))
                 }));
 
@@ -93,7 +93,7 @@ namespace Skila.Tests.Semantics
 
             var cons = FunctionCall.Create(NameReference.Create("cons"));
             var call = FunctionCall.Create(NameReference.Create(cons, "foo"));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.BoolTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -123,9 +123,9 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("Foo")),
+                    VariableDeclaration.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("Foo")),
                         initValue: Undef.Create()),
-                    VariableDefiniton.CreateStatement("x", NameFactory.BoolTypeReference(),
+                    VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                         call),
                     Tools.Readout("x")
                 })));
@@ -134,6 +134,27 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(func_def, call.Resolution.TargetFunctionInstance.Target);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorRecurrentCallUsingFunctioName()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            NameReference function_reference = NameReference.Create("foo");
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.DoubleTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(FunctionCall.Create(function_reference)) })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, function_reference));
 
             return resolver;
         }
@@ -152,19 +173,18 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false)));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             var call2 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call1));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("y", NameFactory.IntTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(),
                 call2));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(call2, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, call2));
 
             return resolver;
         }
@@ -180,7 +200,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                    VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
                     FunctionCall.Create(non_func_ref)
                 })));
 
@@ -208,7 +228,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(param1, param2));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var arg1 = FunctionArgument.Create(NameReference.Create("i"));
             var arg2 = FunctionArgument.Create(NameReference.Create("i"));
             var arg3 = FunctionArgument.Create("y", NameReference.Create("i"));
@@ -246,7 +266,7 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("y"),
                     Return.Create(DoubleLiteral.Create("3.3")) })));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var arg2 = FunctionArgument.Create("y", NameReference.Create("i"));
             // we skip over the first param and pass argument only for the second one
             var call = FunctionCall.Create(NameReference.Create("foo"), arg2);
@@ -276,7 +296,7 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("x"),
                     Return.Create(DoubleLiteral.Create("3.3")) })));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
             var call = FunctionCall.Create(NameReference.Create("foo"));
             root_ns.AddNode(call);
 
@@ -304,7 +324,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(param1));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call1 = FunctionCall.Create(NameReference.Create("foo"),
                 FunctionArgument.Create(NameReference.Create("i")),
                 FunctionArgument.Create(NameReference.Create("i")));
@@ -359,7 +379,7 @@ namespace Skila.Tests.Semantics
                 .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false),
                     FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.None, IntLiteral.Create("3"), false)));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var dup_arg = FunctionArgument.Create("x", NameReference.Create("i"));
             var call = FunctionCall.Create(NameReference.Create("foo"),
                 FunctionArgument.Create("x", NameReference.Create("i")),
@@ -388,9 +408,9 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("a"),
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(FunctionParameter.Create("a", NameFactory.IntTypeReference(), Variadic.None, null, false)));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -423,11 +443,11 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     // fooer = foo
-                    VariableDefiniton.CreateStatement("fooer", null, NameReference.Create("foo")),
+                    VariableDeclaration.CreateStatement("fooer", null, NameReference.Create("foo")),
                     // x Int 
-                    VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                    VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
                     // x Double = fooer(i)
-                    VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+                    VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                         call),
                     // _ = x
                     Tools.Readout("x")
@@ -466,9 +486,9 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("f",
+                    VariableDeclaration.CreateStatement("f",
                         NameReference.Create("Foo", NameFactory.IntTypeReference()), initValue: Undef.Create()),
-                    VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+                    VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                         call),
                     Tools.Readout("f"),
                     Tools.Readout("x")
@@ -496,9 +516,9 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("b"),
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(FunctionParameter.Create("b", NameReference.Create("T"), Variadic.None, null, false)));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -524,10 +544,10 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("d"),
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(FunctionParameter.Create("d", NameReference.Create("T"), Variadic.None, null, false)));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo", NameFactory.IntTypeReference()),
                 FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -563,12 +583,12 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     // fooer = foo
-                    VariableDefiniton.CreateStatement("fooer", null,
+                    VariableDeclaration.CreateStatement("fooer", null,
                         NameReference.Create("foo", NameFactory.IntTypeReference())),
                     // i Int 
-                    VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                    VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
                     // x = fooer(i)
-                    VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+                    VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                         call),
                     // _ = x
                     Tools.Readout("x")
@@ -606,7 +626,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     // fooer = foo
-                    VariableDefiniton.CreateStatement("fooer", null, function_reference),
+                    VariableDeclaration.CreateStatement("fooer", null, function_reference),
                     // _ = fooer
                     Tools.Readout("fooer")
             })));
@@ -632,14 +652,14 @@ namespace Skila.Tests.Semantics
                 NameReference.Create("R"),
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout("q"),
-                    VariableDefiniton.CreateStatement("result", NameReference.Create("R"), initValue: Undef.Create()),
+                    VariableDeclaration.CreateStatement("result", NameReference.Create("R"), initValue: Undef.Create()),
                     Return.Create(NameReference.Create("result"))
                 }))
                 .Parameters(FunctionParameter.Create("q", NameReference.Create("T"), Variadic.None, null, false)));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo", NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference()),
                 FunctionArgument.Create(NameReference.Create("i")));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);
@@ -665,7 +685,7 @@ namespace Skila.Tests.Semantics
                 .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None,
                     defaultValue: IntLiteral.Create("1"), isNameRequired: false)));
             var call = FunctionCall.Create(NameReference.Create("foo"));
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
                 call));
 
             var resolver = NameResolver.Create(env);

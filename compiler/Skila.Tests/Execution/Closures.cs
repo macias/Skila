@@ -29,7 +29,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // f = getIt 
-                    VariableDefiniton.CreateStatement("f",null,NameReference.Create("getIt")),
+                    VariableDeclaration.CreateStatement("f",null,NameReference.Create("getIt")),
                     // return f()
                     Return.Create(FunctionCall.Create(NameReference.Create("f")))
                 })));
@@ -50,7 +50,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDefiniton.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
@@ -62,11 +62,11 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // b = new Beep()
-                    VariableDefiniton.CreateStatement("b",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Beep"))),
                     // b.m = 2
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("2")),
                     // f = b.getIt // "b" value is sucked in, so we have a copy
-                    VariableDefiniton.CreateStatement("f",null,NameReference.Create("b","getIt")),
+                    VariableDeclaration.CreateStatement("f",null,NameReference.Create("b","getIt")),
                     // b.m = 5
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("5")),
                     // return f()
@@ -89,7 +89,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDefiniton.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
@@ -100,10 +100,10 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("b",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Beep"))),
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("5")),
                     // pointer of "b" value is sucked in, so we will see any changes 
-                    VariableDefiniton.CreateStatement("f",null,NameReference.Create("b","getIt")),
+                    VariableDeclaration.CreateStatement("f",null,NameReference.Create("b","getIt")),
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("2")),
                     Return.Create(FunctionCall.Create(NameReference.Create("f")))
                 })));
@@ -130,9 +130,9 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // x = 2
-                    VariableDefiniton.CreateStatement("x",null,IntLiteral.Create("2"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2"),EntityModifier.Reassignable),
                     // f = () => x
-                    VariableDefiniton.CreateStatement("f",null,lambda),
+                    VariableDeclaration.CreateStatement("f",null,lambda),
                     // x = 3
                     Assignment.CreateStatement(NameReference.Create("x"),IntLiteral.Create("3")),
                     // return f()

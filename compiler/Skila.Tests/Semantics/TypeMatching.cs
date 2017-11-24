@@ -39,9 +39,9 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("f", NameReference.Create("Foo"),
+                    VariableDeclaration.CreateStatement("f", NameReference.Create("Foo"),
                         initValue: Undef.Create()),
-                    VariableDefiniton.CreateStatement("b", NameReference.Create("Bar"),
+                    VariableDeclaration.CreateStatement("b", NameReference.Create("Bar"),
                         initValue: NameReference.Create("f")),
                     Tools.Readout("b")
                 })));
@@ -60,8 +60,8 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.DoubleTypeReference());
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.ObjectTypeReference(), initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", null, initValue: is_type);
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.ObjectTypeReference(), initValue: Undef.Create());
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -81,8 +81,8 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()));
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()), initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", null, initValue: is_type);
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()), initValue: Undef.Create());
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -102,9 +102,9 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IntTypeReference()));
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
                 initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", null, initValue: is_type);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -124,9 +124,9 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()));
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
                 initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", null, initValue: is_type);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -146,7 +146,7 @@ namespace Skila.Tests.Semantics
             INameReference typename = NameReferenceUnion.Create(new[] {
                 NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                 NameFactory.BoolTypeReference() });
-            var decl = VariableDefiniton.CreateStatement("foo", typename, initValue: Undef.Create());
+            var decl = VariableDeclaration.CreateStatement("foo", typename, initValue: Undef.Create());
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
@@ -168,8 +168,8 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.ObjectTypeReference(),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create());
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ObjectTypeReference(),
                 initValue: NameReference.Create("foo"));
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
@@ -187,7 +187,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
 
             var resolver = NameResolver.Create(env);
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
@@ -202,9 +202,9 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDefiniton.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
                 initValue: Undef.Create());
-            var decl_dst = VariableDefiniton.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
                 initValue: NameReference.Create("foo"));
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);

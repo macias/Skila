@@ -53,8 +53,18 @@ namespace Skila.Interpreter
                     if (func.Name.Name == NameFactory.AddOperator)
                     {
                         ObjectData arg = ctx.FunctionArguments.Values.Single();
-                        return ExecValue.CreateReturn(ObjectData.Create(this_value.RunTimeTypeInstance,
-                            this_value.PlainValue.Cast<int>() + arg.PlainValue.Cast<int>()));
+                        int this_int = this_value.PlainValue.Cast<int>();
+                        int arg_int = arg.PlainValue.Cast<int>();
+                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(this_value.RunTimeTypeInstance, this_int + arg_int));
+                        return result;
+                    }
+                    else if (func.Name.Name == NameFactory.EqualOperator)
+                    {
+                        ObjectData arg = ctx.FunctionArguments.Values.Single();
+                        int this_int = this_value.PlainValue.Cast<int>();
+                        int arg_int = arg.PlainValue.Cast<int>();
+                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(func.ResultTypeName.Evaluation, this_int == arg_int));
+                        return result;
                     }
                     else if (func.IsDefaultInitConstructor())
                     {
@@ -237,10 +247,7 @@ namespace Skila.Interpreter
 
         private ExecValue executed(IEvaluable node, ExecutionContext ctx)
         {
-            if (ctx.LocalVariables == null && node is IExecutableScope)
-                ctx.LocalVariables = new VariableRegistry();
-
-            ctx.LocalVariables?.AddLayer(node as IScope);
+            INameRegistryExtension.EnterNode(node,ref ctx.LocalVariables,()=> new VariableRegistry(ctx.Env.Options.ScopeShadowing));
 
             ExecValue result;
 
@@ -256,7 +263,7 @@ namespace Skila.Interpreter
             {
                 result = execute(func, ctx);
             }
-            else if (node is VariableDefiniton decl)
+            else if (node is VariableDeclaration decl)
             {
                 result = execute(decl, ctx);
             }
@@ -303,7 +310,7 @@ namespace Skila.Interpreter
             {
                 ObjectData out_obj = result.IsReturn || (node is Block block && !block.IsRead) ? null : result.ExprValue;
 
-                foreach (Tuple<IBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
+                foreach (Tuple<ILocalBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
                 {
                     if (bindable_obj.Item1.DebugId.Id == 352)
                     {
@@ -590,9 +597,9 @@ namespace Skila.Interpreter
                 ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name.Prefix);
                 return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
-            else if (ctx.LocalVariables.TryGet(target, out ObjectData info))
+            else if (ctx.LocalVariables.TryGet(target as ILocalBindable, out ObjectData info))
                 return ExecValue.CreateExpression(info);
-            else if (target is VariableDefiniton decl && decl.IsField())
+            else if (target is VariableDeclaration decl && decl.IsField())
             {
                 var current_func = name.EnclosingScope<FunctionDefinition>();
                 if (!ctx.LocalVariables.TryGet(current_func.MetaThisParameter, out ObjectData this_ref_data))
@@ -647,7 +654,7 @@ namespace Skila.Interpreter
             return rhs_val;
         }
 
-        private ExecValue execute(VariableDefiniton decl, ExecutionContext ctx)
+        private ExecValue execute(VariableDeclaration decl, ExecutionContext ctx)
         {
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())

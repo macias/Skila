@@ -23,7 +23,12 @@ namespace Skila.Language.Expressions
         }
 
         private bool? isRead;
-        public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
+        public bool IsRead { get { return this.isRead.Value; } set {
+                if (this.DebugId.Id==2538)
+                {
+                    ;
+                }
+                if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
 
         private Option<CallResolution> resolution;
         public CallResolution Resolution => this.resolution.Value;

@@ -111,7 +111,7 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2801 || this.DebugId.Id == 2799)
+                if (this.DebugId.Id == 2538)
                 {
                     ;
                 }
@@ -141,13 +141,17 @@ namespace Skila.Language
                     {
                         IEnumerable<IEntity> entities;
 
-                        if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet<IEntity>(this, out IEntity entity))
+                        if (this.Name == NameFactory.SelfFunctionName)
+                            entities = new[] { this.EnclosingScope<FunctionDefinition>() };
+                        else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
                         {
                             FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
                             FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
 
                             if (local_function != entity_function)
-                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDefiniton);
+                            {
+                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+                            }
 
                             entities = new[] { entity };
                         }
@@ -209,6 +213,10 @@ namespace Skila.Language
 
                     if (this.Binding.Match.IsJoker && !this.IsSink)
                         ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
+                    else if (this.Binding.Match.Target is FunctionDefinition func
+                        && this.EnclosingScope<FunctionDefinition>() == func
+                        && this.Name != NameFactory.SelfFunctionName)
+                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
                 }
 
                 EntityInstance instance = this.Binding.Match;
@@ -216,9 +224,7 @@ namespace Skila.Language
                 if (instance.Target.IsType() || instance.Target.IsNamespace())
                     eval = instance;
                 else
-                {
                     eval = instance.Evaluated(ctx);
-                }
 
                 if (this.Prefix != null)
                     eval = eval.TranslateThrough(this.Prefix.Evaluation);
@@ -279,7 +285,7 @@ namespace Skila.Language
             }
 
             if (ctx.ValAssignTracker != null &&
-                !ctx.ValAssignTracker.TryCanRead(this, out VariableDefiniton decl)
+                !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl)
                 && (this.Owner as Assignment)?.Lhs != this)
             {
                 ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);

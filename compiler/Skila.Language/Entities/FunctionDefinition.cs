@@ -186,15 +186,12 @@ namespace Skila.Language.Entities
             {
                 this.IsComputed = true;
 
-                {
-                    FunctionParameter tail_anon_variadic = this.Parameters
-                        .Where(it => it.IsVariadic)
-                        .Skip(1) // first variadic can be anonymous
-                        .FirstOrDefault(it => !it.IsNameRequired);
-                    if (tail_anon_variadic != null)
-                        ctx.AddError(ErrorCode.AnonymousTailVariadicParameter, tail_anon_variadic);
-                }
-
+                FunctionParameter tail_anon_variadic = this.Parameters
+                    .Where(it => it.IsVariadic)
+                    .Skip(1) // first variadic can be anonymous
+                    .FirstOrDefault(it => !it.IsNameRequired);
+                if (tail_anon_variadic != null)
+                    ctx.AddError(ErrorCode.AnonymousTailVariadicParameter, tail_anon_variadic);
             }
         }
 

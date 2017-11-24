@@ -1,7 +1,7 @@
 ﻿namespace Skila.Language
 {
     // used for loops
-    public interface IAnchor : IBindable 
+    public interface IAnchor : IBindable , ILocalBindable
     {
     }
 

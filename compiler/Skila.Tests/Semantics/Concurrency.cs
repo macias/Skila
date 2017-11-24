@@ -20,7 +20,7 @@ namespace Skila.Tests.Semantics
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {
                     FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
                         null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
@@ -35,7 +35,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("r",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("r",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Point"))),
                     Spawn.Create(FunctionCall.Create(mutable_method,mutable_arg)),
                     Return.Create(NameReference.Create("r","x"))
                 })));

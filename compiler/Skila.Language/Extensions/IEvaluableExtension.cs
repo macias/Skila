@@ -20,7 +20,7 @@ namespace Skila.Language.Extensions
 
             bool parent_reading = parent.IsReadingValueOfNode(node);
             node.IsRead = parent_reading;
-            if (parent_reading && ctx.ValAssignTracker != null && node is VariableDefiniton decl)
+            if (parent_reading && ctx.ValAssignTracker != null && node is VariableDeclaration decl)
             {
                 if (!ctx.ValAssignTracker.CanRead(decl))
                     ctx.AddError(ErrorCode.VariableNotInitialized, parent, decl);

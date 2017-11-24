@@ -21,7 +21,8 @@ namespace Skila.Language.Expressions
             return new FunctionArgument(null, expression);
         }
 
-        public bool IsRead { get { return this.Expression.IsRead; } set { this.Expression.IsRead = value; } }
+        private bool? isRead;
+        public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
 
         public IEntityInstance Evaluation => this.Expression.Evaluation;
         public ValidationData Validation { get { return this.Expression.Validation; } set { this.Expression.Validation = value; } }
@@ -72,7 +73,7 @@ namespace Skila.Language.Expressions
 
         public bool IsReadingValueOfNode(IExpression node)
         {
-            return node == this.Expression;
+            return true;
         }
 
         public void Evaluate(ComputationContext ctx)

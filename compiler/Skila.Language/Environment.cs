@@ -72,7 +72,15 @@ namespace Skila.Language
                        ExpressionFactory.Readout("x"),
                         Return.Create(Undef.Create())
                     })).
-                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference()))));
+                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(new[] {
+                       ExpressionFactory.Readout("x"),
+                        Return.Create(Undef.Create())
+                    })).
+                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())))
+                );
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Plain(true)
@@ -81,7 +89,7 @@ namespace Skila.Language
             // spread functions family
             {
                 // no limits
-                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")) },
                    ExpressionReadMode.ReadRequired,
@@ -94,7 +102,7 @@ namespace Skila.Language
             }
             {
                 // with min limit
-                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
                         FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
@@ -111,7 +119,7 @@ namespace Skila.Language
             }
             {
                 // with min+max limit
-                var decl = VariableDefiniton.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
                         FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
@@ -275,8 +283,8 @@ namespace Skila.Language
                                 })).Build() },
                                 null
                             ))
-                            .With(VariableDefiniton.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))
-                            .With(VariableDefiniton.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
+                            .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))
+                            .With(VariableDeclaration.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
                             .With(empty_constructor)
                             .With(value_constructor)
                             .Parents(NameFactory.ObjectTypeReference())

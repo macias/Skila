@@ -51,7 +51,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
                         ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));
@@ -118,8 +118,8 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,EntityModifier.Reassignable),
-                    VariableDefiniton.CreateStatement("o",NameFactory.PointerTypeReference(NameReference.Create("Y")),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("o",NameFactory.PointerTypeReference(NameReference.Create("Y")),
                         ExpressionFactory.HeapConstructorCall(NameReference.Create("Z"))),
                     Assignment.CreateStatement(NameReference.Create("i"),NameReference.Create("o")),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
@@ -170,7 +170,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("i",
+                    VariableDeclaration.CreateStatement("i",
                         NameFactory.PointerTypeReference(NameReference.Create("X",NameFactory.IntTypeReference())),
                         ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))

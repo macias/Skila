@@ -12,7 +12,7 @@ using Skila.Language.Expressions;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed
+    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed,ILocalBindable
     {
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
@@ -53,16 +53,6 @@ namespace Skila.Language
                 if (this.index.HasValue && this.index.Value != value)
                     throw new InvalidOperationException("Index is already set.");
                 this.index = new Option<int>(value);
-            }
-        }
-
-        // all regular paramters have to be used, but not meta-this parameter 
-        public bool UsageRequired
-        {
-            get
-            {
-                FunctionDefinition func = this.Owner.CastFunction();
-                return !func.IsDeclaration && func.MetaThisParameter != this;
             }
         }
 

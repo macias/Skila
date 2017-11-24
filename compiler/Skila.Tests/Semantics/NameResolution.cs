@@ -12,6 +12,86 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter ScopeShadowing()
+        {
+            var env = Environment.Create(new Options() { ScopeShadowing = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("anything"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
+                    Block.CreateStatement(new IExpression[]{
+                        // shadowing
+                        VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse()),
+                        VariableDeclaration.CreateStatement("a",NameFactory.BoolTypeReference(),NameReference.Create("x")),
+                        ExpressionFactory.Readout("a"),
+                    }),
+                    VariableDeclaration.CreateStatement("b",NameFactory.IntTypeReference(),NameReference.Create("x")),
+                    ExpressionFactory.Readout("b"),
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorScopeShadowing()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse());
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("anything"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
+                    Block.CreateStatement(new IExpression[]{
+                        // shadowing
+                        decl,
+                    }),
+                    ExpressionFactory.Readout("x"),
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NameAlreadyExists, decl.Name));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorReservedKeyword()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.SelfFunctionName, null, IntLiteral.Create("3"));
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("anything"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    ExpressionFactory.Readout( decl)
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReservedName, decl.Name));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorReadingBeforeDefinition()
         {
             var env = Environment.Create();
@@ -23,8 +103,8 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
-                    VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
+                    VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
+                    VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
                     Tools.Readout("a"),
                     Tools.Readout("x")
                 })));
@@ -44,7 +124,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
-            var decl = VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), x_ref);
+            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), x_ref);
 
             root_ns.AddNode(decl);
 
@@ -62,8 +142,8 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
-            var second_decl = root_ns.AddNode(VariableDefiniton.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2")));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
+            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2")));
 
             var resolver = NameResolver.Create(env);
 
@@ -191,7 +271,7 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
-//        [TestMethod]
+        //        [TestMethod]
         public IErrorReporter DEPRECATED_FunctionTypes()
         {
             var env = Environment.Create();
@@ -207,11 +287,11 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-          //  Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
-        //    Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
+            //  Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
+            //    Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
 
             return resolver;
         }
-        
+
     }
 }

@@ -42,9 +42,9 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("g",null,
+                    VariableDeclaration.CreateStatement("g",null,
                         ExpressionFactory.StackConstructorCall(NameReference.Create("Greeter",NameReference.Create("Say")))),
-                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Say"))),
+                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Say"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("g","say"),
                         FunctionArgument.Create(NameReference.Create("y"))))
                 })));
@@ -87,7 +87,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
                     Return.Create(call)
                 })));
 
@@ -129,7 +129,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDefiniton.CreateStatement("y",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Y"))),
                     Return.Create(call)
                 })));
 

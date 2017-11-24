@@ -25,11 +25,11 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                    VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
                         mutable_init),
                     Tools.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
-                    VariableDefiniton.CreateStatement("y", 
+                    VariableDeclaration.CreateStatement("y", 
                         NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
                         ExpressionFactory.HeapConstructorCall(NameReference.Create("Bar"))),
                     Tools.Readout("y"),
@@ -52,9 +52,9 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
 
-            VariableDefiniton decl1 = VariableDefiniton.CreateStatement("r", NameFactory.IntTypeReference(),
+            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable);
-            VariableDefiniton decl2 = VariableDefiniton.CreateStatement("m", NameReference.Create("T"),
+            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
                .With(decl1)
@@ -79,7 +79,7 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.Mutable));
             root_ns.AddBuilder(TypeBuilder.Create("Foo"));
 
-            VariableDefiniton field = VariableDefiniton.CreateStatement("m", NameReference.Create("T"),
+            VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create());
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
@@ -93,8 +93,8 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    VariableDefiniton.CreateStatement("x", NameReference.Create("Point",NameReference.Create("Foo")), Undef.Create()),
-                    VariableDefiniton.CreateStatement("y", wrong_type, Undef.Create()),
+                    VariableDeclaration.CreateStatement("x", NameReference.Create("Point",NameReference.Create("Foo")), Undef.Create()),
+                    VariableDeclaration.CreateStatement("y", wrong_type, Undef.Create()),
                     Tools.Readout("x"),
                     Tools.Readout("y"),
             })));
@@ -117,9 +117,9 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
 
-            VariableDefiniton decl1 = VariableDefiniton.CreateStatement("r", NameFactory.IntTypeReference(),
+            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable);
-            VariableDefiniton decl2 = VariableDefiniton.CreateStatement("m", NameReference.Create("Bar"),
+            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("Bar"),
                 null);
 
             root_ns.AddNode(decl1);

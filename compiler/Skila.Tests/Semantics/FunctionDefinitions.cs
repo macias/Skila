@@ -78,7 +78,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3"))
                 })));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
 
             var resolver = NameResolver.Create(env);
 
@@ -104,7 +104,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3"))
                 })));
 
-            root_ns.AddNode(VariableDefiniton.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
 
             var resolver = NameResolver.Create(env);
 

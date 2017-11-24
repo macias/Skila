@@ -4,5 +4,7 @@
     {
         public bool StaticMemberOnlyThroughTypeName { get; set; }
         public bool InterfaceDuckTyping { get; set; }
+
+        public bool ScopeShadowing { get; set; }
     }
 }

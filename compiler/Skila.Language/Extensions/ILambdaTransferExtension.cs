@@ -13,7 +13,7 @@ namespace Skila.Language.Extensions
     public static class ILambdaTransferExtension
     {
         private static TypeDefinition buildTypeOfLambda(ComputationContext ctx,
-            FunctionDefinition lambda, IEnumerable<VariableDefiniton> fields)
+            FunctionDefinition lambda, IEnumerable<VariableDeclaration> fields)
         {
             if (lambda.Owner != null)
                 throw new Exception("Internal error");
@@ -43,7 +43,7 @@ namespace Skila.Language.Extensions
             if (funcReference.Owner != null)
                 throw new Exception("Detach it first.");
 
-            const string meta_this = "self";
+            const string meta_this = "mThis";
 
             FunctionDefinition function = funcReference.Binding.Match.Target.CastFunction();
 
@@ -87,7 +87,7 @@ namespace Skila.Language.Extensions
 
             if (thisObject != null)
             {
-                VariableDefiniton this_field = VariableDefiniton.CreateStatement(meta_this,
+                VariableDeclaration this_field = VariableDeclaration.CreateStatement(meta_this,
                     thisObject.Evaluation.NameOf, Undef.Create());
                 closure_builder
                     .With(cons)
