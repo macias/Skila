@@ -17,15 +17,15 @@ namespace Skila.Tests
 
         public static void Main()
         {
+            //new Semantics.CompilerProtection().CircularConversion();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
-            // new Semantics.CompilerProtection().CircularConversion();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
-              //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-             new Semantics.NameResolution().ErrorScopeShadowing();
-          //  new Semantics.FunctionCalls().ErrorRecurrentCallUsingFunctioName();
+            //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
+            //new Semantics.NameResolution().ErrorScopeShadowing();
+            //  new Semantics.FunctionCalls().ErrorRecurrentCallUsingFunctioName();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
             // new Semantics.Expressions().ErrorIgnoringParameters();
@@ -40,7 +40,7 @@ namespace Skila.Tests
             //  new Execution.Properties().AutoProperties();
             //new Execution.Objects().AccessingObjectFields();
             //new Execution.Pointers().DereferenceOnAssignment();
-             //new Execution.FunctionCalls().RecursiveCalls();
+            new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Inheritance().DuckDeepVirtualCall();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();

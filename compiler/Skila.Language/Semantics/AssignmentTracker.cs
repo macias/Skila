@@ -34,14 +34,14 @@ namespace Skila.Language.Semantics
         public AssignmentTracker(bool shadowing)
         {
             this.shadowing = shadowing;
-            this.variables = LayerDictionary.Create<VariableDeclaration, VariableInfo>(shadowing,variableDeclarationComparer);//@@@
+            this.variables = LayerDictionary.Create<VariableDeclaration, VariableInfo>(shadowing,variableDeclarationComparer);
             this.executionMode = ExecutionMode.Certain;
         }
 
         private AssignmentTracker(AssignmentTracker src)
         {
             this.shadowing = src.shadowing;
-            this.variables = LayerDictionary.Create<VariableDeclaration, VariableInfo>(src.shadowing, variableDeclarationComparer);//@@@
+            this.variables = LayerDictionary.Create<VariableDeclaration, VariableInfo>(src.shadowing, variableDeclarationComparer);
 
             foreach (IEnumerable<VariableDeclaration> layer in src.variables.EnumerateLayers())
             {

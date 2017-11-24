@@ -100,42 +100,50 @@ namespace Skila.Language.Extensions
             return closure_builder;
         }
 
-        public static void TrapClosure(this ILambdaTransfer node, ComputationContext ctx, ref IExpression source)
+        public static bool TrapLambdaClosure(this ILambdaTransfer node, ComputationContext ctx, ref IExpression source)
         {
-            if (source is FunctionDefinition lambda)
-            {
-                // example scenario
-                // f = (x) => x*x
-                // f(4)
+            if (!(source is FunctionDefinition lambda))
+                return false;
 
-                // we already have tracked all the variables used inside lambda (which are declared outside, locals are OK), 
-                // so all we have to do it is to remove it and put into closure type
+            // example scenario
+            // f = (x) => x*x
+            // f(4)
 
-                if (!lambda.IsComputed)
-                    throw new Exception("Internal error");
+            // we already have tracked all the variables used inside lambda (which are declared outside, locals are OK), 
+            // so all we have to do it is to remove it and put into closure type
 
-                lambda.DetachFrom(node);
-                TypeDefinition closure_type = buildTypeOfLambda(ctx, lambda, lambda.LambdaTrap.Fields);
-                node.AddClosure(closure_type);
+            if (!lambda.IsComputed)
+                throw new Exception("Internal error");
 
-                source = ExpressionFactory.HeapConstructorCall(closure_type.InstanceOf.NameOf,
-                    lambda.LambdaTrap.Fields.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray());
-                source.AttachTo(node);
+            lambda.DetachFrom(node);
+            TypeDefinition closure_type = buildTypeOfLambda(ctx, lambda, lambda.LambdaTrap.Fields);
+            node.AddClosure(closure_type);
 
-                lambda.LambdaTrap = null;
+            source = ExpressionFactory.HeapConstructorCall(closure_type.InstanceOf.NameOf,
+                lambda.LambdaTrap.Fields.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray());
+            source.AttachTo(node);
 
-                // we have to manually evaluate this expression, because it is child of current node, and child nodes
-                // are evaluated before their parents
-                closure_type.Evaluated(ctx);
-                // todo: this is ugly -- we are breaking into details of separate type
-                // since the function is already computed, it won't evaluate meta this parameter
-                lambda.MetaThisParameter.Evaluated(ctx);
-                source.Evaluated(ctx);
-            }
+            lambda.LambdaTrap = null;
+
+            // we have to manually evaluate this expression, because it is child of current node, and child nodes
+            // are evaluated before their parents
+            closure_type.Evaluated(ctx);
+            // todo: this is ugly -- we are breaking into details of separate type
+            // since the function is already computed, it won't evaluate meta this parameter
+            lambda.MetaThisParameter.Evaluated(ctx);
+            source.Evaluated(ctx);
+
+            return true;
+        }
+
+        public static bool TrapClosure(this ILambdaTransfer node, ComputationContext ctx, ref IExpression source)
+        {
+            if (TrapLambdaClosure(node, ctx, ref source))
+                return true;
             else if (source is NameReference name_ref && name_ref.Binding.Match.Target is FunctionDefinition func)
             {
                 if (func.Name.Arity > 0 && !name_ref.TemplateArguments.Any())
-                    ctx.AddError(ErrorCode.SelectingAmbiguousTemplateFunction,name_ref);
+                    ctx.AddError(ErrorCode.SelectingAmbiguousTemplateFunction, name_ref);
                 IExpression this_obj = name_ref.GetContext(func);
                 // example scenario
                 // f = my_object.my_square
@@ -163,7 +171,11 @@ namespace Skila.Language.Extensions
 
                 closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx);
                 source.Evaluated(ctx);
+
+                return true;
             }
+
+            return false;
         }
     }
 }

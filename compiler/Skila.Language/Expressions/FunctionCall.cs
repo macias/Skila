@@ -10,9 +10,9 @@ using Skila.Language.Entities;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionCall : Node, IExpression, IFunctionArgumentsProvider
+    public sealed class FunctionCall : Node, IExpression, IFunctionArgumentsProvider, ILambdaTransfer
     {
-        public static FunctionCall Create(NameReference name, params FunctionArgument[] arguments)
+        public static FunctionCall Create(IExpression name, params FunctionArgument[] arguments)
         {
             return new FunctionCall(name, arguments, requestedOutcomeType: null);
         }
@@ -23,13 +23,20 @@ namespace Skila.Language.Expressions
         }
 
         private bool? isRead;
-        public bool IsRead { get { return this.isRead.Value; } set {
-                if (this.DebugId.Id==2538)
+        public bool IsRead
+        {
+            get { return this.isRead.Value; }
+            set
+            {
+                if (this.DebugId.Id == 2538)
                 {
                     ;
                 }
-                if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
+                if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value;
+            }
+        }
 
+        private readonly List<TypeDefinition> closures;
         private Option<CallResolution> resolution;
         public CallResolution Resolution => this.resolution.Value;
         public bool IsComputed => this.Evaluation != null;
@@ -38,28 +45,37 @@ namespace Skila.Language.Expressions
         public bool IsDereferenced { get; set; }
         // public bool IsStaticCall => this.Resolution.TargetInstance.Target.Modifier.HasStatic;
 
-        public NameReference Name { get; private set; }
+        // eventually some vague callee expression will become a name reference to a function
+        private IExpression callee;
+        public IExpression Callee => this.callee;
+        public NameReference Name => this.Callee.Cast<NameReference>();
+
         public IReadOnlyList<FunctionArgument> Arguments { get; }
-        public override IEnumerable<INode> OwnedNodes => Arguments.Select(it => it.Cast<INode>()).Concat(Name)
-            .Concat(RequestedOutcomeTypeName).Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => Arguments.Select(it => it.Cast<INode>())
+            .Concat(this.Callee) 
+            .Concat(RequestedOutcomeTypeName)
+            .Where(it => it != null)
+            .Concat(closures);
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(Arguments);
 
         public INameReference RequestedOutcomeTypeName { get; }
 
         public ExpressionReadMode ReadMode => this.Resolution?.CallMode ?? ExpressionReadMode.OptionalUse;
 
-        private FunctionCall(NameReference name, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
+        private FunctionCall(IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
         {
-            this.Name = name;
+            this.callee = callee;
             this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
             this.RequestedOutcomeTypeName = requestedOutcomeType;
+
+            this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
         public override string ToString()
         {
-            return this.Name + "(" + Arguments.Select(it => it.ToString()).Join(",") + ")";
+            return this.Callee + "(" + Arguments.Select(it => it.ToString()).Join(",") + ")";
         }
 
         public void Validate(ComputationContext ctx)
@@ -74,6 +90,11 @@ namespace Skila.Language.Expressions
                 {
                     ;
                 }
+
+                // trap only lambdas, name reference is a call, not passing function around
+                if (this.TrapLambdaClosure(ctx, ref this.callee)) 
+                    ConvertToExplicitInvoke(ctx);
+
                 {
                     EntityInstance eval = this.Name.Evaluation.Cast<EntityInstance>();
 
@@ -86,10 +107,7 @@ namespace Skila.Language.Expressions
                     {
                         // if we call a "closure", like my_closure() it is implicit calling "invoke"
                         // so make it explicit on the fly
-                        this.Name.DetachFrom(this);
-                        this.Name = NameReference.Create(this.Name, NameFactory.LambdaInvoke);
-                        this.Name.AttachTo(this);
-                        this.Name.Evaluated(ctx);
+                        ConvertToExplicitInvoke(ctx);
                     }
                 }
 
@@ -153,7 +171,7 @@ namespace Skila.Language.Expressions
                         }
                         else
                         {
-                            this.Name = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
+                            this.callee = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
 
                             this.Name.Evaluated(ctx);
 
@@ -187,6 +205,14 @@ namespace Skila.Language.Expressions
                         ctx.ErrorManager.AddError(ErrorCode.InvalidNumberVariadicArguments, this, param);
                 }
             }
+        }
+
+        private void ConvertToExplicitInvoke(ComputationContext ctx)
+        {
+            this.Callee.DetachFrom(this);
+            this.callee = NameReference.Create(this.Callee, NameFactory.LambdaInvoke);
+            this.callee.AttachTo(this);
+            this.callee.Evaluated(ctx);
         }
 
         private static CallContext createCallContext(ComputationContext ctx, NameReference name, IEntity callTarget)
@@ -252,6 +278,11 @@ namespace Skila.Language.Expressions
         public bool IsLValue(ComputationContext ctx)
         {
             return !this.Evaluation.IsValueType(ctx);
+        }
+        public void AddClosure(TypeDefinition closure)
+        {
+            this.closures.Add(closure);
+            closure.AttachTo(this);
         }
     }
 }

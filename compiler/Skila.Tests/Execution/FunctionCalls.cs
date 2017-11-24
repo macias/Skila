@@ -12,13 +12,50 @@ namespace Skila.Tests.Execution
     public class FunctionCalls
     {
         [TestMethod]
-        public IInterpreter RecursiveCalls()
+        public IInterpreter LambdaRecursiveCall()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
 
             IExpression i_eq_2 = ExpressionFactory.EqualOperator(NameReference.Create("i"), IntLiteral.Create("2"));
             IExpression i_add_1 = ExpressionFactory.AddOperator(NameReference.Create("i"),IntLiteral.Create("1"));
+            FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    // if i==2 then return i
+                    IfBranch.CreateIf(i_eq_2,new[]{ Return.Create(NameReference.Create("i")) },
+                    // else return self(i+1)
+                    IfBranch.CreateElse(new[]{
+                        Return.Create(FunctionCall.Create(NameReference.Create(NameFactory.SelfFunctionName),
+                            FunctionArgument.Create(i_add_1)))
+                    }))
+                }))
+                .Parameters(FunctionParameter.Create("i", NameFactory.IntTypeReference()));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // Immediately-Invoked Function Expression (IIEFE) in Javascript world
+                    Return.Create(FunctionCall.Create(lambda,FunctionArgument.Create(IntLiteral.Create("0"))))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter RecursiveCall()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            IExpression i_eq_2 = ExpressionFactory.EqualOperator(NameReference.Create("i"), IntLiteral.Create("2"));
+            IExpression i_add_1 = ExpressionFactory.AddOperator(NameReference.Create("i"), IntLiteral.Create("1"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
