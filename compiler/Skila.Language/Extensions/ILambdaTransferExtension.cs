@@ -136,11 +136,12 @@ namespace Skila.Language.Extensions
             return true;
         }
 
-        public static bool TrapClosure(this ILambdaTransfer node, ComputationContext ctx, ref IExpression source)
+        public static void TrapClosure(this ILambdaTransfer node, ComputationContext ctx, ref IExpression source)
         {
             if (TrapLambdaClosure(node, ctx, ref source))
-                return true;
-            else if (source is NameReference name_ref && name_ref.Binding.Match.Target is FunctionDefinition func)
+                return;
+
+            if (source is NameReference name_ref && name_ref.Binding.Match.Target is FunctionDefinition func)
             {
                 if (func.Name.Arity > 0 && !name_ref.TemplateArguments.Any())
                     ctx.AddError(ErrorCode.SelectingAmbiguousTemplateFunction, name_ref);
@@ -171,11 +172,7 @@ namespace Skila.Language.Extensions
 
                 closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx);
                 source.Evaluated(ctx);
-
-                return true;
             }
-
-            return false;
         }
     }
 }

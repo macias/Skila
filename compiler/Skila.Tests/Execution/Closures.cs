@@ -146,5 +146,32 @@ namespace Skila.Tests.Execution
 
             return interpreter;
         }
+
+        [TestMethod]
+        public IInterpreter ResultTypeInference()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            IExpression lambda = FunctionBuilder.CreateLambda(null,
+                    Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("2")) })).Build();
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // f = () => x
+                    VariableDeclaration.CreateStatement("f",null,lambda),
+                    // return f()
+                    Return.Create(FunctionCall.Create(NameReference.Create("f")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
     }
 }

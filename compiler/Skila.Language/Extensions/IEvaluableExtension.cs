@@ -83,7 +83,7 @@ namespace Skila.Language.Extensions
             {
                 ;
             }
-            IEntityInstance src_type = source.Evaluated(ctx);
+            IEntityInstance src_type = source.Evaluation;
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, allowSlicing: false);
 
             if (match == TypeMatch.No)

@@ -48,7 +48,7 @@ namespace Skila.Language.Expressions
                         ctx.AddError(ErrorCode.CannotSpawnWithMutableArgument, arg);
 
                 if (this.Call.Resolution.MetaThisArgument != null && !this.Call.Resolution.MetaThisArgument.Evaluated(ctx).IsImmutableType(ctx))
-                    ctx.AddError(ErrorCode.CannotSpawnOnMutableContext, this.Call.Name);
+                    ctx.AddError(ErrorCode.CannotSpawnOnMutableContext, this.Call.Callee);
 
             }
         }

@@ -52,7 +52,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.Instructions.Select(it => it.Evaluated(ctx)).LastOrDefault() ?? ctx.Env.VoidType.InstanceOf;
+                this.Evaluation = this.Instructions.LastOrDefault()?.Evaluation ?? ctx.Env.VoidType.InstanceOf;
             }
         }
 

@@ -293,6 +293,10 @@ namespace Skila.Language.Entities
 
         private bool computeAncestors(ComputationContext ctx, HashSet<TypeDefinition> visited)
         {
+            if (this.DebugId.Id == 85)
+            {
+                ;
+            }
             // we cannot use context visited, because it is only for direct use in Evaluated only
             if (this.inheritanceComputed)
                 return true;
@@ -324,15 +328,22 @@ namespace Skila.Language.Entities
                         .ForEach(it => ancestors.Add(it));
             }
 
-            // add implicit Object only if it is not Object itself and if there are no given parents
-            // when there are parents given we will get Object through parents
-            if (this != ctx.Env.ObjectType && !parents.Any())
-                parents.Add(ctx.Env.ObjectType.InstanceOf);
-
             // now we have minimal parents
             parents.ExceptWith(ancestors);
+
+            if (this.DebugId.Id == 85)
+            {
+                ;
+            }
+
+            // add implicit Object only if it is not Object itself and if there are no given parents
+            // when there are parents given we will get Object through parents
+            // also exclude Void, this is separate type from entire hierarchy
+            if (this != ctx.Env.ObjectType && !parents.Any() && this != ctx.Env.VoidType)
+                parents.Add(ctx.Env.ObjectType.InstanceOf);
+
             this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,
-                parents, ancestors.Concat(parents));
+                parents, completeAncestors: ancestors.Concat(parents));
 
             return true;
         }

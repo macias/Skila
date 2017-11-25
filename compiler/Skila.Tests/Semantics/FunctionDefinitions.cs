@@ -13,6 +13,37 @@ namespace Skila.Tests.Semantics
     public class FunctionDefinitions
     {
         [TestMethod]
+        public IErrorReporter ErrorCannotInferResultType()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            IExpression lambda = FunctionBuilder.CreateLambda(null,
+                    Block.CreateStatement(new IExpression[] {
+                        IfBranch.CreateIf(BoolLiteral.CreateFalse(),new[]{
+                            Return.Create(BoolLiteral.CreateTrue())
+                        }),
+                        Return.Create(IntLiteral.Create("2"))
+                    })).Build();
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("me"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // f = () => x
+                    VariableDeclaration.CreateStatement("f",null,lambda),
+                    ExpressionFactory.Readout("f")
+                })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotInferResultType, lambda)); 
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ProperReturning()
         {
             var env = Environment.Create();

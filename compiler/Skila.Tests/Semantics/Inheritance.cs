@@ -95,11 +95,45 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(deriv_type, deriv_ref.Binding.Match.Target);
             Assert.AreEqual(abc_type, abc_ref.Binding.Match.Target);
 
-            Assert.AreEqual(abc_ref.Binding.Match, TypeMatcher.LowestCommonAncestor(ComputationContext.Create(resolver.Context.Env),
-                bar_ref.Binding.Match, deriv_ref.Binding.Match));
+            bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
+                bar_ref.Binding.Match, deriv_ref.Binding.Match,out IEntityInstance common);
+            Assert.IsTrue(found);
+            Assert.AreEqual(abc_ref.Binding.Match, common);
 
             return resolver;
         }
+
+        [TestMethod]
+        public IErrorReporter LowestCommonAncestorDoubleInt()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            var resolver = NameResolver.Create(env);
+
+            bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
+                env.IntType.InstanceOf,env.DoubleType.InstanceOf, out IEntityInstance common);
+            Assert.IsTrue(found);
+            Assert.AreEqual(env.ObjectType.InstanceOf, common);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter LowestCommonAncestorVoidObject()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            var resolver = NameResolver.Create(env);
+
+            bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
+                env.VoidType.InstanceOf, env.ObjectType.InstanceOf, out IEntityInstance common);
+            Assert.IsFalse(found);
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ParentNamesResolving()
         {

@@ -15,6 +15,10 @@ namespace Skila.Language.Expressions
             return Assignment.CreateStatement(NameReference.Sink(), expr);
         }
 
+        public static IExpression HeapConstructorCall(string innerTypeName)
+        {
+            return HeapConstructorCall(NameReference.Create(innerTypeName));
+        }
         public static IExpression HeapConstructorCall(NameReference innerTypeName)
         {
 #if USE_NEW_CONS

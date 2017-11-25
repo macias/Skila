@@ -33,10 +33,10 @@ namespace Skila.Language
         {
             return new NameReferenceUnion(names);
         }
-        public static NameReferenceUnion Create(NameReference name, params INameReference[] names)
+        public static NameReferenceUnion Create(params INameReference[] names)
         // union is a set, order does not matter
         {
-            return new NameReferenceUnion(names.Concat(name));
+            return new NameReferenceUnion(names);
         }
 
         public override string ToString()
@@ -48,7 +48,7 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = EntityInstanceUnion.Create(Names.Select(it => it.Evaluated(ctx)));
+                this.Evaluation = EntityInstanceUnion.Create(Names.Select(it => it.Evaluation));
 
                 // check if we don't have both kinds of types -- slicing and non-slicing (for example Array and pointer to String)
 

@@ -63,5 +63,6 @@
         SelectingAmbiguousTemplateFunction = 59,
         NamedRecursiveReference = 60, // you have to refer to current function as "self", not by its actual name
         ReservedName = 61,
+        CannotInferResultType = 62,
     }
 }

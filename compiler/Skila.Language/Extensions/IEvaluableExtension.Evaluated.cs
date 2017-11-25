@@ -64,6 +64,10 @@ namespace Skila.Language.Extensions
                     node.OwnedNodes.Where(it => func.UserBody != it).ForEach(it => Evaluated(it, ctx));
                     evaluable?.Evaluate(ctx);
                     func.UserBody?.Evaluated(ctx);
+
+                    // since we computer body after main evaluation now we have to manually trigger this call
+                    if (func.IsResultTypeNameInfered)
+                        func.InferResultType(ctx);
                 }
                 else
                 {

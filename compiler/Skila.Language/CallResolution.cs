@@ -269,9 +269,12 @@ namespace Skila.Language
                         if (template_param_inference[pair.Item1].Item1 == null)
                             template_param_inference[pair.Item1] = Tuple.Create(pair.Item2, false);
                         else
-                            template_param_inference[pair.Item1] = Tuple.Create(
-                                TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Item1, pair.Item2),
-                                false);
+                        {
+                            if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Item1, pair.Item2, 
+                                out IEntityInstance common))
+                                throw new NotImplementedException();
+                            template_param_inference[pair.Item1] = Tuple.Create(common, false);
+                        }
                     }
 
             }

@@ -115,7 +115,7 @@ namespace Skila.Language.Entities
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.TypeName.Evaluated(ctx);
+                this.Evaluation = this.TypeName.Evaluation;
 
                 foreach (FunctionDefinition dup_accessor in this.getters.Skip(1).Concat(this.setters.Skip(1)))
                     ctx.AddError(ErrorCode.PropertyMultipleAccessors, dup_accessor, this);

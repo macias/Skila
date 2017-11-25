@@ -154,24 +154,40 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
-        public static IEntityInstance LowestCommonAncestor(ComputationContext ctx, IEntityInstance anyTypeA, IEntityInstance anyTypeB)
+        public static bool LowestCommonAncestor(ComputationContext ctx, 
+            IEntityInstance anyTypeA, IEntityInstance anyTypeB,
+            out IEntityInstance result)
         {
             var type_a = anyTypeA as EntityInstance;
             var type_b = anyTypeB as EntityInstance;
-            if (type_a == null || type_b == null)
-                return ctx.Env.ObjectType.InstanceOf;
+            if (type_a == null)
+            {
+                result = type_b;
+                return type_b!=null;
+            }
+            else if (type_b == null)
+            {
+                result = type_a;
+                return type_a != null;
+            }
 
             type_a.Evaluated(ctx);
             type_b.Evaluated(ctx);
 
             if (type_a.IsJoker)
-                return type_b;
+            {
+                result = type_b;
+                return true;
+            }
             else if (type_b.IsJoker)
-                return type_a;
+            {
+                result =  type_a;
+                return true;
+            }
 
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).AncestorsIncludingObject.Concat(type_a).ToHashSet();
-            EntityInstance common = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
-            return common ?? ctx.Env.ObjectType.InstanceOf;
+            result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
+            return result != null;
         }
 
         private static EntityInstance selectFromLowestCommonAncestorPool(ComputationContext ctx, EntityInstance type,
@@ -187,17 +203,18 @@ namespace Skila.Language
             // prefer LCA as implementation
             EntityInstance via_implementation = selectFromLowestCommonAncestorPool(ctx, implementation_parent, pool);
 
-            if (via_implementation != null && via_implementation.IsTypeImplementation)
+            if (via_implementation != null)
                 return via_implementation;
 
-            foreach (EntityInstance interface_parent in type.Inheritance(ctx).MinimalParentsWithoutObject.Where(it => it != implementation_parent))
+            foreach (EntityInstance interface_parent in type.Inheritance(ctx).MinimalParentsWithObject
+                .Where(it => it != implementation_parent))
             {
                 EntityInstance via_interface = selectFromLowestCommonAncestorPool(ctx, interface_parent, pool);
                 if (via_interface != null)
                     return via_interface;
             }
 
-            return via_implementation;
+            return null;
         }
 
         /* public static bool AreOverloadDistinct(EntityInstance type1, EntityInstance type2)

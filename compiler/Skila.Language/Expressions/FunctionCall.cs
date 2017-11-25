@@ -92,14 +92,14 @@ namespace Skila.Language.Expressions
                 }
 
                 // trap only lambdas, name reference is a call, not passing function around
-                if (this.TrapLambdaClosure(ctx, ref this.callee)) 
+                if (this.TrapLambdaClosure(ctx, ref this.callee))
                     ConvertToExplicitInvoke(ctx);
 
                 {
-                    EntityInstance eval = this.Name.Evaluation.Cast<EntityInstance>();
+                    EntityInstance eval = this.Callee.Evaluation.Cast<EntityInstance>();
 
-                    this.Name.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
-                    if (this.Name.IsDereferenced)
+                    this.Callee.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
+                    if (this.Callee.IsDereferenced)
                         eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
 
                     if (!(this.Name.Binding.Match.Target is FunctionDefinition)
@@ -117,7 +117,7 @@ namespace Skila.Language.Expressions
                 if (!matches.Any())
                 {
                     this.resolution = new Option<CallResolution>(null);
-                    ctx.AddError(ErrorCode.NotFunctionType, this.Name);
+                    ctx.AddError(ErrorCode.NotFunctionType, this.Callee);
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace Skila.Language.Expressions
                         {
                             this.callee = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
 
-                            this.Name.Evaluated(ctx);
+                            this.Callee.Evaluated(ctx);
 
                             this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
                         }

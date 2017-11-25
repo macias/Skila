@@ -81,18 +81,21 @@ namespace Skila.Language.Flow
                     this.Evaluation = ctx.Env.VoidType.InstanceOf;
                 else
                 {
-                    IEntityInstance eval = this.Body.Evaluated(ctx);
+                    IEntityInstance eval = this.Body.Evaluation;
 
                     if (Next != null)
                     {
-                        eval = TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluated(ctx));
-
-                        foreach (IEvaluable part in new IEvaluable[] { Body, Next })
+                        if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation, out eval))
+                            eval = ctx.Env.VoidType.InstanceOf;
+                        else
                         {
-                            if (part.Evaluation.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
+                            foreach (IEvaluable part in new IEvaluable[] { Body, Next })
                             {
-                                eval = ctx.Env.VoidType.InstanceOf;
-                                break;
+                                if (part.Evaluation.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
+                                {
+                                    eval = ctx.Env.VoidType.InstanceOf;
+                                    break;
+                                }
                             }
                         }
                     }

@@ -19,7 +19,7 @@ namespace Skila.Tests
         {
             //new Semantics.CompilerProtection().CircularConversion();
             //new Semantics.Templates().ErrorHasConstraint();
-            //new Semantics.Inheritance().ErrorIncorrectMethodDerivation();
+            //new Semantics.Inheritance().LowestCommonAncestorDoubleInt();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
@@ -30,7 +30,7 @@ namespace Skila.Tests
             //  new Variables().TypeInference();
             // new Semantics.Expressions().ErrorIgnoringParameters();
             //new MethodDefinitions().Basics();
-            //new FunctionDefinitions().VariadicParametersInvalidLimits();
+            new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
             // new TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
@@ -40,12 +40,12 @@ namespace Skila.Tests
             //  new Execution.Properties().AutoProperties();
             //new Execution.Objects().AccessingObjectFields();
             //new Execution.Pointers().DereferenceOnAssignment();
-            new Execution.FunctionCalls().LambdaRecursiveCall();
+            // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
-            //new Execution.Inheritance().DuckDeepVirtualCall();
+            // new Execution.Inheritance().TODO_TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
             //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Closures().EmptyClosure();
+            new Execution.Closures().ResultTypeInference();
 
             {
                 double start = Stopwatch.GetTimestamp();
@@ -87,7 +87,7 @@ namespace Skila.Tests
                 if (all_errors.Any())
                 {
                     var fc = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.WriteLine();
                     Console.WriteLine("Missed coverage for following errors:");
                     Console.ForegroundColor = fc;
@@ -160,7 +160,7 @@ namespace Skila.Tests
                         T result = method.Invoke(test, new object[] { }).Cast<T>();
                         if (result is IErrorReporter reporter)
                             errors.AddRange(reporter.Errors.Select(it => it.Code));
-                        Console.Write(new string('\b', test_name.Length) + new string(' ', test_name.Length) + new string('\b', test_name.Length));
+                        ClearWrite(test_name);
                     }
 
                 }
@@ -172,8 +172,16 @@ namespace Skila.Tests
             }
 
             if (init_fails == failed)
+            {
                 Console.WriteLine($"{type.Name} passed.");
+            }
+
             return miss_attr;
+        }
+
+        private static void ClearWrite(string s)
+        {
+            Console.Write(new string('\b', s.Length) + new string(' ', s.Length) + new string('\b', s.Length));
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Skila.Language.Flow
             return result;
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return node == this.Value;
         }
@@ -55,16 +55,26 @@ namespace Skila.Language.Flow
                     ctx.ErrorManager.AddError(ErrorCode.ReturnOutsideFunction, this);
                 else
                 {
-                    IEntityInstance func_result = func.ResultTypeName.Evaluated(ctx);
-
-                    if (this.Value == null)
+                    if (func.IsResultTypeNameInfered)
                     {
-                        if (!ctx.Env.IsVoidType(func_result))
-                            ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
+                        if (this.Value == null)
+                            func.AddResultTypeCandidate(ctx.Env.VoidType.InstanceOf.NameOf);
+                        else
+                            func.AddResultTypeCandidate(this.Value.Evaluation.NameOf);
                     }
                     else
                     {
-                        this.DataTransfer(ctx, ref this.value, func_result);
+                        IEntityInstance func_result = func.ResultTypeName.Evaluation;
+
+                        if (this.Value == null)
+                        {
+                            if (!ctx.Env.IsVoidType(func_result))
+                                ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
+                        }
+                        else
+                        {
+                            this.DataTransfer(ctx, ref this.value, func_result);
+                        }
                     }
                 }
 

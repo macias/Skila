@@ -52,6 +52,7 @@ namespace Skila.Language.Entities
                                 NameFactory.InitConstructorNameDefinition(), null,
                                 parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
+
         public static FunctionDefinition CreateHeapConstructor(
             EntityModifier modifier,
             IEnumerable<FunctionParameter> parameters,
@@ -71,7 +72,9 @@ namespace Skila.Language.Entities
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
         }
 
-        public INameReference ResultTypeName { get; }
+        public bool IsResultTypeNameInfered { get; }
+        public INameReference ResultTypeName { get; private set; }
+        private readonly List<IEntityInstance> resultTypeCandidates;
         public Block UserBody { get; }
         public IReadOnlyList<FunctionParameter> Parameters { get; }
         public FunctionParameter MetaThisParameter { get; private set; }
@@ -118,6 +121,9 @@ namespace Skila.Language.Entities
             this.constructorChainCall = chainCall;
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
             this.ResultTypeName = result;
+            this.IsResultTypeNameInfered = result == null;
+            if (this.IsResultTypeNameInfered)
+                this.resultTypeCandidates = new List<IEntityInstance>();
             this.UserBody = body;
             this.CallMode = callMode;
 
@@ -136,6 +142,43 @@ namespace Skila.Language.Entities
         {
             return NameFactory.FunctionTypeReference(this.Parameters.Select(it => it.TypeName), this.ResultTypeName);
         }
+
+        internal void AddResultTypeCandidate(INameReference typenameCandidate)
+        {
+            this.resultTypeCandidates.Add(typenameCandidate.Evaluation);
+        }
+
+        internal void InferResultType(ComputationContext ctx)
+        {
+            if (!this.resultTypeCandidates.Any()) // no returns
+                this.ResultTypeName = ctx.Env.VoidType.InstanceOf.NameOf;
+            else
+            {
+                IEntityInstance common = this.resultTypeCandidates.First();
+                foreach (IEntityInstance candidate in this.resultTypeCandidates.Skip(1))
+                {
+                    if (!TypeMatcher.LowestCommonAncestor(ctx, common, candidate, out common))
+                    {
+                        ctx.AddError(ErrorCode.CannotInferResultType, this);
+                        this.ResultTypeName = EntityInstance.Joker.NameOf;
+                        return;
+                    }
+                }
+
+                foreach (IEntityInstance candidate in this.resultTypeCandidates)
+                    // it is tempting to allowing conversions here, but it would mean that we have back to all "returns"
+                    // to apply such conversions, besides such fluent result type is a bit of a stretch
+                    if (candidate.MatchesTarget(ctx, common, allowSlicing: false) != TypeMatch.Pass)
+                    {
+                        ctx.AddError(ErrorCode.CannotInferResultType, this);
+                        this.ResultTypeName = EntityInstance.Joker.NameOf;
+                        return;
+                    }
+
+                this.ResultTypeName = common.NameOf;
+            }
+        }
+
 
         public override void AttachTo(INode parent)
         {
