@@ -65,7 +65,7 @@ namespace Skila.Language
         public int Arity => this.TemplateArguments.Count;
 
         public bool IsComputed => this.Evaluation != null;
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
@@ -111,7 +111,7 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2538)
+                if (this.DebugId.Id == 2679 || this.DebugId.Id==2677)
                 {
                     ;
                 }
@@ -121,7 +121,7 @@ namespace Skila.Language
                     if (this.Prefix != null)
                     {
                         bool dereferenced = false;
-                        this.Prefix.Evaluation.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                        this.Prefix.Evaluation.Components.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
                         if (this.Prefix.DebugId.Id == 2572)
                         {
                             ;
@@ -194,10 +194,9 @@ namespace Skila.Language
                             }
 
                             bool dereferenced = false;
-                            IEnumerable<EntityInstance> prefix_eval_components = this.Prefix.Evaluation.Enumerate();
-                            IEnumerable<TemplateDefinition> prefix_targets = prefix_eval_components
-                                .Select(it => tryDereference(ctx, it, ref dereferenced).TargetTemplate);
-                            IEnumerable<IEntity> entities = prefix_targets.SelectMany(it => it.FindEntities(this))
+                            TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
+                                .TargetTemplate;
+                            IEnumerable<IEntity> entities = prefix_target.FindEntities(this)
                                 .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
 
                             this.Binding.Set(entities
@@ -221,15 +220,25 @@ namespace Skila.Language
 
                 EntityInstance instance = this.Binding.Match;
                 IEntityInstance eval;
+                EntityInstance aggregate;
                 if (instance.Target.IsType() || instance.Target.IsNamespace())
+                {
                     eval = instance;
+                    aggregate = instance;
+                }
                 else
+                {
                     eval = instance.Evaluated(ctx);
+                    aggregate = instance.Aggregate;
+                }
 
                 if (this.Prefix != null)
-                    eval = eval.TranslateThrough(this.Prefix.Evaluation);
+                {
+                    eval = eval.TranslateThrough(this.Prefix.Evaluation.Components);
+                    aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
+                }
 
-                this.Evaluation = eval;
+                this.Evaluation = new EvaluationInfo(eval,aggregate);
             }
         }
 
@@ -293,15 +302,13 @@ namespace Skila.Language
         }
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {
-            if (!ctx.Env.IsPointerLikeOfType(entityInstance))
+            if (!ctx.Env.Dereferenced(entityInstance,out IEntityInstance __eval,out bool via_pointer))
                 return entityInstance;
 
             dereferenced = true;
 
-            return entityInstance.TemplateArguments.Single()
-                // todo: this is incorrect, just a temporary shortcut
-                .Cast<EntityInstance>();
-
+            // todo: this is incorrect, just a temporary shortcut
+            return __eval.Cast<EntityInstance>();
         }
 
         public NameReference Recreate(IEnumerable<INameReference> arguments)

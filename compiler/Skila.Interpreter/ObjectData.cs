@@ -101,7 +101,7 @@ namespace Skila.Interpreter
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
                     foreach (VariableDeclaration field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
                     {
-                        EntityInstance field_type = field.Evaluation.Cast<EntityInstance>();
+                        EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
                         field_type = field_type.TranslateThrough(typeInstance);
                         this.fields.Add(field, ObjectData.CreateEmpty(field_type));
                     }

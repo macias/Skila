@@ -20,7 +20,7 @@ namespace Skila.Language.Expressions
         }
         public static Block CreateStatement()
         {
-            return new Block(ExpressionReadMode.CannotBeRead, body:null);
+            return new Block(ExpressionReadMode.CannotBeRead, body: null);
         }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
@@ -42,7 +42,7 @@ namespace Skila.Language.Expressions
         {
             return this.Instructions.FirstOrDefault()?.ToString() ?? "";
         }
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return this.Instructions.LastOrDefault() == node
                 && (this.ReadMode == ExpressionReadMode.ReadRequired
@@ -52,7 +52,8 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.Instructions.LastOrDefault()?.Evaluation ?? ctx.Env.VoidType.InstanceOf;
+                IExpression last = this.Instructions.LastOrDefault();
+                this.Evaluation = last?.Evaluation ?? ctx.Env.VoidEvaluation;
             }
         }
 

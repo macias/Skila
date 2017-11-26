@@ -143,7 +143,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(ErrorCode.MissingTypeAndValue, resolver.ErrorManager.Errors.Single().Code);
             Assert.AreEqual(var_z, resolver.ErrorManager.Errors.Single().Node);
 
-            Assert.AreEqual(env.DoubleType, var_y.Evaluation.Target());
+            Assert.AreEqual(env.DoubleType, var_y.Evaluation.Components.Target());
 
             return resolver;
         }

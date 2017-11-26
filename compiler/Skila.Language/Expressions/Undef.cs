@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions
         private Undef()
             : base(ExpressionReadMode.ReadRequired)
         {
-            this.Evaluation = EntityInstance.Joker;
+            this.Evaluation = EvaluationInfo.Joker;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

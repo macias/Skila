@@ -45,7 +45,7 @@ namespace Skila.Language.Flow
         public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCheck), maybePath: Body, postMaybes: Step.Concat(PostCheck));
 
         public bool IsComputed => this.Evaluation != null;
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
 
@@ -74,19 +74,19 @@ namespace Skila.Language.Flow
             return result;
         }
 
-        public bool IsReadingValueOfNode( IExpression node)
+        public bool IsReadingValueOfNode(IExpression node)
         {
             return this.PreCheck == node || this.PostCheck == node;
         }
 
-        public void Validate( ComputationContext ctx)
+        public void Validate(ComputationContext ctx)
         {
         }
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidType.InstanceOf;
+                this.Evaluation = ctx.Env.VoidEvaluation;
 
                 this.DataTransfer(ctx, ref this.preCheck, ctx.Env.BoolType.InstanceOf);
                 this.DataTransfer(ctx, ref this.postCheck, ctx.Env.BoolType.InstanceOf);

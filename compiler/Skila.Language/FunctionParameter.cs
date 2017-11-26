@@ -41,7 +41,7 @@ namespace Skila.Language
 
         public bool IsComputed => this.Evaluation != null;
 
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
         private Option<int> index;
@@ -82,7 +82,7 @@ namespace Skila.Language
             {
                 this.Evaluation = this.TypeName.Evaluation;
 
-                this.DataTransfer(ctx, ref this.defaultValue, this.Evaluation);
+                this.DataTransfer(ctx, ref this.defaultValue, this.Evaluation.Components);
 
                 if (this.IsOptional)
                 {
@@ -118,7 +118,7 @@ namespace Skila.Language
                 return false;
             if (!EntityBareNameComparer.Instance.Equals(this.Name, other.Name))
                 return false;
-            if (this.TypeName.Evaluation.IsSame(other.TypeName.Evaluation, jokerMatchesAll: true))
+            if (this.TypeName.Evaluation.Components.IsSame(other.TypeName.Evaluation.Components, jokerMatchesAll: true))
                 return false;
 
             return true;

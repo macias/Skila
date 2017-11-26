@@ -29,7 +29,7 @@ namespace Skila.Language.Flow
         public IAnchor AssociatedLoop { get; private set; }
         public LabelReference Label { get; }
         public bool IsComputed => this.Evaluation != null;
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
 
@@ -53,11 +53,11 @@ namespace Skila.Language.Flow
             return result;
         }
 
-        public void Validate( ComputationContext ctx)
+        public void Validate(ComputationContext ctx)
         {
         }
 
-        public bool IsReadingValueOfNode( IExpression node)
+        public bool IsReadingValueOfNode(IExpression node)
         {
             return false;
         }
@@ -66,7 +66,8 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidType.InstanceOf;
+                this.Evaluation = ctx.Env.VoidEvaluation;
+
                 if (this.Label == null)
                     this.AssociatedLoop = this.EnclosingScope<Loop>();
                 else

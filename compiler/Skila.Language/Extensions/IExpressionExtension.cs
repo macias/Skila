@@ -8,7 +8,7 @@ namespace Skila.Language.Extensions
     {
         public static void ValidateValueExpression(this IExpression @this, ComputationContext ctx)
         {
-            if (!@this.IsValue() && !@this.Evaluation.IsJoker)
+            if (!@this.IsValue() && !@this.Evaluation.Components.IsJoker)
                 ctx.AddError(ErrorCode.NoValueExpression, @this);
         }
 

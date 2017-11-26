@@ -145,7 +145,7 @@ namespace Skila.Language.Entities
 
         internal void AddResultTypeCandidate(INameReference typenameCandidate)
         {
-            this.resultTypeCandidates.Add(typenameCandidate.Evaluation);
+            this.resultTypeCandidates.Add(typenameCandidate.Evaluation.Components);
         }
 
         internal void InferResultType(ComputationContext ctx)

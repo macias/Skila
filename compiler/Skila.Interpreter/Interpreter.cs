@@ -63,7 +63,7 @@ namespace Skila.Interpreter
                         ObjectData arg = ctx.FunctionArguments.Values.Single();
                         int this_int = this_value.PlainValue.Cast<int>();
                         int arg_int = arg.PlainValue.Cast<int>();
-                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(func.ResultTypeName.Evaluation, this_int == arg_int));
+                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(func.ResultTypeName.Evaluation.Components, this_int == arg_int));
                         return result;
                     }
                     else if (func.IsDefaultInitConstructor())
@@ -168,7 +168,7 @@ namespace Skila.Interpreter
                 throw new Exception("Internal error");
 
             ExecValue ret = executed(func.UserBody, ctx);
-            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation))
+            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components))
                 return ExecValue.CreateReturn(null);
             else
                 return ret;
@@ -326,12 +326,12 @@ namespace Skila.Interpreter
 
         private ExecValue execute(Alloc alloc, ExecutionContext ctx)
         {
-            var obj = ObjectData.CreateEmpty(alloc.InnerTypeName.Evaluation);
+            var obj = ObjectData.CreateEmpty(alloc.InnerTypeName.Evaluation.Components);
 
             if (alloc.UseHeap)
             {
                 ctx.Heap.Allocate(obj);
-                return ExecValue.CreateExpression(ObjectData.Create(alloc.Evaluation, obj));
+                return ExecValue.CreateExpression(ObjectData.Create(alloc.Evaluation.Components, obj));
             }
             else
             {
@@ -341,12 +341,12 @@ namespace Skila.Interpreter
 
         private ExecValue execute(IntLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(StringLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(Return ret, ExecutionContext ctx)
@@ -488,7 +488,7 @@ namespace Skila.Interpreter
 
             ctx.FunctionArguments = args;
             ctx.ThisArgument = this_ref;
-            ctx.TemplateArguments = call.Name.TemplateArguments.Select(it => it.Evaluation).StoreReadOnlyList();
+            ctx.TemplateArguments = call.Name.TemplateArguments.Select(it => it.Evaluation.Components).StoreReadOnlyList();
 
             return target_func;
         }
@@ -496,11 +496,14 @@ namespace Skila.Interpreter
         private static FunctionDefinition getTargetFunction(ExecutionContext ctx, FunctionCall call, ObjectData thisValue,
             FunctionDefinition targetFunc)
         {
+            if (call.DebugId.Id==2681)
+            {
+                ;
+            }
             if (call.Resolution.MetaThisArgument == null)
                 return targetFunc;
 
-
-            EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Cast<EntityInstance>();
+            EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Aggregate;
             // first we check if the call is made on the instance of template parameter
             if (this_eval.TargetType.IsTemplateParameter)
             {
@@ -514,23 +517,21 @@ namespace Skila.Interpreter
                 else if (!vtable.TryGetDerived(ref targetFunc))
                     throw new Exception("Internal error");
             }
-            else if (ctx.Env.IsPointerLikeOfType(call.Resolution.MetaThisArgument.Evaluation))
+          else if (ctx.Env.Dereferenced(this_eval,out IEntityInstance __inner_this,out bool via_pointer))
             {
+                EntityInstance inner_type = __inner_this.Cast<EntityInstance>();
+
                 // if the runtime type is exactly as the type we are hitting with function
                 // then there is no need to check virtual table, because we already have desired function
                 if (thisValue.RunTimeTypeInstance == targetFunc.OwnerType().InstanceOf)
                     return targetFunc;
 
-                bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && targetFunc.OwnerType().IsInterface)
-                    || targetFunc.OwnerType().IsProtocol;
+                bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && inner_type.TargetType.IsInterface)
+                    || inner_type.TargetType.IsProtocol;
                 bool classic_virtual = targetFunc.IsVirtual;
 
                 if (duck_virtual)
                 {
-                    // we know "this" is either pointer or reference so we have to get inner type 
-                    // in order to get virtual table for it
-                    IEntityInstance inner_type = this_eval.TemplateArguments.Single();
-
                     // todo: optimize it
                     // in duck mode (for now) we check all the ancestors for the correct virtual table, this is because
                     // of such cases as this
@@ -577,7 +578,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(BoolLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.Create(literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(NameReference name, ExecutionContext ctx)
@@ -658,7 +659,7 @@ namespace Skila.Interpreter
         {
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
-                rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(decl.Evaluation));
+            rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(decl.Evaluation.Aggregate));
             else
                 rhs_val = executed(decl.InitValue, ctx);
 

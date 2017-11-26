@@ -14,7 +14,7 @@ namespace Skila.Language.Expressions
         public bool IsComputed => this.Evaluation != null;
 
         public bool IsDereferenced { get; set; }
-        public IEntityInstance Evaluation { get; protected set; }
+        public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
 
         public ExpressionReadMode ReadMode { get; }

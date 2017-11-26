@@ -30,8 +30,8 @@ namespace Skila.Tests
             //  new Variables().TypeInference();
             // new Semantics.Expressions().ErrorIgnoringParameters();
             //new MethodDefinitions().Basics();
-            new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
-            // new TypeMatching().UnionMatching();
+            //  new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
+             //new Semantics.TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
             // new Types().ErrorIncorrectMethodsForType();
@@ -42,10 +42,10 @@ namespace Skila.Tests
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
-            // new Execution.Inheritance().TODO_TypeUnion();
+            //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
             //new Execution.Templates().HasConstraintWithValue();
-            new Execution.Closures().ResultTypeInference();
+            //  new Execution.Closures().ResultTypeInference();
 
             {
                 double start = Stopwatch.GetTimestamp();

@@ -40,7 +40,7 @@ namespace Skila.Language.Expressions
         private Option<CallResolution> resolution;
         public CallResolution Resolution => this.resolution.Value;
         public bool IsComputed => this.Evaluation != null;
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
         // public bool IsStaticCall => this.Resolution.TargetInstance.Target.Modifier.HasStatic;
@@ -86,7 +86,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2493)
+                if (this.DebugId.Id == 2681)
                 {
                     ;
                 }
@@ -96,11 +96,11 @@ namespace Skila.Language.Expressions
                     ConvertToExplicitInvoke(ctx);
 
                 {
-                    EntityInstance eval = this.Callee.Evaluation.Cast<EntityInstance>();
+                    EntityInstance eval = this.Callee.Evaluation.Components.Cast<EntityInstance>();
 
-                    this.Callee.IsDereferenced = ctx.Env.IsPointerLikeOfType(eval);
+                    this.Callee.IsDereferenced = ctx.Env.Dereferenced(eval, out IEntityInstance __eval, out bool via_pointer);
                     if (this.Callee.IsDereferenced)
-                        eval = eval.TemplateArguments.Single().Cast<EntityInstance>();
+                        eval = __eval.Cast<EntityInstance>();
 
                     if (!(this.Name.Binding.Match.Target is FunctionDefinition)
                          && eval.Target.Cast<TypeDefinition>().InvokeFunctions().Any())
@@ -189,7 +189,9 @@ namespace Skila.Language.Expressions
 
 
                 if (this.Evaluation == null)
-                    this.Evaluation = EntityInstance.Joker;
+                {
+                    this.Evaluation = EvaluationInfo.Joker;
+                }
 
                 foreach (IExpression arg in Arguments)
                     arg.ValidateValueExpression(ctx);
@@ -224,7 +226,7 @@ namespace Skila.Language.Expressions
             this_context.Evaluated(ctx);
 
             if (callTarget.Modifier.HasStatic)
-                return new CallContext() { StaticContext = this_context.Evaluation };
+                return new CallContext() { StaticContext = this_context.Evaluation.Components };
             else
                 return new CallContext() { MetaThisArgument = FunctionArgument.Create(this_context) };
         }
@@ -248,10 +250,10 @@ namespace Skila.Language.Expressions
                             weight += 1;
                         // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
                         // note we use untranslated param evaluation here to achieve this effect
-                        if (!param.Evaluation.IsSame(it.Evaluation, jokerMatchesAll: true))
+                        if (!param.Evaluation.Components.IsSame(it.Evaluation.Components, jokerMatchesAll: true))
                             weight += 2;
                         // prefer exact match instead more general match (Int->Int is better than Int->Object)
-                        if (!target.GetTransParamEvalByArgIndex(it.Index).IsSame(it.Evaluation, jokerMatchesAll: true))
+                        if (!target.GetTransParamEvalByArgIndex(it.Index).IsSame(it.Evaluation.Components, jokerMatchesAll: true))
                             weight += 4;
                         return weight;
                     })
@@ -277,7 +279,7 @@ namespace Skila.Language.Expressions
         }
         public bool IsLValue(ComputationContext ctx)
         {
-            return !this.Evaluation.IsValueType(ctx);
+            return !this.Evaluation.Components.IsValueType(ctx);
         }
         public void AddClosure(TypeDefinition closure)
         {

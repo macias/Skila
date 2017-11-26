@@ -35,7 +35,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.typeName.Evaluated(ctx);
+                this.Evaluation = this.typeName.Evaluation;
             }
         }
     }

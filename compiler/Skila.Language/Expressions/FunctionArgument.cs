@@ -24,7 +24,7 @@ namespace Skila.Language.Expressions
         private bool? isRead;
         public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
 
-        public IEntityInstance Evaluation => this.Expression.Evaluation;
+        public EvaluationInfo Evaluation => this.Expression.Evaluation;
         public ValidationData Validation { get { return this.Expression.Validation; } set { this.Expression.Validation = value; } }
         public bool IsDereferenced { get { return this.Expression.IsDereferenced; } set { this.Expression.IsDereferenced = value; } }
 

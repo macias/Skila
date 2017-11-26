@@ -33,7 +33,7 @@ namespace Skila.Language.Extensions
             }
             else
             {
-                if (parent_reading && ctx.Env.IsVoidType(node.Evaluation))
+                if (parent_reading && ctx.Env.IsVoidType(node.Evaluation.Components))
                     ctx.AddError(ErrorCode.PassingVoidValue, node);
 
                 if (node.ReadMode == ExpressionReadMode.OptionalUse)
@@ -83,7 +83,7 @@ namespace Skila.Language.Extensions
             {
                 ;
             }
-            IEntityInstance src_type = source.Evaluation;
+            IEntityInstance src_type = source.Evaluation.Components;
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, allowSlicing: false);
 
             if (match == TypeMatch.No)

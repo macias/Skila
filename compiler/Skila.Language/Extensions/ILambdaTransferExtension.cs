@@ -52,7 +52,7 @@ namespace Skila.Language.Extensions
             if (thisObject != null)
             {
                 cons = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                    new[] { FunctionParameter.Create(meta_this, thisObject.Evaluation.NameOf) },
+                    new[] { FunctionParameter.Create(meta_this, thisObject.Evaluation.Components.NameOf) },
                     Block.CreateStatement(
                         new[] {
                         Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, meta_this),
@@ -88,12 +88,12 @@ namespace Skila.Language.Extensions
             if (thisObject != null)
             {
                 VariableDeclaration this_field = VariableDeclaration.CreateStatement(meta_this,
-                    thisObject.Evaluation.NameOf, Undef.Create());
+                    thisObject.Evaluation.Components.NameOf, Undef.Create());
                 closure_builder
                     .With(cons)
                     .With(this_field);
 
-                if (!thisObject.Evaluation.IsImmutableType(ctx))
+                if (!thisObject.Evaluation.Components.IsImmutableType(ctx))
                     closure_builder.Modifier(EntityModifier.Mutable);
             }
 

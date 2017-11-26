@@ -20,7 +20,7 @@ namespace Skila.Language
             }
             else
             {
-                typeInstance = nameReference.Evaluation.Cast<EntityInstance>();
+                typeInstance = nameReference.Evaluation.Components.Cast<EntityInstance>();
                 return true;
             }
         }

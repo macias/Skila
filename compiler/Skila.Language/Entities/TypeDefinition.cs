@@ -134,7 +134,7 @@ namespace Skila.Language.Entities
 
 
             foreach (NameReference parent in this.ParentNames.Skip(1))
-                if (parent.Evaluation.Cast<EntityInstance>().TargetType.IsTypeImplementation)
+                if (parent.Evaluation.Components.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                     ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
 
 
@@ -183,7 +183,7 @@ namespace Skila.Language.Entities
             if (this.Modifier.HasImmutable)
             {
                 foreach (NameReference parent in this.ParentNames)
-                    if (!parent.Evaluation.IsImmutableType(ctx))
+                    if (!parent.Evaluation.Components.IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
 
                 foreach (VariableDeclaration field in this.AllNestedFields)

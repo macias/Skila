@@ -44,6 +44,8 @@ namespace Skila.Language
         public FunctionDefinition OptionValueConstructor { get; }
         public FunctionDefinition OptionEmptyConstructor { get; }
 
+        public EvaluationInfo VoidEvaluation { get; }
+
         public IOptions Options { get; }
         private Environment(IOptions options)
         {
@@ -209,6 +211,8 @@ namespace Skila.Language
             foreach (int param_count in Enumerable.Range(0, 15))
                 this.functionTypes.Add(createFunction(Root, param_count));
             this.functionTypes.ForEach(it => Root.AddNode(it));
+
+            this.VoidEvaluation = new EvaluationInfo(this.VoidType.InstanceOf);
         }
 
         private static TypeDefinition createChannelType()
@@ -324,7 +328,7 @@ namespace Skila.Language
 
         internal bool IsOfVoidType(INameReference typeName)
         {
-            return typeName != null && IsVoidType(typeName.Evaluation);//.IsSame(this.VoidType.InstanceOf, jokerMatchesAll: false);
+            return typeName != null && IsVoidType(typeName.Evaluation.Components);//.IsSame(this.VoidType.InstanceOf, jokerMatchesAll: false);
         }
 
         public bool IsVoidType(IEntityInstance typeInstance)
@@ -339,6 +343,28 @@ namespace Skila.Language
         public bool IsPointerOfType(IEntityInstance instance)
         {
             return instance.Enumerate().All(it => it.IsOfType(PointerType));
+        }
+
+        public bool Dereferenced(EntityInstance instance, out IEntityInstance result, out bool viaPointer)
+        {
+            if (IsPointerOfType(instance))
+            {
+                viaPointer = true;
+                result = instance.TemplateArguments.Single();
+                return true;
+            }
+            else if (IsReferenceOfType(instance))
+            {
+                viaPointer = false;
+                result = instance.TemplateArguments.Single();
+                return true;
+            }
+            else
+            {
+                viaPointer = false;
+                result = instance;
+                return false;
+            }
         }
 
         /*    public bool IsPointerLikeOfType(IEntityInstance instance,out IEnumerable<IEntityInstance> innerTypes)
@@ -366,7 +392,7 @@ namespace Skila.Language
         }
         public bool IsOfUnitType(INameReference typeName)
         {
-            return typeName.Evaluation.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
+            return typeName.Evaluation.Components.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
         }
     }
 }

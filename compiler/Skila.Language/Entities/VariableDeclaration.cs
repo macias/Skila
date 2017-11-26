@@ -114,16 +114,16 @@ namespace Skila.Language.Entities
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 8812)
+                if (this.DebugId.Id == 2636)
                 {
                     ;
                 }
 
                 this.TrapClosure(ctx, ref this.initValue);
 
-                IEntityInstance init_eval = InitValue?.Evaluation;
+                IEntityInstance init_eval = InitValue?.Evaluation?.Components;
 
-                IEntityInstance tn_eval = this.TypeName?.Evaluation;
+                IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
                 if (tn_eval != null && InitValue == null && (this.IsField() || this.isGlobalVariable()))
                 {
                     if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
@@ -142,35 +142,45 @@ namespace Skila.Language.Entities
                 }
 
                 IEntityInstance this_eval = null;
+                EntityInstance this_aggregate = null;
 
                 if (tn_eval != null)
+                {
                     this_eval = tn_eval;
+                    this_aggregate = this.TypeName.Evaluation.Aggregate;
+                }
                 else if (init_eval != null)
+                {
                     this_eval = init_eval;
+                    this_aggregate = this.InitValue.Evaluation.Aggregate;
+                }
                 else
                     ctx.AddError(ErrorCode.MissingTypeAndValue, this);
 
                 if (this_eval == null)
+                {
                     this_eval = EntityInstance.Joker;
+                    this_aggregate = EntityInstance.Joker;
+                }
 
                 this.DataTransfer(ctx, ref initValue, this_eval);
-                this.Evaluation = this_eval;
+                this.Evaluation = new EvaluationInfo( this_eval,this_aggregate);
 
                 if ((this.IsField() && this.Modifier.HasStatic) || this.isGlobalVariable())
                 {
                     if (this.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                    if (!this.Evaluation.IsImmutableType(ctx))
+                    if (!this.Evaluation.Components.IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.GlobalMutableVariable, this);
                 }
 
                 InitValue?.ValidateValueExpression(ctx);
 
                 if ((!this.EnclosingScope<TemplateDefinition>().IsFunction() || this.Modifier.HasStatic)
-                    && this.Evaluation.Enumerate().Any(it => ctx.Env.IsReferenceOfType(it)))
+                    && this.Evaluation.Components.Enumerate().Any(it => ctx.Env.IsReferenceOfType(it)))
                     ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
 
-                if (this.Evaluation.Enumerate()
+                if (this.Evaluation.Components.Enumerate()
                     .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
                     .Any(it => it.TargetType.Modifier.HasHeapOnly))
                     ctx.AddError(ErrorCode.HeapTypeOnStack, this);

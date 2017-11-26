@@ -71,7 +71,7 @@ namespace Skila.Language.Expressions
 
                 this.Evaluation = Lhs.Evaluation;
 
-                this.DataTransfer(ctx, ref this.rhsValue, this.Evaluation);
+                this.DataTransfer(ctx, ref this.rhsValue, this.Evaluation.Components);
 
                 RhsValue.ValidateValueExpression(ctx);
 

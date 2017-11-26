@@ -41,10 +41,10 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidType.InstanceOf;
+                this.Evaluation = ctx.Env.VoidEvaluation;
 
                 foreach (FunctionArgument arg in this.Call.Arguments)
-                    if (!arg.Evaluation.IsImmutableType(ctx))
+                    if (!arg.Evaluation.Components.IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.CannotSpawnWithMutableArgument, arg);
 
                 if (this.Call.Resolution.MetaThisArgument != null && !this.Call.Resolution.MetaThisArgument.Evaluated(ctx).IsImmutableType(ctx))

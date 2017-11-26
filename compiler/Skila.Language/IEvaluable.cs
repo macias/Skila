@@ -4,7 +4,7 @@ namespace Skila.Language
 {
     public interface IEvaluable : INode
     {
-        IEntityInstance Evaluation { get; }
+        EvaluationInfo Evaluation { get; }
         ValidationData Validation { get; set; }
 
         bool IsComputed { get; }

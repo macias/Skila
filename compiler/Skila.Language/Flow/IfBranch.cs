@@ -41,7 +41,7 @@ namespace Skila.Language.Flow
 
         public bool IsComputed => this.Evaluation != null;
         public bool IsDereferenced { get; set; }
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
         private IfBranch(IExpression condition, IEnumerable<IExpression> body, IfBranch next)
@@ -78,29 +78,45 @@ namespace Skila.Language.Flow
             if (this.Evaluation == null)
             {
                 if (ReadMode == ExpressionReadMode.CannotBeRead)
-                    this.Evaluation = ctx.Env.VoidType.InstanceOf;
+                    this.Evaluation = ctx.Env.VoidEvaluation;
                 else
                 {
-                    IEntityInstance eval = this.Body.Evaluation;
+                    IEntityInstance eval = this.Body.Evaluation.Components;
+                    IEntityInstance aggregate = this.Body.Evaluation.Aggregate;
 
                     if (Next != null)
                     {
-                        if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation, out eval))
+                        if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
+                        {
                             eval = ctx.Env.VoidType.InstanceOf;
+                            aggregate = ctx.Env.VoidType.InstanceOf;
+                        }
+                        else if (!TypeMatcher.LowestCommonAncestor(ctx, aggregate, Next.Evaluation.Aggregate, out aggregate))
+                        {
+                            eval = ctx.Env.VoidType.InstanceOf;
+                            aggregate = ctx.Env.VoidType.InstanceOf;
+                        }
                         else
                         {
                             foreach (IEvaluable part in new IEvaluable[] { Body, Next })
                             {
-                                if (part.Evaluation.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
+                                if (part.Evaluation.Components.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
                                 {
                                     eval = ctx.Env.VoidType.InstanceOf;
+                                    aggregate = ctx.Env.VoidType.InstanceOf;
+                                    break;
+                                }
+                                if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, allowSlicing: false) == TypeMatch.No)
+                                {
+                                    eval = ctx.Env.VoidType.InstanceOf;
+                                    aggregate = ctx.Env.VoidType.InstanceOf;
                                     break;
                                 }
                             }
                         }
                     }
 
-                    this.Evaluation = eval;
+                    this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>());
                     this.DataTransfer(ctx, ref this.condition, ctx.Env.BoolType.InstanceOf);
 
                 }

@@ -26,6 +26,10 @@ namespace Skila.Language.Extensions
                 && @this.Name.Arity == 0
                 && @this.Parameters.Count == 0;
         }
+        public static bool IsConstructor(this FunctionDefinition @this)
+        {
+            return @this.IsZeroConstructor() || @this.IsNewConstructor() || @this.IsInitConstructor();
+        }
         public static bool IsInitConstructor(this FunctionDefinition @this)
         {
             return @this.Name.Name == NameFactory.InitConstructorName;
@@ -45,7 +49,7 @@ namespace Skila.Language.Extensions
         public static bool IsCopyInitConstructor(this FunctionDefinition @this)
         {
             return @this.IsInitConstructor() && @this.Parameters.Count == 1
-                && @this.Parameters.Single().TypeName.Evaluation == @this.OwnerType().InstanceOf;
+                && @this.Parameters.Single().TypeName.Evaluation.Components == @this.OwnerType().InstanceOf;
         }
 
         internal static bool IsOverloadedDuplicate(FunctionDefinition f1, FunctionDefinition f2)
@@ -86,7 +90,7 @@ namespace Skila.Language.Extensions
                     if (param_pair.Item1.IsOptional && param_pair.Item2.IsOptional)
                         break;
 
-                    if (param_pair.Item1.TypeName.Evaluation.IsOverloadDistinctFrom(param_pair.Item2.TypeName.Evaluation)
+                    if (param_pair.Item1.TypeName.Evaluation.Components.IsOverloadDistinctFrom(param_pair.Item2.TypeName.Evaluation.Components)
                         || param_pair.Item1.IsVariadic != param_pair.Item2.IsVariadic)
                         return false;
                 }
@@ -106,13 +110,13 @@ namespace Skila.Language.Extensions
                     FunctionParameter f1_param;
                     if (!f1_params.TryGetValue(f2_param.Name, out f1_param))
                         return false;
-                    if (f1_param.TypeName.Evaluation.IsOverloadDistinctFrom(f2_param.TypeName.Evaluation))
+                    if (f1_param.TypeName.Evaluation.Components.IsOverloadDistinctFrom(f2_param.TypeName.Evaluation.Components))
                         return false;
                 }
             }
 
             if (f1.IsOutConverter() && f2.IsOutConverter())
-                if (f1.ResultTypeName.Evaluation.IsOverloadDistinctFrom(f2.ResultTypeName.Evaluation))
+                if (f1.ResultTypeName.Evaluation.Components.IsOverloadDistinctFrom(f2.ResultTypeName.Evaluation.Components))
                     return false;
 
             return true;
@@ -128,13 +132,13 @@ namespace Skila.Language.Extensions
             foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters
                 .SyncZip(baseFunc.Name.Parameters))
             {
-                if (!TemplateParameterExtension.IsDerivedOf(param_pair.Item1, param_pair.Item2, baseTemplate))
+                if (!TemplateParameterExtension.IsSame(param_pair.Item1, param_pair.Item2, baseTemplate))
                     return false;
             }
 
             {
-                IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.TranslateThrough(baseTemplate);
-                if (derivedFunc.ResultTypeName.Evaluation.MatchesTarget(ctx, base_result_type, allowSlicing: false) != TypeMatch.Pass)
+                IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
+                if (derivedFunc.ResultTypeName.Evaluation.Components.MatchesTarget(ctx, base_result_type, allowSlicing: false) != TypeMatch.Pass)
                     return false;
 
             }
@@ -145,6 +149,39 @@ namespace Skila.Language.Extensions
             foreach (Tuple<FunctionParameter, FunctionParameter> param_pair in derivedFunc.Parameters.SyncZip(baseFunc.Parameters))
             {
                 if (!FunctionParameterExtension.IsDerivedOf(ctx, param_pair.Item1, param_pair.Item2, baseTemplate))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static bool IsSame(ComputationContext ctx, FunctionDefinition derivedFunc,
+            FunctionDefinition baseFunc, EntityInstance baseTemplate)
+        {
+            // todo: we have to check constraints as well
+            if (!EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
+                return false;
+
+            foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters
+                .SyncZip(baseFunc.Name.Parameters))
+            {
+                if (!TemplateParameterExtension.IsSame(param_pair.Item1, param_pair.Item2, baseTemplate))
+                    return false;
+            }
+
+            {
+                IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
+                if (!derivedFunc.ResultTypeName.Evaluation.Components.IsSame(base_result_type, jokerMatchesAll:true))
+                    return false;
+
+            }
+
+            if (derivedFunc.Parameters.Count != baseFunc.Parameters.Count)
+                return false;
+
+            foreach (Tuple<FunctionParameter, FunctionParameter> param_pair in derivedFunc.Parameters.SyncZip(baseFunc.Parameters))
+            {
+                if (!FunctionParameterExtension.IsSame(ctx, param_pair.Item1, param_pair.Item2, baseTemplate))
                     return false;
             }
 

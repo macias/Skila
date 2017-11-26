@@ -337,9 +337,12 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.MatchesTarget(resolver.Context, separate_deriv_union.Evaluation, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.MatchesTarget(resolver.Context, separate_abc_union.Evaluation, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.MatchesTarget(resolver.Context, separate_deriz_union.Evaluation, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+                separate_deriv_union.Evaluation.Components, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+                separate_abc_union.Evaluation.Components, allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+                separate_deriz_union.Evaluation.Components, allowSlicing: true));
 
             return resolver;
         }

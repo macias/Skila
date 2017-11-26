@@ -60,11 +60,11 @@ namespace Skila.Language.Flow
                         if (this.Value == null)
                             func.AddResultTypeCandidate(ctx.Env.VoidType.InstanceOf.NameOf);
                         else
-                            func.AddResultTypeCandidate(this.Value.Evaluation.NameOf);
+                            func.AddResultTypeCandidate(this.Value.Evaluation.Components.NameOf);
                     }
                     else
                     {
-                        IEntityInstance func_result = func.ResultTypeName.Evaluation;
+                        IEntityInstance func_result = func.ResultTypeName.Evaluation.Components;
 
                         if (this.Value == null)
                         {
@@ -78,7 +78,7 @@ namespace Skila.Language.Flow
                     }
                 }
 
-                this.Evaluation = ctx.Env.VoidType.InstanceOf;
+                this.Evaluation = ctx.Env.VoidEvaluation;
             }
         }
     }

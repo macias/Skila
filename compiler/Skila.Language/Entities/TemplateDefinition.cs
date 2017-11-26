@@ -40,7 +40,7 @@ namespace Skila.Language.Entities
         private readonly Dictionary<EntityInstanceSignature, EntityInstance> instancesCache;
 
         public bool IsComputed { get; protected set; }
-        public IEntityInstance Evaluation { get; protected set; }
+        public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
 
         public EntityModifier Modifier { get; protected set; }

@@ -665,7 +665,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(env.DoubleType.InstanceOf, call.Evaluation);
+            Assert.AreEqual(env.DoubleType.InstanceOf, call.Evaluation.Components);
 
             return resolver;
         }

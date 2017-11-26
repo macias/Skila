@@ -43,7 +43,7 @@ namespace Skila.Language
         private readonly IReadOnlyList<IEnumerable<int>> paramArgMapping;
 
         private readonly IReadOnlyList<IEntityInstance> translatedParamEvaluations;
-        private readonly IEntityInstance translatedResultEvaluation;
+        private readonly EvaluationInfo translatedResultEvaluation;
         private FunctionDefinition signature => this.TargetFunctionInstance.TargetTemplate.CastFunction();
         private readonly IFunctionArgumentsProvider argumentsProvider;
         public IReadOnlyList<FunctionArgument> Arguments => this.argumentsProvider.Arguments;
@@ -52,7 +52,7 @@ namespace Skila.Language
         private bool directlyTargetsFunction => !this.TargetFunctionInstance.TargetTemplate.IsType();
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
-        public IEntityInstance Evaluation => this.translatedResultEvaluation;
+        public EvaluationInfo Evaluation => this.translatedResultEvaluation;
 
         private CallResolution(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
@@ -71,7 +71,8 @@ namespace Skila.Language
 
             extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                 this.signature,
-                out this.translatedParamEvaluations, out this.translatedResultEvaluation);
+                out this.translatedParamEvaluations,
+                out this.translatedResultEvaluation);
 
             {
                 var arg_param_mapping = new List<int>();
@@ -124,7 +125,8 @@ namespace Skila.Language
                     .Select(it => it.Evaluated(ctx)), overrideMutability: false);
                 extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                     this.signature,
-                    out this.translatedParamEvaluations, out this.translatedResultEvaluation);
+                    out this.translatedParamEvaluations,
+                    out this.translatedResultEvaluation);
             }
         }
 
@@ -139,14 +141,17 @@ namespace Skila.Language
             EntityInstance targetFunctionInstance,
             FunctionDefinition signature,
             out IReadOnlyList<IEntityInstance> translatedParamEvaluations,
-            out IEntityInstance translatedResultEvaluation)
+            out EvaluationInfo translatedResultEvaluation)
         {
             translatedParamEvaluations = signature.Parameters
                 .Select(it => it.Evaluated(ctx).TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance))
                 .StoreReadOnlyList();
 
-            translatedResultEvaluation = signature.ResultTypeName.Evaluated(ctx)
-                .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance);
+
+            translatedResultEvaluation = new EvaluationInfo( signature.ResultTypeName.Evaluated(ctx)
+                    .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance),
+                 signature.ResultTypeName.Evaluation.Aggregate
+                    .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance));
         }
 
         internal bool ArgumentTypesMatchParameters(ComputationContext ctx)
@@ -158,7 +163,7 @@ namespace Skila.Language
                     ;
                 }
                 IEntityInstance param_eval = this.GetTransParamEvalByArgIndex(arg.Index);
-                TypeMatch match = arg.Evaluation.MatchesTarget(ctx, param_eval, allowSlicing: false);
+                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, allowSlicing: false);
                 if (match == TypeMatch.No)
                     return false;
             }
@@ -168,8 +173,8 @@ namespace Skila.Language
         internal bool OutcomeMatchesRequest(ComputationContext ctx)
         {
             // requested result type has to match perfectly (without conversions)
-            return this.argumentsProvider.RequestedOutcomeTypeName.Evaluation
-                .MatchesTarget(ctx, this.translatedResultEvaluation, allowSlicing: false) == TypeMatch.Pass;
+            return this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
+                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, allowSlicing: false) == TypeMatch.Pass;
         }
         internal void EnhanceArguments(ComputationContext ctx)
         {
@@ -251,7 +256,7 @@ namespace Skila.Language
             var template_param_inference = new Dictionary<TemplateParameter, Tuple<IEntityInstance, bool>>();
             for (int i = 0; i < template_parameters.Count; ++i)
                 if (this.templateArguments.Any())
-                    template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments.ElementAt(i).Evaluation, true));
+                    template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments.ElementAt(i).Evaluation.Components, true));
                 else
                     template_param_inference.Add(template_parameters[i], Tuple.Create((IEntityInstance)null, false));
 
@@ -261,7 +266,7 @@ namespace Skila.Language
                 IEntityInstance function_param_type = this.GetTransParamEvalByArgIndex(arg.Index);
 
                 IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
-                    = extractTypeParametersMapping(function, arg.Evaluation, function_param_type);
+                    = extractTypeParametersMapping(function, arg.Evaluation.Components, function_param_type);
 
                 foreach (var pair in type_mapping)
                     if (!template_param_inference[pair.Item1].Item2)

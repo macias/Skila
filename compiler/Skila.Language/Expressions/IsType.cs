@@ -46,16 +46,16 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.BoolType.InstanceOf;
+                this.Evaluation = new EvaluationInfo( ctx.Env.BoolType.InstanceOf);
 
-                if (this.Lhs.Evaluation.MatchesTarget(ctx, this.RhsTypeName.Evaluation, allowSlicing: true)== TypeMatch.Pass)
+                if (this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components, allowSlicing: true)== TypeMatch.Pass)
                     // checking if x (of String) is Object does not make sense
                     ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
-                else if (this.RhsTypeName.Evaluation.MatchesTarget(ctx, this.Lhs.Evaluation, allowSlicing: true)!= TypeMatch.Pass)
+                else if (this.RhsTypeName.Evaluation.Components.MatchesTarget(ctx, this.Lhs.Evaluation.Components, allowSlicing: true)!= TypeMatch.Pass)
                     // we cannot check if x (of Int) is String because it is illegal
                     ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
                 else
-                    foreach (EntityInstance instance in this.Lhs.Evaluation.Enumerate())
+                    foreach (EntityInstance instance in this.Lhs.Evaluation.Components.Enumerate())
                     {
                         if (!instance.Target.IsType())
                             continue;

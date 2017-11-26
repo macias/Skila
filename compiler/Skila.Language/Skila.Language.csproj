@@ -61,6 +61,7 @@
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
+    <Compile Include="EvaluationInfo.cs" />
     <Compile Include="ILocalBindable.cs" />
     <Compile Include="INameRegistry.cs" />
     <Compile Include="LambdaTrap.cs" />

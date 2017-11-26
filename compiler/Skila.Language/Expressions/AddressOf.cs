@@ -56,14 +56,16 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
+                INameReference inner = Expr.Evaluation.Components.NameOf;
                 if (this.mode == Mode.Reference)
-                    typename = NameFactory.ReferenceTypeReference(Expr.Evaluated(ctx).NameOf);
+                    typename = NameFactory.ReferenceTypeReference(inner);
                 else
-                    typename = NameFactory.PointerTypeReference(Expr.Evaluated(ctx).NameOf);
+                    typename = NameFactory.PointerTypeReference(inner);
 
                 typename.AttachTo(this);
+                typename.Evaluated(ctx);
 
-                this.Evaluation = typename.Evaluated(ctx);
+                this.Evaluation = typename.Evaluation;
 
                 Expr.ValidateValueExpression(ctx);
 

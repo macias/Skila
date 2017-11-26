@@ -70,7 +70,7 @@ namespace Skila.Language.Entities
             .Where(it => it != null);
         public EntityModifier Modifier { get; }
 
-        public IEntityInstance Evaluation { get; private set; }
+        public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsComputed => this.Evaluation != null;
 

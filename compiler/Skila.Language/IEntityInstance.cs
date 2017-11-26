@@ -9,7 +9,7 @@ namespace Skila.Language
     public interface IEntityInstance
     {
 #if DEBUG
-        DebugId DebugId { get; } 
+        DebugId DebugId { get; }
 #endif
 
         INameReference NameOf { get; }
@@ -65,7 +65,7 @@ namespace Skila.Language
             return @this.IsImmutableType(ctx, new HashSet<IEntityInstance>());
         }
 
-        private static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx,HashSet<IEntityInstance> visited)
+        private static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx, HashSet<IEntityInstance> visited)
         {
             if (!visited.Add(@this))
                 return true;
@@ -82,11 +82,12 @@ namespace Skila.Language
                 foreach (VariableDeclaration field in target.CastType().AllNestedFields)
                 {
                     IEntityInstance eval = field.Evaluated(ctx);
-                    if (!eval.IsImmutableType(ctx,visited))
+                    if (!eval.IsImmutableType(ctx, visited))
                         return false;
                 }
 
-                if ((ctx.Env.IsPointerLikeOfType(instance)) && !instance.TemplateArguments.Single().IsImmutableType(ctx,visited))
+                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer)
+                    && !val_instance.IsImmutableType(ctx, visited))
                     return false;
             }
 

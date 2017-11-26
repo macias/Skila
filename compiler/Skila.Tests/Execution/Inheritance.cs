@@ -11,8 +11,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Inheritance
     {
-        //    [TestMethod]
-        public IInterpreter TODO_TypeUnion()
+        [TestMethod]
+        public IInterpreter TypeUnion()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -20,14 +20,14 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("GetNeg")
                 .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-3"))
+                        Return.Create(IntLiteral.Create("3"))
                     }))
                     .Modifier(EntityModifier.Derived)));
 
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
                 .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("1"))
+                        Return.Create(IntLiteral.Create("-1"))
                     }))
                     .Modifier(EntityModifier.Derived)));
 

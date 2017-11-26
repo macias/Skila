@@ -52,7 +52,7 @@ namespace Skila.Language
             foreach (NameReference base_of in this.BaseOfNames)
                 // we allow slicing because we just need if the hierarchy is not reversed, not to pass actual values
                 if (this.InheritsNames.Any(it
-                    => it.Evaluation.MatchesTarget(ctx, base_of.Evaluation, allowSlicing: true) == TypeMatch.Pass))
+                    => it.Evaluation.Components.MatchesTarget(ctx, base_of.Evaluation.Components, allowSlicing: true) == TypeMatch.Pass))
                     ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);
         }
 

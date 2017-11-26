@@ -18,7 +18,7 @@ namespace Skila.Language.Extensions
             var evaluable = node as IEvaluable;
 
             if (evaluable != null && evaluable.IsComputed)
-                return evaluable.Evaluation ?? EntityInstance.Joker;
+                return evaluable.Evaluation?.Components ?? EntityInstance.Joker;
 
             if (!ctx.AddVisited(node))
             {
@@ -28,7 +28,7 @@ namespace Skila.Language.Extensions
                         ctx.AddError(ErrorCode.CircularReference, node);
                 }
 
-                return evaluable?.Evaluation ?? EntityInstance.Joker;
+                return evaluable?.Evaluation?.Components ?? EntityInstance.Joker;
             }
 
             INameRegistryExtension.EnterNode(node, ref ctx.EvalLocalNames, () => new NameRegistry(ctx.Env.Options.ScopeShadowing));
@@ -91,7 +91,7 @@ namespace Skila.Language.Extensions
 
             ctx.RemoveVisited(node);
 
-            return evaluable?.Evaluation ?? EntityInstance.Joker;
+            return evaluable?.Evaluation?.Components ?? EntityInstance.Joker;
         }
     }
 

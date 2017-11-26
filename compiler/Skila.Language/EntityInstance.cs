@@ -43,6 +43,7 @@ namespace Skila.Language
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
+        public EntityInstance Aggregate { get; private set; }
         public IEntityInstance Evaluation { get; private set; }
         public bool MissingTemplateArguments => !this.TemplateArguments.Any() && this.Target.Name.Arity > 0;
 
@@ -118,6 +119,10 @@ namespace Skila.Language
             if (this.Evaluation == null)
             {
                 this.Evaluation = this.Target.Evaluated(ctx).TranslateThrough(this);
+                if (this.Evaluation.IsJoker)
+                    this.Aggregate = EntityInstance.Joker;
+                else
+                    this.Aggregate = this.Target.Evaluation.Aggregate.TranslateThrough(this);
             }
             return this.Evaluation;
         }
