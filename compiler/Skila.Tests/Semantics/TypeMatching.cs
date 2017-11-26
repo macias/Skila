@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Skila.Language;
 using System.Linq;
 using Skila.Language.Entities;
@@ -13,6 +12,49 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class TypeMatching
     {
+        [TestMethod]
+        public IErrorReporter ErrorMatchingIntersection()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
+                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetNeg")
+                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("GetAll")
+                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("3"))
+                    })))
+                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("-1"))
+                    }))));
+
+            NameReferenceIntersection intersection = NameReferenceIntersection.Create(
+                NameFactory.PointerTypeReference(NameReference.Create("IGetNeg")),
+                NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
+            IExpression init_value = ExpressionFactory.HeapConstructorCall("GetAll");
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"),
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",intersection, init_value),
+                    ExpressionFactory.Readout("a")
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
@@ -35,7 +77,7 @@ namespace Skila.Tests.Semantics
 
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("wrapper"), 
+                NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
@@ -337,11 +379,11 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
                 separate_deriv_union.Evaluation.Components, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
                 separate_abc_union.Evaluation.Components, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context, 
+            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
                 separate_deriz_union.Evaluation.Components, allowSlicing: true));
 
             return resolver;

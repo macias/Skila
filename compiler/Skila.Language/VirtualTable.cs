@@ -8,10 +8,11 @@ namespace Skila.Language
     {
         // base function -> derived one
         private readonly IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> mapping;
-
-        public VirtualTable(IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> mapping)
+        public bool IsPartial { get; }
+        public VirtualTable(IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> mapping, bool isPartial)
         {
             this.mapping = mapping;
+            this.IsPartial = isPartial;
         }
 
         public bool TryGetDerived(ref FunctionDefinition function)
@@ -19,13 +20,11 @@ namespace Skila.Language
             if (!this.mapping.TryGetValue(function, out FunctionDefinition derived))
                 return false;
 
+            if (derived == null)
+                throw new Exception("Internal error");
+
             function = derived;
             return true;
-        }
-
-        internal bool HasDerived(FunctionDefinition baseFunction)
-        {
-            return this.mapping.ContainsKey(baseFunction);
         }
     }
 }

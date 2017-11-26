@@ -12,6 +12,30 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Inheritance
     {
+
+        [TestMethod]
+        public IErrorReporter ErrorNothingToDerive()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionDefinition function = FunctionBuilder.Create("getSome", 
+                ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("3"))
+                    }))
+                    .Modifier(EntityModifier.Derived);
+            root_ns.AddBuilder(TypeBuilder.Create("GetPos")
+                .With(function));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToDerive, function));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorInheritingHeapOnlyType()
         {

@@ -270,28 +270,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(abc_type, tuple_abc_ref.Binding.Match.TemplateArguments.Single().Target());
 
             return resolver;
-        }
-        //        [TestMethod]
-        public IErrorReporter DEPRECATED_FunctionTypes()
-        {
-            var env = Environment.Create();
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
-
-            FunctionDefinition func_def = FunctionBuilder.Create(
-                NameDefinition.Create("sqrt"), new[] { FunctionParameter.Create("r", NameReference.Create("Double"), Variadic.None, null, false) },
-                ExpressionReadMode.OptionalUse,
-                NameReference.Create("Double"),
-                Block.CreateStatement(Enumerable.Empty<IExpression>()));
-            root_ns.AddNode(func_def);
-
-            var resolver = NameResolver.Create(env);
-
-            //  Assert.AreEqual(1, func_def.TypeName.Binding.Matches.Count);
-            //    Assert.AreEqual(resolver.Context.Env.FunctionTypes[1], func_def.TypeName.Binding.Match.Target);
-
-            return resolver;
-        }
+        }      
 
     }
 }

@@ -11,29 +11,8 @@ using Skila.Language.Builders;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameReferenceUnion : Node, INameReference
+    public sealed class NameReferenceUnion : NameReferenceSet, INameReference
     {
-        public bool IsBindingComputed => this.Names.All(it => it.IsBindingComputed);
-        public IReadOnlyCollection<INameReference> Names { get; }
-        public override IEnumerable<INode> OwnedNodes => this.Names.Select(it => it.Cast<INode>())
-            .Concat(this.aggregate)
-            .Where(it => it != null);
-
-        public bool IsComputed => this.Evaluation != null;
-
-        private TypeDefinition aggregate;
-        public EvaluationInfo Evaluation { get; private set; }
-        public ValidationData Validation { get; set; }
-        public bool IsDereferenced { get; set; }
-
-        private NameReferenceUnion(IEnumerable<INameReference> names)
-        {
-            this.Names = names.StoreReadOnly();
-            if (!this.Names.Any())
-                throw new ArgumentException();
-
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
-        }
         public static NameReferenceUnion Create(IEnumerable<INameReference> names)
         {
             return new NameReferenceUnion(names);
@@ -44,12 +23,11 @@ namespace Skila.Language
             return new NameReferenceUnion(names);
         }
 
-        public override string ToString()
+        private NameReferenceUnion(IEnumerable<INameReference> names) : base(names)
         {
-            return this.Names.Select(it => it.ToString()).Join("|");
         }
 
-        public void Evaluate(ComputationContext ctx)
+        public override void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
@@ -59,31 +37,9 @@ namespace Skila.Language
                 }
                 IEntityInstance eval = EntityInstanceUnion.Create(Names.Select(it => it.Evaluation.Components));
 
-                // check if we don't have both kinds of types -- slicing and non-slicing (for example Array and pointer to String)
-
-                bool found_slicing_type = false;
-                int found_non_slicing_type = 0;
-
-                foreach (EntityInstance instance in eval.Enumerate())
                 {
-                    if (!instance.Target.IsType())
-                        continue;
+                    // we need to get common members
 
-                    if (instance.TargetType.AllowSlicedSubstitution)
-                        found_slicing_type = true;
-                    else
-                        ++found_non_slicing_type;
-
-                    // we can have only multiple ref/ptr types, other mixes are not allowed
-                    if ((found_slicing_type ? 1 : 0) + found_non_slicing_type > 1)
-                    {
-                        ctx.ErrorManager.AddError(ErrorCode.MixingSlicingTypes, this);
-                        break;
-                    }
-                }
-
-
-                {
                     bool has_reference = false;
                     bool has_pointer = false;
                     var dereferenced_instances = new List<EntityInstance>();
@@ -131,37 +87,12 @@ namespace Skila.Language
 
                     }
 
-                    this.aggregate = TypeBuilder.Create(ctx.AutoName.CreateNew("Aggregate"))
-                        .With(members)
-                        .Modifier(EntityModifier.Protocol);
-                    aggregate.AttachTo(this);
-                    this.aggregate.Evaluated(ctx);
-
-                    EntityInstance aggregate_instance = this.aggregate.InstanceOf;
-                    foreach (EntityInstance instance in dereferenced_instances)
-                    {
-                        EntityInstanceExtension.BuildDuckVirtualTable(ctx, instance, aggregate_instance);
-                    }
-
-                    if (has_reference)
-                        aggregate_instance = ctx.Env.ReferenceType.GetInstanceOf(new[] { aggregate_instance }, overrideMutability: false);
-                    else if (has_pointer)
-                        aggregate_instance = ctx.Env.PointerType.GetInstanceOf(new[] { aggregate_instance }, overrideMutability: false);
+                    EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer,
+                        dereferenced_instances, members, partialVirtualTables: false);
 
                     this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
                 }
-
-
             }
-        }
-
-        public void Validate(ComputationContext ctx)
-        {
-        }
-
-        public bool IsReadingValueOfNode(IExpression node)
-        {
-            return true;
         }
 
     }

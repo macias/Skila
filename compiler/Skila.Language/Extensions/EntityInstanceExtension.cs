@@ -5,29 +5,46 @@ using System.Linq;
 namespace Skila.Language.Extensions
 {
     public static class EntityInstanceExtension
-    {        
+    {
         public static bool IsOfType(this EntityInstance instance, TypeDefinition target)
         {
             return /*instance.IsJoker ||*/ (instance.Target.IsType() && target == instance.Target);
         }
 
-        public static VirtualTable BuildDuckVirtualTable(ComputationContext ctx, EntityInstance input, EntityInstance target)
+        public static VirtualTable BuildDuckVirtualTable(ComputationContext ctx, EntityInstance input, EntityInstance target,
+            // this is used when building for types intersection, no single type can cover entire aggregated type
+            // so we build only partial virtual table for each element of type intersection
+            // for example consider "*Double & *String" -- such super type would have "sqrt" function and "substr" as well
+            // but bulting regular vtable Double->DoubleString would be impossible, because (for example) String does not have "sqrt"
+            bool allowPartial)
         {
             VirtualTable vtable;
             if (!input.TryGetDuckVirtualTable(target, out vtable))
             {
-                vtable = new VirtualTable(TypeDefinitionExtension.PairDerivations(ctx, target, input.TargetType.NestedFunctions)
+                Dictionary<FunctionDefinition, FunctionDefinition> mapping 
+                    = TypeDefinitionExtension.PairDerivations(ctx, target, input.TargetType.NestedFunctions)
                     .Where(it => it.Derived != null)
-                    .ToDictionary(it => it.Base, it => it.Derived));
+                    .ToDictionary(it => it.Base, it => it.Derived);
+
+                bool is_partial = false;
 
                 foreach (FunctionDefinition base_func in target.TargetType.NestedFunctions)
-                    if (base_func.IsAbstract && !vtable.HasDerived(base_func))
+                    if (base_func.IsAbstract && !mapping.ContainsKey(base_func))
                     {
-                        vtable = null;
-                        break;
+                        if (allowPartial)
+                            is_partial = true;
+                        else
+                        {
+                            mapping = null;
+                            break;
+                        }
                     }
 
-                input.AddDuckVirtualTable(target, vtable);
+                if (mapping != null)
+                {
+                    vtable = new VirtualTable(mapping, is_partial);
+                    input.AddDuckVirtualTable(target, vtable);
+                }
             }
 
             return vtable;

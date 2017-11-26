@@ -22,7 +22,7 @@ namespace Skila.Language
             if (matches || (!(ctx.Env.Options.InterfaceDuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
                 return matches;
 
-            VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target);
+            VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target,allowPartial:false);
 
             return vtable != null;
         }

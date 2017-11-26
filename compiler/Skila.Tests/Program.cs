@@ -19,7 +19,7 @@ namespace Skila.Tests
         {
             //new Semantics.CompilerProtection().CircularConversion();
             //new Semantics.Templates().ErrorHasConstraint();
-            //new Semantics.Inheritance().LowestCommonAncestorDoubleInt();
+           // new Semantics.Inheritance().ErrorNothingToDerive();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
@@ -42,7 +42,7 @@ namespace Skila.Tests
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
-            //new Execution.Inheritance().TypeUnion();
+            //new Execution.Inheritance().TypeIntersection();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
             //new Execution.Templates().HasConstraintWithValue();
             //  new Execution.Closures().ResultTypeInference();

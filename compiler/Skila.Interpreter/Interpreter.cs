@@ -247,7 +247,7 @@ namespace Skila.Interpreter
 
         private ExecValue executed(IEvaluable node, ExecutionContext ctx)
         {
-            INameRegistryExtension.EnterNode(node,ref ctx.LocalVariables,()=> new VariableRegistry(ctx.Env.Options.ScopeShadowing));
+            INameRegistryExtension.EnterNode(node, ref ctx.LocalVariables, () => new VariableRegistry(ctx.Env.Options.ScopeShadowing));
 
             ExecValue result;
 
@@ -496,7 +496,7 @@ namespace Skila.Interpreter
         private static FunctionDefinition getTargetFunction(ExecutionContext ctx, FunctionCall call, ObjectData thisValue,
             FunctionDefinition targetFunc)
         {
-            if (call.DebugId.Id==2681)
+            if (call.DebugId.Id == 2681)
             {
                 ;
             }
@@ -517,7 +517,7 @@ namespace Skila.Interpreter
                 else if (!vtable.TryGetDerived(ref targetFunc))
                     throw new Exception("Internal error");
             }
-          else if (ctx.Env.Dereferenced(this_eval,out IEntityInstance __inner_this,out bool via_pointer))
+            else if (ctx.Env.Dereferenced(this_eval, out IEntityInstance __inner_this, out bool via_pointer))
             {
                 EntityInstance inner_type = __inner_this.Cast<EntityInstance>();
 
@@ -547,12 +547,16 @@ namespace Skila.Interpreter
                         .AncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance))
                         .Concat(thisValue.RunTimeTypeInstance))
                     {
-                        if (ancestor.TryGetDuckVirtualTable(inner_type.Cast<EntityInstance>(), out VirtualTable vtable))
+                        if (ancestor.TryGetDuckVirtualTable(inner_type, out VirtualTable vtable))
                         {
-                            if (!vtable.TryGetDerived(ref targetFunc))
+                            if (vtable.TryGetDerived(ref targetFunc))
+                            {
+                                found_duck = true;
+                                break;
+                            }
+                            // if it is a partial vtable, don't worry we should find proper mapping in another ancestor
+                            else if (!vtable.IsPartial)
                                 throw new Exception("Internal error");
-                            found_duck = true;
-                            break;
                         }
                     }
 
@@ -659,7 +663,7 @@ namespace Skila.Interpreter
         {
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
-            rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(decl.Evaluation.Aggregate));
+                rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(decl.Evaluation.Aggregate));
             else
                 rhs_val = executed(decl.InitValue, ctx);
 

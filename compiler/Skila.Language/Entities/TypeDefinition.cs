@@ -141,10 +141,10 @@ namespace Skila.Language.Entities
             {
                 // base method -> derived (here) method
                 var derivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
-                HashSet<FunctionDefinition> functions = this.NestedFunctions.ToHashSet();
+                HashSet<FunctionDefinition> current_functions = this.NestedFunctions.ToHashSet();
                 foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
                 {
-                    foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, functions))
+                    foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, current_functions))
                     {
                         if (deriv_info.Derived == null)
                         {
@@ -153,12 +153,14 @@ namespace Skila.Language.Entities
                         }
                         else
                         {
+                            bool removed = current_functions.Remove(deriv_info.Derived);
+
                             if (!deriv_info.Derived.Modifier.HasDerived)
                                 ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
                             if (!deriv_info.Base.IsSealed)
                             {
-                                if (!functions.Remove(deriv_info.Derived))
+                                if (!removed)
                                     throw new System.Exception("Internal error");
                                 derivations.Add(deriv_info.Base, deriv_info.Derived);
                             }
@@ -168,7 +170,10 @@ namespace Skila.Language.Entities
                     }
                 }
 
-                this.InheritanceVirtualTable = new VirtualTable(derivations);
+                this.InheritanceVirtualTable = new VirtualTable(derivations, isPartial: false);
+
+                foreach (FunctionDefinition func in current_functions.Where(it => it.Modifier.HasDerived)) 
+                    ctx.AddError(ErrorCode.NothingToDerive, func);
             }
 
             if (!this.IsAbstract)

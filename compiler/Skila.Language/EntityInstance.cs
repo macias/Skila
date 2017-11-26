@@ -88,6 +88,8 @@ namespace Skila.Language
 
         internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
         {
+            if (vtable == null)
+                throw new Exception("Internal error");
             this.duckVirtualTables.Add(target, vtable);
         }
         public bool TryGetDuckVirtualTable(EntityInstance target, out VirtualTable vtable)
@@ -202,6 +204,9 @@ namespace Skila.Language
         }
         public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
         {
+            if (!jokerMatchesAll)
+                return this == other; 
+
             if (this.DebugId.Id == 2023)
             {
                 ;
@@ -209,7 +214,7 @@ namespace Skila.Language
             var other_entity = other as EntityInstance;
             if (other_entity == null)
                 return other.IsSame(this, jokerMatchesAll);
-            else if (jokerMatchesAll && (this.IsJoker || other_entity.IsJoker))
+            else if (this.IsJoker || other_entity.IsJoker)
                 return true;
             // note we first compare targets, but then arguments count for instances (not targets)
             else if (this.Target != other_entity.Target || this.TemplateArguments.Count != other_entity.TemplateArguments.Count)
@@ -243,10 +248,7 @@ namespace Skila.Language
             }
 
             {
-                VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf);
-                //FunctionDefinition missed_base = TypeDefinitionExtension.PairDerivations(ctx, param.AssociatedType.InstanceOf, this.TargetType.NestedFunctions)
-                //  .Where(it => it.Item2 == null).Select(it => it.Item1).FirstOrDefault();
-                //if (missed_base != null)
+                VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf, allowPartial: false);
                 if (vtable == null)
                     return ConstraintMatch.MissingFunction;
             }
