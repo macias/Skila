@@ -122,6 +122,7 @@ namespace Skila.Language.Extensions
                     ;
                 }
                 source.IsDereferenced = true;
+                @this.Cast<IExpression>().IsDereferencing = true;
             }
             else if (match != TypeMatch.Pass)
                 throw new NotImplementedException();

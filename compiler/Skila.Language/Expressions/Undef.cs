@@ -15,15 +15,15 @@ namespace Skila.Language.Expressions
 
         public override IEnumerable<INode> OwnedNodes => Enumerable.Empty<INode>();
 
-        private Undef()
-            : base(ExpressionReadMode.ReadRequired)
+        // todo: change that mode, undef should only be used on variable initialization
+        private Undef() : base(ExpressionReadMode.ReadRequired)
         {
             this.Evaluation = EvaluationInfo.Joker;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return false;
         }

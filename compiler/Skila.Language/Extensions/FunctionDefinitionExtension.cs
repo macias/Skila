@@ -20,6 +20,17 @@ namespace Skila.Language.Extensions
 
             return true;
         }
+        public static FunctionDefinition GetSuperFunction(this FunctionDefinition func, ComputationContext ctx)
+        {
+            TypeDefinition curr_type = func.OwnerType();
+            curr_type.Evaluated(ctx);
+
+            if (!curr_type.InheritanceVirtualTable.TryGetBase(ref func))
+                throw new NotImplementedException();
+
+            return func;
+        }
+
         public static bool IsOutConverter(this FunctionDefinition @this)
         {
             return @this.Name.Name == NameFactory.ConvertFunctionName

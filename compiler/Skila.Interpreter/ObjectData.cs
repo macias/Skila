@@ -199,9 +199,13 @@ namespace Skila.Interpreter
             else
                 return this;
         }
-        internal ObjectData TryDereference(IExpression expr)
+        internal ObjectData TryDereference(IExpression parentExpr, IExpression childExpr)
         {
-            if (expr != null && expr.IsDereferenced)
+            bool dereferencing = childExpr != null && childExpr.IsDereferenced;
+            if (dereferencing != parentExpr.IsDereferencing)
+                throw new Exception("Internal error");
+
+            if (parentExpr.IsDereferencing)
                 return this.Dereference();
             else
                 return this;

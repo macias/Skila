@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
+using Skila.Language.Semantics;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class EntityModifier
+    public sealed class EntityModifier : Node,IValidable
     {
         private enum ModifierIndex
         {
@@ -22,8 +24,9 @@ namespace Skila.Language
             Base, // unseal types
             Interface,
             Protocol, // same as interface, but supports duck type matching 
-            Derived, // modifier for methods ("override" in C#)
+            Refines, // modifier for methods ("override" in C#)
             Abstract,
+            Protected,
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -37,9 +40,10 @@ namespace Skila.Language
         public static readonly EntityModifier Base = new EntityModifier(ModifierIndex.Base);
         public static readonly EntityModifier Interface = new EntityModifier(ModifierIndex.Interface);
         public static readonly EntityModifier Protocol = new EntityModifier(ModifierIndex.Protocol);
-        public static readonly EntityModifier Derived = new EntityModifier(ModifierIndex.Derived);
+        public static readonly EntityModifier Refines = new EntityModifier(ModifierIndex.Refines);
         public static readonly EntityModifier Abstract = new EntityModifier(ModifierIndex.Abstract);
         public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
+        public static readonly EntityModifier Protected = new EntityModifier(ModifierIndex.Protected);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -55,11 +59,15 @@ namespace Skila.Language
         public bool HasBase => this.flags[(int)ModifierIndex.Base] > 0;
         public bool HasInterface => this.flags[(int)ModifierIndex.Interface] > 0;
         public bool HasProtocol => this.flags[(int)ModifierIndex.Protocol] > 0;
-        public bool HasDerived => this.flags[(int)ModifierIndex.Derived] > 0;
+        public bool HasRefines => this.flags[(int)ModifierIndex.Refines] > 0;
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
+        public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;
 
         public bool HasSealed => !this.HasBase && !this.HasInterface;
         public bool HasImmutable => !this.HasMutable;
+        public bool HasAccessSet => this.HasPublic || this.HasPrivate || this.HasProtected;
+
+        public override IEnumerable<INode> OwnedNodes { get { yield break; } }
 
         private EntityModifier(ModifierIndex index)
         {
@@ -102,6 +110,18 @@ namespace Skila.Language
                 return new EntityModifier(a, b);
         }
 
+        internal bool SameAccess(EntityModifier other)
+        {
+            return this.HasPublic == other.HasPublic
+                && this.HasProtected == other.HasProtected
+                && this.HasPrivate == other.HasPrivate;
+        }
+
+        public void Validate(ComputationContext ctx)
+        {
+            if (this.HasConst && this.HasMutable)
+                ctx.AddError(ErrorCode.ConflictingModifier, this);
+        }
     }
 
 }

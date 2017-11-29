@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateConstraint : Node, IVerificable
+    public sealed class TemplateConstraint : Node, IValidable
     {
         public NameReference Name { get; }
         // for example "const" means the type argument has to be immutable
@@ -47,7 +47,7 @@ namespace Skila.Language
             return Name.ToString();
         }
 
-        public void Verify(ComputationContext ctx)
+        public void Validate(ComputationContext ctx)
         {
             foreach (NameReference base_of in this.BaseOfNames)
                 // we allow slicing because we just need if the hierarchy is not reversed, not to pass actual values

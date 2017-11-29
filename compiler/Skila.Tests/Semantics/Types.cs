@@ -14,12 +14,30 @@ namespace Skila.Tests.Semantics
     public class Types
     {
         [TestMethod]
+        public IErrorReporter ErrorConflictingModifier()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
+                .Modifier(EntityModifier.Const | EntityModifier.Mutable));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConflictingModifier,type_def.Modifier));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter AutoDefaultConstructor()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point")).With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null)));
+            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null)));
 
             var resolver = NameResolver.Create(env);
 

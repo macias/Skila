@@ -201,9 +201,10 @@ namespace Skila.Tests.Execution
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null, 
+                    EntityModifier.Public | EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
-                    Undef.Create(), EntityModifier.Reassignable)));
+                    Undef.Create(), EntityModifier.Public | EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,

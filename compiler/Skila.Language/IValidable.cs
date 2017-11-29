@@ -3,9 +3,9 @@
 namespace Skila.Language
 {
     // "lighter" version of IEvaluable
-    public interface IVerificable : INode
+    public interface IValidable : INode
     {
-        void Verify(ComputationContext ctx);
+        void Validate(ComputationContext ctx);
     }
 
 }

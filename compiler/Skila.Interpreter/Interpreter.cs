@@ -205,7 +205,7 @@ namespace Skila.Interpreter
                 if (cond.IsReturn)
                     return cond;
 
-                cond_obj = cond.ExprValue.TryDereference(ifBranch.Condition);
+                cond_obj = cond.ExprValue.TryDereference(ifBranch, ifBranch.Condition);
             }
 
             if (ifBranch.IsElse || cond_obj.PlainValue.Cast<bool>())
@@ -360,7 +360,9 @@ namespace Skila.Interpreter
             else
             {
                 ObjectData obj = (executed(ret.Value, ctx)).ExprValue;
-                if (ret.Value.IsDereferenced)
+                if (ret.Value.IsDereferenced != ret.IsDereferencing)
+                    throw new Exception("Internal error");
+                if (ret.IsDereferencing)
                     obj = obj.Dereference().Copy();
                 ctx.Heap.TryInc(ctx, obj);
                 return ExecValue.CreateReturn(obj);
@@ -474,7 +476,7 @@ namespace Skila.Interpreter
             foreach (FunctionArgument arg in call.Arguments)
             {
                 ExecValue arg_exec = executed(arg.Expression, ctx);
-                ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg);
+                ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg,arg);
                 ctx.Heap.TryInc(ctx, arg_obj);
 
                 args.Add(arg.MappedTo, arg_obj);
@@ -599,7 +601,7 @@ namespace Skila.Interpreter
             if (name.Prefix != null)
             {
                 ExecValue prefix_exec = executed(name.Prefix, ctx);
-                ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name.Prefix);
+                ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name, name.Prefix);
                 return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
             else if (ctx.LocalVariables.TryGet(target as ILocalBindable, out ObjectData info))
@@ -641,7 +643,7 @@ namespace Skila.Interpreter
                     ;
                 }
                 ExecValue lhs;
-                ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(assign.RhsValue);
+                ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(assign, assign.RhsValue);
                 ctx.Heap.TryInc(ctx, rhs_obj);
 
                 if (assign.Lhs.Cast<NameReference>().Binding.Match.Target is Property)
@@ -667,7 +669,7 @@ namespace Skila.Interpreter
             else
                 rhs_val = executed(decl.InitValue, ctx);
 
-            ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl.InitValue);
+            ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl, decl.InitValue);
             if (decl.DebugId.Id == 2560)
             {
                 ;

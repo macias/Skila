@@ -19,12 +19,12 @@ namespace Skila.Tests
         {
             //new Semantics.CompilerProtection().CircularConversion();
             //new Semantics.Templates().ErrorHasConstraint();
-           // new Semantics.Inheritance().ErrorNothingToDerive();
+            //new Semantics.Inheritance().ErrorNonVirtualInterfacePattern();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-            //new Semantics.NameResolution().ErrorScopeShadowing();
+          //  new Semantics.NameResolution().ErrorAccessForbidden();
             //  new Semantics.FunctionCalls().ErrorRecurrentCallUsingFunctioName();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
@@ -34,7 +34,7 @@ namespace Skila.Tests
              //new Semantics.TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
-            // new Types().ErrorIncorrectMethodsForType();
+             new Semantics.Types().ErrorConflictingModifier();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
             //  new Execution.Properties().AutoProperties();
@@ -42,7 +42,7 @@ namespace Skila.Tests
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
-            //new Execution.Inheritance().TypeIntersection();
+         //   new Execution.Inheritance().TODO_VirtualCallAtBase();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
             //new Execution.Templates().HasConstraintWithValue();
             //  new Execution.Closures().ResultTypeInference();

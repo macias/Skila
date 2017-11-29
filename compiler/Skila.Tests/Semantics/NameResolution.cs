@@ -12,6 +12,36 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter ErrorAccessForbidden()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
+                    EntityModifier.Private | EntityModifier.Reassignable)));
+
+            NameReference private_ref = NameReference.Create("p", "x");
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("anything"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall("Point")),
+                    Assignment.CreateStatement(private_ref,IntLiteral.Create("5")),
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AccessForbidden, private_ref));
+
+            return resolver;
+        }
+
+
+        [TestMethod]
         public IErrorReporter ScopeShadowing()
         {
             var env = Environment.Create(new Options() { ScopeShadowing = true });

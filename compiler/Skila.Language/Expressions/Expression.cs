@@ -13,6 +13,7 @@ namespace Skila.Language.Expressions
     {
         public bool IsComputed => this.Evaluation != null;
 
+        public bool IsDereferencing { get; set; }
         public bool IsDereferenced { get; set; }
         public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }

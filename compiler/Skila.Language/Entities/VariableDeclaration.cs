@@ -11,7 +11,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer,ILocalBindable
+    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer, ILocalBindable
     {
         public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
@@ -31,11 +31,11 @@ namespace Skila.Language.Entities
         public IExpression InitValue => this.initValue;
         private readonly List<TypeDefinition> closures;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue }
+        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
             .Concat(closures);
         public override ExecutionFlow Flow => ExecutionFlow.CreatePath(InitValue);
-        public EntityModifier Modifier { get; }
+        public EntityModifier Modifier { get; private set; }
 
         private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name,
             INameReference typeName, IExpression initValue)
@@ -61,6 +61,22 @@ namespace Skila.Language.Entities
             if (this.InitValue != null)
                 result += $" = {this.InitValue}";
             return result;
+        }
+
+        public override bool AttachTo(INode owner)
+        {
+            if (!base.AttachTo(owner))
+                return false;
+
+            if (owner is TypeContainerDefinition && !this.Modifier.HasAccessSet)
+                this.SetModifier(this.Modifier | EntityModifier.Private);
+
+            return true;
+        }
+
+        private void SetModifier(EntityModifier modifier)
+        {
+            this.Modifier = modifier;
         }
 
         public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
@@ -164,7 +180,7 @@ namespace Skila.Language.Entities
                 }
 
                 this.DataTransfer(ctx, ref initValue, this_eval);
-                this.Evaluation = new EvaluationInfo( this_eval,this_aggregate);
+                this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
 
                 if ((this.IsField() && this.Modifier.HasStatic) || this.isGlobalVariable())
                 {

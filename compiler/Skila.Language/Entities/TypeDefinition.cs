@@ -155,7 +155,7 @@ namespace Skila.Language.Entities
                         {
                             bool removed = current_functions.Remove(deriv_info.Derived);
 
-                            if (!deriv_info.Derived.Modifier.HasDerived)
+                            if (!deriv_info.Derived.Modifier.HasRefines)
                                 ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
                             if (!deriv_info.Base.IsSealed)
@@ -163,8 +163,17 @@ namespace Skila.Language.Entities
                                 if (!removed)
                                     throw new System.Exception("Internal error");
                                 derivations.Add(deriv_info.Base, deriv_info.Derived);
+
+                                // the rationale for keeping the same access level is this
+                                // narrowing is pretty easy to skip by downcasting
+                                // expanding looks like a good idea, but... -- the author of original type
+                                // maybe had better understanding why given function is private/protected and not protected/public
+                                // it is better to keep it safe, despite little annoyance (additional wrapper), than finding out
+                                // how painful is violating that "good reason" because it was too easy to type "public"
+                                if (!deriv_info.Base.Modifier.SameAccess(deriv_info.Derived.Modifier))
+                                    ctx.AddError(ErrorCode.AlteredAccessLevel, deriv_info.Derived.Modifier);
                             }
-                            else if (deriv_info.Derived.Modifier.HasDerived)
+                            else if (deriv_info.Derived.Modifier.HasRefines)
                                 ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
                         }
                     }
@@ -172,7 +181,7 @@ namespace Skila.Language.Entities
 
                 this.InheritanceVirtualTable = new VirtualTable(derivations, isPartial: false);
 
-                foreach (FunctionDefinition func in current_functions.Where(it => it.Modifier.HasDerived)) 
+                foreach (FunctionDefinition func in current_functions.Where(it => it.Modifier.HasRefines)) 
                     ctx.AddError(ErrorCode.NothingToDerive, func);
             }
 

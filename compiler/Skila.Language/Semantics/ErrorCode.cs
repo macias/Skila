@@ -65,5 +65,8 @@
         ReservedName = 61,
         CannotInferResultType = 62,
         NothingToDerive = 63,
+        AccessForbidden = 64,
+        AlteredAccessLevel = 65,
+        ConflictingModifier = 66,
     }
 }

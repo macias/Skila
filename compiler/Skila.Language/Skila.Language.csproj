@@ -64,6 +64,7 @@
     <Compile Include="EntityInstanceSet.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
     <Compile Include="EvaluationInfo.cs" />
+    <Compile Include="Extensions\INodeExtension.cs" />
     <Compile Include="ILocalBindable.cs" />
     <Compile Include="INameRegistry.cs" />
     <Compile Include="LambdaTrap.cs" />
@@ -78,7 +79,7 @@
     <Compile Include="Extensions\TemplateParameterExtension.cs" />
     <Compile Include="Flow\Throw.cs" />
     <Compile Include="IEntityScope.cs" />
-    <Compile Include="IVerificable.cs" />
+    <Compile Include="IValidable.cs" />
     <Compile Include="IOptions.cs" />
     <Compile Include="FunctionDerivation.cs" />
     <Compile Include="AutoName.cs" />

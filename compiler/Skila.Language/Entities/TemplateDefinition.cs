@@ -31,8 +31,10 @@ namespace Skila.Language.Entities
         public IEnumerable<TemplateDefinition> NestedTemplates => this.ownedNodes.WhereType<TemplateDefinition>();
         public IEnumerable<IEntity> NestedEntities => this.ownedNodes.WhereType<IEntity>();
 
-        public override IEnumerable<INode> OwnedNodes => this.ownedNodes.Concat(this.Name)
+        public override IEnumerable<INode> OwnedNodes => this.ownedNodes
+            .Concat(this.Name)
             .Concat(Conditionals)
+            .Concat(Modifier)
             .Where(it => it != null);
 
         // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on

@@ -101,7 +101,7 @@ namespace Skila.Language.Entities
         public bool IsAbstract => this.IsDeclaration || this.Modifier.HasAbstract;
         // sealed functions cannot be derived from
         public bool IsSealed => !this.IsAbstract && !this.Modifier.HasBase;
-        public bool IsVirtual => this.IsAbstract || this.Modifier.HasDerived || this.Modifier.HasBase;
+        public bool IsVirtual => this.IsAbstract || this.Modifier.HasRefines || this.Modifier.HasBase;
 
         public bool IsLambdaInvoker => this.Name.Name == NameFactory.LambdaInvoke;
         public bool IsLambda => this.EnclosingScope<TemplateDefinition>().IsFunction();
@@ -180,13 +180,14 @@ namespace Skila.Language.Entities
         }
 
 
-        public override void AttachTo(INode parent)
+        public override bool AttachTo(INode parent)
         {
             if (this.DebugId.Id == 7172)
             {
                 ;
             }
-            base.AttachTo(parent);
+
+            bool result = base.AttachTo(parent);
 
             TypeDefinition owner_type = this.OwnerType();
             if (this.MetaThisParameter == null && owner_type != null) // method
@@ -203,6 +204,11 @@ namespace Skila.Language.Entities
                 this.constructorZeroCall = FunctionCall.Create(NameReference.Create(NameFactory.ZeroConstructorName));
                 this.UserBody.Prepend(constructorZeroCall);
             }
+
+            if (result && parent is TypeContainerDefinition && !this.Modifier.HasAccessSet)
+                this.SetModifier(this.Modifier | EntityModifier.Public);
+
+            return result;
         }
 
         public override string ToString()
@@ -258,6 +264,7 @@ namespace Skila.Language.Entities
         // function is an expression only for a moment, as lambda, until it is lifted as closure method
         // however we have to provide those membes to be compatible with interface
         bool IExpression.IsDereferenced { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+        bool IExpression.IsDereferencing { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
         ExpressionReadMode IExpression.ReadMode => throw new NotImplementedException();
         bool IExpression.IsRead { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
         bool IExpression.IsLValue(ComputationContext ctx)

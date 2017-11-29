@@ -5,6 +5,7 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
 using System;
 using Skila.Language.Entities;
+using Skila.Language.Extensions;
 
 namespace Skila.Language.Flow
 {
@@ -31,6 +32,7 @@ namespace Skila.Language.Flow
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
+        public bool IsDereferencing { get; set; }
         public bool IsDereferenced { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Label }.Where(it => it != null);

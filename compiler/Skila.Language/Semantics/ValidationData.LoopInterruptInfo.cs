@@ -1,4 +1,5 @@
-﻿using Skila.Language.Flow;
+﻿using Skila.Language.Extensions;
+using Skila.Language.Flow;
 using System;
 using System.Linq;
 

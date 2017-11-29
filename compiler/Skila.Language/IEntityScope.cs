@@ -1,6 +1,7 @@
 ﻿using NaiveLanguageTools.Common;
 using Skila.Language.Comparers;
 using Skila.Language.Entities;
+using Skila.Language.Extensions;
 using System.Collections.Generic;
 
 namespace Skila.Language

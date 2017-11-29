@@ -2,7 +2,7 @@
 
 namespace Skila.Language
 {
-    public interface IEvaluable : INode
+    public interface IEvaluable : IValidable
     {
         EvaluationInfo Evaluation { get; }
         ValidationData Validation { get; set; }
@@ -10,7 +10,6 @@ namespace Skila.Language
         bool IsComputed { get; }
 
         void Evaluate(ComputationContext ctx);
-        void Validate(ComputationContext ctx);
     }
 
 }

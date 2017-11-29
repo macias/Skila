@@ -33,7 +33,7 @@ namespace Skila.Language.Extensions
             {
                 if (node is VariableDeclaration decl)
                 {
-                    if (decl.DebugId.Id==2548)
+                    if (decl.DebugId.Id == 2548)
                     {
                         ;
                     }
@@ -102,10 +102,8 @@ namespace Skila.Language.Extensions
 
             node.OwnedNodes.ForEach(it => Validated(it, ctx));
 
-            if (evaluable != null)
-                evaluable.Validate(ctx);
-            else if (node is IVerificable verificable)
-                verificable.Verify(ctx);
+            if (node is IValidable verificable)
+                verificable.Validate(ctx);
 
             if (node is IFunctionExit)
                 result.AddExit();

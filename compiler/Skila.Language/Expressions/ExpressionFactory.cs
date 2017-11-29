@@ -42,6 +42,10 @@ namespace Skila.Language.Expressions
 #endif
         }
 
+        public static IExpression StackConstructorCall(string typeName, params FunctionArgument[] arguments)
+        {
+            return StackConstructorCall(NameReference.Create(typeName), arguments);
+        }
         public static IExpression StackConstructorCall(NameReference typeName, params FunctionArgument[] arguments)
         {
             NameReference dummy;

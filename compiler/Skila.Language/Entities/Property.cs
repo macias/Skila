@@ -66,7 +66,7 @@ namespace Skila.Language.Entities
         public FunctionDefinition Getter { get { return getters.FirstOrDefault(); } }
         public FunctionDefinition Setter { get { return setters.FirstOrDefault(); } }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter }.Concat(Fields)
+        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }.Concat(Fields)
             .Where(it => it != null);
         public EntityModifier Modifier { get; }
 

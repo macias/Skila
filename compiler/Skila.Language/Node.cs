@@ -26,21 +26,28 @@ namespace Skila.Language
             this.Owner = null;
             this.OwnedNodes.ForEach(it => it.DetachFrom(this));
         }
-        public virtual void AttachTo(INode owner)
+        public virtual bool AttachTo(INode owner)
         {
             if (this.DebugId.Id == 7256)
             {
                 ;
             }
 
-            if (owner == null || this.Owner == owner)
-                return;
+            if (owner == null)
+                return false;
+            else if (this.Owner == owner)
+                return true;
             else if (this.Owner == null)
+            {
                 this.Owner = owner;
+            }
             else if (this.Owner != owner)
-                return;
+            {
+                return false;
+            }
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            return true;
         }
     }
 

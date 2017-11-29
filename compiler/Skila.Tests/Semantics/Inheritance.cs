@@ -12,6 +12,47 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Inheritance
     {
+        [TestMethod]
+        public IErrorReporter ErrorNonVirtualInterfacePattern()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ITransmogrifier")
+                .With(FunctionBuilder.CreateDeclaration("transmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference())
+                    .Modifier(EntityModifier.Private))
+                .With(FunctionBuilder.CreateDeclaration("untransmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference())
+                    .Modifier(EntityModifier.Private))
+            );
+
+            NameReference private_reference = NameReference.Create("transmogrify");
+            // refining private is OK, but we cannot change the access to it
+            FunctionDefinition public_func = FunctionBuilder.Create("untransmogrify", ExpressionReadMode.CannotBeRead,
+                    NameFactory.VoidTypeReference(), Block.CreateStatement())
+                .Modifier(EntityModifier.Refines);
+
+            root_ns.AddBuilder(TypeBuilder.Create("CardboardBox")
+                .Parents("ITransmogrifier")
+                // refining private is OK
+                .With(FunctionBuilder.Create("transmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Refines | EntityModifier.Private))
+                .With(public_func)
+                // but using it -- not
+                .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                    Block.CreateStatement(new[] {
+                        FunctionCall.Create(private_reference)
+                    })))
+                );
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AccessForbidden, private_reference));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteredAccessLevel, public_func.Modifier));
+
+            return resolver;
+        }
 
         [TestMethod]
         public IErrorReporter ErrorNothingToDerive()
@@ -19,12 +60,12 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition function = FunctionBuilder.Create("getSome", 
+            FunctionDefinition function = FunctionBuilder.Create("getSome",
                 ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("3"))
                     }))
-                    .Modifier(EntityModifier.Derived);
+                    .Modifier(EntityModifier.Refines);
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
                 .With(function));
 
@@ -120,7 +161,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(abc_type, abc_ref.Binding.Match.Target);
 
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                bar_ref.Binding.Match, deriv_ref.Binding.Match,out IEntityInstance common);
+                bar_ref.Binding.Match, deriv_ref.Binding.Match, out IEntityInstance common);
             Assert.IsTrue(found);
             Assert.AreEqual(abc_ref.Binding.Match, common);
 
@@ -136,7 +177,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                env.IntType.InstanceOf,env.DoubleType.InstanceOf, out IEntityInstance common);
+                env.IntType.InstanceOf, env.DoubleType.InstanceOf, out IEntityInstance common);
             Assert.IsTrue(found);
             Assert.AreEqual(env.ObjectType.InstanceOf, common);
 
@@ -235,7 +276,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.VoidTypeReference(),
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Derived);
+                    .Modifier(EntityModifier.Refines);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(bar_impl)
                 .With(fin_impl)
@@ -275,7 +316,7 @@ namespace Skila.Tests.Semantics
                         ExpressionFactory.Readout("x"),
                         Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))
-                    .Modifier(EntityModifier.Derived))
+                    .Modifier(EntityModifier.Refines))
                 .Parents(NameReference.Create("IX")));
 
             var resolver = NameResolver.Create(env);
@@ -312,7 +353,7 @@ namespace Skila.Tests.Semantics
                         ExpressionFactory.Readout("x"),
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Derived))
+                    .Modifier(EntityModifier.Refines))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);
@@ -352,7 +393,7 @@ namespace Skila.Tests.Semantics
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))
-                    .Modifier(EntityModifier.Derived))
+                    .Modifier(EntityModifier.Refines))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);

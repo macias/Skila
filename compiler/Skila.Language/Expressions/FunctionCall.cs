@@ -43,6 +43,7 @@ namespace Skila.Language.Expressions
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
+        public bool IsDereferencing { get; set; }
         // public bool IsStaticCall => this.Resolution.TargetInstance.Target.Modifier.HasStatic;
 
         // eventually some vague callee expression will become a name reference to a function
@@ -99,6 +100,7 @@ namespace Skila.Language.Expressions
                     EntityInstance eval = this.Callee.Evaluation.Components.Cast<EntityInstance>();
 
                     this.Callee.IsDereferenced = ctx.Env.Dereferenced(eval, out IEntityInstance __eval, out bool via_pointer);
+                    this.IsDereferencing = this.Callee.IsDereferenced;
                     if (this.Callee.IsDereferenced)
                         eval = __eval.Cast<EntityInstance>();
 

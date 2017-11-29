@@ -30,7 +30,9 @@ namespace Skila.Language
         public const string IIterableTypeName = "IIterable";
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
+        public const string BaseVariableName = "base";
         public const string SelfFunctionName = "self";
+        public const string SuperFunctionName = "super";
 
         public const string AddOperator = "+";
         public const string EqualOperator = "==";

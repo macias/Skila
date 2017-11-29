@@ -75,6 +75,7 @@ namespace Skila.Language
         public static NameReference Root => new NameReference(false, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
+        public bool IsDereferencing { get; set; }
         public bool IsDereferenced { get; set; }
 
         public ExpressionReadMode ReadMode => ExpressionReadMode.ReadRequired;
@@ -111,7 +112,7 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2679 || this.DebugId.Id==2677)
+                if (this.DebugId.Id == 2679 || this.DebugId.Id == 2677)
                 {
                     ;
                 }
@@ -127,7 +128,10 @@ namespace Skila.Language
                             ;
                         }
                         if (dereferenced)
+                        {
                             this.Prefix.IsDereferenced = true;
+                            this.IsDereferencing = true;
+                        }
                     }
                 }
                 else
@@ -143,6 +147,18 @@ namespace Skila.Language
 
                         if (this.Name == NameFactory.SelfFunctionName)
                             entities = new[] { this.EnclosingScope<FunctionDefinition>() };
+                        else if (this.Name == NameFactory.BaseVariableName)
+                        {//@@@
+                            TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
+                            entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
+                        }
+                        else if (this.Name == NameFactory.SuperFunctionName)
+                        {//@@@
+                            FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                            func = func.GetSuperFunction(ctx);
+
+                            entities = new[] { func };
+                        }
                         else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
                         {
                             FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
@@ -206,16 +222,27 @@ namespace Skila.Language
                                 ;
                             }
                             if (dereferenced)
+                            {
                                 this.Prefix.IsDereferenced = true;
+                                this.IsDereferencing = true;
+                            }
                         }
                     }
 
                     if (this.Binding.Match.IsJoker && !this.IsSink)
                         ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
-                    else if (this.Binding.Match.Target is FunctionDefinition func
-                        && this.EnclosingScope<FunctionDefinition>() == func
-                        && this.Name != NameFactory.SelfFunctionName)
-                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
+                    else if (this.Binding.Match.Target is FunctionDefinition binding_func)
+                    {
+                        FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                        if (this.Name != NameFactory.SelfFunctionName && binding_func == func)
+                            ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
+                        else if (this.Name != NameFactory.SuperFunctionName)
+                        {
+                            //@@@func = func.GetSuperFunction(ctx);
+                            //@@@if (func == binding_func)
+                            //@@@ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
+                        }
+                    }
                 }
 
                 EntityInstance instance = this.Binding.Match;
@@ -238,7 +265,7 @@ namespace Skila.Language
                     aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
                 }
 
-                this.Evaluation = new EvaluationInfo(eval,aggregate);
+                this.Evaluation = new EvaluationInfo(eval, aggregate);
             }
         }
 
@@ -262,10 +289,6 @@ namespace Skila.Language
                 }
             });
 
-            if (this.Binding.Match.Target.DebugId.Id == 489)
-            {
-                ;
-            }
             if (!this.Binding.Matches.Any())
             {
                 if (mismatch == ConstraintMatch.BaseViolation)
@@ -299,10 +322,26 @@ namespace Skila.Language
             {
                 ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);
             }
+
+            {
+                IEntity binding_target = this.Binding.Match.Target;
+                if (binding_target.Modifier.HasPrivate)
+                {
+                    // if the access to entity is private and it is overriden entity it means we have Non-Virtual Interface pattern
+                    // as we should forbid access to such entity
+                    // this condition checks only if disallow opening access from private to protected/public during derivation
+                    if (binding_target.Modifier.HasRefines 
+                        // this is classic check if we are targeting types in current scope
+                        || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>()))
+                    {
+                        ctx.AddError(ErrorCode.AccessForbidden, this);
+                    }
+                }
+            }
         }
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {
-            if (!ctx.Env.Dereferenced(entityInstance,out IEntityInstance __eval,out bool via_pointer))
+            if (!ctx.Env.Dereferenced(entityInstance, out IEntityInstance __eval, out bool via_pointer))
                 return entityInstance;
 
             dereferenced = true;

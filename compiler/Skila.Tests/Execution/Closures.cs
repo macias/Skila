@@ -50,7 +50,8 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, 
+                    EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
@@ -89,7 +90,8 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, 
+                    EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),

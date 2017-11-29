@@ -110,7 +110,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Derived))
+                    .Modifier(EntityModifier.Refines))
                     .Parents(NameReference.Create("Y")));
 
             root_ns.AddBuilder(FunctionBuilder.Create(

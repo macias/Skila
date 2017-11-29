@@ -48,6 +48,7 @@ namespace Skila.Language.Flow
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
+        public bool IsDereferencing { get; set; }
 
         private Loop(NameDefinition label,
             IEnumerable<IExpression> init,
