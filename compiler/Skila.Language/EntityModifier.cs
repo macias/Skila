@@ -27,6 +27,7 @@ namespace Skila.Language
             Refines, // modifier for methods ("override" in C#)
             Abstract,
             Protected,
+            UnchainBase, // despite we derive base function we won't call it
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -44,6 +45,7 @@ namespace Skila.Language
         public static readonly EntityModifier Abstract = new EntityModifier(ModifierIndex.Abstract);
         public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
         public static readonly EntityModifier Protected = new EntityModifier(ModifierIndex.Protected);
+        public static readonly EntityModifier UnchainBase = new EntityModifier(ModifierIndex.UnchainBase);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -62,6 +64,7 @@ namespace Skila.Language
         public bool HasRefines => this.flags[(int)ModifierIndex.Refines] > 0;
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
         public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;
+        public bool HasUnchainBase => this.flags[(int)ModifierIndex.UnchainBase] > 0;
 
         public bool HasSealed => !this.HasInterface // makes sense only for types
                                  && !this.HasVirtual;

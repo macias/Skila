@@ -234,6 +234,17 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
+            if (this.Modifier.HasRefines && !this.Modifier.HasUnchainBase)
+            {
+                FunctionDefinition func = this;
+                if (this.OwnerType().DerivationTable.TryGetSuper(ref func)
+                    && !func.IsDeclaration
+                    && !this.DescendantNodes().WhereType<FunctionCall>().Any(it => it.Name.IsSuperReference))
+                {
+                    ctx.AddError(ErrorCode.DerivationWithoutSuperCall, this);
+                }
+            }
+
             if (!this.IsDeclaration)
             {
                 if (!ctx.Env.IsOfVoidType(this.ResultTypeName)

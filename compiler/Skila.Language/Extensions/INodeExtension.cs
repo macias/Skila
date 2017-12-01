@@ -7,6 +7,10 @@ namespace Skila.Language.Extensions
 {
     public static class INodeExtension
     {
+        public static IEnumerable<INode> DescendantNodes(this INode node)
+        {
+            return node.OwnedNodes.Concat(node.OwnedNodes.SelectMany(it => it.DescendantNodes()));
+        }
         public static IEnumerable<IScope> EnclosingScopesToRoot(this INode node)
         {
             while (true)

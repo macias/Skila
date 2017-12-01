@@ -68,5 +68,7 @@
         AccessForbidden = 64,
         AlteredAccessLevel = 65,
         ConflictingModifier = 66,
+        DerivationWithoutSuperCall = 67,
+        SuperCallWithUnchainedBase = 68,
     }
 }

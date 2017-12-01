@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //  new Semantics.NameResolution().ErrorAccessForbidden();
-              new Semantics.FunctionCalls().ErrorCallingSuperFunctionByFunctioName();
+            //new Semantics.FunctionCalls().ErrorUnchainedBase();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
             // new Semantics.Expressions().ErrorIgnoringParameters();

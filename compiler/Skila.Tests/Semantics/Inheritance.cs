@@ -274,7 +274,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.VoidTypeReference(),
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Refines);
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(bar_impl)
                 .With(fin_impl)

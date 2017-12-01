@@ -139,6 +139,58 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter ErrorUnchainedBase()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Middle")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("getB"),
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("51"))
+                    }))
+                    .Modifier(EntityModifier.Base)));
+
+            NameReference super_function_reference = NameReference.Create(NameFactory.SuperFunctionName);
+            root_ns.AddBuilder(TypeBuilder.Create("End")
+                .Parents("Middle")
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("getB"),
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(FunctionCall.Create(super_function_reference))
+                    }))
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+
+            FunctionDefinition func = FunctionBuilder.Create(
+                NameDefinition.Create("getB"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("1"))
+                }))
+            .Modifier(EntityModifier.Refines);
+
+            root_ns.AddBuilder(TypeBuilder.Create("Alter")
+                .Parents("Middle")
+                .With(func));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SuperCallWithUnchainedBase, super_function_reference));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.DerivationWithoutSuperCall, func));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorCallingSuperFunctionByFunctioName()
         {
             var env = Environment.Create();
@@ -165,7 +217,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(super_function_reference))
                     }))
-                    .Modifier(EntityModifier.Refines)));
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
 
             var resolver = NameResolver.Create(env);
 

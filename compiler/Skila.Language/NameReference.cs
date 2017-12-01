@@ -81,6 +81,8 @@ namespace Skila.Language
         public bool IsDereferencing { get; set; }
         public bool IsDereferenced { get; set; }
 
+        public bool IsSuperReference => this.Name == NameFactory.SuperFunctionName;
+
         public ExpressionReadMode ReadMode => ExpressionReadMode.ReadRequired;
 
         public bool IsSink => this.Arity == 0 && this.Prefix == null && this.Name == sink;
@@ -166,7 +168,7 @@ namespace Skila.Language
                         TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
                         entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
                     }
-                    else if (this.Name == NameFactory.SuperFunctionName)
+                    else if (this.IsSuperReference)
                     {
                         FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                         func = func.TryGetSuperFunction(ctx);
@@ -332,6 +334,9 @@ namespace Skila.Language
                 ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);
             }
 
+            if (this.IsSuperReference && this.EnclosingScope<FunctionDefinition>().Modifier.HasUnchainBase)
+                ctx.AddError(ErrorCode.SuperCallWithUnchainedBase, this);
+
             {
                 IEntity binding_target = this.Binding.Match.Target;
                 if (binding_target.Modifier.HasPrivate)
@@ -353,7 +358,7 @@ namespace Skila.Language
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                 if (this.Name != NameFactory.SelfFunctionName && binding_func == func)
                     ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
-                else if (this.Name != NameFactory.SuperFunctionName && func!=null)
+                else if (!this.IsSuperReference && func!=null)
                 {
                     func = func.TryGetSuperFunction(ctx);
                     if (func == binding_func)
