@@ -127,7 +127,9 @@ namespace Skila.Language.Extensions
 
             // we have to manually evaluate this expression, because it is child of current node, and child nodes
             // are evaluated before their parents
+            closure_type.Surfed(ctx); 
             closure_type.Evaluated(ctx);
+
             // todo: this is ugly -- we are breaking into details of separate type
             // since the function is already computed, it won't evaluate meta this parameter
             lambda.MetaThisParameter.Evaluated(ctx);
@@ -168,6 +170,7 @@ namespace Skila.Language.Extensions
                     source = ExpressionFactory.HeapConstructorCall(closure_type.InstanceOf.NameOf);
                 source.AttachTo(node);
 
+                closure_type.Surfed(ctx);
                 closure_type.Evaluated(ctx);
 
                 closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx);

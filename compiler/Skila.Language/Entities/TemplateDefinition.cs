@@ -12,7 +12,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public abstract class TemplateDefinition : Node, IEntity, IEntityScope
+    public abstract class TemplateDefinition : Node, IEntity, IEntityScope,ISurfable
     {
         private readonly HashSet<INode> ownedNodes;
         private readonly Lazy<EntityInstance> instanceOf;
@@ -51,6 +51,9 @@ namespace Skila.Language.Entities
         // for example "Array<T>" can have method "copy" present with conditional on the method (not entire type)
         // that T has method "copy" itself, otherwise the method "Array.copy" is not available
         public IEnumerable<TemplateConstraint> Conditionals { get; }
+
+        public bool IsSurfed { get; set; }
+        public virtual IEnumerable<ISurfable> Surfables => this.NestedTemplates;
 
         // used to protect ourselves against adding extra nodes after the object is built
         // used in functions and types, not namespaces
@@ -127,7 +130,16 @@ namespace Skila.Language.Entities
         {
             ;
         }
-        public abstract void Evaluate(ComputationContext ctx);
 
+        public virtual void Evaluate(ComputationContext ctx)
+        {
+
+        }
+
+
+        public virtual void Surf(ComputationContext ctx)
+        {
+
+        }
     }
 }

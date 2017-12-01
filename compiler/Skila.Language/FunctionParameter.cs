@@ -12,7 +12,7 @@ using Skila.Language.Expressions;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed,ILocalBindable
+    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed, ILocalBindable, ISurfable
     {
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
@@ -39,7 +39,7 @@ namespace Skila.Language
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, DefaultValue }.Where(it => it != null);
 
-        public bool IsComputed => this.Evaluation != null;
+        public bool IsComputed { get; private set; }
 
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
@@ -55,6 +55,10 @@ namespace Skila.Language
                 this.index = new Option<int>(value);
             }
         }
+
+        public bool IsSurfed { get; set; }
+        public IEnumerable<ISurfable> Surfables { get { yield return this.TypeName; } }
+
 
         private FunctionParameter(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue, bool isNameRequired)
@@ -76,32 +80,42 @@ namespace Skila.Language
             return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName} {Variadic}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 
+        public void Surf(ComputationContext ctx)
+        {
+            compute(ctx);
+        }
+
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
+                compute(ctx);
+
+            this.DataTransfer(ctx, ref this.defaultValue, this.Evaluation.Components);
+
+            if (this.IsOptional)
             {
-                this.Evaluation = this.TypeName.Evaluation;
+                if (this.DefaultValue.IsUndef())
+                    ctx.AddError(ErrorCode.InitializationWithUndef, this.DefaultValue);
 
-                this.DataTransfer(ctx, ref this.defaultValue, this.Evaluation.Components);
-
-                if (this.IsOptional)
-                {
-                    if (this.DefaultValue.IsUndef())
-                        ctx.AddError(ErrorCode.InitializationWithUndef, this.DefaultValue);
-
-                    this.DefaultValue.IsRead = true;
-                }
-
-                if (this.IsVariadic && !this.Variadic.HasValidLimits)
-                    ctx.ErrorManager.AddError(ErrorCode.InvalidVariadicLimits, this);
+                this.DefaultValue.IsRead = true;
             }
+
+            if (this.IsVariadic && !this.Variadic.HasValidLimits)
+                ctx.ErrorManager.AddError(ErrorCode.InvalidVariadicLimits, this);
+
+            this.IsComputed = true;
+        }
+
+        private void compute(ComputationContext ctx)
+        {
+            this.Evaluation = this.TypeName.Evaluation ?? throw new Exception("Internal error");
         }
 
         public void Validate(ComputationContext ctx)
         {
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments,bool overrideMutability)
+        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
         {
             return this.InstanceOf;
         }

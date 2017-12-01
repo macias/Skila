@@ -62,9 +62,11 @@
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="EntityInstanceIntersection.cs" />
     <Compile Include="EntityInstanceSet.cs" />
+    <Compile Include="Extensions\ISurfableExtension.Surfed.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
     <Compile Include="EvaluationInfo.cs" />
     <Compile Include="Extensions\INodeExtension.cs" />
+    <Compile Include="ISurfable.cs" />
     <Compile Include="ILocalBindable.cs" />
     <Compile Include="INameRegistry.cs" />
     <Compile Include="LambdaTrap.cs" />
@@ -186,9 +188,11 @@
     <Compile Include="TemplateParameter.cs" />
     <Compile Include="NameReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DerivationTable.cs" />
     <Compile Include="VirtualTable.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Documentation\Processing.md" />
     <None Include="Documentation\References.md" />
     <None Include="Documentation\Assignments.md" />
   </ItemGroup>

@@ -29,7 +29,11 @@ namespace Skila.Language.Extensions
         }
         public static bool IsValue(this IExpression @this)
         {
-            IEntity entity = (@this as NameReference)?.Binding.Match.Target;
+            NameReference nameReference = (@this as NameReference);
+            // todo: make it nice, such exception is ugly
+            if (nameReference?.Name == NameFactory.BaseVariableName)
+                return true;
+            IEntity entity = nameReference?.Binding.Match.Target;
             return (entity == null || (!entity.IsType() && !entity.IsNamespace()));
         }
 

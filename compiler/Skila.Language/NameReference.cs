@@ -64,13 +64,16 @@ namespace Skila.Language
         public Binding Binding { get; }
         public int Arity => this.TemplateArguments.Count;
 
-        public bool IsComputed => this.Evaluation != null;
+        public bool IsComputed { get; private set; }
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
             .Concat(this.Prefix).Where(it => it != null);
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(Prefix);
+
+        public bool IsSurfed { get; set; }
+        public IEnumerable<ISurfable> Surfables => this.OwnedNodes.WhereType<ISurfable>();
 
         public static NameReference Root => new NameReference(false, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
@@ -111,18 +114,128 @@ namespace Skila.Language
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
-            {
-                if (this.DebugId.Id == 2679 || this.DebugId.Id == 2677)
-                {
-                    ;
-                }
+                compute(ctx);
 
-                if (this.Binding.IsComputed)
+            this.IsComputed = true;
+        }
+
+        public void Surf(ComputationContext ctx)
+        {
+            compute(ctx);
+        }
+
+        private void compute(ComputationContext ctx)
+        {
+            if (this.DebugId.Id == 2963)
+            {
+                ;
+            }
+
+            if (this.Binding.IsComputed)
+            {
+                if (this.Prefix != null)
                 {
-                    if (this.Prefix != null)
+                    bool dereferenced = false;
+                    this.Prefix.Evaluation.Components.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                    if (this.Prefix.DebugId.Id == 2572)
                     {
+                        ;
+                    }
+                    if (dereferenced)
+                    {
+                        this.Prefix.IsDereferenced = true;
+                        this.IsDereferencing = true;
+                    }
+                }
+            }
+            else
+            {
+                if (this.IsRoot)
+                {
+                    this.Binding.Set(new[] { EntityInstance.Create(ctx, ctx.Env.Root,
+                            Enumerable.Empty<INameReference>(),this.OverrideMutability) });
+                }
+                else if (this.Prefix == null)
+                {
+                    IEnumerable<IEntity> entities;
+
+                    if (this.Name == NameFactory.SelfFunctionName)
+                        entities = new[] { this.EnclosingScope<FunctionDefinition>() };
+                    else if (this.Name == NameFactory.BaseVariableName)
+                    {
+                        TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
+                        entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
+                    }
+                    else if (this.Name == NameFactory.SuperFunctionName)
+                    {
+                        FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                        func = func.TryGetSuperFunction(ctx);
+                        if (func == null)
+                            entities = Enumerable.Empty<IEntity>();
+                        else
+                            entities = new[] { func };
+                    }
+                    else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
+                    {
+                        FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
+                        FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
+
+                        if (local_function != entity_function)
+                        {
+                            entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+                        }
+
+                        entities = new[] { entity };
+                    }
+                    else
+                    {
+                        entities = Enumerable.Empty<IEntity>();
+                        foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
+                        {
+                            entities = scope.FindEntities(this);
+                            if (entities.Any())
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    this.Binding.Set(entities
+                        .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
+                }
+                else
+                {
+                    if (this.DebugId.Id == 1734)
+                    {
+                        ;
+                    }
+
+                    // referencing static member?
+                    if (this.Prefix is NameReference prefix_ref 
+                        // todo: make it nice, currently refering to base look like static reference
+                        && prefix_ref.Name!=NameFactory.BaseVariableName //@@@
+                        && prefix_ref.Binding.Match.Target.IsType())
+                    {
+                        TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
+                        this.Binding.Set(target_type.FindEntities(this)
+                            .Where(it => it.Modifier.HasStatic)
+                            .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
+                    }
+                    else
+                    {
+                        if (this.DebugId.Id == 2723)
+                        {
+                            ;
+                        }
+
                         bool dereferenced = false;
-                        this.Prefix.Evaluation.Components.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                        TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
+                            .TargetTemplate;
+                        IEnumerable<IEntity> entities = prefix_target.FindEntities(this)
+                            .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
+
+                        this.Binding.Set(entities
+                            .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
                         if (this.Prefix.DebugId.Id == 2572)
                         {
                             ;
@@ -134,139 +247,35 @@ namespace Skila.Language
                         }
                     }
                 }
-                else
+
+                if (this.Binding.Match.IsJoker && !this.IsSink)
                 {
-                    if (this.IsRoot)
-                    {
-                        this.Binding.Set(new[] { EntityInstance.Create(ctx, ctx.Env.Root,
-                            Enumerable.Empty<INameReference>(),this.OverrideMutability) });
-                    }
-                    else if (this.Prefix == null)
-                    {
-                        IEnumerable<IEntity> entities;
-
-                        if (this.Name == NameFactory.SelfFunctionName)
-                            entities = new[] { this.EnclosingScope<FunctionDefinition>() };
-                        else if (this.Name == NameFactory.BaseVariableName)
-                        {//@@@
-                            TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
-                            entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
-                        }
-                        else if (this.Name == NameFactory.SuperFunctionName)
-                        {//@@@
-                            FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                            func = func.GetSuperFunction(ctx);
-
-                            entities = new[] { func };
-                        }
-                        else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
-                        {
-                            FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
-                            FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
-
-                            if (local_function != entity_function)
-                            {
-                                entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
-                            }
-
-                            entities = new[] { entity };
-                        }
-                        else
-                        {
-                            entities = Enumerable.Empty<IEntity>();
-                            foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
-                            {
-                                entities = scope.FindEntities(this);
-                                if (entities.Any())
-                                {
-                                    break;
-                                }
-                            }
-                        }
-
-                        this.Binding.Set(entities
-                            .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
-                    }
-                    else
-                    {
-                        if (this.DebugId.Id == 1734)
-                        {
-                            ;
-                        }
-
-                        // referencing static member?
-                        if (this.Prefix is NameReference prefix_ref && prefix_ref.Binding.Match.Target.IsType())
-                        {
-                            TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                            this.Binding.Set(target_type.FindEntities(this)
-                                .Where(it => it.Modifier.HasStatic)
-                                .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
-                        }
-                        else
-                        {
-                            if (this.DebugId.Id == 2723)
-                            {
-                                ;
-                            }
-
-                            bool dereferenced = false;
-                            TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
-                                .TargetTemplate;
-                            IEnumerable<IEntity> entities = prefix_target.FindEntities(this)
-                                .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
-
-                            this.Binding.Set(entities
-                                .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
-                            if (this.Prefix.DebugId.Id == 2572)
-                            {
-                                ;
-                            }
-                            if (dereferenced)
-                            {
-                                this.Prefix.IsDereferenced = true;
-                                this.IsDereferencing = true;
-                            }
-                        }
-                    }
-
-                    if (this.Binding.Match.IsJoker && !this.IsSink)
-                        ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
-                    else if (this.Binding.Match.Target is FunctionDefinition binding_func)
-                    {
-                        FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                        if (this.Name != NameFactory.SelfFunctionName && binding_func == func)
-                            ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
-                        else if (this.Name != NameFactory.SuperFunctionName)
-                        {
-                            //@@@func = func.GetSuperFunction(ctx);
-                            //@@@if (func == binding_func)
-                            //@@@ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
-                        }
-                    }
+                    ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
                 }
-
-                EntityInstance instance = this.Binding.Match;
-                IEntityInstance eval;
-                EntityInstance aggregate;
-                if (instance.Target.IsType() || instance.Target.IsNamespace())
-                {
-                    eval = instance;
-                    aggregate = instance;
-                }
-                else
-                {
-                    eval = instance.Evaluated(ctx);
-                    aggregate = instance.Aggregate;
-                }
-
-                if (this.Prefix != null)
-                {
-                    eval = eval.TranslateThrough(this.Prefix.Evaluation.Components);
-                    aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
-                }
-
-                this.Evaluation = new EvaluationInfo(eval, aggregate);
+                
             }
+
+            EntityInstance instance = this.Binding.Match;
+            IEntityInstance eval;
+            EntityInstance aggregate;
+            if (instance.Target.IsType() || instance.Target.IsNamespace())
+            {
+                eval = instance;
+                aggregate = instance;
+            }
+            else
+            {
+                eval = instance.Evaluated(ctx);
+                aggregate = instance.Aggregate;
+            }
+
+            if (this.Prefix != null)
+            {
+                eval = eval.TranslateThrough(this.Prefix.Evaluation.Components);
+                aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
+            }
+
+            this.Evaluation = new EvaluationInfo(eval, aggregate);
         }
 
         public void Validate(ComputationContext ctx)
@@ -330,12 +339,25 @@ namespace Skila.Language
                     // if the access to entity is private and it is overriden entity it means we have Non-Virtual Interface pattern
                     // as we should forbid access to such entity
                     // this condition checks only if disallow opening access from private to protected/public during derivation
-                    if (binding_target.Modifier.HasRefines 
+                    if (binding_target.Modifier.HasRefines
                         // this is classic check if we are targeting types in current scope
                         || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>()))
                     {
                         ctx.AddError(ErrorCode.AccessForbidden, this);
                     }
+                }
+            }
+
+            if (this.Binding.Match.Target is FunctionDefinition binding_func)
+            {
+                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                if (this.Name != NameFactory.SelfFunctionName && binding_func == func)
+                    ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
+                else if (this.Name != NameFactory.SuperFunctionName && func!=null)
+                {
+                    func = func.TryGetSuperFunction(ctx);
+                    if (func == binding_func)
+                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
                 }
             }
         }

@@ -150,8 +150,8 @@ namespace Skila.Tests.Execution
             return interpreter;
         }
 
-      //  [TestMethod]
-        public IInterpreter TODO_VirtualCallAtBase()
+        [TestMethod]
+        public IInterpreter VirtualCallAtBase()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -162,6 +162,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
                 .Parents("IBase")
+                .Modifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getA"),
                     ExpressionReadMode.ReadRequired,
@@ -194,8 +195,9 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
+                        // return 1+super()+base.getA()
                         Return.Create(ExpressionFactory.AddOperator( IntLiteral.Create("1"),
-                            ExpressionFactory.AddOperator(FunctionCall.Create(NameReference.Create(NameFactory.SelfFunctionName)),
+                            ExpressionFactory.AddOperator(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName)),
                                 FunctionCall.Create(NameReference.Create(NameFactory.BaseVariableName,"getA")))))
                     }))
                     .Modifier(EntityModifier.Refines)));
@@ -205,8 +207,13 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IBase")),null,EntityModifier.Reassignable),
-                    Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructorCall(NameReference.Create("End"))),
+                    // i *IBase
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IBase")),
+                        null,EntityModifier.Reassignable),
+                    // i = new End()
+                    Assignment.CreateStatement(NameReference.Create("i"),
+                        ExpressionFactory.HeapConstructorCall(NameReference.Create("End"))),
+                    // return i.getB()
                     Return.Create(FunctionCall.Create(NameReference.Create("i","getB")))
                 })));
 

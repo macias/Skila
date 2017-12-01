@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Skila.Language
 {
-    public interface INameReference : IReferentialName
+    public interface INameReference : IReferentialName,ISurfable
     {
         bool IsBindingComputed { get; }
     }

@@ -93,15 +93,13 @@ namespace Skila.Language.Entities
             .Concat(this.thisNameReference)
             .Where(it => it != null);
 
+        public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.Parameters).Concat(ResultTypeName);
+
         // we keep this as a shortcut for particular piece of the body (initially chain call is not part of the body)
         private readonly FunctionCall constructorChainCall;
         private FunctionCall constructorZeroCall;
 
         public bool IsDeclaration => this.UserBody == null;
-        public bool IsAbstract => this.IsDeclaration || this.Modifier.HasAbstract;
-        // sealed functions cannot be derived from
-        public bool IsSealed => !this.IsAbstract && !this.Modifier.HasBase;
-        public bool IsVirtual => this.IsAbstract || this.Modifier.HasRefines || this.Modifier.HasBase;
 
         public bool IsLambdaInvoker => this.Name.Name == NameFactory.LambdaInvoke;
         public bool IsLambda => this.EnclosingScope<TemplateDefinition>().IsFunction();
@@ -114,7 +112,7 @@ namespace Skila.Language.Entities
             INameReference result,
             FunctionCall chainCall,
             Block body)
-            : base(modifier, name, constraints)
+            : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
@@ -231,17 +229,7 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (!this.IsComputed)
-            {
-                this.IsComputed = true;
-
-                FunctionParameter tail_anon_variadic = this.Parameters
-                    .Where(it => it.IsVariadic)
-                    .Skip(1) // first variadic can be anonymous
-                    .FirstOrDefault(it => !it.IsNameRequired);
-                if (tail_anon_variadic != null)
-                    ctx.AddError(ErrorCode.AnonymousTailVariadicParameter, tail_anon_variadic);
-            }
+            this.IsComputed = true;
         }
 
         public override void Validate(ComputationContext ctx)
@@ -253,6 +241,13 @@ namespace Skila.Language.Entities
                     && !this.UserBody.Validation.IsTerminated)
                     ctx.AddError(ErrorCode.MissingReturn, this.UserBody);
             }
+
+            FunctionParameter tail_anon_variadic = this.Parameters
+                .Where(it => it.IsVariadic)
+                .Skip(1) // first variadic can be anonymous
+                .FirstOrDefault(it => !it.IsNameRequired);
+            if (tail_anon_variadic != null)
+                ctx.AddError(ErrorCode.AnonymousTailVariadicParameter, tail_anon_variadic);
         }
 
         public bool IsReadingValueOfNode(IExpression node)

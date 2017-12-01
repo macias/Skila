@@ -79,6 +79,9 @@ namespace Skila.Language.Entities
         public TypeInheritance Inheritance { get; private set; }
         private bool inheritanceComputed => this.Inheritance != null;
 
+        private bool isEvaluated;
+        public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.ParentNames);
+
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
             .Concat(this.ParentNames)
             .Where(it => it != null);
@@ -88,6 +91,7 @@ namespace Skila.Language.Entities
         public bool IsPlain { get; }
 
         public VirtualTable InheritanceVirtualTable { get; private set; }
+        public DerivationTable DerivationTable { get; private set; }
 
         private readonly FunctionDefinition zeroConstructor;
         public FunctionDefinition ZeroConstructor => this.zeroConstructor;
@@ -116,79 +120,90 @@ namespace Skila.Language.Entities
             constructionCompleted = true;
         }
 
+        public override void Surf(ComputationContext ctx)
+        {
+            base.Surf(ctx);
+
+            compute(ctx);
+        }
+
         public override void Evaluate(ComputationContext ctx)
         {
-            if (IsComputed)
-                return;
+            if (!this.isEvaluated)
+                compute(ctx);
 
             IsComputed = true;
+        }
 
-            base.Evaluate(ctx);
-
-            if (this.DebugId.Id == 3945)
-            {
-                ;
-            }
-
+        private void compute(ComputationContext ctx)
+        {
             computeAncestors(ctx, new HashSet<TypeDefinition>());
 
+
+            // base method -> derived (here) method
+            var virtual_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
+            // derived (here) method -> base methods
+            Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = this.NestedFunctions
+                .Where(it => it.Modifier.HasRefines)
+                .ToDictionary(it => it, it => new List<FunctionDefinition>());
+
+            // ancestors are guaranteed to start with parent type implementation
+            foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+            {
+                foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.NestedFunctions))
+                {
+                    if (deriv_info.Derived == null)
+                    {
+                        if (deriv_info.Base.Modifier.HasAbstract)
+                            ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
+                    }
+                    else
+                    {
+                        if (!deriv_info.Derived.Modifier.HasRefines)
+                            ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
+                        else
+                            derivation_mapping[deriv_info.Derived].Add(deriv_info.Base);
+
+                        if (!deriv_info.Base.Modifier.HasSealed)
+                        {
+                            virtual_mapping.Add(deriv_info.Base, deriv_info.Derived);
+
+                            // the rationale for keeping the same access level is this
+                            // narrowing is pretty easy to skip by downcasting
+                            // expanding looks like a good idea, but... -- the author of original type
+                            // maybe had better understanding why given function is private/protected and not protected/public
+                            // it is better to keep it safe, despite little annoyance (additional wrapper), than finding out
+                            // how painful is violating that "good reason" because it was too easy to type "public"
+                            if (!deriv_info.Base.Modifier.SameAccess(deriv_info.Derived.Modifier))
+                                ctx.AddError(ErrorCode.AlteredAccessLevel, deriv_info.Derived.Modifier);
+                        }
+                        else if (deriv_info.Derived.Modifier.HasRefines)
+                            ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
+                    }
+                }
+            }
+
+            this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
+            this.DerivationTable = new DerivationTable(derivation_mapping);
+
+            foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
+                ctx.AddError(ErrorCode.NothingToDerive, func);
+
+            this.isEvaluated = true;
+        }
+
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
 
             foreach (NameReference parent in this.ParentNames.Skip(1))
                 if (parent.Evaluation.Components.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                     ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
 
-
-            {
-                // base method -> derived (here) method
-                var derivations = new Dictionary<FunctionDefinition, FunctionDefinition>();
-                HashSet<FunctionDefinition> current_functions = this.NestedFunctions.ToHashSet();
-                foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
-                {
-                    foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, current_functions))
-                    {
-                        if (deriv_info.Derived == null)
-                        {
-                            if (deriv_info.Base.IsAbstract)
-                                ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
-                        }
-                        else
-                        {
-                            bool removed = current_functions.Remove(deriv_info.Derived);
-
-                            if (!deriv_info.Derived.Modifier.HasRefines)
-                                ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
-
-                            if (!deriv_info.Base.IsSealed)
-                            {
-                                if (!removed)
-                                    throw new System.Exception("Internal error");
-                                derivations.Add(deriv_info.Base, deriv_info.Derived);
-
-                                // the rationale for keeping the same access level is this
-                                // narrowing is pretty easy to skip by downcasting
-                                // expanding looks like a good idea, but... -- the author of original type
-                                // maybe had better understanding why given function is private/protected and not protected/public
-                                // it is better to keep it safe, despite little annoyance (additional wrapper), than finding out
-                                // how painful is violating that "good reason" because it was too easy to type "public"
-                                if (!deriv_info.Base.Modifier.SameAccess(deriv_info.Derived.Modifier))
-                                    ctx.AddError(ErrorCode.AlteredAccessLevel, deriv_info.Derived.Modifier);
-                            }
-                            else if (deriv_info.Derived.Modifier.HasRefines)
-                                ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
-                        }
-                    }
-                }
-
-                this.InheritanceVirtualTable = new VirtualTable(derivations, isPartial: false);
-
-                foreach (FunctionDefinition func in current_functions.Where(it => it.Modifier.HasRefines)) 
-                    ctx.AddError(ErrorCode.NothingToDerive, func);
-            }
-
             if (!this.IsAbstract)
             {
                 foreach (FunctionDefinition func in this.NestedFunctions)
-                    if (func.IsAbstract)
+                    if (func.Modifier.HasAbstract)
                         ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
                     else if (func.Modifier.HasBase && this.Modifier.HasSealed)
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
@@ -208,7 +223,6 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
             }
-
         }
 
         private void addAutoConstructors(ref FunctionDefinition zeroConstructor)
@@ -356,8 +370,11 @@ namespace Skila.Language.Entities
             if (this != ctx.Env.ObjectType && !parents.Any() && this != ctx.Env.VoidType)
                 parents.Add(ctx.Env.ObjectType.InstanceOf);
 
+            // user could give incorrect order to to avoid of further errors sort the parents in correct order
+            List<EntityInstance> ordered_parents = parents.OrderBy(it => it.IsTypeImplementation ? 0 : 1).ToList();
+
             this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,
-                parents, completeAncestors: ancestors.Concat(parents));
+                ordered_parents, completeAncestors: ordered_parents.Concat(ancestors));
 
             return true;
         }

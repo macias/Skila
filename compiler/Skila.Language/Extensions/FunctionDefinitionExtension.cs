@@ -20,13 +20,17 @@ namespace Skila.Language.Extensions
 
             return true;
         }
-        public static FunctionDefinition GetSuperFunction(this FunctionDefinition func, ComputationContext ctx)
+        public static FunctionDefinition TryGetSuperFunction(this FunctionDefinition func, ComputationContext ctx)
         {
             TypeDefinition curr_type = func.OwnerType();
-            curr_type.Evaluated(ctx);
+            if (curr_type == null)
+                return null; // we need to be within type to get base function
 
-            if (!curr_type.InheritanceVirtualTable.TryGetBase(ref func))
-                throw new NotImplementedException();
+            if (!curr_type.IsSurfed)
+                throw new NotImplementedException("We need at this point the type surface is processed, yet we are processing the body (?) of the function");
+
+                if (!curr_type.DerivationTable.TryGetSuper(ref func))
+                    return null; 
 
             return func;
         }

@@ -228,14 +228,12 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var foo_type = TypeBuilder.Create("Foo")
+            system_ns.AddBuilder(TypeBuilder.Create("Foo")
                 .Modifier(EntityModifier.Base)
-                .Parents(NameReference.Create("Bar")).Build();
-            system_ns.AddNode(foo_type);
-            var bar_type = TypeBuilder.Create("Bar")
+                .Parents(NameReference.Create("Bar")));
+            system_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Base)
-                .Parents(NameReference.Create("Foo")).Build();
-            system_ns.AddNode(bar_type);
+                .Parents(NameReference.Create("Foo")));
 
             // if it does not hang, it is OK
             var resolver = NameResolver.Create(env);

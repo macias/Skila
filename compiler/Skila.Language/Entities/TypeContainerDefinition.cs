@@ -17,8 +17,10 @@ namespace Skila.Language.Entities
         {
         }
 
-        public override void Evaluate(ComputationContext ctx)
+        public override void Validate(ComputationContext ctx)
         {
+            base.Validate(ctx);
+
             {   // detecting function duplicates
                 var functions = NestedFunctions.StoreReadOnlyList();
                 for (int a = 0; a < functions.Count; ++a)

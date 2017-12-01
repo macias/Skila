@@ -24,6 +24,8 @@ namespace Skila.Language
         {
             this.Context = ComputationContext.Create(env);
 
+            env.Root.Surfed(this.Context);
+
             env.Root.Evaluated(this.Context);
 
             env.Root.Validated(this.Context);

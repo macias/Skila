@@ -139,22 +139,59 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorRecurrentCallUsingFunctioName()
+        public IErrorReporter ErrorCallingSuperFunctionByFunctioName()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            NameReference function_reference = NameReference.Create("foo");
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
-                ExpressionReadMode.OptionalUse,
-                NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] {
-                    Return.Create(FunctionCall.Create(function_reference)) })));
+            root_ns.AddBuilder(TypeBuilder.Create("Middle")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("getB"),
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(IntLiteral.Create("51"))
+                    }))
+                    .Modifier(EntityModifier.Base)));
+
+            NameReference super_function_reference = NameReference.Create(NameFactory.BaseVariableName, "getB");
+            root_ns.AddBuilder(TypeBuilder.Create("End")
+                .Parents("Middle")
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("getB"),
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(FunctionCall.Create(super_function_reference))
+                    }))
+                    .Modifier(EntityModifier.Refines)));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, function_reference));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, super_function_reference));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorCallingSelfFunctionByFunctioName()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            NameReference self_function_reference = NameReference.Create("foo");
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.DoubleTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(FunctionCall.Create(self_function_reference)) })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, self_function_reference));
 
             return resolver;
         }

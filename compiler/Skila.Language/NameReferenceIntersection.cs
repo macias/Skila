@@ -30,67 +30,62 @@ namespace Skila.Language
             return this.Names.Select(it => it.ToString()).Join("&");
         }
 
-        public override void Evaluate(ComputationContext ctx)
+        protected override void compute(ComputationContext ctx)
         {
-            if (this.Evaluation == null)
+            if (this.DebugId.Id == 2629)
             {
-                if (this.DebugId.Id == 2629)
+                ;
+            }
+            IEntityInstance eval = EntityInstanceIntersection.Create(Names.Select(it => it.Evaluation.Components));
+
+
+
+            // we need to get sum (all) of the members
+
+            bool has_reference = false;
+            bool has_pointer = false;
+            var dereferenced_instances = new List<EntityInstance>();
+            List<FunctionDefinition> members = new List<FunctionDefinition>();
+            foreach (EntityInstance ____instance in this.Names.Select(it => it.Evaluation.Aggregate))
+            {
+                if (ctx.Env.Dereferenced(____instance, out IEntityInstance __instance, out bool via_pointer))
                 {
-                    ;
+                    if (via_pointer)
+                        has_pointer = true;
+                    else
+                        has_reference = true;
                 }
-                IEntityInstance eval = EntityInstanceIntersection.Create(Names.Select(it => it.Evaluation.Components));
 
+                EntityInstance instance = __instance.Cast<EntityInstance>();
 
+                dereferenced_instances.Add(instance);
+
+                foreach (FunctionDefinition func in instance.TargetType.NestedFunctions)
                 {
-                    // we need to get sum (all) of the members
-
-                    bool has_reference = false;
-                    bool has_pointer = false;
-                    var dereferenced_instances = new List<EntityInstance>();
-                    List<FunctionDefinition> members = new List<FunctionDefinition>();
-                    foreach (EntityInstance ____instance in this.Names.Select(it => it.Evaluation.Aggregate))
+                    bool found = false;
+                    foreach (FunctionDefinition m in members)
                     {
-                        if (ctx.Env.Dereferenced(____instance, out IEntityInstance __instance, out bool via_pointer))
+                        // todo: maybe some day handle optionals
+                        if (func.IsConstructor() || func.Parameters.Any(it => it.IsOptional))
+                            continue;
+
+                        if (FunctionDefinitionExtension.IsSame(ctx, m, func, instance))
                         {
-                            if (via_pointer)
-                                has_pointer = true;
-                            else
-                                has_reference = true;
-                        }
-
-                        EntityInstance instance = __instance.Cast<EntityInstance>();
-
-                        dereferenced_instances.Add(instance);
-
-                        foreach (FunctionDefinition func in instance.TargetType.NestedFunctions)
-                        {
-                            bool found = false;
-                            foreach (FunctionDefinition m in members)
-                            {
-                                // todo: maybe some day handle optionals
-                                if (func.IsConstructor() || func.Parameters.Any(it => it.IsOptional))
-                                    continue;
-
-                                if (FunctionDefinitionExtension.IsSame(ctx, m, func, instance))
-                                {
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found)
-                                members.Add(func);
+                            found = true;
+                            break;
                         }
                     }
 
-                    EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer, 
-                        dereferenced_instances, members, partialVirtualTables:true);
-
-                    this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
+                    if (!found)
+                        members.Add(func);
                 }
             }
-        }
 
+            EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer,
+                dereferenced_instances, members, partialVirtualTables: true);
+
+            this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
+        }
     }
 
 }

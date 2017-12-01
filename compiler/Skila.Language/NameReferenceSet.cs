@@ -19,7 +19,10 @@ namespace Skila.Language
             .Concat(this.aggregate)
             .Where(it => it != null);
 
-        public bool IsComputed => this.Evaluation != null;
+        public bool IsSurfed { get; set; }
+        public IEnumerable<ISurfable> Surfables => this.Names.WhereType<ISurfable>();
+
+        public bool IsComputed { get; protected set; }
 
         private TypeDefinition aggregate;
         public EvaluationInfo Evaluation { get; protected set; }
@@ -35,7 +38,14 @@ namespace Skila.Language
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
 
-        public abstract void Evaluate(ComputationContext ctx);
+        public void Evaluate(ComputationContext ctx)
+        {
+            if (this.Evaluation == null)
+                compute(ctx);
+
+            this.IsComputed = true;
+        }
+
 
         public void Validate(ComputationContext ctx)
         {
@@ -91,6 +101,12 @@ namespace Skila.Language
             return aggregate_instance;
         }
 
+        protected abstract void compute(ComputationContext ctx);
+
+        public void Surf(ComputationContext ctx)
+        {
+            compute(ctx);
+        }
     }
 
 }

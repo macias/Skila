@@ -530,7 +530,7 @@ namespace Skila.Interpreter
 
                 bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && inner_type.TargetType.IsInterface)
                     || inner_type.TargetType.IsProtocol;
-                bool classic_virtual = targetFunc.IsVirtual;
+                bool classic_virtual = targetFunc.Modifier.HasVirtual;
 
                 if (duck_virtual)
                 {
@@ -566,7 +566,7 @@ namespace Skila.Interpreter
                         throw new Exception("Internal error");
                 }
 
-                if (duck_virtual || targetFunc.IsVirtual)
+                if (duck_virtual || targetFunc.Modifier.HasVirtual)
                 {
                     if (!thisValue.InheritanceVirtualTable.TryGetDerived(ref targetFunc))
                     {
@@ -604,6 +604,8 @@ namespace Skila.Interpreter
                 ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name, name.Prefix);
                 return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
+            else if (name.Name == NameFactory.BaseVariableName)//@@@
+                return ExecValue.CreateExpression(ctx.ThisArgument);
             else if (ctx.LocalVariables.TryGet(target as ILocalBindable, out ObjectData info))
                 return ExecValue.CreateExpression(info);
             else if (target is VariableDeclaration decl && decl.IsField())

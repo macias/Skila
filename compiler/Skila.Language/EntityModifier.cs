@@ -8,7 +8,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class EntityModifier : Node,IValidable
+    public sealed class EntityModifier : Node, IValidable
     {
         private enum ModifierIndex
         {
@@ -63,7 +63,10 @@ namespace Skila.Language
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
         public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;
 
-        public bool HasSealed => !this.HasBase && !this.HasInterface;
+        public bool HasSealed => !this.HasInterface // makes sense only for types
+                                 && !this.HasVirtual;
+
+        public bool HasVirtual => this.HasRefines || this.HasBase || this.HasAbstract;
         public bool HasImmutable => !this.HasMutable;
         public bool HasAccessSet => this.HasPublic || this.HasPrivate || this.HasProtected;
 
@@ -104,7 +107,7 @@ namespace Skila.Language
 
         public static EntityModifier operator |(EntityModifier a, EntityModifier b)
         {
-            if (b == null)
+            if (b == null || b == EntityModifier.None)
                 return a;
             else
                 return new EntityModifier(a, b);

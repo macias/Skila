@@ -29,7 +29,7 @@ namespace Skila.Language.Extensions
                 bool is_partial = false;
 
                 foreach (FunctionDefinition base_func in target.TargetType.NestedFunctions)
-                    if (base_func.IsAbstract && !mapping.ContainsKey(base_func))
+                    if (base_func.Modifier.HasAbstract && !mapping.ContainsKey(base_func))
                     {
                         if (allowPartial)
                             is_partial = true;
