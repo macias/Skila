@@ -163,7 +163,7 @@ namespace Skila.Language
 
                     if (this.Name == NameFactory.SelfFunctionName)
                         entities = new[] { this.EnclosingScope<FunctionDefinition>() };
-                    else if (this.Name == NameFactory.BaseVariableName)
+                    else if (ctx.Env.Options.BaseReferenceEnabled && this.Name == NameFactory.BaseVariableName)
                     {
                         TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
                         entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
@@ -215,7 +215,7 @@ namespace Skila.Language
                     // referencing static member?
                     if (this.Prefix is NameReference prefix_ref 
                         // todo: make it nice, currently refering to base look like static reference
-                        && prefix_ref.Name!=NameFactory.BaseVariableName //@@@
+                        && (!ctx.Env.Options.BaseReferenceEnabled || prefix_ref.Name!=NameFactory.BaseVariableName) //@@@
                         && prefix_ref.Binding.Match.Target.IsType())
                     {
                         TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
@@ -322,7 +322,7 @@ namespace Skila.Language
 
                 TemplateDefinition template = this.EnclosingScope<TemplateDefinition>();
                 if (!entity.Modifier.HasStatic
-                    && ((this.Prefix != null && !this.Prefix.IsValue())
+                    && ((this.Prefix != null && !this.Prefix.IsValue(ctx.Env.Options))
                         || (this.Prefix == null && template.Modifier.HasStatic)))
                     ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
             }

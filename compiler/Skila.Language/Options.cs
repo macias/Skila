@@ -6,5 +6,6 @@
         public bool InterfaceDuckTyping { get; set; }
 
         public bool ScopeShadowing { get; set; }
+        public bool BaseReferenceEnabled { get; set; }
     }
 }

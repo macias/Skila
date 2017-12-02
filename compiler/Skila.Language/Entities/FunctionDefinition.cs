@@ -236,9 +236,8 @@ namespace Skila.Language.Entities
         {
             if (this.Modifier.HasRefines && !this.Modifier.HasUnchainBase)
             {
-                FunctionDefinition func = this;
-                if (this.OwnerType().DerivationTable.TryGetSuper(ref func)
-                    && !func.IsDeclaration
+                if (!this.IsDeclaration
+                    && this.OwnerType().DerivationTable.TryGetSuper(this,out FunctionDefinition dummy)
                     && !this.DescendantNodes().WhereType<FunctionCall>().Any(it => it.Name.IsSuperReference))
                 {
                     ctx.AddError(ErrorCode.DerivationWithoutSuperCall, this);

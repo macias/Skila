@@ -291,6 +291,35 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter ErrorMissingFunctionImplementation()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Inter")
+                .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.IntTypeReference()))
+                .Modifier(EntityModifier.Interface));
+
+            root_ns.AddBuilder(TypeBuilder.Create("MiddleImpl")
+                // ok to ignore the functions inside abstract type
+                .Modifier(EntityModifier.Abstract | EntityModifier.Base)
+                .Parents(NameReference.Create("Inter")));
+
+            // there is still function to implement
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Impl")
+                .Parents(NameReference.Create("MiddleImpl")));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingFunctionImplementation, type_impl));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ProperBasicMethodDerivation()
         {
             var env = Environment.Create();

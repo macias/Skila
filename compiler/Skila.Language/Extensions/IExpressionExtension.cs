@@ -8,7 +8,7 @@ namespace Skila.Language.Extensions
     {
         public static void ValidateValueExpression(this IExpression @this, ComputationContext ctx)
         {
-            if (!@this.IsValue() && !@this.Evaluation.Components.IsJoker)
+            if (!@this.IsValue(ctx.Env.Options) && !@this.Evaluation.Components.IsJoker)
                 ctx.AddError(ErrorCode.NoValueExpression, @this);
         }
 
@@ -27,11 +27,11 @@ namespace Skila.Language.Extensions
             else
                 return null;
         }
-        public static bool IsValue(this IExpression @this)
+        public static bool IsValue(this IExpression @this,IOptions options)
         {
             NameReference nameReference = (@this as NameReference);
             // todo: make it nice, such exception is ugly
-            if (nameReference?.Name == NameFactory.BaseVariableName)
+            if (options.BaseReferenceEnabled && nameReference?.Name == NameFactory.BaseVariableName)
                 return true;
             IEntity entity = nameReference?.Binding.Match.Target;
             return (entity == null || (!entity.IsType() && !entity.IsNamespace()));

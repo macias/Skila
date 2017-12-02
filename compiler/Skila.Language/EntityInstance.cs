@@ -52,7 +52,8 @@ namespace Skila.Language
         {
             if (inheritance == null)
             {
-                this.TargetType.Evaluated(ctx);
+                if (!this.TargetType.IsInheritanceComputed)
+                    this.TargetType.Surfed(ctx);
                 this.inheritance = this.TargetType.Inheritance.TranslateThrough(this);
             }
             return inheritance;
@@ -205,7 +206,7 @@ namespace Skila.Language
         public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
         {
             if (!jokerMatchesAll)
-                return this == other; 
+                return this == other;
 
             if (this.DebugId.Id == 2023)
             {

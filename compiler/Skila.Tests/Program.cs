@@ -19,13 +19,13 @@ namespace Skila.Tests
         {
             //new Semantics.CompilerProtection().CircularConversion();
             //new Semantics.Templates().ErrorHasConstraint();
-            //new Semantics.Inheritance().ErrorLoopedAncestors();
+            // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //  new Semantics.NameResolution().ErrorAccessForbidden();
-            //new Semantics.FunctionCalls().ErrorUnchainedBase();
+            new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
             // new Semantics.Expressions().ErrorIgnoringParameters();

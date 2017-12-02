@@ -29,10 +29,10 @@ namespace Skila.Language.Extensions
             if (!curr_type.IsSurfed)
                 throw new NotImplementedException("We need at this point the type surface is processed, yet we are processing the body (?) of the function");
 
-                if (!curr_type.DerivationTable.TryGetSuper(ref func))
-                    return null; 
+            if (!curr_type.DerivationTable.TryGetSuper(func, out FunctionDefinition super))
+                return null;
 
-            return func;
+            return super;
         }
 
         public static bool IsOutConverter(this FunctionDefinition @this)
@@ -186,7 +186,7 @@ namespace Skila.Language.Extensions
 
             {
                 IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
-                if (!derivedFunc.ResultTypeName.Evaluation.Components.IsSame(base_result_type, jokerMatchesAll:true))
+                if (!derivedFunc.ResultTypeName.Evaluation.Components.IsSame(base_result_type, jokerMatchesAll: true))
                     return false;
 
             }

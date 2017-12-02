@@ -6,6 +6,15 @@ namespace Skila.Language.Extensions
 {
     public static class EntityInstanceExtension
     {
+        public static IEnumerable<EntityInstance> PrimaryAncestors(this EntityInstance instance, ComputationContext ctx)
+        {
+            EntityInstance primary_parent = instance.Inheritance(ctx).MinimalParentsWithObject.FirstOrDefault();
+            if (primary_parent == null)
+                return Enumerable.Empty<EntityInstance>();
+            else
+                return new[] { primary_parent }.Concat(primary_parent.PrimaryAncestors(ctx));
+        }
+
         public static bool IsOfType(this EntityInstance instance, TypeDefinition target)
         {
             return /*instance.IsJoker ||*/ (instance.Target.IsType() && target == instance.Target);
@@ -21,7 +30,7 @@ namespace Skila.Language.Extensions
             VirtualTable vtable;
             if (!input.TryGetDuckVirtualTable(target, out vtable))
             {
-                Dictionary<FunctionDefinition, FunctionDefinition> mapping 
+                Dictionary<FunctionDefinition, FunctionDefinition> mapping
                     = TypeDefinitionExtension.PairDerivations(ctx, target, input.TargetType.NestedFunctions)
                     .Where(it => it.Derived != null)
                     .ToDictionary(it => it.Base, it => it.Derived);

@@ -153,7 +153,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter VirtualCallAtBase()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { BaseReferenceEnabled = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IBase")

@@ -77,7 +77,7 @@ namespace Skila.Language.Entities
         public IReadOnlyCollection<NameReference> ParentNames { get; }
         //public IEnumerable<EntityInstance> ParentTypes => this.ParentNames.Select(it => it.Binding.Match).WhereType<EntityInstance>();
         public TypeInheritance Inheritance { get; private set; }
-        private bool inheritanceComputed => this.Inheritance != null;
+        public bool IsInheritanceComputed => this.Inheritance != null;
 
         private bool isEvaluated;
         public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.ParentNames);
@@ -154,7 +154,8 @@ namespace Skila.Language.Entities
                 {
                     if (deriv_info.Derived == null)
                     {
-                        if (deriv_info.Base.Modifier.HasAbstract)
+                        // we can skip implementation or abstract signature of the function in the abstract type
+                        if (deriv_info.Base.Modifier.HasAbstract && !this.Modifier.HasAbstract)
                             ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
                     }
                     else
@@ -184,7 +185,7 @@ namespace Skila.Language.Entities
             }
 
             this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
-            this.DerivationTable = new DerivationTable(derivation_mapping);
+            this.DerivationTable = new DerivationTable(ctx,derivation_mapping);
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToDerive, func);
@@ -326,7 +327,7 @@ namespace Skila.Language.Entities
                 ;
             }
             // we cannot use context visited, because it is only for direct use in Evaluated only
-            if (this.inheritanceComputed)
+            if (this.IsInheritanceComputed)
                 return true;
             if (!visited.Add(this))
                 return false;
@@ -336,7 +337,8 @@ namespace Skila.Language.Entities
 
             foreach (NameReference parent_name in this.ParentNames)
             {
-                EntityInstance parent = parent_name.Evaluated(ctx) as EntityInstance;
+                parent_name.Surfed(ctx);
+                EntityInstance parent = parent_name.Evaluation.Components as EntityInstance;
                 if (parent == null)
                     continue;
 
@@ -351,7 +353,7 @@ namespace Skila.Language.Entities
                 if (!parent.TargetType.computeAncestors(ctx, visited))
                     ctx.AddError(ErrorCode.CyclicTypeHierarchy, parent_name);
 
-                if (parent.TargetType.inheritanceComputed)
+                if (parent.TargetType.IsInheritanceComputed)
                     parent.TargetType.Inheritance.AncestorsWithoutObject.Select(it => it.TranslateThrough(parent))
                         .ForEach(it => ancestors.Add(it));
             }
@@ -364,14 +366,25 @@ namespace Skila.Language.Entities
                 ;
             }
 
+            // almost the exactly the order user gave, however
+            // user could give incorrect order in respect to interface/implementation 
+            // so to to avoid further errors sort the parents in correct order
+            List<EntityInstance> ordered_parents = this.ParentNames
+                .Select(it =>
+                {
+                    var p_instance = it.Evaluation.Components as EntityInstance;
+                    return parents.Contains(p_instance) ? p_instance : null;
+                })
+                .Where(it => it != null)
+                .Distinct() // https://stackoverflow.com/a/4734876/210342
+                .OrderBy(it => it.IsTypeImplementation ? 0 : 1)
+                .ToList();
+
             // add implicit Object only if it is not Object itself and if there are no given parents
             // when there are parents given we will get Object through parents
             // also exclude Void, this is separate type from entire hierarchy
             if (this != ctx.Env.ObjectType && !parents.Any() && this != ctx.Env.VoidType)
-                parents.Add(ctx.Env.ObjectType.InstanceOf);
-
-            // user could give incorrect order to to avoid of further errors sort the parents in correct order
-            List<EntityInstance> ordered_parents = parents.OrderBy(it => it.IsTypeImplementation ? 0 : 1).ToList();
+                ordered_parents.Add(ctx.Env.ObjectType.InstanceOf);
 
             this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,
                 ordered_parents, completeAncestors: ordered_parents.Concat(ancestors));
