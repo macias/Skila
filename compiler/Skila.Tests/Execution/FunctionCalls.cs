@@ -17,8 +17,8 @@ namespace Skila.Tests.Execution
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            IExpression i_eq_2 = ExpressionFactory.EqualOperator(NameReference.Create("i"), IntLiteral.Create("2"));
-            IExpression i_add_1 = ExpressionFactory.AddOperator(NameReference.Create("i"),IntLiteral.Create("1"));
+            IExpression i_eq_2 = ExpressionFactory.Equal(NameReference.Create("i"), IntLiteral.Create("2"));
+            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"),IntLiteral.Create("1"));
             FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.IntTypeReference(),
                 Block.CreateStatement(new[] {
                     // if i==2 then return i
@@ -54,8 +54,8 @@ namespace Skila.Tests.Execution
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            IExpression i_eq_2 = ExpressionFactory.EqualOperator(NameReference.Create("i"), IntLiteral.Create("2"));
-            IExpression i_add_1 = ExpressionFactory.AddOperator(NameReference.Create("i"), IntLiteral.Create("1"));
+            IExpression i_eq_2 = ExpressionFactory.Equal(NameReference.Create("i"), IntLiteral.Create("2"));
+            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), IntLiteral.Create("1"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
@@ -134,7 +134,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("p","pass")))
                 })));
 
@@ -199,7 +199,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("z",null,IntLiteral.Create("0")),
                     VariableDeclaration.CreateStatement("t",null,FunctionCall.Create( NameReference.Create("last"))),
-                    Return.Create(ExpressionFactory.AddOperator(NameReference.Create("z"),NameReference.Create("t")))
+                    Return.Create(ExpressionFactory.Add(NameReference.Create("z"),NameReference.Create("t")))
                 })));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),

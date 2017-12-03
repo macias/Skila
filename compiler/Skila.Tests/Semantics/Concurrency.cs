@@ -36,7 +36,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("r",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("r",null,ExpressionFactory.HeapConstructor(NameReference.Create("Point"))),
                     Spawn.Create(FunctionCall.Create(mutable_method,mutable_arg)),
                     Return.Create(NameReference.Create("r","x"))
                 })));

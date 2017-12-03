@@ -13,7 +13,7 @@ namespace Skila.Interpreter
         public Environment Env { get; }
         public VariableRegistry LocalVariables;
         public ObjectData ThisArgument { get; set; }
-        public Dictionary<FunctionParameter,ObjectData> FunctionArguments { get; set; }
+        public ObjectData[] FunctionArguments { get; set; }
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; set; }
         internal Heap Heap { get; }
         public RoutineRegistry Routines { get; }

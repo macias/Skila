@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall("Point")),
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
                     Assignment.CreateStatement(private_ref,IntLiteral.Create("5")),
                 })));
 

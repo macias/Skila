@@ -29,7 +29,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
-                        ExpressionFactory.StackConstructorCall(typename,out cons_ref)),
+                        ExpressionFactory.StackConstructor(typename,out cons_ref)),
                     Tools.Readout("x")
                 })));
 
@@ -74,7 +74,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
                         ExpressionFactory.Readout("x"),
-                        Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -83,7 +83,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
-                    Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructorCall(NameReference.Create("X"))),
+                    Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
                     Tools.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
                 })));
@@ -117,7 +117,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("X"));
 
-            IExpression init_value = ExpressionFactory.StackConstructorCall(NameReference.Create("X"));
+            IExpression init_value = ExpressionFactory.StackConstructor(NameReference.Create("X"));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,

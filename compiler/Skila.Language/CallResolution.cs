@@ -34,7 +34,7 @@ namespace Skila.Language
         private const int noMapping = -1;
 
         public EntityInstance TargetFunctionInstance { get; }
-        public ExpressionReadMode CallMode => this.directlyTargetsFunction ? this.TargetFunctionInstance.TargetTemplate.CastFunction().CallMode : ExpressionReadMode.OptionalUse;
+        public FunctionDefinition TargetFunction => this.TargetFunctionInstance.TargetTemplate.CastFunction();
 
         // function arg -> function param indices (not template ones!)
         private readonly IReadOnlyList<int> argParamMapping;
@@ -44,15 +44,13 @@ namespace Skila.Language
 
         private readonly IReadOnlyList<IEntityInstance> translatedParamEvaluations;
         private readonly EvaluationInfo translatedResultEvaluation;
-        private FunctionDefinition signature => this.TargetFunctionInstance.TargetTemplate.CastFunction();
         private readonly IFunctionArgumentsProvider argumentsProvider;
-        private readonly List<TypeMatch?> typeMatches;
+        private readonly TypeMatch?[] typeMatches;
         public IReadOnlyList<TypeMatch?> TypeMatches => this.typeMatches;
 
         public IReadOnlyList<FunctionArgument> Arguments => this.argumentsProvider.Arguments;
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
         private readonly IReadOnlyCollection<INameReference> templateArguments;
-        private bool directlyTargetsFunction => !this.TargetFunctionInstance.TargetTemplate.IsType();
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
         public EvaluationInfo Evaluation => this.translatedResultEvaluation;
@@ -70,11 +68,11 @@ namespace Skila.Language
             this.MetaThisArgument = callContext.MetaThisArgument;
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
-            this.typeMatches = this.signature.Parameters.Select(it => (TypeMatch?)null).ToList();
+            this.typeMatches = new TypeMatch?[this.TargetFunction.Parameters.Count];
             this.templateArguments = templateArguments.StoreReadOnly();
 
             extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
-                this.signature,
+                this.TargetFunction,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
@@ -86,9 +84,9 @@ namespace Skila.Language
                     FunctionParameter param;
 
                     if (arg.HasNameLabel)
-                        param = this.signature.Parameters.FirstOrDefault(it => it.Name.Name == arg.NameLabel);
+                        param = this.TargetFunction.Parameters.FirstOrDefault(it => it.Name.Name == arg.NameLabel);
                     else
-                        param = param_idx < this.signature.Parameters.Count ? this.signature.Parameters[param_idx] : null;
+                        param = param_idx < this.TargetFunction.Parameters.Count ? this.TargetFunction.Parameters[param_idx] : null;
 
                     if (param == null)
                         arg_param_mapping.Add(noMapping);
@@ -128,7 +126,7 @@ namespace Skila.Language
                 this.TargetFunctionInstance = this.TargetFunctionInstance.Target.GetInstanceOf(this.InferredTemplateArguments
                     .Select(it => it.Evaluated(ctx)), overrideMutability: false);
                 extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
-                    this.signature,
+                    this.TargetFunction,
                     out this.translatedParamEvaluations,
                     out this.translatedResultEvaluation);
             }
@@ -152,7 +150,7 @@ namespace Skila.Language
                 .StoreReadOnlyList();
 
 
-            translatedResultEvaluation = new EvaluationInfo( signature.ResultTypeName.Evaluated(ctx)
+            translatedResultEvaluation = new EvaluationInfo(signature.ResultTypeName.Evaluated(ctx)
                     .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance),
                  signature.ResultTypeName.Evaluation.Aggregate
                     .TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance));
@@ -187,7 +185,7 @@ namespace Skila.Language
             // requested result type has to match perfectly (without conversions)
             TypeMatch match = this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
                 .MatchesTarget(ctx, this.translatedResultEvaluation.Components, allowSlicing: false);
-            return match == TypeMatch.Same || match== TypeMatch.Substitute;
+            return match == TypeMatch.Same || match == TypeMatch.Substitute;
         }
         internal void EnhanceArguments(ComputationContext ctx)
         {
@@ -204,7 +202,7 @@ namespace Skila.Language
         }
         public FunctionParameter GetParamByArgIndex(int argIndex)
         {
-            return this.signature.Parameters[this.argParamMapping[argIndex]];
+            return this.TargetFunction.Parameters[this.argParamMapping[argIndex]];
         }
 
         private IEnumerable<int> getArgumentIndices(int paramIndex)
@@ -222,7 +220,7 @@ namespace Skila.Language
 
         internal IEnumerable<IEnumerable<FunctionArgument>> GetArgumentsMultipleTargeted()
         {
-            return this.signature.Parameters
+            return this.TargetFunction.Parameters
                 .Where(param => !param.IsVariadic)
                 .Select(param => getArgumentIndices(param.Index))
                 .Where(indices => indices.Count() > 1)
@@ -231,19 +229,19 @@ namespace Skila.Language
 
         internal IEnumerable<FunctionParameter> GetUnfulfilledVariadicParameters()
         {
-            return this.signature.Parameters
+            return this.TargetFunction.Parameters
                 .Where(param => param.IsVariadic && !param.Variadic.IsWithinLimits(getArgumentIndices(param.Index).Count()));
         }
 
         public bool AllParametersUsed()
         {
-            bool result = this.signature.Parameters.All(it => isParameterUsed(it.Index));
+            bool result = this.TargetFunction.Parameters.All(it => isParameterUsed(it.Index));
             return result;
         }
 
         public bool RequiredParametersUsed()
         {
-            bool result = this.signature.Parameters.Where(it => !it.IsOptional).All(it => isParameterUsed(it.Index));
+            bool result = this.TargetFunction.Parameters.Where(it => !it.IsOptional).All(it => isParameterUsed(it.Index));
             return result;
         }
 
@@ -259,12 +257,11 @@ namespace Skila.Language
             {
                 ;
             }
-            if (!this.directlyTargetsFunction || !this.TargetFunctionInstance.MissingTemplateArguments)
+            if (!this.TargetFunctionInstance.MissingTemplateArguments)
                 return null;
 
-            FunctionDefinition function = this.TargetFunctionInstance.TargetTemplate.CastFunction();
-
-            IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters.StoreReadOnlyList();
+            IReadOnlyList<TemplateParameter> template_parameters
+                = this.TargetFunctionInstance.TargetTemplate.Name.Parameters.StoreReadOnlyList();
 
             var template_param_inference = new Dictionary<TemplateParameter, Tuple<IEntityInstance, bool>>();
             for (int i = 0; i < template_parameters.Count; ++i)
@@ -279,7 +276,7 @@ namespace Skila.Language
                 IEntityInstance function_param_type = this.GetTransParamEvalByArgIndex(arg.Index);
 
                 IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
-                    = extractTypeParametersMapping(function, arg.Evaluation.Components, function_param_type);
+                    = extractTypeParametersMapping(this.TargetFunction, arg.Evaluation.Components, function_param_type);
 
                 foreach (var pair in type_mapping)
                     if (!template_param_inference[pair.Item1].Item2)
@@ -288,7 +285,7 @@ namespace Skila.Language
                             template_param_inference[pair.Item1] = Tuple.Create(pair.Item2, false);
                         else
                         {
-                            if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Item1, pair.Item2, 
+                            if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Item1, pair.Item2,
                                 out IEntityInstance common))
                                 throw new NotImplementedException();
                             template_param_inference[pair.Item1] = Tuple.Create(common, false);
@@ -336,7 +333,7 @@ namespace Skila.Language
         public override string ToString()
         {
             return "(" + this.Arguments.Select(it => it.ToString()).Join(",") + ") -> "
-                + this.TargetFunctionInstance.ToString() + "(" + this.signature.Parameters.Select(it => it.ToString()).Join(",") + ")";
+                + this.TargetFunctionInstance.ToString() + "(" + this.TargetFunction.Parameters.Select(it => it.ToString()).Join(",") + ")";
         }
 
     }

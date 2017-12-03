@@ -70,6 +70,6 @@
         ConflictingModifier = 66,
         DerivationWithoutSuperCall = 67,
         SuperCallWithUnchainedBase = 68,
-        CastingToTypeSet = 69,
+        TestingAgainstTypeSet = 69,
     }
 }

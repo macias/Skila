@@ -12,10 +12,12 @@ namespace Skila.Language
 
         internal static ExecutionFlow CreateFork(IExpression condition, IExpression thenBody, IExpression elseBranch)
         {
-            if (elseBranch == null)
-                return new ExecutionFlow(new[] { condition }, null, new[] { thenBody });
-            else
-                return new ExecutionFlow(new[] { condition }, null, new[] { thenBody }, new[] { elseBranch });
+            var maybes = new List<IEnumerable<IExpression>>(); 
+            if (thenBody != null)
+                maybes.Add(new[] { thenBody });
+            if (elseBranch!=null)
+                maybes.Add(new[] { elseBranch });
+            return new ExecutionFlow(new[] { condition }, null, maybes.ToArray());
         }
         internal static ExecutionFlow CreateElse(IExpression elseBody, IExpression nextBranch)
         {
@@ -40,9 +42,9 @@ namespace Skila.Language
         {
             return new ExecutionFlow(path, null);
         }
-        internal static ExecutionFlow CreatePath(IExpression expr)
+        public static ExecutionFlow CreatePath(params IExpression[] path)
         {
-            return CreatePath(new[] { expr });
+            return new ExecutionFlow(path, null);
         }
 
         public IEnumerable<IExpression> Enumerate => AlwaysPath.Concat(MaybePaths.Flatten()).Concat(PostMaybes);

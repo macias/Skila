@@ -37,11 +37,14 @@ namespace Skila.Language
         }
         public override string ToString()
         {
-            return new[] { MinLimit>0 ? MinLimit.ToString() : "",
+            if (!this.isSet)
+                return "";
+            else
+                return new[] { MinLimit>0 ? MinLimit.ToString() : "",
                 "...",
                 maxLimit.HasValue ? maxLimit.ToString() : "" }
-                .Where(it => it != "")
-                .Join("");
+                    .Where(it => it != "")
+                    .Join("");
         }
 
         public override bool Equals(object obj)
@@ -61,7 +64,7 @@ namespace Skila.Language
 
         public override int GetHashCode()
         {
-            return isSet.GetHashCode() ^ MinLimit.GetHashCode() ^ MaxLimit .GetHashCode();
+            return isSet.GetHashCode() ^ MinLimit.GetHashCode() ^ MaxLimit.GetHashCode();
         }
 
         public bool IsWithinLimits(int count)

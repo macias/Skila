@@ -24,7 +24,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructorCall(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
                     Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(IntLiteral.Create("2")))),
                     Return.Create(IntLiteral.Create("0"))
@@ -49,7 +49,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructorCall(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
                     Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
                     Return.Create(IntLiteral.Create("0"))
                 })));
@@ -84,7 +84,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructorCall(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
                     Spawn.Create(FunctionCall.Create(NameReference.Create("sender"),FunctionArgument.Create(NameReference.Create("ch")))),
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),

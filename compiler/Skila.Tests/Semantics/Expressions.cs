@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.ObjectTypeReference(), Undef.Create()),
-                    VariableDeclaration.CreateStatement("c", null, Cast.Create(NameReference.Create("x"), type_set)),
+                    VariableDeclaration.CreateStatement("c", null,ExpressionFactory.Cast(NameReference.Create("x"), type_set)),
                     Tools.Readout("c"),
             })));
 
@@ -36,7 +36,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CastingToTypeSet, type_set));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TestingAgainstTypeSet, type_set));
 
             return resolver;
         }

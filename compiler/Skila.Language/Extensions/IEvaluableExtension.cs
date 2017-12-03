@@ -94,7 +94,7 @@ namespace Skila.Language.Extensions
             else if (match == TypeMatch.InConversion)
             {
                 source.DetachFrom(@this);
-                source = ExpressionFactory.StackConstructorCall((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
+                source = ExpressionFactory.StackConstructor((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
                 source.AttachTo(@this);
                 TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
                 if (m != TypeMatch.Same && m!= TypeMatch.Substitute)

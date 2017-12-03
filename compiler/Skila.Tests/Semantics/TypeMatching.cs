@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
             NameReferenceIntersection intersection = NameReferenceIntersection.Create(
                 NameFactory.PointerTypeReference(NameReference.Create("IGetNeg")),
                 NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
-            IExpression init_value = ExpressionFactory.HeapConstructorCall("GetAll");
+            IExpression init_value = ExpressionFactory.HeapConstructor("GetAll");
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,

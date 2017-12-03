@@ -12,9 +12,41 @@ namespace Skila.Tests.Execution
     public class Interfaces
     {
         [TestMethod]
+        public IInterpreter TraitFunctionCall()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // e &IEquatable = 3
+                    VariableDeclaration.CreateStatement("e",NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()),
+                        IntLiteral.Create("3")),
+                    // i Int = 7
+                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(),
+                        IntLiteral.Create("7")),
+                    // if e!=i and i!=e then return 2
+                    IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.NotEqual("e","i"),ExpressionFactory.NotEqual("e","i")),
+                        new[]{ Return.Create(IntLiteral.Create("2")) }),
+                    // return 15
+                    Return.Create(IntLiteral.Create("15"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter DuckVirtualCallInterface()
         {
-          return  duckVirtualCall(new Options() { InterfaceDuckTyping = true });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = true });
         }
         [TestMethod]
         public IInterpreter DuckVirtualCallProtocol()
@@ -52,7 +84,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));
 
@@ -120,7 +152,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("o",NameFactory.PointerTypeReference(NameReference.Create("Y")),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Z"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Z"))),
                     Assignment.CreateStatement(NameReference.Create("i"),NameReference.Create("o")),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));
@@ -135,7 +167,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseInterface()
         {
-           return  duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true });
+            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true });
         }
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseProtocol()
@@ -172,7 +204,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",
                         NameFactory.PointerTypeReference(NameReference.Create("X",NameFactory.IntTypeReference())),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Y"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));
 

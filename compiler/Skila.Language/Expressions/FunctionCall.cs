@@ -61,7 +61,7 @@ namespace Skila.Language.Expressions
 
         public INameReference RequestedOutcomeTypeName { get; }
 
-        public ExpressionReadMode ReadMode => this.Resolution?.CallMode ?? ExpressionReadMode.OptionalUse;
+        public ExpressionReadMode ReadMode => this.Resolution?.TargetFunction?.CallMode ?? ExpressionReadMode.OptionalUse;
 
         private FunctionCall(IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
@@ -153,7 +153,8 @@ namespace Skila.Language.Expressions
                     {
                         if (targets.Count() > 1)
                         {
-                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this, targets.Select(it => it.TargetFunctionInstance.Target));
+                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this, 
+                                targets.Select(it => it.TargetFunctionInstance.Target));
                         }
 
                         this.Resolution.SetMappings();

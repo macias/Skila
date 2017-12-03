@@ -19,7 +19,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
 
-            IExpression mutable_init = ExpressionFactory.HeapConstructorCall(NameReference.Create("Bar"));
+            IExpression mutable_init = ExpressionFactory.HeapConstructor(NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
@@ -31,7 +31,7 @@ namespace Skila.Tests.Semantics
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
                     VariableDeclaration.CreateStatement("y", 
                         NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Bar"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
                     Tools.Readout("y"),
             })));
 

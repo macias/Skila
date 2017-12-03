@@ -63,7 +63,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // b = new Beep()
-                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructor(NameReference.Create("Beep"))),
                     // b.m = 2
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("2")),
                     // f = b.getIt // "b" value is sucked in, so we have a copy
@@ -102,7 +102,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.HeapConstructorCall(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.HeapConstructor(NameReference.Create("Beep"))),
                     Assignment.CreateStatement(NameReference.Create("b","m"),IntLiteral.Create("5")),
                     // pointer of "b" value is sucked in, so we will see any changes 
                     VariableDeclaration.CreateStatement("f",null,NameReference.Create("b","getIt")),

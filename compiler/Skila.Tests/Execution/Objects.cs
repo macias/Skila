@@ -30,7 +30,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructorCall(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
                      IntLiteral.Create("2")),
                     Return.Create(NameReference.Create(NameReference.Create("p"),"x"))

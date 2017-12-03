@@ -22,7 +22,7 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.ReadRequired,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    Return.Create(ExpressionFactory.AddOperator(NameReference.Create("n"),IntLiteral.Create("1")))
+                    Return.Create(ExpressionFactory.Add(NameReference.Create("n"),IntLiteral.Create("1")))
                 }))
                 .Parameters(FunctionParameter.Create("n", NameFactory.IntTypeReference())));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -31,7 +31,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("p_int")))),
                 })));
 
@@ -56,7 +56,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
                     Return.Create( NameReference.Create("p_int")),
                 })));
 
@@ -81,7 +81,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ptr",NameFactory.PointerTypeReference(NameFactory.BoolTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.BoolTypeReference(),FunctionArgument.Create(BoolLiteral.CreateTrue()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.BoolTypeReference(),FunctionArgument.Create(BoolLiteral.CreateTrue()))),
                     Return.Create( IfBranch.CreateIf( NameReference.Create("ptr"),new[]{ IntLiteral.Create("2") },
                         IfBranch.CreateElse(new[]{ IntLiteral.Create("5") }))),
                 })));
@@ -107,7 +107,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
                     Tools.Readout("p_int"),
                     Return.Create( NameReference.Create("p_int")),
                 })));
@@ -134,7 +134,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     // p_int *Int = new Int(1)
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
                             FunctionArgument.Create(IntLiteral.Create("1")))),
                     // v_int Int = p_int // automatic dereference
                     VariableDeclaration.CreateStatement("v_int",NameFactory.IntTypeReference(), NameReference.Create("p_int")),
@@ -179,7 +179,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
                     VariableDeclaration.CreateStatement("proxy",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),NameReference.Create("p_int")),
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("proxy")))),
                 })));
@@ -211,9 +211,9 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference(NameReference.Create("Chain")),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Chain"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
                     Assignment.CreateStatement(NameReference.Create("p","n"),
-                        ExpressionFactory.HeapConstructorCall(NameReference.Create("Chain"))),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
                     Assignment.CreateStatement(NameReference.Create("p","n","v"),IntLiteral.Create("2")),
                     Return.Create(NameReference.Create("p","n","v")),
                 })));

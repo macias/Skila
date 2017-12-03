@@ -341,7 +341,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
                         ExpressionFactory.Readout("x"),
-                        Return.Create(ExpressionFactory.HeapConstructorCall(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))
                     .Modifier(EntityModifier.Refines))
                 .Parents(NameReference.Create("IX")));

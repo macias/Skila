@@ -28,6 +28,7 @@ namespace Skila.Language
             Abstract,
             Protected,
             UnchainBase, // despite we derive base function we won't call it
+            Native, // info for compiler whether to call real function or use low-evel instruction
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -46,6 +47,7 @@ namespace Skila.Language
         public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
         public static readonly EntityModifier Protected = new EntityModifier(ModifierIndex.Protected);
         public static readonly EntityModifier UnchainBase = new EntityModifier(ModifierIndex.UnchainBase);
+        public static readonly EntityModifier Native = new EntityModifier(ModifierIndex.Native);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -65,6 +67,7 @@ namespace Skila.Language
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
         public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;
         public bool HasUnchainBase => this.flags[(int)ModifierIndex.UnchainBase] > 0;
+        public bool HasNative => this.flags[(int)ModifierIndex.Native] > 0;
 
         public bool HasSealed => !this.HasInterface // makes sense only for types
                                  && !this.HasVirtual;

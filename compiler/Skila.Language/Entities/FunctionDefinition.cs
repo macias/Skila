@@ -214,7 +214,7 @@ namespace Skila.Language.Entities
 
         public override string ToString()
         {
-            return base.ToString() + "(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
+            return $"{(base.ToString())}(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
         }
 
         internal NameReference GetThisNameReference()

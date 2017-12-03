@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
-using Skila.Language.Entities;
 using Skila.Language.Semantics;
 
 namespace Skila.Language
@@ -10,7 +9,12 @@ namespace Skila.Language
     {
         public static ComputationContext Create(Environment env)
         {
-            return new ComputationContext(env);
+            return new ComputationContext(env, bare: false);
+        }
+
+        public static ComputationContext CreateBare(Environment env)
+        {
+            return new ComputationContext(env,bare:true);
         }
 
         internal AutoName AutoName { get; }
@@ -22,12 +26,15 @@ namespace Skila.Language
 
         private readonly HashSet<INode> visited;
 
-        private ComputationContext(Environment env) : this()
+        private ComputationContext(Environment env,bool bare) : this()
         {
             this.Env = env;
-            this.ErrorManager = ErrorManager.Create();
-            this.visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
-            this.AutoName = new AutoName();
+            if (!bare)
+            {
+                this.ErrorManager = ErrorManager.Create();
+                this.visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
+                this.AutoName = new AutoName();
+            }
         }
 
         internal void AddError(ErrorCode code, INode node, INode context = null)

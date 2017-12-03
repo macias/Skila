@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            new Semantics.CompilerProtection().Environment();
+          //  new Semantics.CompilerProtection().Environment();
             //new Semantics.Templates().ErrorHasConstraint();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
@@ -43,7 +43,7 @@ namespace Skila.Tests
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Inheritance().VirtualCallAtBase();
-            //new Execution.Interfaces().DuckVirtualCallWithGenericBase();
+           new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Templates().HasConstraintWithValue();
             //  new Execution.Closures().ResultTypeInference();
 

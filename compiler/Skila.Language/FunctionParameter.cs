@@ -77,7 +77,10 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName} {Variadic}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
+            string variadic_str = this.Variadic.ToString();
+            if (variadic_str != "")
+                variadic_str = " " + variadic_str;
+            return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName}{variadic_str}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 
         public void Surf(ComputationContext ctx)
