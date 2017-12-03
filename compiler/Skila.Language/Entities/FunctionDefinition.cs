@@ -164,14 +164,17 @@ namespace Skila.Language.Entities
                 }
 
                 foreach (IEntityInstance candidate in this.resultTypeCandidates)
+                {
                     // it is tempting to allowing conversions here, but it would mean that we have back to all "returns"
                     // to apply such conversions, besides such fluent result type is a bit of a stretch
-                    if (candidate.MatchesTarget(ctx, common, allowSlicing: false) != TypeMatch.Pass)
+                    TypeMatch match = candidate.MatchesTarget(ctx, common, allowSlicing: false);
+                    if (match != TypeMatch.Same && match!= TypeMatch.Substitute)
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
                         this.ResultTypeName = EntityInstance.Joker.NameOf;
                         return;
                     }
+                }
 
                 this.ResultTypeName = common.NameOf;
             }

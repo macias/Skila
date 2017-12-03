@@ -46,6 +46,9 @@ namespace Skila.Language
         private readonly EvaluationInfo translatedResultEvaluation;
         private FunctionDefinition signature => this.TargetFunctionInstance.TargetTemplate.CastFunction();
         private readonly IFunctionArgumentsProvider argumentsProvider;
+        private readonly List<TypeMatch?> typeMatches;
+        public IReadOnlyList<TypeMatch?> TypeMatches => this.typeMatches;
+
         public IReadOnlyList<FunctionArgument> Arguments => this.argumentsProvider.Arguments;
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
         private readonly IReadOnlyCollection<INameReference> templateArguments;
@@ -67,6 +70,7 @@ namespace Skila.Language
             this.MetaThisArgument = callContext.MetaThisArgument;
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
+            this.typeMatches = this.signature.Parameters.Select(it => (TypeMatch?)null).ToList();
             this.templateArguments = templateArguments.StoreReadOnly();
 
             extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
@@ -164,6 +168,14 @@ namespace Skila.Language
                 }
                 IEntityInstance param_eval = this.GetTransParamEvalByArgIndex(arg.Index);
                 TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, allowSlicing: false);
+
+                int idx = this.argParamMapping[arg.Index];
+                // in case of variadic parameter several arguments hit the same param, so their type matching can be different
+                if (!this.typeMatches[idx].HasValue)
+                    this.typeMatches[idx] = match;
+                else if (this.typeMatches[idx] != match)
+                    throw new NotImplementedException();
+
                 if (match == TypeMatch.No)
                     return false;
             }
@@ -173,8 +185,9 @@ namespace Skila.Language
         internal bool OutcomeMatchesRequest(ComputationContext ctx)
         {
             // requested result type has to match perfectly (without conversions)
-            return this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
-                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, allowSlicing: false) == TypeMatch.Pass;
+            TypeMatch match = this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
+                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, allowSlicing: false);
+            return match == TypeMatch.Same || match== TypeMatch.Substitute;
         }
         internal void EnhanceArguments(ComputationContext ctx)
         {

@@ -12,6 +12,34 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Expressions
     {
+
+        [TestMethod]
+        public IErrorReporter ErrorCastingToSet()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            NameReferenceUnion type_set = NameReferenceUnion.Create(
+                NameFactory.PointerTypeReference( NameFactory.BoolTypeReference()),
+                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()));
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new[] {
+                    VariableDeclaration.CreateStatement("x", NameFactory.ObjectTypeReference(), Undef.Create()),
+                    VariableDeclaration.CreateStatement("c", null, Cast.Create(NameReference.Create("x"), type_set)),
+                    Tools.Readout("c"),
+            })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CastingToTypeSet, type_set));
+
+            return resolver;
+        }
         [TestMethod]
         public IErrorReporter ErrorAddressingRValue()
         {
@@ -167,7 +195,7 @@ namespace Skila.Tests.Semantics
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable)));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("getter"),

@@ -40,6 +40,7 @@ namespace Skila.Language
         public TypeDefinition ObjectType { get; }
         public TypeDefinition ISequenceType { get; }
         public TypeDefinition IIterableType { get; }
+        public TypeDefinition IEquatableType { get; }
 
         public FunctionDefinition OptionValueConstructor { get; }
         public FunctionDefinition OptionEmptyConstructor { get; }
@@ -61,7 +62,7 @@ namespace Skila.Language
 
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Plain(true)
-                .Parents(NameFactory.ObjectTypeReference())
+                .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                     new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference()) },
@@ -78,10 +79,25 @@ namespace Skila.Language
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("x"),
+                       ExpressionFactory.Readout("cmp"),
                         Return.Create(Undef.Create())
-                    })).
-                    Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())))
+                    }))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference())))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(new[] {
+                        // let obj = cmp cast? Int
+                        VariableDeclaration.CreateStatement("obj",null,Cast.Create(NameReference.Create("cmp"),
+                            NameFactory.ReferenceTypeReference( NameFactory.IntTypeReference()))),
+                        // if not obj.hasValue then return false
+                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),Return.Create(BoolLiteral.CreateFalse())),
+                        // return this==obj.value
+                        Return.Create(ExpressionFactory.EqualOperator(NameReference.Create(NameFactory.ThisVariableName),
+                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
+                    }))
+                    .Modifier(EntityModifier.Refines)
+                    .Parameters(FunctionParameter.Create("cmp",
+                        NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))))
                 );
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
@@ -148,6 +164,23 @@ namespace Skila.Language
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.IIterableTypeName, "T", VarianceMode.Out))
                     .Modifier(EntityModifier.Interface)
                     .Parents(NameFactory.ObjectTypeReference()));
+
+
+            this.IEquatableType = this.SystemNamespace.AddBuilder(
+                TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
+                    .Modifier(EntityModifier.Interface)
+                    .Parents(NameFactory.ObjectTypeReference())
+                    .With(FunctionBuilder.Create(NameFactory.NotEqualOperator, ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                        Block.CreateStatement(new[] {
+                            Return.Create(ExpressionFactory.NotOperator(
+                                ExpressionFactory.EqualOperator(NameFactory.ThisReference(),NameReference.Create("cmp"))))
+                        }))
+                            .Parameters(FunctionParameter.Create("cmp",
+                                NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName)))))
+                    .With(FunctionBuilder.CreateDeclaration(NameFactory.EqualOperator, ExpressionReadMode.ReadRequired,
+                        NameFactory.BoolTypeReference())
+                            .Parameters(FunctionParameter.Create("cmp",
+                                NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName))))));
 
             this.functionTypes = new List<TypeDefinition>();
 

@@ -28,6 +28,7 @@ namespace Skila.Language
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
         public const string IIterableTypeName = "IIterable";
+        public const string IEquatableTypeName = "IEquatable";
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
         public const string BaseVariableName = "base";
@@ -36,6 +37,7 @@ namespace Skila.Language
 
         public const string AddOperator = "+";
         public const string EqualOperator = "==";
+        public const string NotEqualOperator = "!=";
         public const string NotOperator = "not";
 
         public const string LambdaInvoke = "invoke";
@@ -108,6 +110,10 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), IIterableTypeName, NameReference.Create(templateParamName));
         }
+        public static NameReference EquatableTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), IEquatableTypeName);
+        }
         public static NameReference ChannelTypeReference(string templateParamName)
         {
             return ChannelTypeReference(NameReference.Create(templateParamName));
@@ -169,5 +175,11 @@ namespace Skila.Language
             return NameReference.Create(NameReference.Root, NameFactory.ReferenceTypeName, name);
         }
 
+        internal static INameReference ShouldBeThisTypeReference(string typeName)
+        {
+            // todo: Skila1 supported the notion of dynamic "this type", Skila-3 should also have it
+            // so once we have time to do it this method will help us fast track all the use cases to replace
+            return NameReference.Create(typeName);
+        }
     }
 }

@@ -54,7 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
+    <Compile Include="Builders\IMultiBuilder.cs" />
     <Compile Include="CallContext.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Data\LayerDictionary.Flat.cs" />
@@ -62,6 +64,7 @@
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="EntityInstanceIntersection.cs" />
     <Compile Include="EntityInstanceSet.cs" />
+    <Compile Include="Expressions\Cast.cs" />
     <Compile Include="Extensions\ISurfableExtension.Surfed.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
     <Compile Include="EvaluationInfo.cs" />

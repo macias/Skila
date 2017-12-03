@@ -22,7 +22,7 @@ namespace Skila.Language
             if (matches || (!(ctx.Env.Options.InterfaceDuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
                 return matches;
 
-            VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target,allowPartial:false);
+            VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target, allowPartial: false);
 
             return vtable != null;
         }
@@ -42,7 +42,7 @@ namespace Skila.Language
                     template.Name.Parameters[i].Variance,
                     allowSlicing);
 
-                if (m != TypeMatch.Pass && m != TypeMatch.AutoDereference)
+                if (m != TypeMatch.Same && m != TypeMatch.Substitute && m != TypeMatch.AutoDereference)
                 {
                     return false;
                 }
@@ -55,13 +55,13 @@ namespace Skila.Language
             bool allowSlicing)
         {
             if (input.IsJoker || target.IsJoker)
-                return TypeMatch.Pass;
+                return TypeMatch.Same;
 
             if (!target.Target.IsType() || !input.Target.IsType())
                 return TypeMatch.No;
 
             if (input.IsSame(target, jokerMatchesAll: true))
-                return TypeMatch.Pass;
+                return TypeMatch.Same;
 
             {
                 IEnumerable<FunctionDefinition> in_conv = target.TargetType.ImplicitInConverters().StoreReadOnly();
@@ -76,7 +76,8 @@ namespace Skila.Language
                         ;
                     }
 
-                    if (input.MatchesTarget(ctx, conv_type, conv_slicing_sub) == TypeMatch.Pass)
+                    TypeMatch m = input.MatchesTarget(ctx, conv_type, conv_slicing_sub);
+                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.InConversion;
                 }
             }
@@ -88,25 +89,27 @@ namespace Skila.Language
                     IEntityInstance inner_target_type = target.TemplateArguments.Single();
                     IEntityInstance inner_input_type = input.TemplateArguments.Single();
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, true);
-                    if (m == TypeMatch.Pass)
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
+                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m;
                 }
                 else if (!ctx.Env.IsReferenceOfType(input))
                 {
                     IEntityInstance inner_target_type = target.TemplateArguments.Single();
 
-                    if (input.MatchesTarget(ctx, inner_target_type, true) == TypeMatch.Pass)
-                        return TypeMatch.ImplicitReference;
+                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
+                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
+                        return m | TypeMatch.ImplicitReference;
                 }
             }
             // automatic dereferencing pointers
-            else if (ctx.Env.IsPointerOfType(input))
+            else if (ctx.Env.IsPointerLikeOfType(input))
             {
                 IEntityInstance inner_input_type = input.TemplateArguments.Single();
 
-                if (inner_input_type.MatchesTarget(ctx, target, true) == TypeMatch.Pass)
-                    return TypeMatch.AutoDereference;
+                TypeMatch m = inner_input_type.MatchesTarget(ctx, target, allowSlicing: true);
+                if (m == TypeMatch.Same || m == TypeMatch.Substitute)
+                    return m | TypeMatch.AutoDereference;
             }
 
             {
@@ -122,7 +125,8 @@ namespace Skila.Language
                         ;
                     }
 
-                    if (conv_type.MatchesTarget(ctx, target, conv_slicing_sub) == TypeMatch.Pass)
+                    TypeMatch m = conv_type.MatchesTarget(ctx, target, conv_slicing_sub);
+                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.OutConversion;
                 }
             }
@@ -146,15 +150,17 @@ namespace Skila.Language
                     // this would be disastrous when working concurrently
                     if (!inherited_input.IsImmutableType(ctx) && target.IsImmutableType(ctx))
                         return TypeMatch.No;
+                    else if (input == target)
+                        return TypeMatch.Same;
                     else
-                        return TypeMatch.Pass;
+                        return TypeMatch.Substitute;
                 }
             }
 
             return TypeMatch.No;
         }
 
-        public static bool LowestCommonAncestor(ComputationContext ctx, 
+        public static bool LowestCommonAncestor(ComputationContext ctx,
             IEntityInstance anyTypeA, IEntityInstance anyTypeB,
             out IEntityInstance result)
         {
@@ -163,7 +169,7 @@ namespace Skila.Language
             if (type_a == null)
             {
                 result = type_b;
-                return type_b!=null;
+                return type_b != null;
             }
             else if (type_b == null)
             {
@@ -181,7 +187,7 @@ namespace Skila.Language
             }
             else if (type_b.IsJoker)
             {
-                result =  type_a;
+                result = type_a;
                 return true;
             }
 

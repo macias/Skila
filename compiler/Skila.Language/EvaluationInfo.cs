@@ -1,8 +1,9 @@
-﻿using Skila.Language.Semantics;
-using System;
+﻿using System;
+using System.Diagnostics;
 
 namespace Skila.Language
 {
+    [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EvaluationInfo
     {
         public static readonly EvaluationInfo Joker = new EvaluationInfo(EntityInstance.Joker);
@@ -26,6 +27,16 @@ namespace Skila.Language
         public EvaluationInfo(EntityInstance eval) : this(eval, eval)
         {
 
+        }
+
+        public override string ToString()
+        {
+            string a = this.Aggregate.ToString();
+            string c = this.Components.ToString();
+            if (a == c)
+                return c;
+            else
+                return c + " / " + a;
         }
     }
 

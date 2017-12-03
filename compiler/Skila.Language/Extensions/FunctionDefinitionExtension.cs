@@ -153,7 +153,8 @@ namespace Skila.Language.Extensions
 
             {
                 IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
-                if (derivedFunc.ResultTypeName.Evaluation.Components.MatchesTarget(ctx, base_result_type, allowSlicing: false) != TypeMatch.Pass)
+                TypeMatch match = derivedFunc.ResultTypeName.Evaluation.Components.MatchesTarget(ctx, base_result_type, allowSlicing: false);
+                if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     return false;
 
             }

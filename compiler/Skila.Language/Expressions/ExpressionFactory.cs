@@ -94,7 +94,22 @@ namespace Skila.Language.Expressions
 
         public static IExpression AssertOptionValue(IExpression option)
         {
-            return AssertTrue(NameReference.Create(option,NameFactory.OptionHasValue));
+            return AssertTrue(optionHasValue(option));
+        }
+
+        private static NameReference optionHasValue(IExpression option)
+        {
+            return NameReference.Create(option, NameFactory.OptionHasValue);
+        }
+
+        public static IExpression IfOptionEmpty(IExpression option, params IExpression[] then)
+        {
+            return IfBranch.CreateIf(ExpressionFactory.NotOperator(optionHasValue(option)), then);
+        }
+
+        public static NameReference OptionValue(IExpression option)
+        {
+            return NameReference.Create(option, NameFactory.OptionValue);
         }
     }
 }

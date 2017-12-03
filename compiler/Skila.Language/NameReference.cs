@@ -215,7 +215,7 @@ namespace Skila.Language
                     // referencing static member?
                     if (this.Prefix is NameReference prefix_ref 
                         // todo: make it nice, currently refering to base look like static reference
-                        && (!ctx.Env.Options.BaseReferenceEnabled || prefix_ref.Name!=NameFactory.BaseVariableName) //@@@
+                        && (!ctx.Env.Options.BaseReferenceEnabled || prefix_ref.Name!=NameFactory.BaseVariableName) 
                         && prefix_ref.Binding.Match.Target.IsType())
                     {
                         TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;

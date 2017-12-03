@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            //new Semantics.CompilerProtection().CircularConversion();
+            new Semantics.CompilerProtection().Environment();
             //new Semantics.Templates().ErrorHasConstraint();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
@@ -25,10 +25,10 @@ namespace Skila.Tests
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //  new Semantics.NameResolution().ErrorAccessForbidden();
-            new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
+            // new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-            // new Semantics.Expressions().ErrorIgnoringParameters();
+           //  new Semantics.Expressions().ErrorCastingToSet();
             //new MethodDefinitions().Basics();
             //   new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
             //new Semantics.TypeMatching().UnionMatching();

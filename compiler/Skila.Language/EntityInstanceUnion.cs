@@ -42,7 +42,7 @@ namespace Skila.Language
                 // when comparing two unions the rule is simple: each instance from this has to have its identical counterpart in the other union
                 // and in reverse, each instance from the other has to have its counterpart in this union, so for example
                 // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
-                return this.Instances.All(it => check_any(other_union, it)) 
+                return this.Instances.All(it => check_any(other_union, it))
                     && other_union.Instances.All(it => check_any(this, it));
         }
 
@@ -58,7 +58,7 @@ namespace Skila.Language
             foreach (IEntityInstance target in this.Instances)
             {
                 TypeMatch m = target.TemplateMatchesInput(ctx, inversedVariance, input, variance, allowSlicing);
-                if (m == TypeMatch.Pass)
+                if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                     return m;
                 else if (m == TypeMatch.AutoDereference
                     || m == TypeMatch.InConversion
@@ -78,7 +78,7 @@ namespace Skila.Language
             foreach (IEntityInstance target in this.Instances)
             {
                 TypeMatch m = target.MatchesInput(ctx, input, allowSlicing);
-                if (m == TypeMatch.Pass)
+                if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                     return m;
                 else if (m == TypeMatch.InConversion
                     || m == TypeMatch.AutoDereference
@@ -94,18 +94,26 @@ namespace Skila.Language
 
         // this is somewhat limiting, because when we have multiple targets we go easy way not allowing
         // type conversion, some day improve it
-        public override  TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
+        public override TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
         {
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
-            if (matches.All(it => it == TypeMatch.Pass))
-                return TypeMatch.Pass;
+            if (matches.All(it => it == TypeMatch.Same))
+                return TypeMatch.Same;
+            else if (matches.All(it => it == TypeMatch.Same || it == TypeMatch.Substitute))
+                return TypeMatch.Substitute;
             else
                 return TypeMatch.No;
         }
 
         public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target, VarianceMode variance, bool allowSlicing)
         {
-            return this.Instances.All(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing) == TypeMatch.Pass) ? TypeMatch.Pass : TypeMatch.No;
+            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing));
+            if (matches.All(it => it == TypeMatch.Same))
+                return TypeMatch.Same;
+            else if (matches.All(it => it == TypeMatch.Same || it == TypeMatch.Substitute))
+                return TypeMatch.Substitute;
+            else
+                return TypeMatch.No;
         }
 
         public override bool IsOverloadDistinctFrom(IEntityInstance other)

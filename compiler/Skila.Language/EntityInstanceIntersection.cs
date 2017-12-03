@@ -91,8 +91,10 @@ namespace Skila.Language
         public override TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
         {
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
-            if (matches.Any(it => it == TypeMatch.Pass))
-                return TypeMatch.Pass;
+            if (matches.Any(it => it == TypeMatch.Same))
+                return TypeMatch.Same;
+            else if (matches.Any(it => it== TypeMatch.Substitute))
+                return TypeMatch.Substitute;
             else
                 return TypeMatch.No;
         }
@@ -100,8 +102,13 @@ namespace Skila.Language
         public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, 
             IEntityInstance target, VarianceMode variance, bool allowSlicing)
         {
-            return this.Instances.Any(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing) 
-                == TypeMatch.Pass) ? TypeMatch.Pass : TypeMatch.No;
+            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing));
+            if (matches.Any(it => it == TypeMatch.Same))
+                return TypeMatch.Same;
+            else if (matches.Any(it => it == TypeMatch.Substitute))
+                return TypeMatch.Substitute;
+            else
+                return TypeMatch.No;
         }
 
         public override bool IsOverloadDistinctFrom(IEntityInstance other)

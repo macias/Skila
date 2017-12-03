@@ -266,10 +266,11 @@ namespace Skila.Tests.Semantics
 
             var unrelated_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
             var abc_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
-            var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv")).Parents(NameReference.Create("ABC")));
-            var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "V", VarianceMode.Out)).Parents(NameReference.Create("ABC")));
-            var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(
-                NameDefinition.Create("Tuple", "T", VarianceMode.None))
+            var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
+                .Parents(NameReference.Create("ABC")));
+            var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "V", VarianceMode.Out))
+                .Parents(NameReference.Create("ABC")));
+            var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple", "T", VarianceMode.None))
                 .Parents(NameReference.Create("Foo", NameReference.Create("T"))));
 
 
@@ -283,10 +284,12 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreNotEqual(TypeMatch.Pass, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Pass, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Pass, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Pass, tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
+            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, allowSlicing: true));
+            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, allowSlicing: true);
+            Assert.AreNotEqual(TypeMatch.Same, match);
+            Assert.AreNotEqual(TypeMatch.Substitute, match);
 
             return resolver;
         }
@@ -354,21 +357,16 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var unrelated_type = TypeBuilder.Create(
-                NameDefinition.Create("Separate")).Build();
-            root_ns.AddNode(unrelated_type);
-            var abc_type = TypeBuilder.Create(
-                NameDefinition.Create("ABC")).Build();
-            root_ns.AddNode(abc_type);
-            var derived_type = TypeBuilder.Create(NameDefinition.Create("Deriv")).Parents(NameReference.Create("ABC")).Build();
-            root_ns.AddNode(derived_type);
-            var deriz_type = TypeBuilder.Create(NameDefinition.Create("Deriz")).Parents(NameReference.Create("Deriv")).Build();
-            root_ns.AddNode(deriz_type);
-            var qwerty_type = TypeBuilder.Create(NameDefinition.Create("qwerty")).Parents(NameReference.Create("ABC")).Build();
-            root_ns.AddNode(qwerty_type);
-            var sink_type = TypeBuilder.Create(NameDefinition.Create("sink"))
-                .Parents(NameReference.Create("qwerty"), NameReference.Create("Separate")).Build();
-            root_ns.AddNode(sink_type);
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
+                .Parents(NameReference.Create("ABC")));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriz"))
+                .Parents(NameReference.Create("Deriv")));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("qwerty"))
+                .Parents(NameReference.Create("ABC")));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("sink"))
+                .Parents(NameReference.Create("qwerty"), NameReference.Create("Separate")));
 
 
             var separate_deriv_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("Deriv")));
@@ -379,12 +377,14 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(TypeMatch.Pass, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
+            Assert.AreEqual(TypeMatch.Substitute, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
                 separate_deriv_union.Evaluation.Components, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Pass, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
+            Assert.AreEqual(TypeMatch.Substitute, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
                 separate_abc_union.Evaluation.Components, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Pass, sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriz_union.Evaluation.Components, allowSlicing: true));
+            TypeMatch match = sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
+                separate_deriz_union.Evaluation.Components, allowSlicing: true);
+            Assert.AreNotEqual(TypeMatch.Same, match);
+            Assert.AreNotEqual(TypeMatch.Substitute, match);
 
             return resolver;
         }

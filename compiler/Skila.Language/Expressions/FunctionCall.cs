@@ -53,7 +53,7 @@ namespace Skila.Language.Expressions
 
         public IReadOnlyList<FunctionArgument> Arguments { get; }
         public override IEnumerable<INode> OwnedNodes => Arguments.Select(it => it.Cast<INode>())
-            .Concat(this.Callee) 
+            .Concat(this.Callee)
             .Concat(RequestedOutcomeTypeName)
             .Where(it => it != null)
             .Concat(closures);
@@ -87,12 +87,16 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2681)
+                if (this.DebugId.Id == 155)
                 {
                     ;
                 }
 
                 // trap only lambdas, name reference is a call, not passing function around
+                // for example here trapping lambda into closure is necessary
+                // ((x) => x*x)()
+                // and here is not (regular call)
+                // f()
                 if (this.TrapLambdaClosure(ctx, ref this.callee))
                     ConvertToExplicitInvoke(ctx);
 
@@ -240,30 +244,36 @@ namespace Skila.Language.Expressions
 
             // the less, the better
             var arguments_matches = new List<Tuple<CallResolution, List<int>>>();
-            foreach (CallResolution target in targets)
+            foreach (CallResolution call_target in targets)
             {
-                List<int> matches = target.Arguments
-                    .Select(it =>
+                List<int> matches = call_target.Arguments
+                    .Select(arg =>
                     {
-                        FunctionParameter param = target.GetParamByArgIndex(it.Index);
+                        FunctionParameter param = call_target.GetParamByArgIndex(arg.Index);
                         int weight = 0;
                         // prefer non-variadic parameters
                         if (param.IsVariadic)
                             weight += 1;
                         // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
                         // note we use untranslated param evaluation here to achieve this effect
-                        if (!param.Evaluation.Components.IsSame(it.Evaluation.Components, jokerMatchesAll: true))
+                        if (!param.Evaluation.Components.IsSame(arg.Evaluation.Components, jokerMatchesAll: true))
                             weight += 2;
+
                         // prefer exact match instead more general match (Int->Int is better than Int->Object)
-                        if (!target.GetTransParamEvalByArgIndex(it.Index).IsSame(it.Evaluation.Components, jokerMatchesAll: true))
+                        IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArgIndex(arg.Index);
+                        TypeMatch m = call_target.TypeMatches[arg.Index].Value;
+                        if (m.HasFlag(TypeMatch.Substitute))
                             weight += 4;
+                        else if (!m.HasFlag(TypeMatch.Same)) // conversions
+                            weight += 8;
+
                         return weight;
                     })
                     .ToList();
                 // bonus if optional parameters are explicitly targeted (i.e. default values are not used)
-                matches.Add(target.AllParametersUsed() ? 0 : 1);
+                matches.Add(call_target.AllParametersUsed() ? 0 : 1);
 
-                arguments_matches.Add(Tuple.Create(target, matches));
+                arguments_matches.Add(Tuple.Create(call_target, matches));
             }
 
             Option<Tuple<CallResolution, List<int>>> best = arguments_matches

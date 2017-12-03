@@ -96,15 +96,21 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = ExpressionFactory.StackConstructorCall((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
                 source.AttachTo(@this);
-                if (source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false) != TypeMatch.Pass)
+                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
+                if (m != TypeMatch.Same && m!= TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
-            else if (match == TypeMatch.ImplicitReference)
+            else if (match.HasFlag(TypeMatch.ImplicitReference))
             {
+                match ^= TypeMatch.ImplicitReference;
+                if (match != TypeMatch.Substitute && match != TypeMatch.Same)
+                    throw new NotImplementedException();
+
                 source.DetachFrom(@this);
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
-                if (source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: true) != TypeMatch.Pass)
+                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: true);
+                if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
             else if (match == TypeMatch.OutConversion)
@@ -112,11 +118,16 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = FunctionCall.CreateToCall(source, (targetTypeName as EntityInstance).NameOf);
                 source.AttachTo(@this);
-                if (source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false) != TypeMatch.Pass)
+                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
+                if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
-            else if (match == TypeMatch.AutoDereference)
+            else if (match.HasFlag(TypeMatch.AutoDereference))
             {
+                match ^= TypeMatch.AutoDereference;
+                if (match != TypeMatch.Substitute && match != TypeMatch.Same)
+                    throw new NotImplementedException();
+
                 if (source.DebugId.Id==2572)
                 {
                     ;
@@ -124,7 +135,7 @@ namespace Skila.Language.Extensions
                 source.IsDereferenced = true;
                 @this.Cast<IExpression>().IsDereferencing = true;
             }
-            else if (match != TypeMatch.Pass)
+            else if (match != TypeMatch.Same && match!= TypeMatch.Substitute)
                 throw new NotImplementedException();
 
             return true;

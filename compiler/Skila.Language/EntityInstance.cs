@@ -280,7 +280,7 @@ namespace Skila.Language
             switch (inversedVariance ? variance.Inverse() : variance)
             {
                 case VarianceMode.None:
-                    return this.IsSame(input, jokerMatchesAll: true) ? TypeMatch.Pass : TypeMatch.No;
+                    return this.IsSame(input, jokerMatchesAll: true) ? TypeMatch.Same : TypeMatch.No;
                 case VarianceMode.In:
                     return TypeMatcher.Matches(ctx, !inversedVariance, this, input, allowSlicing);
                 case VarianceMode.Out:

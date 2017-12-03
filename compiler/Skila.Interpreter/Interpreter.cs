@@ -604,7 +604,7 @@ namespace Skila.Interpreter
                 ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name, name.Prefix);
                 return ExecValue.CreateExpression(prefix_obj.GetField(target));
             }
-            else if (ctx.Env.Options.BaseReferenceEnabled && name.Name == NameFactory.BaseVariableName)//@@@
+            else if (ctx.Env.Options.BaseReferenceEnabled && name.Name == NameFactory.BaseVariableName)
                 return ExecValue.CreateExpression(ctx.ThisArgument);
             else if (ctx.LocalVariables.TryGet(target as ILocalBindable, out ObjectData info))
                 return ExecValue.CreateExpression(info);
