@@ -5,42 +5,24 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
-using Skila.Language.Flow;
-using System;
 
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class TypeDefinition : TypeContainerDefinition
-    {
-        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints, bool allowSlicing,
-            IEnumerable<NameReference> parents, IEnumerable<INode> features)
-        {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, features,
-                typeParameter: null);
-        }
-        public static TypeDefinition Create(bool isPlain, EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints,
-            bool allowSlicing,
-            IEnumerable<NameReference> parents = null)
-        {
-            return new TypeDefinition(isPlain, modifier, allowSlicing, name, constraints, parents, null,
-                typeParameter: null);
-        }
+    {   
         public static TypeDefinition Create(EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             bool allowSlicing,
-            IEnumerable<NameReference> parents = null, IEnumerable<IEntity> entities = null)
+            IEnumerable<NameReference> parents = null, IEnumerable<INode> features = null)
         {
-            return new TypeDefinition(false, modifier, allowSlicing, name, constraints,
-                parents, entities,
+            return new TypeDefinition(modifier, allowSlicing, name, constraints,
+                parents, features,
                 typeParameter: null);
         }
         public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
-            return new TypeDefinition(false,
-                EntityModifier.Interface,
+            return new TypeDefinition(EntityModifier.Interface,
                 false, name, null, new[] { NameFactory.ObjectTypeReference() },
                 features: null,
                 typeParameter: null);
@@ -56,7 +38,7 @@ namespace Skila.Language.Entities
                 modifier |= EntityModifier.Base;
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
-            return new TypeDefinition(false, modifier, false, NameDefinition.Create(typeParameter.Name), null,
+            return new TypeDefinition( modifier, false, NameDefinition.Create(typeParameter.Name), null,
                 typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions,
                 typeParameter);
         }
@@ -88,8 +70,6 @@ namespace Skila.Language.Entities
 
         public bool AllowSlicedSubstitution { get; }
 
-        public bool IsPlain { get; }
-
         public VirtualTable InheritanceVirtualTable { get; private set; }
         public DerivationTable DerivationTable { get; private set; }
 
@@ -98,8 +78,7 @@ namespace Skila.Language.Entities
 
         // public FunctionDefinition InvokeLambda => this.NestedFunctions.Single(it => it.Name.Name == NameFactory.LambdaInvoke);
 
-        private TypeDefinition(bool isPlain,
-            EntityModifier modifier,
+        private TypeDefinition(EntityModifier modifier,
             bool allowSlicing,
             NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
@@ -107,7 +86,6 @@ namespace Skila.Language.Entities
             IEnumerable<INode> features,
             TemplateParameter typeParameter) : base(modifier, name, constraints)
         {
-            this.IsPlain = isPlain;
             this.AllowSlicedSubstitution = allowSlicing;
             this.TemplateParameter = typeParameter;
             this.ParentNames = (parents ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
@@ -185,7 +163,7 @@ namespace Skila.Language.Entities
             }
 
             this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
-            this.DerivationTable = new DerivationTable(ctx,derivation_mapping);
+            this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToDerive, func);

@@ -61,7 +61,7 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
 
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, 
                     null, Block.CreateStatement()))
@@ -104,7 +104,7 @@ namespace Skila.Language
                 );
 
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference()));
 
             // spread functions family
@@ -188,10 +188,10 @@ namespace Skila.Language
             this.functionTypes = new List<TypeDefinition>();
 
             this.VoidType = Root.AddBuilder(TypeBuilder.Create(NameFactory.VoidTypeName)
-                .Plain(true));
+                .Modifier(EntityModifier.Native));
 
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference()) },
@@ -205,11 +205,11 @@ namespace Skila.Language
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference()));
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private | EntityModifier.Native, null, Block.CreateStatement()))
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
@@ -219,7 +219,7 @@ namespace Skila.Language
                   new[] { FunctionParameter.Create("value", NameFactory.PointerTypeReference(NameReference.Create("T")), Variadic.None, null, isNameRequired: false) },
                   Block.CreateStatement(new IExpression[] { })));*/
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
-                .Plain(true)
+                .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private | EntityModifier.Native, null, Block.CreateStatement()))
                 .Slicing(true));
 
@@ -256,7 +256,7 @@ namespace Skila.Language
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
                     TemplateParametersBuffer.Create().Add("T").Values))
-                .Modifier(EntityModifier.HeapOnly)
+                .Modifier(EntityModifier.HeapOnly | EntityModifier.Native)
                 .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
                 // default constructor
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
@@ -286,7 +286,6 @@ namespace Skila.Language
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))*/
                 .Parents(NameFactory.ObjectTypeReference())
-                .Plain(true)
                 .Build();
         }
 

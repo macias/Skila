@@ -36,7 +36,6 @@ namespace Skila.Language.Builders
         private EntityModifier modifier;
         private TypeDefinition build;
         private bool allowSlicing;
-        private bool isPlain;
         private IEnumerable<TemplateConstraint> constraints;
 
         private TypeBuilder(NameDefinition name)
@@ -63,12 +62,6 @@ namespace Skila.Language.Builders
         public TypeBuilder Parents(params string[] parents)
         {
             return this.Parents(parents.Select(it => NameReference.Create(it)).ToArray());
-        }
-
-        internal TypeBuilder Plain(bool isPlain)
-        {
-            this.isPlain = isPlain;
-            return this;
         }
 
         public TypeBuilder With(params INode[] nodes)
@@ -104,8 +97,7 @@ namespace Skila.Language.Builders
         public TypeDefinition Build()
         {
             if (build == null)
-                build = TypeDefinition.Create(isPlain,
-                    this.modifier ?? EntityModifier.None,
+                build = TypeDefinition.Create(this.modifier,
                     this.name,
                     this.constraints,
                     allowSlicing,

@@ -24,10 +24,7 @@ namespace Skila.Interpreter
         public static ObjectData Create(IEntityInstance typeInstance, object value)
         {
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
-            if (type_def.IsPlain)
-                return new ObjectData(true, value, typeInstance);
-            else
-                return new ObjectData(false, value, typeInstance);
+            return new ObjectData(type_def.Modifier.HasNative, value, typeInstance);
         }
 
         public static ObjectData CreateEmpty(IEntityInstance typeInstance)
@@ -88,15 +85,15 @@ namespace Skila.Interpreter
             private readonly Dictionary<VariableDeclaration, ObjectData> fields;
 
             public object PlainValue { get; }
-            internal bool IsPlain { get; }
+            internal bool IsNative { get; }
             public EntityInstance RunTimeTypeInstance { get; }
 
-            public Data(bool plain, object value, IEntityInstance typeInstance)
+            public Data(bool isNative, object value, IEntityInstance typeInstance)
             {
                 this.PlainValue = value;
-                this.IsPlain = plain;
+                this.IsNative = isNative;
                 this.RunTimeTypeInstance = typeInstance.Cast<EntityInstance>();
-                if (!this.IsPlain)
+                if (!this.IsNative)
                 {
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
                     foreach (VariableDeclaration field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
@@ -112,7 +109,7 @@ namespace Skila.Interpreter
             {
                 // pointer/references sits here, so on copy simply assing the pointer/reference value
                 this.PlainValue = src.PlainValue;
-                this.IsPlain = src.IsPlain;
+                this.IsNative = src.IsNative;
                 this.RunTimeTypeInstance = src.RunTimeTypeInstance;
                 // however make copies of the fields
                 this.fields = src.fields?.ToDictionary(it => it.Key, it => new ObjectData(it.Value));
@@ -124,13 +121,13 @@ namespace Skila.Interpreter
             }
         }
 
-        private ObjectData(bool plain, object value, IEntityInstance typeInstance)
+        private ObjectData(bool isNative, object value, IEntityInstance typeInstance)
         {
             if (this.DebugId.Id == 9167)
             {
                 ;
             }
-            this.data = new Data(plain, value, typeInstance);
+            this.data = new Data(isNative, value, typeInstance);
         }
 
         private ObjectData(ObjectData src)
@@ -169,7 +166,7 @@ namespace Skila.Interpreter
                 throw new ObjectDisposedException($"{this}");
 
             bool value_disposed = false;
-            if (this.data.IsPlain)
+            if (this.data.IsNative)
             {
                 if (this.PlainValue is IDisposable d)
                 {

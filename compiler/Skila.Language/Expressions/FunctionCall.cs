@@ -81,6 +81,10 @@ namespace Skila.Language.Expressions
 
         public void Validate(ComputationContext ctx)
         {
+            FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
+            if (this.Resolution!=null && this.Resolution.TargetFunction.Modifier.HasVirtual
+                && enclosing_func != null && enclosing_func.IsConstructor())
+                ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
         }
 
         public void Evaluate(ComputationContext ctx)

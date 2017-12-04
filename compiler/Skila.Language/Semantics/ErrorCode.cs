@@ -71,5 +71,6 @@
         DerivationWithoutSuperCall = 67,
         SuperCallWithUnchainedBase = 68,
         TestingAgainstTypeSet = 69,
+        VirtualCallFromConstructor = 70,
     }
 }
