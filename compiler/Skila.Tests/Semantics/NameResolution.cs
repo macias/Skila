@@ -40,6 +40,36 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
+        [TestMethod]
+        public IErrorReporter ErrorCrossReferencingBaseMember()
+        {
+            var env = Environment.Create(new Options());
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                .With(VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), null,
+                    EntityModifier.Protected))
+                .Modifier(EntityModifier.Base));
+
+            NameReference cross_reference = NameReference.Create(NameFactory.BaseVariableName, "a");
+            root_ns.AddBuilder(TypeBuilder.Create("Bank")
+                .Parents("Keeper")
+                .With(FunctionBuilder.Create(NameDefinition.Create("anything"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.VoidTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    ExpressionFactory.Readout(cross_reference),
+                })))
+                .Modifier(EntityModifier.Base));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CrossReferencingBaseMember, cross_reference));
+
+            return resolver;
+        }
 
         [TestMethod]
         public IErrorReporter ScopeShadowing()
@@ -300,7 +330,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(abc_type, tuple_abc_ref.Binding.Match.TemplateArguments.Single().Target());
 
             return resolver;
-        }      
+        }
 
     }
 }

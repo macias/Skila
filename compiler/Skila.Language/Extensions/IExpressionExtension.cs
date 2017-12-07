@@ -31,7 +31,7 @@ namespace Skila.Language.Extensions
         {
             NameReference nameReference = (@this as NameReference);
             // todo: make it nice, such exception is ugly
-            if (options.BaseReferenceEnabled && nameReference?.Name == NameFactory.BaseVariableName)
+            if (nameReference?.Name == NameFactory.BaseVariableName)
                 return true;
             IEntity entity = nameReference?.Binding.Match.Target;
             return (entity == null || (!entity.IsType() && !entity.IsNamespace()));

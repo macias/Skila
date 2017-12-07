@@ -27,14 +27,19 @@ namespace Skila.Language.Expressions
             return new Block(ExpressionReadMode.ReadRequired, body);
         }
 
-        private readonly List<IExpression> instructions;
-        public IEnumerable<IExpression> Instructions => this.instructions;
+        internal FunctionCall constructorChainCall { get; private set; } // used in constructors
+        private IExpression zeroConstructorCall;
+
+        private readonly IReadOnlyCollection<IExpression> instructions;
+        public IEnumerable<IExpression> Instructions => new[] { constructorChainCall, zeroConstructorCall }
+            .Where(it => it != null)
+            .Concat(this.instructions);
 
         public override IEnumerable<INode> OwnedNodes => Instructions.Select(it => it.Cast<INode>());
 
         private Block(ExpressionReadMode readMode, IEnumerable<IExpression> body) : base(readMode)
         {
-            this.instructions = (body ?? Enumerable.Empty<IExpression>()).ToList();
+            this.instructions = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -57,10 +62,21 @@ namespace Skila.Language.Expressions
             }
         }
 
-        internal void Prepend(IExpression expression)
+        internal void SetZeroConstructorCall(FunctionCall call)
         {
-            this.instructions.Insert(0, expression);
-            expression.AttachTo(this);
+            if (this.zeroConstructorCall != null)
+                throw new Exception("Internal error");
+
+            this.zeroConstructorCall = call;
+            call.AttachTo(this);
+        }
+        internal void SetConstructorChainCall(FunctionCall call)
+        {
+            if (this.constructorChainCall != null)
+                throw new Exception("Internal error");
+
+            this.constructorChainCall = call;
+            call.AttachTo(this);
         }
     }
 }

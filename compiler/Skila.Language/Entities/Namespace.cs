@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
+using System.Collections.Generic;
 
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Namespace : TypeContainerDefinition
     {
+        public override IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+
         public static Namespace Create(NameDefinition name)
         {
             return new Namespace(name);

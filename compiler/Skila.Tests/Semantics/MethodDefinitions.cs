@@ -49,7 +49,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
                     ExpressionReadMode.OptionalUse,
                     NameFactory.DoubleTypeReference(),
-                    Block.CreateStatement(new[] {
+                    Block.CreateStatement(new IExpression[] {
                         Return.Create(DoubleLiteral.Create("3.3"))
                     }))
                     .Modifier(EntityModifier.Base)));
@@ -58,6 +58,34 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualCallFromConstructor,virtual_call));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorCallingConstructorFromBody()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionCall constructor_call = FunctionCall.Create(NameReference.Create(NameFactory.InitConstructorName));
+            var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
+                    Block.CreateStatement()))
+                .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.DoubleTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                        constructor_call,
+                        Return.Create(DoubleLiteral.Create("3.3"))
+                    }))
+                    .Modifier(EntityModifier.Base)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConstructorCallFromFunctionBody, constructor_call));
 
             return resolver;
         }

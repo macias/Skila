@@ -33,10 +33,8 @@ namespace Skila.Language
                 ;
             }
 
-            if (owner == null)
+            if (owner == null || this.Owner == owner)
                 return false;
-            else if (this.Owner == owner)
-                return true;
             else if (this.Owner == null)
             {
                 this.Owner = owner;

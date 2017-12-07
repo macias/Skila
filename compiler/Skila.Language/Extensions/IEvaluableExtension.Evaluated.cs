@@ -49,7 +49,7 @@ namespace Skila.Language.Extensions
                             if (!ctx.EvalLocalNames.Add(bindable))
                                 ctx.AddError(ErrorCode.NameAlreadyExists, bindable.Name);
                             else if (bindable.Name.Name == NameFactory.SelfFunctionName
-                                || (ctx.Env.Options.BaseReferenceEnabled && bindable.Name.Name == NameFactory.BaseVariableName)
+                                || bindable.Name.Name == NameFactory.BaseVariableName
                                 || bindable.Name.Name == NameFactory.SuperFunctionName)
                                 ctx.AddError(ErrorCode.ReservedName, bindable.Name);
                         }

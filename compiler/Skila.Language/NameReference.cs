@@ -163,7 +163,7 @@ namespace Skila.Language
 
                     if (this.Name == NameFactory.SelfFunctionName)
                         entities = new[] { this.EnclosingScope<FunctionDefinition>() };
-                    else if (ctx.Env.Options.BaseReferenceEnabled && this.Name == NameFactory.BaseVariableName)
+                    else if (this.Name == NameFactory.BaseVariableName)
                     {
                         TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
                         entities = new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
@@ -194,7 +194,7 @@ namespace Skila.Language
                         entities = Enumerable.Empty<IEntity>();
                         foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
                         {
-                            entities = scope.FindEntities(this);
+                            entities = scope.FindEntities( this);
                             if (entities.Any())
                             {
                                 break;
@@ -213,13 +213,13 @@ namespace Skila.Language
                     }
 
                     // referencing static member?
-                    if (this.Prefix is NameReference prefix_ref 
+                    if (this.Prefix is NameReference prefix_ref
                         // todo: make it nice, currently refering to base look like static reference
-                        && (!ctx.Env.Options.BaseReferenceEnabled || prefix_ref.Name!=NameFactory.BaseVariableName) 
+                        && prefix_ref.Name != NameFactory.BaseVariableName
                         && prefix_ref.Binding.Match.Target.IsType())
                     {
                         TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                        this.Binding.Set(target_type.FindEntities(this)
+                        this.Binding.Set(target_type.FindEntities( this)
                             .Where(it => it.Modifier.HasStatic)
                             .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
                     }
@@ -233,7 +233,7 @@ namespace Skila.Language
                         bool dereferenced = false;
                         TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
                             .TargetTemplate;
-                        IEnumerable<IEntity> entities = prefix_target.FindEntities(this)
+                        IEnumerable<IEntity> entities = prefix_target.FindEntities( this)
                             .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
 
                         this.Binding.Set(entities
@@ -250,11 +250,13 @@ namespace Skila.Language
                     }
                 }
 
-                if (this.Binding.Match.IsJoker && !this.IsSink)
+                if (this.Binding.Match.IsJoker && !this.IsSink
+                    // avoid cascade od errors, if prefix failed there is no point in reporting another error
+                    && (this.Prefix == null || !this.Prefix.Evaluation.Components.IsJoker))
                 {
                     ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
                 }
-                
+
             }
 
             EntityInstance instance = this.Binding.Match;
@@ -353,18 +355,15 @@ namespace Skila.Language
                 }
             }
 
-            if (this.Binding.Match.Target is FunctionDefinition binding_func)
-            {
-                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                if (this.Name != NameFactory.SelfFunctionName && binding_func == func)
-                    ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
-                else if (!this.IsSuperReference && func!=null)
-                {
-                    func = func.TryGetSuperFunction(ctx);
-                    if (func == binding_func)
-                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this);
-                }
-            }
+            if (this.Prefix is NameReference name_ref
+                && name_ref.Name == NameFactory.BaseVariableName
+                && (!(this.Binding.Match.Target is FunctionDefinition target_func)
+                // exclusion for constructors because it might be legal or not, but nevertheless
+                // both cases are handled elsewhere
+                || !target_func.IsConstructor())
+                && !ctx.Env.Options.BaseReferenceEnabled)
+                ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember,this);
+
         }
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {

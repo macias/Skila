@@ -3,19 +3,26 @@ using Skila.Language.Comparers;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Skila.Language
 {
     // scope which can hold unordered entities (i.e. it is not executed like block)
     public interface IEntityScope : IScope
     {
+        IEnumerable<IEntity> AvailableEntities { get; }
     }
 
     public static class IEntityScopeExtension
     {
-        public static IEnumerable<IEntity> FindEntities(this IEntityScope @this, NameReference name)
+        public static IEnumerable<IEntity> NestedEntities(this IEntityScope scope)
         {
-            foreach (IEntity entity in @this.OwnedNodes.WhereType<IEntity>(it => it.Name != null))
+            return scope.OwnedNodes.WhereType<IEntity>();
+        }
+
+        public static IEnumerable<IEntity> FindEntities(this IEntityScope scope, NameReference name)
+        {
+            foreach (IEntity entity in scope.AvailableEntities ?? scope.NestedEntities())
             {
                 if (name.Arity > 0)
                 {

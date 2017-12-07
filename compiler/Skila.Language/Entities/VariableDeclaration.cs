@@ -109,7 +109,7 @@ namespace Skila.Language.Entities
 
                 // we need to save it for later to change the errors, user does not see this call, but she/he
                 // sees the field
-                this.autoFieldDefaultInit = FunctionCall.Create(NameReference.Create(field_name, NameFactory.InitConstructorName));
+                this.autoFieldDefaultInit = FunctionCall.Constructor(NameReference.Create(field_name, NameFactory.InitConstructorName));
                 return this.autoFieldDefaultInit;
             }
             else if (!this.InitValue.IsUndef())
@@ -117,7 +117,7 @@ namespace Skila.Language.Entities
                 NameReference field_name = this.Name.CreateNameReference(this.InstanceOf);
 
                 this.initValue.DetachFrom(this);
-                var init = FunctionCall.Create(NameReference.Create(field_name,
+                var init = FunctionCall.Constructor(NameReference.Create(field_name,
                     NameFactory.InitConstructorName), FunctionArgument.Create(this.initValue));
                 this.initValue = null;
                 return init;

@@ -17,18 +17,18 @@ namespace Skila.Tests
 
         public static void Main()
         {
-          //  new Semantics.CompilerProtection().Environment();
+            //  new Semantics.CompilerProtection().Environment();
             //new Semantics.Templates().ErrorHasConstraint();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
             //  new Semantics.Properties().ErrorAssigningRValue();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-            //  new Semantics.NameResolution().ErrorAccessForbidden();
-            // new Semantics.FunctionCalls().ErrorAmbiguousTemplateFunction();
+            //   new Semantics.NameResolution().ErrorCrossReferencingBaseMember();
+             new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-           //  new Semantics.Expressions().ErrorCastingToSet();
+            //  new Semantics.Expressions().ErrorCastingToSet();
             //new MethodDefinitions().Basics();
             //   new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
             //new Semantics.TypeMatching().UnionMatching();
@@ -38,12 +38,12 @@ namespace Skila.Tests
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
             //  new Execution.Properties().AutoProperties();
-            //new Execution.Objects().AccessingObjectFields();
+            // new Execution.Objects().ConstructorChaining();
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();
-            //new Execution.Inheritance().VirtualCallAtBase();
-           new Execution.Interfaces().TraitFunctionCall();
+            //new Execution.Inheritance().VirtualCall();
+            //new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Templates().HasConstraintWithValue();
             //  new Execution.Closures().ResultTypeInference();
 

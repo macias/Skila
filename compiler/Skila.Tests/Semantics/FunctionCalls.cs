@@ -13,6 +13,40 @@ namespace Skila.Tests.Semantics
     public class FunctionCalls
     {
         [TestMethod]
+        public IErrorReporter ErrorUnqualifiedBaseConstructorCall()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
+                new[] { FunctionParameter.Create("g", NameFactory.IntTypeReference()) },
+                Block.CreateStatement(new[] {
+                    ExpressionFactory.Readout("g")
+                }));
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .With(base_constructor));
+
+            // without pinning down the target constructor with "base" it is not available
+            FunctionCall base_call = ExpressionFactory.ThisInit(FunctionArgument.Create(IntLiteral.Create("3")));
+            FunctionDefinition next_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
+                Block.CreateStatement(),
+                base_call);
+
+            TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
+                .Parents("Point")
+                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .With(next_constructor));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TargetFunctionNotFound, base_call));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorAmbiguousCallWithDistinctOutcomeTypes()
         {
             var env = Language.Environment.Create();

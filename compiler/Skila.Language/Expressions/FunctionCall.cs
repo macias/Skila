@@ -14,11 +14,19 @@ namespace Skila.Language.Expressions
     {
         public static FunctionCall Create(IExpression name, params FunctionArgument[] arguments)
         {
-            return new FunctionCall(name, arguments, requestedOutcomeType: null);
+            return new FunctionCall(false, name, arguments, requestedOutcomeType: null);
+        }
+        public static FunctionCall Constructor(IExpression name, params FunctionArgument[] arguments)
+        {
+            return new FunctionCall(true, name, arguments, requestedOutcomeType: null);
+        }
+        public static FunctionCall Constructor(string name, params FunctionArgument[] arguments)
+        {
+            return Constructor(NameReference.Create(name), arguments);
         }
         public static FunctionCall CreateToCall(IExpression expr, NameReference typeName)
         {
-            return new FunctionCall(NameReference.Create(expr, NameFactory.ConvertFunctionName),
+            return new FunctionCall(false, NameReference.Create(expr, NameFactory.ConvertFunctionName),
                 arguments: null, requestedOutcomeType: typeName);
         }
 
@@ -28,7 +36,7 @@ namespace Skila.Language.Expressions
             get { return this.isRead.Value; }
             set
             {
-                if (this.DebugId.Id == 2538)
+                if (this.DebugId.Id == 3131)
                 {
                     ;
                 }
@@ -62,10 +70,13 @@ namespace Skila.Language.Expressions
         public INameReference RequestedOutcomeTypeName { get; }
 
         public ExpressionReadMode ReadMode => this.Resolution?.TargetFunction?.CallMode ?? ExpressionReadMode.OptionalUse;
+        private readonly bool isConstructorCall;
 
-        private FunctionCall(IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
+        private FunctionCall(bool isConstructorCall,
+            IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
         {
+            this.isConstructorCall = isConstructorCall;
             this.callee = callee;
             this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
             this.RequestedOutcomeTypeName = requestedOutcomeType;
@@ -81,10 +92,33 @@ namespace Skila.Language.Expressions
 
         public void Validate(ComputationContext ctx)
         {
+            if (this.Resolution == null)
+                return;
+
             FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
-            if (this.Resolution!=null && this.Resolution.TargetFunction.Modifier.HasVirtual
-                && enclosing_func != null && enclosing_func.IsConstructor())
+
+            if (this.Resolution.TargetFunction.Modifier.HasVirtual
+                && enclosing_func != null && enclosing_func.IsConstructor()
+                && !enclosing_func.OwnerType().Modifier.HasSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
+
+            if (!this.isConstructorCall && this.Resolution.TargetFunction.IsConstructor())
+                ctx.AddError(ErrorCode.ConstructorCallFromFunctionBody, this);
+
+            if (this.Name.Binding.Match.Target is FunctionDefinition binding_func)
+            {
+                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                if (this.Name.Name != NameFactory.SelfFunctionName && binding_func == func)
+                    ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this.Name);
+                else if (!this.Name.IsSuperReference && func != null)
+                {
+                    func = func.TryGetSuperFunction(ctx);
+                    if (func == binding_func)
+                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this.Name);
+                }
+            }
+            
+
         }
 
         public void Evaluate(ComputationContext ctx)
@@ -127,7 +161,8 @@ namespace Skila.Language.Expressions
                 if (!matches.Any())
                 {
                     this.resolution = new Option<CallResolution>(null);
-                    ctx.AddError(ErrorCode.NotFunctionType, this.Callee);
+                    if (!this.Callee.Evaluation.Components.IsJoker) // do not cascade errors
+                        ctx.AddError(ErrorCode.NotFunctionType, this.Callee);
                 }
                 else
                 {
@@ -157,7 +192,7 @@ namespace Skila.Language.Expressions
                     {
                         if (targets.Count() > 1)
                         {
-                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this, 
+                            ctx.ErrorManager.AddError(ErrorCode.NOTEST_AmbiguousOverloadedCall, this,
                                 targets.Select(it => it.TargetFunctionInstance.Target));
                         }
 

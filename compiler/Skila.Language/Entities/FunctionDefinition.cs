@@ -22,7 +22,7 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition(modifier,
-                name, constraints, parameters, callMode, result, chainCall: null, body: body);
+                name, constraints, parameters, callMode, result, constructorChainCall: null, body: body);
         }
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -31,11 +31,11 @@ namespace Skila.Language.Entities
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode callMode,
             INameReference result,
-            FunctionCall chainCall,
+            FunctionCall constructorChainCall,
             Block body)
         {
             return new FunctionDefinition(modifier,
-                name, constraints, parameters, callMode, result, chainCall, body);
+                name, constraints, parameters, callMode, result, constructorChainCall, body);
         }
 
         internal void SetModifier(EntityModifier modifier)
@@ -46,11 +46,13 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateInitConstructor(
             EntityModifier modifier,
             IEnumerable<FunctionParameter> parameters,
-            Block body)
+            Block body,
+            FunctionCall constructorChainCall = null)
         {
             return new FunctionDefinition(modifier,
                                 NameFactory.InitConstructorNameDefinition(), null,
-                                parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
+                                parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                                constructorChainCall, body: body);
         }
 
         public static FunctionDefinition CreateHeapConstructor(
@@ -63,13 +65,14 @@ namespace Skila.Language.Entities
                 modifier | EntityModifier.Static,
                 NameFactory.NewConstructorNameDefinition(), null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
-                chainCall: null, body: body);
+                constructorChainCall: null, body: body);
         }
         public static FunctionDefinition CreateZeroConstructor(Block body)
         {
             return new FunctionDefinition(EntityModifier.None,
                                 NameFactory.ZeroConstructorNameDefinition(), null,
-                                null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), chainCall: null, body: body);
+                                null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                                constructorChainCall: null, body: body);
         }
 
         public bool IsResultTypeNameInfered { get; }
@@ -84,6 +87,8 @@ namespace Skila.Language.Entities
 
         internal LambdaTrap LambdaTrap { get; set; }
 
+        public override IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
             // parameters have to go before user body, so they are registered for use
             .Concat(this.Parameters)
@@ -94,10 +99,6 @@ namespace Skila.Language.Entities
             .Where(it => it != null);
 
         public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.Parameters).Concat(ResultTypeName);
-
-        // we keep this as a shortcut for particular piece of the body (initially chain call is not part of the body)
-        private readonly FunctionCall constructorChainCall;
-        private FunctionCall constructorZeroCall;
 
         public bool IsDeclaration => this.UserBody == null;
 
@@ -110,13 +111,12 @@ namespace Skila.Language.Entities
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode callMode,
             INameReference result,
-            FunctionCall chainCall,
+            FunctionCall constructorChainCall,
             Block body)
             : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
-            this.constructorChainCall = chainCall;
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
             this.ResultTypeName = result;
             this.IsResultTypeNameInfered = result == null;
@@ -125,8 +125,9 @@ namespace Skila.Language.Entities
             this.UserBody = body;
             this.CallMode = callMode;
 
-            if (this.constructorChainCall != null)
-                this.UserBody.Prepend(this.constructorChainCall);
+            // attaching zero-constructor call to the body of the function will be done when attaching entire function to a type
+            if (constructorChainCall != null)
+                this.UserBody.SetConstructorChainCall(constructorChainCall);
 
             if (this.IsLambdaInvoker)
                 this.LambdaTrap = new LambdaTrap();
@@ -168,7 +169,7 @@ namespace Skila.Language.Entities
                     // it is tempting to allowing conversions here, but it would mean that we have back to all "returns"
                     // to apply such conversions, besides such fluent result type is a bit of a stretch
                     TypeMatch match = candidate.MatchesTarget(ctx, common, allowSlicing: false);
-                    if (match != TypeMatch.Same && match!= TypeMatch.Substitute)
+                    if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
                         this.ResultTypeName = EntityInstance.Joker.NameOf;
@@ -183,13 +184,16 @@ namespace Skila.Language.Entities
 
         public override bool AttachTo(INode parent)
         {
-            if (this.DebugId.Id == 7172)
+            // IMPORTANT: when function is attached to a type, the type is NOT fully constructed!
+
+            if (this.DebugId.Id == 3058)
             {
                 ;
             }
 
             bool result = base.AttachTo(parent);
 
+            // property accessors will see owner type in second attach, when property is attached to type
             TypeDefinition owner_type = this.OwnerType();
             if (this.MetaThisParameter == null && owner_type != null) // method
             {
@@ -200,21 +204,33 @@ namespace Skila.Language.Entities
                 this.MetaThisParameter.AttachTo(this);
             }
 
-            if (owner_type != null && this.IsInitConstructor() && owner_type.ZeroConstructor != null)
-            {
-                this.constructorZeroCall = FunctionCall.Create(NameReference.Create(NameFactory.ZeroConstructorName));
-                this.UserBody.Prepend(constructorZeroCall);
-            }
-
             if (result && parent is TypeContainerDefinition && !this.Modifier.HasAccessSet)
                 this.SetModifier(this.Modifier | EntityModifier.Public);
 
             return result;
         }
 
+        public void SetZeroConstructorCall()
+        {
+            if (this.UserBody.constructorChainCall == null
+                // todo: a bit lame
+                || (this.UserBody.constructorChainCall.Name.Prefix is NameReference prefix_name
+                    && prefix_name.Name==NameFactory.BaseVariableName
+                    && this.UserBody.constructorChainCall.Name.Name == NameFactory.InitConstructorName))
+            {
+                FunctionCall zero_call = FunctionCall.Constructor(NameReference.Create(NameFactory.ZeroConstructorName));
+                this.UserBody.SetZeroConstructorCall(zero_call);
+            }
+        }
+
         public override string ToString()
         {
-            return $"{(base.ToString())}(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
+            string s = "";
+            TypeDefinition type_owner = this.OwnerType();
+            if (type_owner != null)
+                s += $"{type_owner}::";
+            s += $"{(base.ToString())}(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
+            return s;
         }
 
         internal NameReference GetThisNameReference()
@@ -240,7 +256,7 @@ namespace Skila.Language.Entities
             if (this.Modifier.HasRefines && !this.Modifier.HasUnchainBase)
             {
                 if (!this.IsDeclaration
-                    && this.OwnerType().DerivationTable.TryGetSuper(this,out FunctionDefinition dummy)
+                    && this.OwnerType().DerivationTable.TryGetSuper(this, out FunctionDefinition dummy)
                     && !this.DescendantNodes().WhereType<FunctionCall>().Any(it => it.Name.IsSuperReference))
                 {
                     ctx.AddError(ErrorCode.DerivationWithoutSuperCall, this);

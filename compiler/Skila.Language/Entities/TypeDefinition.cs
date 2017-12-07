@@ -10,7 +10,7 @@ namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class TypeDefinition : TypeContainerDefinition
-    {   
+    {
         public static TypeDefinition Create(EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints,
             bool allowSlicing,
@@ -38,7 +38,7 @@ namespace Skila.Language.Entities
                 modifier |= EntityModifier.Base;
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
-            return new TypeDefinition( modifier, false, NameDefinition.Create(typeParameter.Name), null,
+            return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
                 typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions,
                 typeParameter);
         }
@@ -73,10 +73,8 @@ namespace Skila.Language.Entities
         public VirtualTable InheritanceVirtualTable { get; private set; }
         public DerivationTable DerivationTable { get; private set; }
 
-        private readonly FunctionDefinition zeroConstructor;
-        public FunctionDefinition ZeroConstructor => this.zeroConstructor;
-
-        // public FunctionDefinition InvokeLambda => this.NestedFunctions.Single(it => it.Name.Name == NameFactory.LambdaInvoke);
+        private IEnumerable<IEntity> availableEntities;
+        public override IEnumerable<IEntity> AvailableEntities => this.availableEntities;
 
         private TypeDefinition(EntityModifier modifier,
             bool allowSlicing,
@@ -90,10 +88,12 @@ namespace Skila.Language.Entities
             this.TemplateParameter = typeParameter;
             this.ParentNames = (parents ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
 
-            features?.ForEach(it => AddNode(it));
-            addAutoConstructors(ref this.zeroConstructor);
-
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            features?.ForEach(it => AddNode(it));
+
+            // all nodes have to be attached at this point
+            setupConstructors();
 
             constructionCompleted = true;
         }
@@ -125,7 +125,12 @@ namespace Skila.Language.Entities
                 .Where(it => it.Modifier.HasRefines)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
-            // ancestors are guaranteed to start with parent type implementation
+            HashSet<IEntity> inherited_entities = this.Inheritance.MinimalParentsWithoutObject
+                .SelectMany(it => it.TargetType.AvailableEntities ?? Enumerable.Empty<IEntity>())
+                .Where(it => it.Modifier.HasPublic || it.Modifier.HasProtected)
+                .Where(it => !(it is FunctionDefinition func) || !func.IsConstructor())
+                .ToHashSet();
+
             foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
             {
                 foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.NestedFunctions))
@@ -138,6 +143,8 @@ namespace Skila.Language.Entities
                     }
                     else
                     {
+                        inherited_entities.Remove(deriv_info.Base);
+
                         if (!deriv_info.Derived.Modifier.HasRefines)
                             ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
                         else
@@ -164,6 +171,7 @@ namespace Skila.Language.Entities
 
             this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
             this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
+            this.availableEntities = inherited_entities.Concat(this.NestedEntities()).StoreReadOnly();
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToDerive, func);
@@ -204,30 +212,34 @@ namespace Skila.Language.Entities
             }
         }
 
-        private void addAutoConstructors(ref FunctionDefinition zeroConstructor)
+        private void setupConstructors()
         {
-            if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol)
-                return;
-
-            if (this.DebugId.Id == 1564)
+            if (this.DebugId.Id == 3181)
             {
                 ;
             }
+            if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol)
+                return;
+
+            if (!this.NestedFunctions.Where(it => it.IsInitConstructor()).Any())
+            {
+                this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()));
+            }
+
             {
                 IEnumerable<IExpression> field_defaults = this.AllNestedFields
                     .Select(it => it.DetachFieldInitialization())
                     .Where(it => it != null).StoreReadOnly();
                 if (field_defaults.Any())
                 {
-                    zeroConstructor = FunctionDefinition.CreateZeroConstructor(Block.CreateStatement(field_defaults));
-                    this.AddNode(zeroConstructor);
+                    FunctionDefinition zero_constructor = FunctionDefinition.CreateZeroConstructor(Block.CreateStatement(field_defaults));
+                    this.AddNode(zero_constructor);
+
+                    foreach (FunctionDefinition init_cons in this.NestedFunctions.Where(it => it.IsInitConstructor()))
+                        init_cons.SetZeroConstructorCall();
                 }
             }
 
-            if (!this.NestedFunctions.Any(it => it.IsInitConstructor()))
-            {
-                this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()));
-            }
 
 #if USE_NEW_CONS
         createNewConstructors();

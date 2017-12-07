@@ -21,15 +21,15 @@ namespace Skila.Interpreter
         public DebugId DebugId { get; } = new DebugId();
 #endif
 
-        public static ObjectData Create(IEntityInstance typeInstance, object value)
+        internal static ObjectData Create(ExecutionContext ctx, IEntityInstance typeInstance, object value)
         {
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
-            return new ObjectData(type_def.Modifier.HasNative, value, typeInstance);
+            return new ObjectData(ctx, type_def.Modifier.HasNative, value, typeInstance);
         }
 
-        public static ObjectData CreateEmpty(IEntityInstance typeInstance)
+        internal static ObjectData CreateEmpty(ExecutionContext ctx, IEntityInstance typeInstance)
         {
-            return Create(typeInstance, null);
+            return Create(ctx, typeInstance, null);
         }
 
         private int isDisposedFlag;
@@ -88,7 +88,7 @@ namespace Skila.Interpreter
             internal bool IsNative { get; }
             public EntityInstance RunTimeTypeInstance { get; }
 
-            public Data(bool isNative, object value, IEntityInstance typeInstance)
+            public Data(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance)
             {
                 this.PlainValue = value;
                 this.IsNative = isNative;
@@ -96,11 +96,18 @@ namespace Skila.Interpreter
                 if (!this.IsNative)
                 {
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
-                    foreach (VariableDeclaration field in this.RunTimeTypeInstance.TargetType.AllNestedFields)
+                    var translators = new List<EntityInstance>();
+                    foreach (EntityInstance type_instance in this.RunTimeTypeInstance
+                        .PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)).Concat(this.RunTimeTypeInstance))
                     {
-                        EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
-                        field_type = field_type.TranslateThrough(typeInstance);
-                        this.fields.Add(field, ObjectData.CreateEmpty(field_type));
+                        translators.Add(type_instance);
+
+                        foreach (VariableDeclaration field in type_instance.TargetType.AllNestedFields)
+                        {
+                            EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
+                            field_type = field_type.TranslateThrough((translators as IEnumerable<EntityInstance>).Reverse());
+                            this.fields.Add(field, ObjectData.CreateEmpty(ctx, field_type));
+                        }
                     }
                 }
             }
@@ -121,13 +128,13 @@ namespace Skila.Interpreter
             }
         }
 
-        private ObjectData(bool isNative, object value, IEntityInstance typeInstance)
+        private ObjectData(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance)
         {
             if (this.DebugId.Id == 9167)
             {
                 ;
             }
-            this.data = new Data(isNative, value, typeInstance);
+            this.data = new Data(ctx, isNative, value, typeInstance);
         }
 
         private ObjectData(ObjectData src)
@@ -184,9 +191,9 @@ namespace Skila.Interpreter
             return new ObjectData(this);
         }
 
-        internal ObjectData Reference(Language.Environment env)
+        internal ObjectData Reference(ExecutionContext ctx)
         {
-            return ObjectData.Create(env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }, overrideMutability: false), this);
+            return ObjectData.Create(ctx, ctx.Env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }, overrideMutability: false), this);
         }
 
         internal ObjectData TryDereference(Language.Environment env)

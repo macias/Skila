@@ -6,6 +6,16 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static FunctionCall BaseInit(params FunctionArgument[] arguments)
+        {
+            return FunctionCall.Constructor(NameReference.Create(NameFactory.BaseVariableName, NameFactory.InitConstructorName), 
+                arguments);
+        }
+        public static FunctionCall ThisInit(params FunctionArgument[] arguments)
+        {
+            return FunctionCall.Constructor(NameReference.Create(NameFactory.ThisVariableName, NameFactory.InitConstructorName),
+                arguments);
+        }
         public static IExpression Cast(IExpression lhs, INameReference rhsTypeName)
         {
             IExpression condition = IsType.Create(lhs, rhsTypeName);
@@ -74,7 +84,7 @@ namespace Skila.Language.Expressions
             var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
-            var init_call = FunctionCall.Create(constructorReference, arguments);
+            var init_call = FunctionCall.Constructor(constructorReference, arguments);
 
             return Block.CreateExpression(new IExpression[] { var_decl, init_call, var_ref });
         }

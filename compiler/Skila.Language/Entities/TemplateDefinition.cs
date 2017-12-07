@@ -22,14 +22,14 @@ namespace Skila.Language.Entities
 
         public IEnumerable<TypeDefinition> NestedTypes => this.NestedTemplates.WhereType<TypeDefinition>();
         public IEnumerable<FunctionDefinition> NestedFunctions => this.NestedTemplates.WhereType<FunctionDefinition>();
+        public IEnumerable<VariableDeclaration> NestedFields => this.ownedNodes.WhereType<VariableDeclaration>();
         // directly nested fields + property fields
-        public IEnumerable<VariableDeclaration> AllNestedFields => this.ownedNodes.WhereType<VariableDeclaration>()
+        public IEnumerable<VariableDeclaration> AllNestedFields => this.NestedFields
             .Concat(this.NestedProperties.SelectMany(it => it.Fields));
         public IEnumerable<Property> NestedProperties => this.ownedNodes.WhereType<Property>();
         public IEnumerable<Namespace> NestedNamespaces => this.NestedTemplates.WhereType<Namespace>();
         public IEnumerable<TypeContainerDefinition> NestedTypeContainers => this.NestedTemplates.WhereType<TypeContainerDefinition>();
         public IEnumerable<TemplateDefinition> NestedTemplates => this.ownedNodes.WhereType<TemplateDefinition>();
-        public IEnumerable<IEntity> NestedEntities => this.ownedNodes.WhereType<IEntity>();
 
         public override IEnumerable<INode> OwnedNodes => this.ownedNodes
             .Concat(this.Name)
@@ -51,6 +51,8 @@ namespace Skila.Language.Entities
         // for example "Array<T>" can have method "copy" present with conditional on the method (not entire type)
         // that T has method "copy" itself, otherwise the method "Array.copy" is not available
         public IEnumerable<TemplateConstraint> Conditionals { get; }
+
+        public abstract IEnumerable<IEntity> AvailableEntities { get; }
 
         public bool IsSurfed { get; set; }
         public virtual IEnumerable<ISurfable> Surfables => this.NestedTemplates;

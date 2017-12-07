@@ -36,7 +36,7 @@ namespace Skila.Language.Entities
                 }
             }
             {   // detecting variables duplicates
-                foreach (VariableDeclaration second_var in this.NestedEntities
+                foreach (VariableDeclaration second_var in this.NestedEntities()
                     .WhereType<VariableDeclaration>()
                     .GroupBy(it => it.Name, EntityBareNameComparer.Instance)
                     .Select(group => group.Skip(1).FirstOrDefault())

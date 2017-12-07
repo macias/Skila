@@ -111,7 +111,7 @@ namespace Skila.Tests.Execution
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("X")
+            root_ns.AddBuilder(TypeBuilder.Create("MyBase")
                 .Modifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
@@ -122,7 +122,7 @@ namespace Skila.Tests.Execution
                     }))
                     .Modifier(EntityModifier.Base)));
 
-            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("SomeChild")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
@@ -130,15 +130,15 @@ namespace Skila.Tests.Execution
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))
-                .Parents(NameReference.Create("X")));
+                .Parents(NameReference.Create("MyBase")));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("MyBase")),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("SomeChild"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                 })));
 
