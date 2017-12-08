@@ -315,7 +315,8 @@ namespace Skila.Language
                             .Modifier(EntityModifier.Mutable)
                             .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 null,
-                                new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(), NameReference.Create(has_value_field)) },
+                                new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(), 
+                                    NameReference.Create(NameFactory.ThisVariableName, has_value_field)) },
                                 null
                             ))
                             .With(Property.Create(NameFactory.OptionValue, NameReference.Create("T"),
@@ -323,9 +324,9 @@ namespace Skila.Language
                                 new[] { FunctionBuilder.Create(NameDefinition.Create(NameFactory.PropertyGetter),
                                 null, ExpressionReadMode.CannotBeRead, NameReference.Create("T"),
                                 Block.CreateStatement(new IExpression[] {
-                                    IfBranch.CreateIf(ExpressionFactory.Not( NameReference.Create(has_value_field)),
+                                    IfBranch.CreateIf(ExpressionFactory.Not( NameReference.Create(NameFactory.ThisVariableName, has_value_field)),
                                         new[]{ Throw.Create(ExpressionFactory.HeapConstructor(NameFactory.ExceptionTypeReference())) }),
-                                    Return.Create(NameReference.Create(value_field))
+                                    Return.Create(NameReference.Create(NameFactory.ThisVariableName, value_field))
                                 })).Build() },
                                 null
                             ))

@@ -27,6 +27,18 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter Internals()
+        {
+            var env = Language.Environment.Create();
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.IsTrue(NameReference.CreateBaseInitReference().IsBaseInitReference);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter CircularConversion()
         {
             var env = Language.Environment.Create();

@@ -56,7 +56,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new IExpression[] {
-                        Return.Create(NameReference.Create("m"))
+                        Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                     }))));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
@@ -96,7 +96,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new IExpression[] {
-                        Return.Create(NameReference.Create("m"))
+                        Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                     }))));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,

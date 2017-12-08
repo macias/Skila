@@ -11,7 +11,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer, ILocalBindable
+    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer, ILocalBindable, IMember
     {
         public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
@@ -105,7 +105,7 @@ namespace Skila.Language.Entities
             {
                 // we have to give target for name, because this could be property field, and it is in scope
                 // of a property not enclosed type, so from constructor such field is invisible
-                NameReference field_name = this.Name.CreateNameReference(this.InstanceOf);
+                NameReference field_name = this.Name.CreateNameReference(NameFactory.ThisReference(), this.InstanceOf);
 
                 // we need to save it for later to change the errors, user does not see this call, but she/he
                 // sees the field
@@ -114,7 +114,7 @@ namespace Skila.Language.Entities
             }
             else if (!this.InitValue.IsUndef())
             {
-                NameReference field_name = this.Name.CreateNameReference(this.InstanceOf);
+                NameReference field_name = this.Name.CreateNameReference(NameFactory.ThisReference(), this.InstanceOf);
 
                 this.initValue.DetachFrom(this);
                 var init = FunctionCall.Constructor(NameReference.Create(field_name,

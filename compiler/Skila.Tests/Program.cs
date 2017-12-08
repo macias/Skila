@@ -21,11 +21,11 @@ namespace Skila.Tests
             //new Semantics.Templates().ErrorHasConstraint();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
-            //  new Semantics.Properties().ErrorAssigningRValue();
+            //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-            //   new Semantics.NameResolution().ErrorCrossReferencingBaseMember();
-             new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
+              new Semantics.NameResolution().ErrorMissingThis();
+            //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
             //  new Semantics.Expressions().ErrorCastingToSet();
@@ -34,11 +34,11 @@ namespace Skila.Tests
             //new Semantics.TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
-            // new Semantics.Types().ErrorConflictingModifier();
+             //new Semantics.Types().ErrorInstanceMemberReference();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
             //  new Execution.Properties().AutoProperties();
-            // new Execution.Objects().ConstructorChaining();
+             //new Execution.Objects().ConstructorChaining();
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();

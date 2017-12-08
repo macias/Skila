@@ -39,10 +39,10 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionCall virtual_call = FunctionCall.Create(NameReference.Create("foo"));
+            FunctionCall virtual_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "foo"));
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo")
                 .Modifier(EntityModifier.Base)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,null,
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                     Block.CreateStatement(new[] {
                         virtual_call
                     })))
@@ -57,7 +57,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualCallFromConstructor,virtual_call));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualCallFromConstructor, virtual_call));
 
             return resolver;
         }
@@ -68,7 +68,8 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            FunctionCall constructor_call = FunctionCall.Create(NameReference.Create(NameFactory.InitConstructorName));
+            FunctionCall constructor_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName,
+                NameFactory.InitConstructorName));
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo")
                 .Modifier(EntityModifier.Base)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,

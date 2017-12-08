@@ -12,6 +12,46 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter ErrorMissingThis()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Base)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Protected))
+                .With(FunctionBuilder.Create("foo", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                    Block.CreateStatement())));
+
+            NameReference x_ref = NameReference.Create("x");
+            NameReference y_ref = NameReference.Create("y");
+            NameReference foo_ref = NameReference.Create("foo");
+            NameReference bar_ref = NameReference.Create("bar");
+            root_ns.AddBuilder(TypeBuilder.Create("Next")
+                .Parents("Point")
+                .With(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null))
+                .With(FunctionBuilder.Create("bar", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                    Block.CreateStatement()))
+                .With(FunctionBuilder.Create("all", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                        ExpressionFactory.Readout(x_ref),
+                        ExpressionFactory.Readout(y_ref),
+                        FunctionCall.Create(foo_ref),
+                        FunctionCall.Create(bar_ref),
+                    }))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingThisPrefix, x_ref));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingThisPrefix, y_ref));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingThisPrefix, foo_ref));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingThisPrefix, bar_ref));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorAccessForbidden()
         {
             var env = Environment.Create();

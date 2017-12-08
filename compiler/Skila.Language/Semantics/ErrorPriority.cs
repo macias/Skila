@@ -25,6 +25,9 @@ namespace Skila.Language.Semantics
 
             add(ErrorCode.ExpressionValueNotUsed, 
                 ErrorCode.CannotReadExpression);
+
+            add(ErrorCode.MissingThisPrefix, 
+                ErrorCode.InstanceMemberAccessInStaticContext);
         }
         private void add(ErrorCode lower, params ErrorCode[] higherCodes)
         {

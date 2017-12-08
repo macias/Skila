@@ -74,5 +74,6 @@
         VirtualCallFromConstructor = 70,
         ConstructorCallFromFunctionBody = 71,
         CrossReferencingBaseMember = 72,
+        MissingThisPrefix = 73,
     }
 }

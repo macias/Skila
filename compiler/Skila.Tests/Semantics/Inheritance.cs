@@ -25,7 +25,7 @@ namespace Skila.Tests.Semantics
                     .Modifier(EntityModifier.Private))
             );
 
-            NameReference private_reference = NameReference.Create("transmogrify");
+            NameReference private_reference = NameReference.Create(NameFactory.ThisVariableName, "transmogrify");
             // refining private is OK, but we cannot change the access to it
             FunctionDefinition public_func = FunctionBuilder.Create("untransmogrify", ExpressionReadMode.CannotBeRead,
                     NameFactory.VoidTypeReference(), Block.CreateStatement())

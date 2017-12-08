@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope
+    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope,IMember
     {
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -195,7 +195,8 @@ namespace Skila.Language.Entities
 
             // property accessors will see owner type in second attach, when property is attached to type
             TypeDefinition owner_type = this.OwnerType();
-            if (this.MetaThisParameter == null && owner_type != null) // method
+            if (this.MetaThisParameter == null && owner_type != null // method
+                && !this.Modifier.HasStatic && !owner_type.Modifier.HasStatic)
             {
                 NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
@@ -212,13 +213,9 @@ namespace Skila.Language.Entities
 
         public void SetZeroConstructorCall()
         {
-            if (this.UserBody.constructorChainCall == null
-                // todo: a bit lame
-                || (this.UserBody.constructorChainCall.Name.Prefix is NameReference prefix_name
-                    && prefix_name.Name==NameFactory.BaseVariableName
-                    && this.UserBody.constructorChainCall.Name.Name == NameFactory.InitConstructorName))
+            if (this.UserBody.constructorChainCall == null || this.UserBody.constructorChainCall.Name.IsBaseInitReference)
             {
-                FunctionCall zero_call = FunctionCall.Constructor(NameReference.Create(NameFactory.ZeroConstructorName));
+                FunctionCall zero_call = FunctionCall.Constructor(NameReference.Create(NameFactory.ThisVariableName, NameFactory.ZeroConstructorName));
                 this.UserBody.SetZeroConstructorCall(zero_call);
             }
         }

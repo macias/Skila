@@ -51,8 +51,8 @@ namespace Skila.Tests.Execution
             FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null, 
                 Block.CreateStatement(new[] {
                     // a = a + 5   --> 4
-                    Assignment.CreateStatement(NameReference.Create("a"),
-                        ExpressionFactory.Add(NameReference.Create("a"),IntLiteral.Create("5")))
+                    Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, "a"),
+                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"a"),IntLiteral.Create("5")))
                 }));
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable | EntityModifier.Base)
@@ -63,8 +63,8 @@ namespace Skila.Tests.Execution
             FunctionDefinition next_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null, 
                 Block.CreateStatement(new[] {
                     // b = b + 15 --> +5
-                    Assignment.CreateStatement(NameReference.Create("b"),
-                        ExpressionFactory.Add(NameReference.Create("b"),IntLiteral.Create("15")))
+                    Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"b"),
+                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),IntLiteral.Create("15")))
                 }), ExpressionFactory.BaseInit());
 
             TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
@@ -76,8 +76,8 @@ namespace Skila.Tests.Execution
                     new[] { FunctionParameter.Create("i", NameFactory.IntTypeReference()) },
                     Block.CreateStatement(new[] {
                     // b = b + i  --> i+5
-                    Assignment.CreateStatement(NameReference.Create("b"),
-                        ExpressionFactory.Add(NameReference.Create("b"),NameReference.Create("i")))
+                    Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"b"),
+                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),NameReference.Create("i")))
                 }), ExpressionFactory.ThisInit()))
                 .With(VariableDeclaration.CreateStatement("b", NameFactory.IntTypeReference(), IntLiteral.Create("-10"),
                     EntityModifier.Public | EntityModifier.Reassignable)));

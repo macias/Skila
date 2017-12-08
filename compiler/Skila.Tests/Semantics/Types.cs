@@ -102,15 +102,14 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            NameReference field_ref = NameReference.Create("field");
+            NameReference field_ref = NameReference.Create( "field");
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
                 .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.DoubleTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(field_ref) }))
-                    .Modifier(EntityModifier.Static)
-                    .Build()));
+                    .Modifier(EntityModifier.Static)));
 
             var resolver = NameResolver.Create(env);
 

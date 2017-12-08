@@ -8,9 +8,9 @@ namespace Skila.Language.Expressions
     {
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
-            return FunctionCall.Constructor(NameReference.Create(NameFactory.BaseVariableName, NameFactory.InitConstructorName), 
-                arguments);
+            return FunctionCall.Constructor(NameReference.CreateBaseInitReference(), arguments);
         }
+
         public static FunctionCall ThisInit(params FunctionArgument[] arguments)
         {
             return FunctionCall.Constructor(NameReference.Create(NameFactory.ThisVariableName, NameFactory.InitConstructorName),

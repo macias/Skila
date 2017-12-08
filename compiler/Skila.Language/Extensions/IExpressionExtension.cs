@@ -34,7 +34,8 @@ namespace Skila.Language.Extensions
             if (nameReference?.Name == NameFactory.BaseVariableName)
                 return true;
             IEntity entity = nameReference?.Binding.Match.Target;
-            return (entity == null || (!entity.IsType() && !entity.IsNamespace()));
+            bool result = (entity == null || (!entity.IsType() && !entity.IsNamespace()));
+            return result;
         }
 
         public static bool IsUndef(this IExpression @this)

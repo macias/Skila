@@ -45,6 +45,17 @@ namespace Skila.Language
             return result;
         }
 
+        public static NameReference CreateBaseInitReference()
+        {
+            return NameReference.Create(NameFactory.BaseVariableName, NameFactory.InitConstructorName);
+        }
+
+        public bool IsBaseInitReference => this.hasBasePrefix && this.Name == NameFactory.InitConstructorName;
+
+        private bool hasBasePrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.BaseVariableName;
+        private bool hasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
+
+
         public static NameReference Sink()
         {
             return Create(sink);
@@ -194,7 +205,7 @@ namespace Skila.Language
                         entities = Enumerable.Empty<IEntity>();
                         foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
                         {
-                            entities = scope.FindEntities( this);
+                            entities = scope.FindEntities(this, propertyExtended: false);
                             if (entities.Any())
                             {
                                 break;
@@ -219,7 +230,7 @@ namespace Skila.Language
                         && prefix_ref.Binding.Match.Target.IsType())
                     {
                         TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                        this.Binding.Set(target_type.FindEntities( this)
+                        this.Binding.Set(target_type.FindEntities(this, propertyExtended: true)
                             .Where(it => it.Modifier.HasStatic)
                             .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
                     }
@@ -233,7 +244,7 @@ namespace Skila.Language
                         bool dereferenced = false;
                         TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
                             .TargetTemplate;
-                        IEnumerable<IEntity> entities = prefix_target.FindEntities( this)
+                        IEnumerable<IEntity> entities = prefix_target.FindEntities(this, propertyExtended: true)
                             .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
 
                         this.Binding.Set(entities
@@ -284,7 +295,7 @@ namespace Skila.Language
 
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 2773)
+            if (this.DebugId.Id == 3044)
             {
                 ;
             }
@@ -316,17 +327,19 @@ namespace Skila.Language
                     throw new Exception("Internal error");
             }
 
-            // check those names which targets variables and functions, among entities it is sufficient to check if it is an expression
-            foreach (IEntity entity in this.Binding.Matches.Select(it => it.Target).WhereType<IExpression>())
             {
-                if (entity.OwnerType() == null)
-                    continue;
+                // check those names which target type members (fields, methods, properties)
+                foreach (IMember member in this.Binding.Matches.Select(it => it.Target).WhereType<IMember>())
+                {
+                    if (member.OwnerType() == null)
+                        continue;
 
-                TemplateDefinition template = this.EnclosingScope<TemplateDefinition>();
-                if (!entity.Modifier.HasStatic
-                    && ((this.Prefix != null && !this.Prefix.IsValue(ctx.Env.Options))
-                        || (this.Prefix == null && template.Modifier.HasStatic)))
-                    ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
+                    TemplateDefinition template = this.EnclosingScope<TemplateDefinition>();
+                    if (!member.Modifier.HasStatic
+                        && ((this.Prefix != null && !this.Prefix.IsValue(ctx.Env.Options))
+                            || (this.Prefix == null && template.Modifier.HasStatic)))
+                        ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
+                }
             }
 
             if (ctx.ValAssignTracker != null &&
@@ -355,16 +368,28 @@ namespace Skila.Language
                 }
             }
 
-            if (this.Prefix is NameReference name_ref
-                && name_ref.Name == NameFactory.BaseVariableName
-                && (!(this.Binding.Match.Target is FunctionDefinition target_func)
+            if (this.hasBasePrefix
+                && (!(this.Binding.Match.Target is global::Skila.Language.Entities.FunctionDefinition target_func)
                 // exclusion for constructors because it might be legal or not, but nevertheless
                 // both cases are handled elsewhere
                 || !target_func.IsConstructor())
                 && !ctx.Env.Options.BaseReferenceEnabled)
-                ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember,this);
+                ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
 
+            {
+                if (!this.hasThisPrefix && !this.hasBasePrefix && this.Binding.Match.Target is IMember member)
+                {
+                    FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
+                    TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
+                    if (enclosing_type != null && enclosing_type.AvailableEntities.Contains(member)
+                         // in lambdas do not require fully qualified name because user sees it a function
+                         // not a method inside closure type
+                         && (enclosing_func == null || !enclosing_func.IsLambdaInvoker))
+                        ctx.AddError(ErrorCode.MissingThisPrefix, this);
+                }
+            }
         }
+
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {
             if (!ctx.Env.Dereferenced(entityInstance, out IEntityInstance __eval, out bool via_pointer))

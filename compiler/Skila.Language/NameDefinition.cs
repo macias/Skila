@@ -49,9 +49,9 @@ namespace Skila.Language
             return Name + parameters;
         }
 
-        public NameReference CreateNameReference(EntityInstance targetInstance = null)
+        public NameReference CreateNameReference(IExpression prefix, EntityInstance targetInstance = null)
         {
-            return NameReference.Create((IExpression)null, this.Name,
+            return NameReference.Create(prefix, this.Name,
                 this.Parameters.Select(it => NameReference.Create(it.Name)), targetInstance);
         }
     }

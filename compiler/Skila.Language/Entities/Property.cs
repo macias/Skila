@@ -14,7 +14,7 @@ namespace Skila.Language.Entities
     // to make sure there will be no problem in defining and passing this data
     // when user defines fancy parameters for indexer
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope
+    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope,IMember
     {
         public static VariableDeclaration CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
@@ -22,7 +22,7 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateAutoGetter(INameReference typeName)
         {
-            return CreateProxyGetter(typeName, NameReference.Create(NameFactory.PropertyAutoField));
+            return CreateProxyGetter(typeName, NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField));
         }
         internal static FunctionDefinition CreateProxyGetter(INameReference typeName, IExpression passedExpression)
         {
@@ -40,7 +40,7 @@ namespace Skila.Language.Entities
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterParameter, typeName, Variadic.None, null, isNameRequired: false) },
                 ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
-                    Assignment.CreateStatement(NameReference.Create(NameFactory.PropertyAutoField),
+                    Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),
                         NameReference.Create(NameFactory.PropertySetterParameter ))
                 }));
         }

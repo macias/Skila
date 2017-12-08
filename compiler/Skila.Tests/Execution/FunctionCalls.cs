@@ -18,7 +18,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             IExpression i_eq_2 = ExpressionFactory.Equal(NameReference.Create("i"), IntLiteral.Create("2"));
-            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"),IntLiteral.Create("1"));
+            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), IntLiteral.Create("1"));
             FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.IntTypeReference(),
                 Block.CreateStatement(new[] {
                     // if i==2 then return i
@@ -117,18 +117,20 @@ namespace Skila.Tests.Execution
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2"), EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(),
+                    IntLiteral.Create("2"), EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("pass"), new[] {
                         FunctionParameter.Create("v",NameFactory.IntTypeReference(),Variadic.None,
-                            FunctionCall.Create(NameReference.Create("getme")),isNameRequired:false)
+                            FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "getme")),isNameRequired:false)
                     },
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                         Return.Create(NameReference.Create("v"))
                     })))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getme"), null,
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
-                        Return.Create(NameReference.Create("x"))
+                        Return.Create(NameReference.Create(NameFactory.ThisVariableName, "x"))
                     }))));
+
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
