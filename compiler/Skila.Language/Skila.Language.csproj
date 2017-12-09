@@ -56,7 +56,6 @@
   <ItemGroup>
     <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
-    <Compile Include="Builders\IMultiBuilder.cs" />
     <Compile Include="CallContext.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Data\LayerDictionary.Flat.cs" />

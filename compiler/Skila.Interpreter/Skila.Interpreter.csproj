@@ -56,6 +56,7 @@
     <Compile Include="ExecValue.cs" />
     <Compile Include="ObjectData.cs" />
     <Compile Include="Interpreter.cs" />
+    <Compile Include="TypeRegistry.cs" />
     <Compile Include="VariableRegistry.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

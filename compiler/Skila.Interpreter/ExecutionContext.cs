@@ -5,10 +5,12 @@ namespace Skila.Interpreter
 {
     internal struct ExecutionContext
     {
-        public static ExecutionContext Create(Environment env)
+        public static ExecutionContext Create(Environment env, Interpreter interpreter)
         {
-            return new ExecutionContext(env);
+            return new ExecutionContext(env,interpreter);
         }
+
+        public Interpreter Interpreter { get; } 
 
         public Environment Env { get; }
         public VariableRegistry LocalVariables;
@@ -17,12 +19,15 @@ namespace Skila.Interpreter
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; set; }
         internal Heap Heap { get; }
         public RoutineRegistry Routines { get; }
+        internal TypeRegistry TypeRegistry { get; }
 
-        private ExecutionContext(Environment env) :this ()
+        private ExecutionContext(Environment env,Interpreter interpreter) :this ()
         {
             this.Env = env;
             this.Heap = new Heap();
             this.Routines = new RoutineRegistry();
+            this.TypeRegistry = new TypeRegistry();
+            this.Interpreter = interpreter;
         }
         private ExecutionContext(ExecutionContext src) : this()
         {
@@ -31,6 +36,8 @@ namespace Skila.Interpreter
             this.Routines = src.Routines;
             this.ThisArgument = src.ThisArgument;
             this.FunctionArguments = src.FunctionArguments;
+            this.TypeRegistry = src.TypeRegistry;
+            this.Interpreter = src.Interpreter;
         }
 
         internal ExecutionContext Clone()

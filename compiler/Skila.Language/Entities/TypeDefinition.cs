@@ -50,7 +50,6 @@ namespace Skila.Language.Entities
         public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
         public bool IsInterface => this.Modifier.HasInterface;
         public bool IsProtocol => this.Modifier.HasProtocol;
-        public bool IsAbstract => this.IsInterface || this.Modifier.HasAbstract || this.IsProtocol;
 
         public bool IsJoker => this.Name.Name == NameFactory.JokerTypeName;
 
@@ -138,7 +137,7 @@ namespace Skila.Language.Entities
                     if (deriv_info.Derived == null)
                     {
                         // we can skip implementation or abstract signature of the function in the abstract type
-                        if (deriv_info.Base.Modifier.HasAbstract && !this.Modifier.HasAbstract)
+                        if (deriv_info.Base.Modifier.HasAbstract && !this.Modifier.IsAbstract)
                             ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
                     }
                     else
@@ -150,7 +149,7 @@ namespace Skila.Language.Entities
                         else
                             derivation_mapping[deriv_info.Derived].Add(deriv_info.Base);
 
-                        if (!deriv_info.Base.Modifier.HasSealed)
+                        if (!deriv_info.Base.Modifier.IsSealed)
                         {
                             virtual_mapping.Add(deriv_info.Base, deriv_info.Derived);
 
@@ -187,16 +186,16 @@ namespace Skila.Language.Entities
                 if (parent.Evaluation.Components.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                     ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
 
-            if (!this.IsAbstract)
+            if (!this.Modifier.IsAbstract)
             {
                 foreach (FunctionDefinition func in this.NestedFunctions)
                     if (func.Modifier.HasAbstract)
                         ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
-                    else if (func.Modifier.HasBase && this.Modifier.HasSealed)
+                    else if (func.Modifier.HasBase && this.Modifier.IsSealed)
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
             }
 
-            if (this.Modifier.HasImmutable)
+            if (this.Modifier.IsImmutable)
             {
                 foreach (NameReference parent in this.ParentNames)
                     if (!parent.Evaluation.Components.IsImmutableType(ctx))
@@ -226,24 +225,35 @@ namespace Skila.Language.Entities
                 this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()));
             }
 
-            {
-                IEnumerable<IExpression> field_defaults = this.AllNestedFields
-                    .Select(it => it.DetachFieldInitialization())
-                    .Where(it => it != null).StoreReadOnly();
-                if (field_defaults.Any())
-                {
-                    FunctionDefinition zero_constructor = FunctionDefinition.CreateZeroConstructor(Block.CreateStatement(field_defaults));
-                    this.AddNode(zero_constructor);
+            if (createZeroConstructor(isStatic: false))
+                foreach (FunctionDefinition init_cons in this.NestedFunctions.Where(it => it.IsInitConstructor()))
+                    init_cons.SetZeroConstructorCall();
 
-                    foreach (FunctionDefinition init_cons in this.NestedFunctions.Where(it => it.IsInitConstructor()))
-                        init_cons.SetZeroConstructorCall();
-                }
-            }
+            createZeroConstructor(isStatic: true);
 
 
 #if USE_NEW_CONS
         createNewConstructors();
 #endif
+        }
+
+        private bool createZeroConstructor(bool isStatic)
+        {
+            IEnumerable<IExpression> field_defaults = this.AllNestedFields
+                .Where(it => it.Modifier.HasStatic == isStatic)
+                .Select(it => it.DetachFieldInitialization())
+                .Where(it => it != null)
+                .StoreReadOnly();
+
+            if (!field_defaults.Any())
+                return false;
+
+            FunctionDefinition zero_constructor = FunctionDefinition.CreateZeroConstructor(
+                isStatic ? EntityModifier.Static : EntityModifier.None,
+                Block.CreateStatement(field_defaults));
+            this.AddNode(zero_constructor);
+
+            return true;
         }
 
 #if USE_NEW_CONS
@@ -337,7 +347,7 @@ namespace Skila.Language.Entities
                 if (!this.Modifier.HasHeapOnly && parent.Target.Modifier.HasHeapOnly)
                     ctx.AddError(ErrorCode.CrossInheritingHeapOnlyType, parent_name);
 
-                if (parent.Target.Modifier.HasSealed)
+                if (parent.Target.Modifier.IsSealed)
                     ctx.AddError(ErrorCode.InheritingSealedType, parent_name);
 
                 if (!parent.TargetType.computeAncestors(ctx, visited))

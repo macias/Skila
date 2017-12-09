@@ -21,15 +21,20 @@ namespace Skila.Interpreter
         public DebugId DebugId { get; } = new DebugId();
 #endif
 
-        internal static ObjectData Create(ExecutionContext ctx, IEntityInstance typeInstance, object value)
+        internal static ObjectData CreateInstance(ExecutionContext ctx, IEntityInstance typeInstance, object value)
         {
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
-            return new ObjectData(ctx, type_def.Modifier.HasNative, value, typeInstance);
+            return new ObjectData(ctx, type_def.Modifier.HasNative, value, typeInstance, isStatic: false);
+        }
+        internal static ObjectData CreateType(ExecutionContext ctx, IEntityInstance typeInstance)
+        {
+            TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
+            return new ObjectData(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
         }
 
         internal static ObjectData CreateEmpty(ExecutionContext ctx, IEntityInstance typeInstance)
         {
-            return Create(ctx, typeInstance, null);
+            return CreateInstance(ctx, typeInstance, null);
         }
 
         private int isDisposedFlag;
@@ -88,11 +93,15 @@ namespace Skila.Interpreter
             internal bool IsNative { get; }
             public EntityInstance RunTimeTypeInstance { get; }
 
-            public Data(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance)
+            public Data(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance, bool isStatic)
             {
                 this.PlainValue = value;
                 this.IsNative = isNative;
                 this.RunTimeTypeInstance = typeInstance.Cast<EntityInstance>();
+
+                if (!isStatic)
+                    ctx.TypeRegistry.Add(ctx, this.RunTimeTypeInstance);
+
                 if (!this.IsNative)
                 {
                     this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
@@ -102,7 +111,8 @@ namespace Skila.Interpreter
                     {
                         translators.Add(type_instance);
 
-                        foreach (VariableDeclaration field in type_instance.TargetType.AllNestedFields)
+                        foreach (VariableDeclaration field in type_instance.TargetType.AllNestedFields
+                            .Where(it => it.Modifier.HasStatic == isStatic))
                         {
                             EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
                             field_type = field_type.TranslateThrough((translators as IEnumerable<EntityInstance>).Reverse());
@@ -128,13 +138,13 @@ namespace Skila.Interpreter
             }
         }
 
-        private ObjectData(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance)
+        private ObjectData(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance, bool isStatic)
         {
             if (this.DebugId.Id == 9167)
             {
                 ;
             }
-            this.data = new Data(ctx, isNative, value, typeInstance);
+            this.data = new Data(ctx, isNative, value, typeInstance, isStatic);
         }
 
         private ObjectData(ObjectData src)
@@ -193,7 +203,7 @@ namespace Skila.Interpreter
 
         internal ObjectData Reference(ExecutionContext ctx)
         {
-            return ObjectData.Create(ctx, ctx.Env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }, overrideMutability: false), this);
+            return ObjectData.CreateInstance(ctx, ctx.Env.ReferenceType.GetInstanceOf(new[] { this.RunTimeTypeInstance }, overrideMutability: false), this);
         }
 
         internal ObjectData TryDereference(Language.Environment env)

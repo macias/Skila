@@ -20,15 +20,19 @@ namespace Skila.Language
 
         public void DetachFrom(INode owner)
         {
+            if (this.DebugId.Id== 3183)
+            {
+                ;
+            }
+
             if (this.Owner != owner || this.Owner == null)
                 return;
 
             this.Owner = null;
-            this.OwnedNodes.ForEach(it => it.DetachFrom(this));
         }
         public virtual bool AttachTo(INode owner)
         {
-            if (this.DebugId.Id == 7256)
+            if (this.DebugId.Id == 3183)
             {
                 ;
             }
@@ -44,7 +48,6 @@ namespace Skila.Language
                 return false;
             }
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
             return true;
         }
     }

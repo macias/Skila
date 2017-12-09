@@ -4,48 +4,64 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Entities;
 
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Block : Expression, IExecutableScope
     {
+        public enum Purpose
+        {
+            Initialization,
+            Regular
+        }
         public static Block Create(ExpressionReadMode readMode, IEnumerable<IExpression> body)
         {
-            return new Block(readMode, body);
+            return new Block(Purpose.Regular, readMode, body);
         }
         public static Block CreateStatement(IEnumerable<IExpression> body)
         {
-            return new Block(ExpressionReadMode.CannotBeRead, body);
+            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
         }
         public static Block CreateStatement()
         {
-            return new Block(ExpressionReadMode.CannotBeRead, body: null);
+            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body: null);
         }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
-            return new Block(ExpressionReadMode.ReadRequired, body);
+            return new Block(Purpose.Regular, ExpressionReadMode.ReadRequired, body);
+        }
+        public static Block CreateInitialization(VariableDeclaration decl, FunctionCall init, NameReference outcome)
+        {
+            return new Block(Purpose.Initialization, ExpressionReadMode.ReadRequired, new IExpression[] { decl, init, outcome });
         }
 
         internal FunctionCall constructorChainCall { get; private set; } // used in constructors
         private IExpression zeroConstructorCall;
 
-        private readonly IReadOnlyCollection<IExpression> instructions;
+        private readonly IReadOnlyList<IExpression> instructions;
         public IEnumerable<IExpression> Instructions => new[] { constructorChainCall, zeroConstructorCall }
             .Where(it => it != null)
             .Concat(this.instructions);
 
         public override IEnumerable<INode> OwnedNodes => Instructions.Select(it => it.Cast<INode>());
 
-        private Block(ExpressionReadMode readMode, IEnumerable<IExpression> body) : base(readMode)
+        public Purpose Mode { get; }
+        // applies only for initialization block
+        public FunctionCall InitializationStep => this.instructions[1].Cast<FunctionCall>();
+
+        private Block(Purpose purpose, ExpressionReadMode readMode, IEnumerable<IExpression> body) : base(readMode)
         {
-            this.instructions = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
+            this.instructions = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnlyList();
+            this.Mode = purpose;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
         public override string ToString()
         {
-            return this.Instructions.FirstOrDefault()?.ToString() ?? "";
+            int count = this.Instructions.Count();
+            return (this.Instructions.FirstOrDefault()?.ToString() ?? "") + (count > 1 ? $"...{{{count}}}" : "");
         }
         public override bool IsReadingValueOfNode(IExpression node)
         {

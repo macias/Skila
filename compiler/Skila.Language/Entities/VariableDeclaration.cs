@@ -68,7 +68,7 @@ namespace Skila.Language.Entities
             if (!base.AttachTo(owner))
                 return false;
 
-            if (owner is TypeContainerDefinition && !this.Modifier.HasAccessSet)
+            if (owner is TypeContainerDefinition && !this.Modifier.IsAccessSet)
                 this.SetModifier(this.Modifier | EntityModifier.Private);
 
             return true;
@@ -101,29 +101,59 @@ namespace Skila.Language.Entities
 
         public IExpression DetachFieldInitialization()
         {
+            if (this.DebugId.Id == 3191)
+            {
+                ;
+            }
+
+            if (this.InitValue.IsUndef())
+                return null;
+
+            // we have to give target for name, because this could be property field, and it is in scope
+            // of a property not enclosed type, so from constructor such field is invisible
+            NameReference field_reference = this.Name.CreateNameReference(
+                this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(), this.InstanceOf);
+
             if (this.InitValue == null)
             {
-                // we have to give target for name, because this could be property field, and it is in scope
-                // of a property not enclosed type, so from constructor such field is invisible
-                NameReference field_name = this.Name.CreateNameReference(NameFactory.ThisReference(), this.InstanceOf);
-
                 // we need to save it for later to change the errors, user does not see this call, but she/he
                 // sees the field
-                this.autoFieldDefaultInit = FunctionCall.Constructor(NameReference.Create(field_name, NameFactory.InitConstructorName));
+                this.autoFieldDefaultInit = FunctionCall.Constructor(NameReference.Create(field_reference,
+                    NameFactory.InitConstructorName));
                 return this.autoFieldDefaultInit;
             }
             else if (!this.InitValue.IsUndef())
             {
-                NameReference field_name = this.Name.CreateNameReference(NameFactory.ThisReference(), this.InstanceOf);
-
                 this.initValue.DetachFrom(this);
-                var init = FunctionCall.Constructor(NameReference.Create(field_name,
-                    NameFactory.InitConstructorName), FunctionArgument.Create(this.initValue));
+
+                FunctionCall init;
+
+                // if the init value is constructor call, there is no point in creating around it
+                // another constructor call. Instead get the init step and reuse it, this time
+                // with given field directly, for example
+                // x = Foo()
+                // translatates to
+                // x = (__this__ = alloc Foo ; __this__.init() ; __this__)
+                // so we rip off the init step and replace the object, which results in
+                // x.init()
+                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization)
+                {
+                    init = block.InitializationStep;
+                    init.DetachFrom(block);
+
+                    init.Name.ReplacePrefix(field_reference);
+                }
+                else
+                {
+                    init = FunctionCall.Constructor(NameReference.Create(field_reference, NameFactory.InitConstructorName),
+                        FunctionArgument.Create(this.initValue));
+                }
+
                 this.initValue = null;
                 return init;
             }
             else
-                return null;
+                throw new InvalidOperationException();
         }
 
         public override void Evaluate(ComputationContext ctx)
@@ -140,7 +170,9 @@ namespace Skila.Language.Entities
                 IEntityInstance init_eval = InitValue?.Evaluation?.Components;
 
                 IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
-                if (tn_eval != null && InitValue == null && (this.IsField() || this.isGlobalVariable()))
+                if (tn_eval != null
+                    && ((InitValue == null && this.isGlobalVariable())
+                        || (this.IsField() && this.autoFieldDefaultInit != null)))
                 {
                     if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
                     {
@@ -148,7 +180,8 @@ namespace Skila.Language.Entities
                         type_def.Evaluated(ctx);
                         if (!type_def.HasDefaultPublicConstructor())
                         {
-                            ctx.ErrorManager.AddErrorTranslation(ErrorCode.TargetFunctionNotFound, this.autoFieldDefaultInit, ErrorCode.NoDefaultConstructor, this);
+                            ctx.ErrorManager.AddErrorTranslation(ErrorCode.TargetFunctionNotFound, this.autoFieldDefaultInit,
+                                ErrorCode.NoDefaultConstructor, this);
                         }
                     }
                     else

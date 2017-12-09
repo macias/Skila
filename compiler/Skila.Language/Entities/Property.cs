@@ -125,5 +125,17 @@ namespace Skila.Language.Entities
             }
         }
 
+        public override bool AttachTo(INode parent)
+        {
+            if (!base.AttachTo(parent))
+                return false;
+
+            // we need to notify accessors about attachment to type, so those methods could create correct "this" parameter
+            this.Getter?.AttachTo(this);
+            this.Setter?.AttachTo(this);
+
+            return true;
+        }
+
     }
 }

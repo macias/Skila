@@ -7,8 +7,8 @@ using Skila.Language.Expressions;
 
 namespace Skila.Language.Builders
 {
-    //[DebuggerDisplay("{GetType().Name} {ToString()}")]
-  /*@@@  public sealed class EnumCaseBuilder : IMultiBuilder<VariableDeclaration>
+    [DebuggerDisplay("{GetType().Name} {ToString()}")]
+    public sealed class EnumCaseBuilder 
     {
         public static EnumCaseBuilder Create(params string[] cases)
         {
@@ -16,17 +16,28 @@ namespace Skila.Language.Builders
         }
 
         private readonly IEnumerable<string> cases;
+        private List<VariableDeclaration> build;
 
-        public EnumCaseBuilder(string[] cases)
+        private EnumCaseBuilder(string[] cases)
         {
             this.cases = cases;
         }
 
-        public IEnumerable<VariableDeclaration> Build()
+        public IEnumerable<VariableDeclaration> Build(TypeBuilder typeBuilder)
         {
             if (build == null)
-                build = new TemplateConstraint(name, modifier, hasConstraints, inherits, baseOf);
+            {
+                build = new List<VariableDeclaration>();
+                NameReference typename = typeBuilder.CreateTypeNameReference();
+                foreach (string s in cases)
+                {
+                    build.Add(VariableDeclaration.CreateStatement(s, typename,
+                        IntLiteral.Create($"{build.Count}"),
+                        EntityModifier.Static | EntityModifier.Public));
+                }
+            }
+
             return build;
         }
-    }*/
+    }
 }

@@ -67,9 +67,9 @@ namespace Skila.Language.Entities
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
                 constructorChainCall: null, body: body);
         }
-        public static FunctionDefinition CreateZeroConstructor(Block body)
+        public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier,Block body)
         {
-            return new FunctionDefinition(EntityModifier.None,
+            return new FunctionDefinition(modifier | EntityModifier.Private,
                                 NameFactory.ZeroConstructorNameDefinition(), null,
                                 null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
                                 constructorChainCall: null, body: body);
@@ -205,7 +205,7 @@ namespace Skila.Language.Entities
                 this.MetaThisParameter.AttachTo(this);
             }
 
-            if (result && parent is TypeContainerDefinition && !this.Modifier.HasAccessSet)
+            if (result && parent is TypeContainerDefinition && !this.Modifier.IsAccessSet)
                 this.SetModifier(this.Modifier | EntityModifier.Public);
 
             return result;

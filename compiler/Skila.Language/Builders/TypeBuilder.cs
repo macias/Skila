@@ -4,6 +4,8 @@ using System.Linq;
 using Skila.Language.Entities;
 using NaiveLanguageTools.Common;
 using System.Collections.Generic;
+using Skila.Language.Expressions;
+using Skila.Language.Flow;
 
 namespace Skila.Language.Builders
 {
@@ -19,6 +21,30 @@ namespace Skila.Language.Builders
             var buff = TemplateParametersBuffer.Create();
             typeParameters.ForEach(it => buff.Add(it, VarianceMode.None));
             return new TypeBuilder(NameDefinition.Create(name, buff.Values));
+        }
+        public static TypeBuilder CreateEnum(string name)
+        {
+            TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
+            builder = builder
+                .Modifier(EntityModifier.Enum)
+                .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference()) },
+                    Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout(NameFactory.EnumConstructorParameter)
+                    })))
+                .WithEquatableEquals()
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(new[] {
+                       ExpressionFactory.Readout("cmp"),
+                        Return.Create(Undef.Create())
+                    }))
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp",builder.CreateTypeNameReference())))
+                    ;
+
+            return builder;
         }
         public static TypeBuilder CreateInterface(string name, EntityModifier modifier = null)
         {
@@ -51,6 +77,10 @@ namespace Skila.Language.Builders
             this.parents = parents;
             return this;
         }
+        public NameReference CreateTypeNameReference()
+        {
+            return this.name.CreateNameReference(prefix: null);
+        }
         public TypeBuilder Constraints(params TemplateConstraint[] constraints)
         {
             if (this.constraints != null || this.build != null)
@@ -64,6 +94,12 @@ namespace Skila.Language.Builders
             return this.Parents(parents.Select(it => NameReference.Create(it)).ToArray());
         }
 
+        public TypeBuilder With(EnumCaseBuilder enumBuilder)
+        {
+            if (!this.modifier.HasEnum)
+                throw new InvalidOperationException();
+            return this.With(enumBuilder.Build(this));
+        }
         public TypeBuilder With(params INode[] nodes)
         {
             this.features.AddRange(nodes);

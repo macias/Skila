@@ -11,7 +11,7 @@ namespace Skila.Language.Extensions
     {
         public static IEntityInstance Evaluated(this INode node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 2554)
+            if (node.DebugId.Id == 3199)
             {
                 ;
             }
@@ -42,7 +42,7 @@ namespace Skila.Language.Extensions
                     {
                         if (ctx.EvalLocalNames != null)
                         {
-                            if (node.DebugId.Id == 2552)
+                            if (node.DebugId.Id ==  198)
                             {
                                 ;
                             }

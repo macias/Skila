@@ -34,7 +34,7 @@ namespace Skila.Language
         public Namespace CollectionsNamespace { get; }
 
         public TypeDefinition IntType { get; }
-        // public TypeDefinition BoolType { get; }
+        //public TypeDefinition EnumType { get; }
         public TypeDefinition StringType { get; }
         public TypeDefinition DoubleType { get; }
         public TypeDefinition ObjectType { get; }
@@ -63,7 +63,7 @@ namespace Skila.Language
             this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
                 .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, 
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference()) },
@@ -78,6 +78,7 @@ namespace Skila.Language
                     }))
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())))
+                .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
@@ -86,23 +87,11 @@ namespace Skila.Language
                     }))
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference())))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement(new[] {
-                        // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.Cast(NameReference.Create("cmp"),
-                            NameFactory.ReferenceTypeReference( NameFactory.IntTypeReference()))),
-                        // if not obj.hasValue then return false
-                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),Return.Create(BoolLiteral.CreateFalse())),
-                        // return this==obj.value
-                        Return.Create(ExpressionFactory.Equal(NameReference.Create(NameFactory.ThisVariableName),
-                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
-                    }))
-                    .Modifier(EntityModifier.Refines)
-                    .Parameters(FunctionParameter.Create("cmp",
-                        NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))))
                 );
-
+            
+            /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
+                            .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference()));
+                */            
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference()));
@@ -315,7 +304,7 @@ namespace Skila.Language
                             .Modifier(EntityModifier.Mutable)
                             .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 null,
-                                new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(), 
+                                new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(),
                                     NameReference.Create(NameFactory.ThisVariableName, has_value_field)) },
                                 null
                             ))

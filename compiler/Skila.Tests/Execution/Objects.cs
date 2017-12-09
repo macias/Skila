@@ -43,12 +43,40 @@ namespace Skila.Tests.Execution
         }
 
         [TestMethod]
+        public IInterpreter UsingEnums()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateEnum("Size")
+                .With(EnumCaseBuilder.Create("small", "big")));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("s",null,NameReference.Create("Size","small")),
+                    IfBranch.CreateIf(ExpressionFactory.NotEqual(NameReference.Create( "s"),NameReference.Create("Size","big")),
+                        new[]{ Return.Create(IntLiteral.Create("2")) }),
+                    Return.Create(IntLiteral.Create("5"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter ConstructorChaining()
         {
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null, 
+            FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                 Block.CreateStatement(new[] {
                     // a = a + 5   --> 4
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, "a"),
@@ -60,7 +88,7 @@ namespace Skila.Tests.Execution
                 .With(VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), IntLiteral.Create("-1"),
                     EntityModifier.Public | EntityModifier.Reassignable)));
 
-            FunctionDefinition next_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null, 
+            FunctionDefinition next_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                 Block.CreateStatement(new[] {
                     // b = b + 15 --> +5
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"b"),

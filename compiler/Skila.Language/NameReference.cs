@@ -69,7 +69,7 @@ namespace Skila.Language
 
         public bool OverrideMutability { get; }
         public bool IsRoot { get; }
-        public IExpression Prefix { get; private set; }
+        public IExpression Prefix { get;  private set; }
         public string Name { get; }
         public IReadOnlyCollection<INameReference> TemplateArguments { get; }
         public Binding Binding { get; }
@@ -174,6 +174,8 @@ namespace Skila.Language
 
                     if (this.Name == NameFactory.SelfFunctionName)
                         entities = new[] { this.EnclosingScope<FunctionDefinition>() };
+                    else if (this.Name == NameFactory.ItTypeName)
+                        entities = new[] { this.EnclosingScope<TypeDefinition>() };
                     else if (this.Name == NameFactory.BaseVariableName)
                     {
                         TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
@@ -377,7 +379,8 @@ namespace Skila.Language
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
 
             {
-                if (!this.hasThisPrefix && !this.hasBasePrefix && this.Binding.Match.Target is IMember member)
+                if (this.Prefix == null && !this.hasThisPrefix
+                    && this.Binding.Match.Target is IMember member && !member.Modifier.HasStatic)
                 {
                     FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
@@ -453,5 +456,11 @@ namespace Skila.Language
             return true;
         }
 
+        public void ReplacePrefix(IExpression prefix)
+        {
+            this.Prefix.DetachFrom(this);
+            this.Prefix = prefix;
+            this.Prefix.AttachTo(this);
+        }
     }
 }

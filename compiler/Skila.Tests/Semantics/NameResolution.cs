@@ -5,12 +5,34 @@ using Skila.Language.Expressions;
 using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Semantics;
+using Skila.Language.Flow;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class NameResolution
     {
+        [TestMethod]
+        public IErrorReporter ResolvingIt()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Base)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Private | EntityModifier.Static))
+                .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(new[] {
+                        Return.Create(NameReference.Create(NameFactory.ItTypeName,"x"))
+                    }))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorMissingThis()
         {

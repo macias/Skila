@@ -1,4 +1,5 @@
-﻿using Skila.Language.Entities;
+﻿using Skila.Language.Builders;
+using Skila.Language.Entities;
 using Skila.Language.Flow;
 using System.Linq;
 
@@ -6,6 +7,24 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static TypeBuilder WithEquatableEquals(this TypeBuilder builder)
+        {
+            return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                                            ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                            Block.CreateStatement(new[] {
+                        // let obj = cmp cast? Int
+                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.Cast(NameReference.Create("cmp"),
+                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
+                        // if not obj.hasValue then return false
+                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),Return.Create(BoolLiteral.CreateFalse())),
+                        // return this==obj.value
+                        Return.Create(ExpressionFactory.Equal(NameReference.Create(NameFactory.ThisVariableName),
+                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
+                                            }))
+                                            .Modifier(EntityModifier.Refines)
+                                            .Parameters(FunctionParameter.Create("cmp",
+                                                NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))));
+        }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
             return FunctionCall.Constructor(NameReference.CreateBaseInitReference(), arguments);
@@ -81,12 +100,19 @@ namespace Skila.Language.Expressions
             bool useHeap, params FunctionArgument[] arguments)
         {
             const string local_this = "__this__";
-            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
+
+            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
             var init_call = FunctionCall.Constructor(constructorReference, arguments);
 
-            return Block.CreateExpression(new IExpression[] { var_decl, init_call, var_ref });
+            return Block.CreateInitialization(
+                // __this__ = alloc()
+                var_decl,
+                // __this__.init(args)
+                init_call,
+                // --> __this__
+                var_ref );
         }
 
         public static IExpression Add(IExpression lhs, IExpression rhs)

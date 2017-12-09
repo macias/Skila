@@ -22,6 +22,7 @@ namespace Skila.Language
         public const string PointerTypeName = "Ptr";
         public const string BoolTypeName = "Bool";
         public const string IntTypeName = "Int";
+        //public const string EnumTypeName = "Enum";
         public const string StringTypeName = "String";
         public const string ChannelTypeName = "Channel";
         public const string OptionTypeName = "Option";
@@ -31,6 +32,7 @@ namespace Skila.Language
         public const string IEquatableTypeName = "IEquatable";
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
+        public const string ItTypeName = "It";
         public const string BaseVariableName = "base";
         public const string SelfFunctionName = "self";
         public const string SuperFunctionName = "super";
@@ -51,6 +53,8 @@ namespace Skila.Language
         public const string PropertySetter = "set";
         public const string PropertyAutoField = "field";
         public const string PropertySetterParameter = "value";
+
+        public const string EnumConstructorParameter = "ord";
 
         public const string OptionHasValue = "HasValue";
         public const string OptionValue = "Value";
@@ -80,9 +84,17 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, IntTypeName);
         }
+       /* public static NameReference EnumTypeReference()
+        {
+            return NameReference.Create(NameReference.Root, EnumTypeName);
+        }*/
         public static NameReference ThisReference()
         {
             return NameReference.Create(ThisVariableName);
+        }
+        public static NameReference ItTypeReference()
+        {
+            return NameReference.Create(ItTypeName);
         }
         public static NameReference BoolTypeReference()
         {

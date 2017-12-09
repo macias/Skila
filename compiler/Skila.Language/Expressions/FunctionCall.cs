@@ -97,9 +97,9 @@ namespace Skila.Language.Expressions
 
             FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
 
-            if (this.Resolution.TargetFunction.Modifier.HasVirtual
+            if (this.Resolution.TargetFunction.Modifier.IsVirtual
                 && enclosing_func != null && enclosing_func.IsConstructor()
-                && !enclosing_func.OwnerType().Modifier.HasSealed)
+                && !enclosing_func.OwnerType().Modifier.IsSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
 
             if (!this.isConstructorCall && this.Resolution.TargetFunction.IsConstructor())

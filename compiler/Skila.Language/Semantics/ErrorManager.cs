@@ -40,6 +40,7 @@ namespace Skila.Language.Semantics
         public void AddErrorTranslation(ErrorCode fromCode, INode fromNode, ErrorCode toCode, INode toNode)
         {
             this.AddError(toCode, toNode);
+
             foreach (Error err in this.errors)
                 if (err.Code == fromCode && err.Node == fromNode)
                 {

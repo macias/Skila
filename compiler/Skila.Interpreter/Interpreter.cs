@@ -35,7 +35,7 @@ namespace Skila.Interpreter
 
                     bool added;
                     if (arg_data == null)
-                        added = ctx.LocalVariables.Add(param, (executed(param.DefaultValue, ctx)).ExprValue);
+                        added = ctx.LocalVariables.Add(param, (Executed(param.DefaultValue, ctx)).ExprValue);
                     else
                         added = ctx.LocalVariables.Add(param, arg_data);
 
@@ -57,14 +57,25 @@ namespace Skila.Interpreter
                 // meta-this is always passed as reference or pointer, so we can blindly dereference it
                 ObjectData this_value = ctx.ThisArgument.Dereference();
 
-                if (owner_type == ctx.Env.IntType)
+                if (owner_type.Modifier.HasEnum)
+                {
+                    if (func.IsInitConstructor()
+                        && func.Parameters.Count == 1 && func.Parameters.Single().Name.Name == NameFactory.EnumConstructorParameter)
+                    {
+                        this_value.Assign(ctx.FunctionArguments.Single());
+                        return ExecValue.CreateReturn(null);
+                    }
+                    else
+                        throw new NotImplementedException();
+                }
+                else if (owner_type == ctx.Env.IntType)
                 {
                     if (func.Name.Name == NameFactory.AddOperator)
                     {
                         ObjectData arg = ctx.FunctionArguments.Single();
                         int this_int = this_value.PlainValue.Cast<int>();
                         int arg_int = arg.PlainValue.Cast<int>();
-                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(ctx,this_value.RunTimeTypeInstance, this_int + arg_int));
+                        ExecValue result = ExecValue.CreateReturn(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, this_int + arg_int));
                         return result;
                     }
                     else if (func.Name.Name == NameFactory.EqualOperator)
@@ -72,12 +83,12 @@ namespace Skila.Interpreter
                         ObjectData arg = ctx.FunctionArguments.Single();
                         int this_int = this_value.PlainValue.Cast<int>();
                         int arg_int = arg.PlainValue.Cast<int>();
-                        ExecValue result = ExecValue.CreateReturn(ObjectData.Create(ctx, func.ResultTypeName.Evaluation.Components, this_int == arg_int));
+                        ExecValue result = ExecValue.CreateReturn(ObjectData.CreateInstance(ctx, func.ResultTypeName.Evaluation.Components, this_int == arg_int));
                         return result;
                     }
                     else if (func.IsDefaultInitConstructor())
                     {
-                        this_value.Assign(ObjectData.Create(ctx, this_value.RunTimeTypeInstance, 0));
+                        this_value.Assign(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, 0));
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.IsCopyInitConstructor())
@@ -92,7 +103,7 @@ namespace Skila.Interpreter
                 {
                     if (func.IsDefaultInitConstructor())
                     {
-                        this_value.Assign(ObjectData.Create(ctx,this_value.RunTimeTypeInstance, false));
+                        this_value.Assign(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, false));
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func.IsCopyInitConstructor())
@@ -102,7 +113,7 @@ namespace Skila.Interpreter
                     }
                     else if (func.Name.Name == NameFactory.NotOperator)
                     {
-                        return ExecValue.CreateReturn(ObjectData.Create(ctx, this_value.RunTimeTypeInstance,
+                        return ExecValue.CreateReturn(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance,
                             !this_value.PlainValue.Cast<bool>()));
                     }
                     else
@@ -114,7 +125,7 @@ namespace Skila.Interpreter
                     {
                         Channels.IChannel<ObjectData> channel = Channels.Channel.Create<ObjectData>();
                         ctx.Heap.TryAddDisposable(channel);
-                        ObjectData channel_obj = ObjectData.Create(ctx, this_value.RunTimeTypeInstance, channel);
+                        ObjectData channel_obj = ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, channel);
                         this_value.Assign(channel_obj);
                         return ExecValue.CreateReturn(null);
                     }
@@ -124,7 +135,7 @@ namespace Skila.Interpreter
 
                         Channels.IChannel<ObjectData> channel = this_value.PlainValue.Cast<Channels.IChannel<ObjectData>>();
                         bool result = channel.Send(arg);
-                        return ExecValue.CreateReturn(ObjectData.Create(ctx, this_value.RunTimeTypeInstance, result));
+                        return ExecValue.CreateReturn(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, result));
                     }
                     else if (func.Name.Name == NameFactory.ChannelReceive)
                     {
@@ -140,17 +151,18 @@ namespace Skila.Interpreter
                         ObjectData result = ObjectData.CreateEmpty(ctx, option_type);
 
                         // we need to call constructor for it, which takes a reference as "this"
-                        ctx.ThisArgument = result.Reference(ctx);
+                        ObjectData this_obj = result.Reference(ctx);
                         if (received.HasValue)
                         {
-                            ctx.FunctionArguments = new[] { received.Value };
+                            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, new[] { received.Value });
 
-                            executed(ctx.Env.OptionValueConstructor, ctx);
+                            Executed(ctx.Env.OptionValueConstructor, ctx);
                         }
                         else
                         {
-                            ctx.FunctionArguments = null;
-                            executed(ctx.Env.OptionEmptyConstructor, ctx);
+                            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, null);
+
+                            Executed(ctx.Env.OptionEmptyConstructor, ctx);
                         }
 
                         // at this point Skila option is initialized so we can return it
@@ -176,7 +188,7 @@ namespace Skila.Interpreter
             if (func.IsDeclaration)
                 throw new Exception("Internal error");
 
-            ExecValue ret = executed(func.UserBody, ctx);
+            ExecValue ret = Executed(func.UserBody, ctx);
             if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components))
                 return ExecValue.CreateReturn(null);
             else
@@ -197,7 +209,7 @@ namespace Skila.Interpreter
 
             foreach (IExpression expr in block.Instructions)
             {
-                result = executed(expr, ctx);
+                result = Executed(expr, ctx);
                 if (result.IsReturn)
                     break;
             }
@@ -210,7 +222,7 @@ namespace Skila.Interpreter
             ObjectData cond_obj = null;
             if (!ifBranch.IsElse)
             {
-                ExecValue cond = executed(ifBranch.Condition, ctx);
+                ExecValue cond = Executed(ifBranch.Condition, ctx);
                 if (cond.IsReturn)
                     return cond;
 
@@ -218,9 +230,9 @@ namespace Skila.Interpreter
             }
 
             if (ifBranch.IsElse || cond_obj.PlainValue.Cast<bool>())
-                return executed(ifBranch.Body, ctx);
+                return Executed(ifBranch.Body, ctx);
             else if (ifBranch.Next != null)
-                return executed(ifBranch.Next, ctx);
+                return Executed(ifBranch.Next, ctx);
             else
                 return ExecValue.Undefined;
         }
@@ -243,8 +255,8 @@ namespace Skila.Interpreter
             // this method is for saving time on semantic analysis, so when you run it you know
             // the only thing is going on is execution
 
-            ExecutionContext ctx = ExecutionContext.Create(env);
-            ExecValue result = this.executed(main, ctx);
+            ExecutionContext ctx = ExecutionContext.Create(env,this);
+            ExecValue result = this.Executed(main, ctx);
 
             ctx.Routines.Complete();
 
@@ -254,7 +266,7 @@ namespace Skila.Interpreter
             return result;
         }
 
-        private ExecValue executed(IEvaluable node, ExecutionContext ctx)
+        internal ExecValue Executed(IEvaluable node, ExecutionContext ctx)
         {
             if (this.debugMode)
                 Console.WriteLine($"[{node.DebugId.Id}:{node.GetType().Name}] {node}");
@@ -359,7 +371,7 @@ namespace Skila.Interpreter
             if (alloc.UseHeap)
             {
                 ctx.Heap.Allocate(obj);
-                return ExecValue.CreateExpression(ObjectData.Create(ctx, alloc.Evaluation.Components, obj));
+                return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, alloc.Evaluation.Components, obj));
             }
             else
             {
@@ -369,12 +381,12 @@ namespace Skila.Interpreter
 
         private ExecValue execute(IntLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(ctx, literal.Evaluation.Components, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(StringLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(ctx, literal.Evaluation.Components, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(Return ret, ExecutionContext ctx)
@@ -387,7 +399,7 @@ namespace Skila.Interpreter
                 return ExecValue.CreateReturn(null);
             else
             {
-                ObjectData obj = (executed(ret.Value, ctx)).ExprValue;
+                ObjectData obj = (Executed(ret.Value, ctx)).ExprValue;
                 if (ret.Value.IsDereferenced != ret.IsDereferencing)
                     throw new Exception("Internal error");
                 if (ret.IsDereferencing)
@@ -398,13 +410,13 @@ namespace Skila.Interpreter
         }
         private ExecValue execute(AddressOf addr, ExecutionContext ctx)
         {
-            ObjectData obj = (executed(addr.Expr, ctx)).ExprValue;
+            ObjectData obj = (Executed(addr.Expr, ctx)).ExprValue;
             obj = obj.Reference(ctx);
             return ExecValue.CreateExpression(obj);
         }
         private ExecValue execute(BoolOperator boolOp, ExecutionContext ctx)
         {
-            ObjectData lhs_obj = (executed(boolOp.Lhs, ctx)).ExprValue;
+            ObjectData lhs_obj = (Executed(boolOp.Lhs, ctx)).ExprValue;
             bool lhs_value = lhs_obj.PlainValue.Cast<bool>();
             switch (boolOp.Mode)
             {
@@ -413,40 +425,40 @@ namespace Skila.Interpreter
                         bool result = lhs_value;
                         if (result)
                         {
-                            ObjectData rhs_obj = (executed(boolOp.Rhs, ctx)).ExprValue;
+                            ObjectData rhs_obj = (Executed(boolOp.Rhs, ctx)).ExprValue;
                             bool rhs_value = rhs_obj.PlainValue.Cast<bool>();
                             result = rhs_value;
                         }
-                        return ExecValue.CreateExpression(ObjectData.Create(ctx,ctx.Env.BoolType.InstanceOf, result));
+                        return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, ctx.Env.BoolType.InstanceOf, result));
                     }
                 case BoolOperator.OpMode.Or:
                     {
                         bool result = lhs_value;
                         if (!result)
                         {
-                            ObjectData rhs_obj = (executed(boolOp.Rhs, ctx)).ExprValue;
+                            ObjectData rhs_obj = (Executed(boolOp.Rhs, ctx)).ExprValue;
                             bool rhs_value = rhs_obj.PlainValue.Cast<bool>();
                             result = rhs_value;
                         }
-                        return ExecValue.CreateExpression(ObjectData.Create(ctx, ctx.Env.BoolType.InstanceOf, result));
+                        return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, ctx.Env.BoolType.InstanceOf, result));
                     }
                 default: throw new InvalidOperationException();
             }
         }
         private ExecValue execute(IsType isType, ExecutionContext ctx)
         {
-            ObjectData lhs_obj = (executed(isType.Lhs, ctx)).ExprValue;
+            ObjectData lhs_obj = (Executed(isType.Lhs, ctx)).ExprValue;
             // todo: make something more intelligent with computation context
             TypeMatch match = lhs_obj.RunTimeTypeInstance.MatchesTarget(ComputationContext.CreateBare(ctx.Env),
                 isType.RhsTypeName.Evaluation.Components,
                 allowSlicing: false);
-            return ExecValue.CreateExpression(ObjectData.Create(ctx, ctx.Env.BoolType.InstanceOf, match == TypeMatch.Same || match == TypeMatch.Substitute));
+            return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, ctx.Env.BoolType.InstanceOf, match == TypeMatch.Same || match == TypeMatch.Substitute));
         }
 
         private ExecValue execute(ReinterpretType reinterpret, ExecutionContext ctx)
         {
-            ObjectData lhs_obj = (executed(reinterpret.Lhs, ctx)).ExprValue;
-            ObjectData result = ObjectData.Create(ctx, reinterpret.RhsTypeName.Evaluation.Components, lhs_obj.PlainValue);
+            ObjectData lhs_obj = (Executed(reinterpret.Lhs, ctx)).ExprValue;
+            ObjectData result = ObjectData.CreateInstance(ctx, reinterpret.RhsTypeName.Evaluation.Components, lhs_obj.PlainValue);
             return ExecValue.CreateExpression(result);
         }
         private ExecValue execute(Spawn spawn, ExecutionContext ctx)
@@ -454,7 +466,7 @@ namespace Skila.Interpreter
             FunctionDefinition func = prepareFunctionCall(spawn.Call, ref ctx);
 
             var ctx_clone = ctx.Clone();
-            ctx.Routines.Run(() => executed(func, ctx_clone));
+            ctx.Routines.Run(() => Executed(func, ctx_clone));
 
             return ExecValue.CreateExpression(null);
         }
@@ -463,7 +475,7 @@ namespace Skila.Interpreter
         {
             FunctionDefinition func = prepareFunctionCall(call, ref ctx);
 
-            ExecValue ret = executed(func, ctx);
+            ExecValue ret = Executed(func, ctx);
 
             if (ret.RetValue != null)
                 ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: call.IsRead);
@@ -484,10 +496,9 @@ namespace Skila.Interpreter
 
             ObjectData this_ref = prepareThis(ctx, this_context);
 
-            ctx.FunctionArguments = null;
-            ctx.ThisArgument = this_ref;
+            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, null);
 
-            ExecValue ret = executed(prop.Getter, ctx);
+            ExecValue ret = Executed(prop.Getter, ctx);
 
             if (ret.RetValue != null)
                 ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
@@ -504,11 +515,9 @@ namespace Skila.Interpreter
 
             ObjectData this_ref = prepareThis(ctx, this_context);
 
-            ctx.FunctionArguments = new ObjectData[] { valueData };
+            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, new ObjectData[] { valueData });
 
-            ctx.ThisArgument = this_ref;
-
-            ExecValue ret = executed(prop.Setter, ctx);
+            ExecValue ret = Executed(prop.Setter, ctx);
 
             if (ret.RetValue != null)
                 throw new Exception("Internal error");
@@ -519,7 +528,7 @@ namespace Skila.Interpreter
 
         private ObjectData prepareThis(ExecutionContext ctx, IExpression thisExpr)
         {
-            ExecValue this_exec = executed(thisExpr, ctx);
+            ExecValue this_exec = Executed(thisExpr, ctx);
             ObjectData this_obj = this_exec.ExprValue;
             ctx.Heap.TryInc(ctx, this_obj);
 
@@ -553,7 +562,7 @@ namespace Skila.Interpreter
             var args = new ObjectData[call.Resolution.TargetFunction.Parameters.Count];
             foreach (FunctionArgument arg in call.Arguments)
             {
-                ExecValue arg_exec = executed(arg.Expression, ctx);
+                ExecValue arg_exec = Executed(arg.Expression, ctx);
                 ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
                 ctx.Heap.TryInc(ctx, arg_obj);
 
@@ -569,11 +578,18 @@ namespace Skila.Interpreter
             if (target_func == null)
                 throw new Exception("Internal error");
 
-            ctx.FunctionArguments = args;
-            ctx.ThisArgument = this_ref;
-            ctx.TemplateArguments = call.Name.TemplateArguments.Select(it => it.Evaluation.Components).StoreReadOnlyList();
+            SetupFunctionCallData(ref ctx, call.Name.TemplateArguments.Select(it => it.Evaluation.Components),
+                this_ref, args);
 
             return target_func;
+        }
+
+        internal static void SetupFunctionCallData(ref ExecutionContext ctx, IEnumerable<IEntityInstance> templateArguments,
+            ObjectData metaThis, IEnumerable<ObjectData> functionArguments)
+        {
+            ctx.TemplateArguments = templateArguments?.StoreReadOnlyList();
+            ctx.ThisArgument = metaThis;
+            ctx.FunctionArguments = functionArguments?.ToArray();
         }
 
         private static FunctionDefinition getTargetFunction(ExecutionContext ctx, FunctionCall call, ObjectData thisValue,
@@ -611,7 +627,7 @@ namespace Skila.Interpreter
 
                 bool duck_virtual = (ctx.Env.Options.InterfaceDuckTyping && inner_type.TargetType.IsInterface)
                     || inner_type.TargetType.IsProtocol;
-                bool classic_virtual = targetFunc.Modifier.HasVirtual;
+                bool classic_virtual = targetFunc.Modifier.IsVirtual;
 
                 if (duck_virtual)
                 {
@@ -647,7 +663,7 @@ namespace Skila.Interpreter
                         throw new Exception("Internal error");
                 }
 
-                if (duck_virtual || targetFunc.Modifier.HasVirtual)
+                if (duck_virtual || targetFunc.Modifier.IsVirtual)
                 {
                     if (!thisValue.InheritanceVirtualTable.TryGetDerived(ref targetFunc))
                     {
@@ -665,7 +681,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(BoolLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(ObjectData.Create(ctx, literal.Evaluation.Components, literal.Value));
+            return ExecValue.CreateExpression(ObjectData.CreateInstance(ctx, literal.Evaluation.Components, literal.Value));
         }
 
         private ExecValue execute(NameReference name, ExecutionContext ctx)
@@ -681,9 +697,16 @@ namespace Skila.Interpreter
 
             if (name.Prefix != null)
             {
-                ExecValue prefix_exec = executed(name.Prefix, ctx);
-                ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name, name.Prefix);
-                return ExecValue.CreateExpression(prefix_obj.GetField(target));
+                /*if (target.Modifier.HasStatic)
+                {
+                    throw new NotImplementedException();
+                }
+                else*/
+                {
+                    ExecValue prefix_exec = Executed(name.Prefix, ctx);
+                    ObjectData prefix_obj = prefix_exec.ExprValue.TryDereference(name, name.Prefix);
+                    return ExecValue.CreateExpression(prefix_obj.GetField(target));
+                }
             }
             else if (name.Name == NameFactory.BaseVariableName)
                 return ExecValue.CreateExpression(ctx.ThisArgument);
@@ -700,9 +723,10 @@ namespace Skila.Interpreter
                 ObjectData field_data = this_value.GetField(target);
                 return ExecValue.CreateExpression(field_data);
             }
-            else if (target is TypeContainerDefinition type_container)
+            else if (target is TypeDefinition typedef)
             {
-                throw new NotImplementedException();
+                ObjectData type_object = ctx.TypeRegistry.Add(ctx, name.Binding.Match);
+                return ExecValue.CreateExpression(type_object);
             }
             else
                 throw new NotImplementedException();
@@ -714,7 +738,7 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            ExecValue rhs_val = executed(assign.RhsValue, ctx);
+            ExecValue rhs_val = Executed(assign.RhsValue, ctx);
 
             if (assign.Lhs.IsSink())
             {
@@ -735,7 +759,7 @@ namespace Skila.Interpreter
                 }
                 else
                 {
-                    lhs = executed(assign.Lhs, ctx);
+                    lhs = Executed(assign.Lhs, ctx);
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -750,7 +774,7 @@ namespace Skila.Interpreter
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(ctx, decl.Evaluation.Aggregate));
             else
-                rhs_val = executed(decl.InitValue, ctx);
+                rhs_val = Executed(decl.InitValue, ctx);
 
             ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl, decl.InitValue);
             if (decl.DebugId.Id == 2560)

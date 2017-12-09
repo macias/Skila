@@ -146,7 +146,7 @@ namespace Skila.Language
             out EvaluationInfo translatedResultEvaluation)
         {
             translatedParamEvaluations = signature.Parameters
-                .Select(it => it.Evaluated(ctx).TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance))
+                .Select(it => it.Evaluation.Components.TranslateThrough(objectInstance).TranslateThrough(targetFunctionInstance))
                 .StoreReadOnlyList();
 
 

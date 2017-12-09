@@ -29,6 +29,7 @@ namespace Skila.Language
             Protected,
             UnchainBase, // despite we derive base function we won't call it
             Native, // info for compiler whether to call real function or use low-evel instruction
+            Enum
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -48,6 +49,7 @@ namespace Skila.Language
         public static readonly EntityModifier Protected = new EntityModifier(ModifierIndex.Protected);
         public static readonly EntityModifier UnchainBase = new EntityModifier(ModifierIndex.UnchainBase);
         public static readonly EntityModifier Native = new EntityModifier(ModifierIndex.Native);
+        public static readonly EntityModifier Enum = new EntityModifier(ModifierIndex.Enum);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -68,13 +70,15 @@ namespace Skila.Language
         public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;
         public bool HasUnchainBase => this.flags[(int)ModifierIndex.UnchainBase] > 0;
         public bool HasNative => this.flags[(int)ModifierIndex.Native] > 0;
+        public bool HasEnum => this.flags[(int)ModifierIndex.Enum] > 0;
 
-        public bool HasSealed => !this.HasInterface // makes sense only for types
-                                 && !this.HasVirtual;
+        public bool IsSealed => !this.HasInterface // makes sense only for types
+                                 && !this.IsVirtual;
 
-        public bool HasVirtual => this.HasRefines || this.HasBase || this.HasAbstract;
-        public bool HasImmutable => !this.HasMutable;
-        public bool HasAccessSet => this.HasPublic || this.HasPrivate || this.HasProtected;
+        public bool IsVirtual => this.HasRefines || this.HasBase || this.HasAbstract;
+        public bool IsImmutable => !this.HasMutable;
+        public bool IsAccessSet => this.HasPublic || this.HasPrivate || this.HasProtected;
+        public bool IsAbstract => this.HasInterface || this.HasProtocol || this.HasAbstract;
 
         public override IEnumerable<INode> OwnedNodes { get { yield break; } }
 

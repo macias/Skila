@@ -17,14 +17,14 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            //  new Semantics.CompilerProtection().Environment();
+            //   new Semantics.CompilerProtection().Environment();
             //new Semantics.Templates().ErrorHasConstraint();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
             //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-              new Semantics.NameResolution().ErrorMissingThis();
+             // new Semantics.NameResolution().ResolvingIt();
             //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
@@ -34,11 +34,11 @@ namespace Skila.Tests
             //new Semantics.TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
-             //new Semantics.Types().ErrorInstanceMemberReference();
+            //new Semantics.Types().ErrorStaticMemberReference();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
             //  new Execution.Properties().AutoProperties();
-             //new Execution.Objects().ConstructorChaining();
+             new Execution.Objects().UsingEnums();
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();

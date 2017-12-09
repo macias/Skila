@@ -76,7 +76,7 @@ namespace Skila.Language
                 if (!target.IsType())
                     throw new Exception("Internal error");
 
-                if (!target.Modifier.HasImmutable || instance.OverrideMutability)
+                if (!target.Modifier.IsImmutable || instance.OverrideMutability)
                     return false;
 
                 foreach (VariableDeclaration field in target.CastType().AllNestedFields)
