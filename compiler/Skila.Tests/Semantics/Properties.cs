@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                     setters: null
                 )));
 
-            Assignment assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), IntLiteral.Create("5"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), IntLiteral.Create("5"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),

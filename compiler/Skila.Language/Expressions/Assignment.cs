@@ -11,15 +11,27 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Assignment : Expression,ILambdaTransfer
+    public sealed class Assignment : Expression, ILambdaTransfer
     {
-        public static Assignment CreateStatement(IExpression lhs, IExpression rhsValue)
+        public static IExpression CreateStatement(IExpression lhs, IExpression rhsValue)
         {
-            return new Assignment(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
+            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
         }
-        public static Assignment CreateExpression(IExpression lhs, IExpression rhsValue)
+        public static IExpression CreateExpression(IExpression lhs, IExpression rhsValue)
         {
-            return new Assignment(ExpressionReadMode.ReadRequired, lhs, rhsValue);
+            return create(ExpressionReadMode.ReadRequired, lhs, rhsValue);
+        }
+        private static IExpression create(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue)
+        {
+            if (lhs is FunctionCall call && call.IsIndexer)
+            {
+                if (readMode != ExpressionReadMode.CannotBeRead)
+                    throw new NotImplementedException();
+
+                return call.ConvertIndexerIntoSetter(rhsValue);
+            }
+            else
+                return new Assignment(readMode, lhs, rhsValue);
         }
 
         // we don't override IsLValue in Assignment and VariableDeclaration 
@@ -67,7 +79,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.TrapClosure(ctx,ref this.rhsValue);
+                this.TrapClosure(ctx, ref this.rhsValue);
 
                 this.Evaluation = Lhs.Evaluation;
 

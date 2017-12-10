@@ -37,8 +37,8 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorStaticMemberReference();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
-            //  new Execution.Properties().AutoProperties();
-             new Execution.Objects().UsingEnums();
+              new Execution.Properties().Indexer();
+             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();

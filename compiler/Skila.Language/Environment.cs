@@ -38,8 +38,11 @@ namespace Skila.Language
         public TypeDefinition StringType { get; }
         public TypeDefinition DoubleType { get; }
         public TypeDefinition ObjectType { get; }
+
         public TypeDefinition ISequenceType { get; }
+        public TypeDefinition ChunkType { get; }
         public TypeDefinition IIterableType { get; }
+
         public TypeDefinition IEquatableType { get; }
 
         public FunctionDefinition OptionValueConstructor { get; }
@@ -88,10 +91,10 @@ namespace Skila.Language
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference())))
                 );
-            
+
             /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
                             .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference()));
-                */            
+                */
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Modifier(EntityModifier.Native)
                 .Parents(NameFactory.ObjectTypeReference()));
@@ -148,14 +151,15 @@ namespace Skila.Language
 
             }
 
-            this.ISequenceType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.Create(NameDefinition.Create(NameFactory.ISequenceTypeName, "T", VarianceMode.Out))
-                    .Modifier(EntityModifier.Interface)
-                    .Parents(NameFactory.ObjectTypeReference()));
             this.IIterableType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.Create(NameDefinition.Create(NameFactory.IIterableTypeName, "T", VarianceMode.Out))
-                    .Modifier(EntityModifier.Interface)
+                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, "T", VarianceMode.Out))
                     .Parents(NameFactory.ObjectTypeReference()));
+            this.ISequenceType = this.CollectionsNamespace.AddBuilder(
+                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "T", VarianceMode.Out))
+                    .Parents(NameFactory.IIterableTypeReference("T")));
+            this.ChunkType = this.CollectionsNamespace.AddBuilder(
+                TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "T", VarianceMode.Out))
+                    .Parents(NameFactory.ISequenceTypeReference("T")));
 
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(

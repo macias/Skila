@@ -15,6 +15,10 @@ namespace Skila.Language
     {
         private const string sink = "_";
 
+        public static NameReference CreateThised(string part)
+        {
+            return NameReference.Create(NameFactory.ThisVariableName, part);
+        }
         public static NameReference Create(params string[] parts)
         {
             if (parts.Length == 0)
@@ -98,6 +102,8 @@ namespace Skila.Language
 
         public bool IsSink => this.Arity == 0 && this.Prefix == null && this.Name == sink;
 
+        private bool isPropertyIndexerCallReference => this.Owner is FunctionCall call && call.Callee == this && call.IsIndexer;
+
         private NameReference(
             bool overrideMutability,
             IExpression prefix,
@@ -139,7 +145,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 2963)
+            if (this.DebugId.Id == 3277)
             {
                 ;
             }
@@ -207,7 +213,7 @@ namespace Skila.Language
                         entities = Enumerable.Empty<IEntity>();
                         foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
                         {
-                            entities = scope.FindEntities(this, propertyExtended: false);
+                            entities = scope.FindEntities(this, EntityFindMode.ScopeLimited);
                             if (entities.Any())
                             {
                                 break;
@@ -225,6 +231,9 @@ namespace Skila.Language
                         ;
                     }
 
+                    EntityFindMode find_mode = this.isPropertyIndexerCallReference 
+                        ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
+
                     // referencing static member?
                     if (this.Prefix is NameReference prefix_ref
                         // todo: make it nice, currently refering to base look like static reference
@@ -232,13 +241,13 @@ namespace Skila.Language
                         && prefix_ref.Binding.Match.Target.IsType())
                     {
                         TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                        this.Binding.Set(target_type.FindEntities(this, propertyExtended: true)
+                        this.Binding.Set(target_type.FindEntities(this, find_mode)
                             .Where(it => it.Modifier.HasStatic)
                             .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
                     }
                     else
                     {
-                        if (this.DebugId.Id == 2723)
+                        if (this.DebugId.Id == 3277)
                         {
                             ;
                         }
@@ -246,7 +255,7 @@ namespace Skila.Language
                         bool dereferenced = false;
                         TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
                             .TargetTemplate;
-                        IEnumerable<IEntity> entities = prefix_target.FindEntities(this, propertyExtended: true)
+                        IEnumerable<IEntity> entities = prefix_target.FindEntities(this, find_mode)
                             .Where(it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
 
                         this.Binding.Set(entities

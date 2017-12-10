@@ -28,6 +28,7 @@ namespace Skila.Language
         public const string OptionTypeName = "Option";
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
+        public const string ChunkTypeName = "Chunk";
         public const string IIterableTypeName = "IIterable";
         public const string IEquatableTypeName = "IEquatable";
         public const string DoubleTypeName = "Double";
@@ -42,6 +43,8 @@ namespace Skila.Language
         public const string NotEqualOperator = "!=";
         public const string NotOperator = "not";
 
+        public const string PropertyIndexerName = "at";
+
         public const string LambdaInvoke = "invoke";
 
         public const string ChannelSend = "send";
@@ -52,7 +55,7 @@ namespace Skila.Language
         public const string PropertyGetter = "get";
         public const string PropertySetter = "set";
         public const string PropertyAutoField = "field";
-        public const string PropertySetterParameter = "value";
+        public const string PropertySetterValueParameter = "value";
 
         public const string EnumConstructorParameter = "ord";
 
@@ -137,6 +140,10 @@ namespace Skila.Language
         public static NameReference ISequenceTypeReference(string templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ISequenceTypeName, NameReference.Create(templateParamName));
+        }
+        public static NameReference ChunkTypeReference(string templateParamName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, NameReference.Create(templateParamName));
         }
 
         public static NameReference ObjectTypeReference(bool overrideMutability = false)

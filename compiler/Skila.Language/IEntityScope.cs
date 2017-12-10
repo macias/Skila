@@ -13,6 +13,12 @@ namespace Skila.Language
         IEnumerable<IEntity> AvailableEntities { get; }
     }
 
+    public enum EntityFindMode
+    {
+        ScopeLimited,
+        WithCurrentProperty,
+        AvailableIndexersOnly
+    }
     public static class IEntityScopeExtension
     {
         public static IEnumerable<IEntity> NestedEntities(this IEntityScope scope)
@@ -20,17 +26,24 @@ namespace Skila.Language
             return scope.OwnedNodes.WhereType<IEntity>();
         }
 
-        public static IEnumerable<IEntity> FindEntities(this IEntityScope scope, NameReference name,bool propertyExtended)
+        public static IEnumerable<IEntity> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
         {
             IEnumerable<IEntity> entities = scope.AvailableEntities ?? scope.NestedEntities();
-            if (propertyExtended && scope is TypeDefinition typedef)
+            if (scope is TypeDefinition typedef)
             {
-                // we need to extend entities if we are inside property, so in getter/setter
-                // we can write "this.prop_field" and get the internal field for property
-                // while outside this property that field is unreachable
-                Property enclosing_property = name.EnclosingScope<Property>();
-                if (enclosing_property!=null && enclosing_property.EnclosingScopesToRoot().Contains(typedef))
-                    entities = entities.Concat(enclosing_property.AvailableEntities);
+                if (findMode == EntityFindMode.WithCurrentProperty)
+                {
+                    // we need to extend entities if we are inside property, so in getter/setter
+                    // we can write "this.prop_field" and get the internal field for property
+                    // while outside this property that field is unreachable
+                    Property enclosing_property = name.EnclosingScope<Property>();
+                    if (enclosing_property != null && enclosing_property.EnclosingScopesToRoot().Contains(typedef))
+                        entities = entities.Concat(enclosing_property.AvailableEntities);
+                }
+                else if (findMode == EntityFindMode.AvailableIndexersOnly)
+                {
+                    entities = entities.WhereType<Property>(it => it.IsIndexer).SelectMany(prop => prop.AvailableEntities);
+                }
             }
 
             foreach (IEntity entity in entities)

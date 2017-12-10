@@ -12,13 +12,35 @@ namespace Skila.Language.Expressions
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class FunctionCall : Node, IExpression, IFunctionArgumentsProvider, ILambdaTransfer
     {
+        private enum CallMode
+        {
+            Constructor,
+            Indexer,
+            Regular
+        }
+        public static FunctionCall Indexer(IExpression name, params FunctionArgument[] arguments)
+        {
+            // we create indexer-getters for all cases initially, then we have to only check assignments LHS
+            // and convert only those to indexer-setters
+            return new FunctionCall(CallMode.Indexer,
+                // alternative approach (below, commented out) would be to refer indexer accessor indirectly, 
+                // via indexer itself, so instead of:
+                // my_obj.idxGet(5)
+                // we would have:
+                // my_obj.idx.idxGet(5)
+                // the latter approach seems cleaner but requires more handling in code
+                NameReference.Create(name, NameFactory.PropertyGetter),
+                // NameReference.Create(NameReference.Create(name, NameFactory.PropertyIndexerName), NameFactory.PropertyGetter),
+                arguments,
+                requestedOutcomeType: null);
+        }
         public static FunctionCall Create(IExpression name, params FunctionArgument[] arguments)
         {
-            return new FunctionCall(false, name, arguments, requestedOutcomeType: null);
+            return new FunctionCall(CallMode.Regular, name, arguments, requestedOutcomeType: null);
         }
         public static FunctionCall Constructor(IExpression name, params FunctionArgument[] arguments)
         {
-            return new FunctionCall(true, name, arguments, requestedOutcomeType: null);
+            return new FunctionCall(CallMode.Constructor, name, arguments, requestedOutcomeType: null);
         }
         public static FunctionCall Constructor(string name, params FunctionArgument[] arguments)
         {
@@ -26,7 +48,7 @@ namespace Skila.Language.Expressions
         }
         public static FunctionCall CreateToCall(IExpression expr, NameReference typeName)
         {
-            return new FunctionCall(false, NameReference.Create(expr, NameFactory.ConvertFunctionName),
+            return new FunctionCall(CallMode.Regular, NameReference.Create(expr, NameFactory.ConvertFunctionName),
                 arguments: null, requestedOutcomeType: typeName);
         }
 
@@ -70,13 +92,15 @@ namespace Skila.Language.Expressions
         public INameReference RequestedOutcomeTypeName { get; }
 
         public ExpressionReadMode ReadMode => this.Resolution?.TargetFunction?.CallMode ?? ExpressionReadMode.OptionalUse;
-        private readonly bool isConstructorCall;
+        private readonly CallMode mode;
 
-        private FunctionCall(bool isConstructorCall,
+        public bool IsIndexer => this.mode == CallMode.Indexer;
+
+        private FunctionCall(CallMode mode,
             IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
         {
-            this.isConstructorCall = isConstructorCall;
+            this.mode = mode;
             this.callee = callee;
             this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
             this.RequestedOutcomeTypeName = requestedOutcomeType;
@@ -102,7 +126,7 @@ namespace Skila.Language.Expressions
                 && !enclosing_func.OwnerType().Modifier.IsSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
 
-            if (!this.isConstructorCall && this.Resolution.TargetFunction.IsConstructor())
+            if (this.mode != CallMode.Constructor && this.Resolution.TargetFunction.IsConstructor())
                 ctx.AddError(ErrorCode.ConstructorCallFromFunctionBody, this);
 
             if (this.Name.Binding.Match.Target is FunctionDefinition binding_func)
@@ -117,7 +141,7 @@ namespace Skila.Language.Expressions
                         ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this.Name);
                 }
             }
-            
+
 
         }
 
@@ -337,6 +361,18 @@ namespace Skila.Language.Expressions
         {
             this.closures.Add(closure);
             closure.AttachTo(this);
+        }
+
+        public FunctionCall ConvertIndexerIntoSetter(IExpression rhs)
+        {
+            this.OwnedNodes.ForEach(it => it.DetachFrom(this));
+            NameReference idx_getter = this.Name;
+            idx_getter.Prefix.DetachFrom(idx_getter);
+
+            return new FunctionCall(CallMode.Indexer,
+                NameReference.Create(this.Name.Prefix, NameFactory.PropertySetter),
+                this.Arguments.Concat(FunctionArgument.Create(NameFactory.PropertySetterValueParameter, rhs)),
+                requestedOutcomeType: null);
         }
     }
 }

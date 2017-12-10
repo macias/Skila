@@ -109,6 +109,10 @@ namespace Skila.Language.Builders
             this.parameters = parameters;
             return this;
         }
+        public FunctionBuilder Parameters(IEnumerable<FunctionParameter> parameters)
+        {
+            return this.Parameters(parameters.ToArray());
+        }
         public FunctionBuilder Constraints(params TemplateConstraint[] constraints)
         {
             if (this.constraints!=null || this.build!=null)

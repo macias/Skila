@@ -89,7 +89,7 @@ namespace Skila.Tests.Semantics
 
                 var if_double_jump = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { reverse ? break_loop : cont_loop },
                     IfBranch.CreateElse(new[] { reverse ? cont_loop : break_loop }));
-                Assignment unreachable_assign = Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("3"));
+                IExpression unreachable_assign = Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("3"));
                 // we interrupt this loop with "continue", so step is reachable
                 var inner_loop = Loop.CreateFor(
                         init: null,

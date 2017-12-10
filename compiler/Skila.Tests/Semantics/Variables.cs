@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            Assignment assignment = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,

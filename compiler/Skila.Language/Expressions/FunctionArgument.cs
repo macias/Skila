@@ -42,7 +42,7 @@ namespace Skila.Language.Expressions
             get { return index.Value; }
             set
             {
-                if (this.index.HasValue)
+                if (this.index.HasValue && this.index.Value != value)
                     throw new InvalidOperationException("Index is already set.");
                 this.index = new Option<int>(value);
             }

@@ -7,6 +7,7 @@ using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
+using Skila.Language.Builders;
 
 namespace Skila.Language.Entities
 {
@@ -14,8 +15,23 @@ namespace Skila.Language.Entities
     // to make sure there will be no problem in defining and passing this data
     // when user defines fancy parameters for indexer
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope,IMember
+    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember
     {
+        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName, IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        {
+            return FunctionBuilder.Create(NameFactory.PropertyGetter,
+                ExpressionReadMode.ReadRequired, propertyTypeName, Block.CreateStatement(instructions))
+                .Parameters(parameters);
+        }
+        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName, IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        {
+            return FunctionBuilder.Create(NameFactory.PropertySetter,
+                ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), Block.CreateStatement(instructions))
+                    .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter, 
+                        // we add "value" parameter at the end so the name has to be required, 
+                        // because we don't know what comes first
+                        propertyTypeName, Variadic.None, null, isNameRequired: true)));
+        }
         public static VariableDeclaration CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
             return VariableDeclaration.CreateStatement(NameFactory.PropertyAutoField, typeName, initValue, modifier);
@@ -37,21 +53,32 @@ namespace Skila.Language.Entities
         {
             return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertySetter),
                 null,
-                new[] { FunctionParameter.Create(NameFactory.PropertySetterParameter, typeName, Variadic.None, null, isNameRequired: false) },
+                new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),
-                        NameReference.Create(NameFactory.PropertySetterParameter ))
+                        NameReference.Create(NameFactory.PropertySetterValueParameter ))
                 }));
         }
 
-        public static Property Create(string name, INameReference typeName,
+        public static Property Create(string name,
+            INameReference typeName,
             IEnumerable<VariableDeclaration> fields,
             IEnumerable<FunctionDefinition> getters,
             IEnumerable<FunctionDefinition> setters,
             EntityModifier modifier = null)
         {
-            return new Property(modifier, name, typeName, fields, getters, setters);
+            return new Property(modifier, name, null, typeName, fields, getters, setters);
+        }
+
+        public static Property CreateIndexer(
+            INameReference typeName,
+            IEnumerable<VariableDeclaration> fields,
+            IEnumerable<FunctionDefinition> getters,
+            IEnumerable<FunctionDefinition> setters,
+            EntityModifier modifier = null)
+        {
+            return Create(NameFactory.PropertyIndexerName, typeName, fields, getters, setters, modifier);
         }
 
         private readonly Lazy<EntityInstance> instanceOf;
@@ -68,7 +95,8 @@ namespace Skila.Language.Entities
 
         public IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }.Concat(Fields)
+        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }
+            .Concat(Fields)
             .Where(it => it != null);
         public EntityModifier Modifier { get; }
 
@@ -76,7 +104,9 @@ namespace Skila.Language.Entities
         public ValidationData Validation { get; set; }
         public bool IsComputed => this.Evaluation != null;
 
-        private Property(EntityModifier modifier, string name, INameReference typeName,
+        public bool IsIndexer => this.Name.Name == NameFactory.PropertyIndexerName;
+
+        private Property(EntityModifier modifier, string name, IEnumerable<FunctionParameter> parameters, INameReference typeName,
             IEnumerable<VariableDeclaration> fields, IEnumerable<FunctionDefinition> getters, IEnumerable<FunctionDefinition> setters)
         {
             if (name == null)
@@ -87,9 +117,9 @@ namespace Skila.Language.Entities
             this.Fields = (fields ?? Enumerable.Empty<VariableDeclaration>()).StoreReadOnly();
             this.getters = (getters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
-            this.Modifier = (this.Setter == null ? EntityModifier.None: EntityModifier.Reassignable) | modifier;
+            this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this,  EntityInstanceSignature.None));
+            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -104,11 +134,11 @@ namespace Skila.Language.Entities
             return this.InstanceOf;
         }
 
-        public void Validate( ComputationContext ctx)
+        public void Validate(ComputationContext ctx)
         {
         }
 
-        public bool IsReadingValueOfNode( IExpression node)
+        public bool IsReadingValueOfNode(IExpression node)
         {
             return false;
         }
