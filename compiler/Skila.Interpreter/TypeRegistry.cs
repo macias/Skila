@@ -29,6 +29,11 @@ namespace Skila.Interpreter
                 if (this.types.TryGetValue(typeInstance, out type_object))
                     return type_object;
 
+                // creating entry to avoid infinite loop when building static fields of the type we are just building
+                // in future it might be necessary to use Option instead of raw null to have 3 cases
+                // * empty placeholder (type in processing)
+                // * null (type processed, no static fields)
+                // * value with fields
                 this.types.Add(typeInstance, null);
 
                 IEnumerable<VariableDeclaration> static_fields = typeInstance.TargetType.NestedFields.Where(it => it.Modifier.HasStatic);
@@ -40,7 +45,8 @@ namespace Skila.Interpreter
                 if (type_object != null)
                 {
                     Interpreter.SetupFunctionCallData(ref ctx, typeInstance.TemplateArguments, null, null);
-                    ctx.Interpreter.Executed(typeInstance.TargetType.NestedFunctions.Single(it => it.IsZeroConstructor()), ctx);
+                    ctx.Interpreter.Executed(typeInstance.TargetType.NestedFunctions.Single(it => it.IsZeroConstructor() 
+                        && it.Modifier.HasStatic), ctx);
                 }
 
                 return type_object;
