@@ -69,27 +69,23 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference()) },
-                    Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("source"),
-                    })))
+                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("x"),
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
                 .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("cmp"),
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference())))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead)))
                 );
 
             /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
@@ -104,11 +100,10 @@ namespace Skila.Language
                 // no limits
                 var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")) },
+                   new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"), ExpressionReadMode.CannotBeRead) },
                    ExpressionReadMode.ReadRequired,
                    NameFactory.ISequenceTypeReference("T"),
                    Block.CreateStatement(new IExpression[] {
-                       ExpressionFactory.Readout("coll"),
                        decl,
                        Return.Create(NameReference.Create("result"))
                    })));
@@ -118,14 +113,12 @@ namespace Skila.Language
                 var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
-                        FunctionParameter.Create("min", NameFactory.IntTypeReference()),
+                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"),ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("min", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
                    },
                    ExpressionReadMode.ReadRequired,
                    NameFactory.ISequenceTypeReference("T"),
                    Block.CreateStatement(new IExpression[] {
-                       ExpressionFactory.Readout("coll"),
-                       ExpressionFactory.Readout("min"),
                        decl,
                        Return.Create(NameReference.Create("result"))
                    })));
@@ -135,16 +128,13 @@ namespace Skila.Language
                 var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T")),
-                        FunctionParameter.Create("min", NameFactory.IntTypeReference()),
-                        FunctionParameter.Create("max", NameFactory.IntTypeReference()),
+                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"),ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("min", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("max", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
                     },
                     ExpressionReadMode.ReadRequired,
                     NameFactory.ISequenceTypeReference("T"),
                     Block.CreateStatement(new IExpression[] {
-                       ExpressionFactory.Readout("coll"),
-                       ExpressionFactory.Readout("min"),
-                       ExpressionFactory.Readout("max"),
                         decl,
                         Return.Create(NameReference.Create("result"))
                     })));
@@ -187,10 +177,8 @@ namespace Skila.Language
                 .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference()) },
-                    Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("source"),
-                    })))
+                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) }))
@@ -256,21 +244,16 @@ namespace Skila.Language
                     null, Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("value"),
-                        ExpressionFactory.Readout(NameFactory.ThisVariableName),
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("value", NameReference.Create("T"))))
+                    .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), ExpressionReadMode.CannotBeRead,
-                    NameFactory.VoidTypeReference(), Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout(NameFactory.ThisVariableName)
-                    }))
+                    NameFactory.VoidTypeReference(), Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
-                    Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout(NameFactory.ThisVariableName),
+                    Block.CreateStatement(new IExpression[] {
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native))

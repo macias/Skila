@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DetectingUsage()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReassigningFixedVariable()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
@@ -48,7 +48,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("3")),
                     assignment,
-                    Tools.Readout("x") })));
+                    ExpressionFactory.Readout("x") })));
 
 
             var resolver = NameResolver.Create(env);
@@ -123,7 +123,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TypeInference()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -135,7 +135,13 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] { var_x, var_y, var_z, Tools.Readout("z"), Tools.Readout("y") })));
+                Block.CreateStatement(new[] {
+                    var_x,
+                    var_y,
+                    var_z,
+                    ExpressionFactory.Readout("z"),
+                    ExpressionFactory.Readout("y")
+                })));
 
             var resolver = NameResolver.Create(env);
 
@@ -157,11 +163,10 @@ namespace Skila.Tests.Semantics
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("t", NameFactory.IntTypeReference(), Variadic.None,
-                    null,isNameRequired: false) },
+                    null,isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.DoubleTypeReference(),
                 Block.CreateStatement(new[] {
-                    ExpressionFactory.Readout("t"),
                     Return.Create(DoubleLiteral.Create("3.3"))
                 })));
 

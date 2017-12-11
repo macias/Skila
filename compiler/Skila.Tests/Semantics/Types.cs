@@ -55,10 +55,9 @@ namespace Skila.Tests.Semantics
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                    new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), Variadic.None, null, isNameRequired: false) },
-                    Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("a"),
-                    }))));
+                    new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), 
+                        Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement())));
             VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null);
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
                 .With(field_decl));

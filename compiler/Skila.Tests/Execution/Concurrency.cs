@@ -25,7 +25,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
-                    Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
+                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(IntLiteral.Create("2")))),
                     Return.Create(IntLiteral.Create("0"))
                 })));
@@ -50,7 +50,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
-                    Tools.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
+                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
                     Return.Create(IntLiteral.Create("0"))
                 })));
 

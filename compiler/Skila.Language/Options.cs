@@ -7,5 +7,6 @@
 
         public bool ScopeShadowing { get; set; }
         public bool BaseReferenceEnabled { get; set; }
+        public bool AllowDiscardingAnyExpressionDuringTests { get; set; }
     }
 }

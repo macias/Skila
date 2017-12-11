@@ -29,19 +29,17 @@ namespace Skila.Language.Builders
                 .Modifier(EntityModifier.Enum)
                 .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference()) },
-                    Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout(NameFactory.EnumConstructorParameter)
-                    })))
+                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference(), 
+                        ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement()))
                 .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
-                       ExpressionFactory.Readout("cmp"),
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp",builder.CreateTypeNameReference())))
+                    .Parameters(FunctionParameter.Create("cmp",builder.CreateTypeNameReference(), ExpressionReadMode.CannotBeRead)))
                     ;
 
             return builder;

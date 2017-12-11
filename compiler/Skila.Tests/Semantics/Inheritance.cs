@@ -335,12 +335,11 @@ namespace Skila.Tests.Semantics
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
+                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("x"),
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))
                     .Modifier(EntityModifier.Refines))
@@ -373,11 +372,10 @@ namespace Skila.Tests.Semantics
                 .Add("V").Values))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
+                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("x"),
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Modifier(EntityModifier.Refines))
@@ -412,11 +410,10 @@ namespace Skila.Tests.Semantics
                 .Values))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar", TemplateParametersBuffer.Create().Add("W", VarianceMode.None).Values),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), Variadic.None, null, isNameRequired: false) },
+                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("x"),
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))

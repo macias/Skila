@@ -201,7 +201,8 @@ namespace Skila.Language.Entities
                 NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
                     NameFactory.ReferenceTypeReference(type_name),
-                    Variadic.None, null, isNameRequired: false);
+                    Variadic.None, null, isNameRequired: false, 
+                    usageMode: ExpressionReadMode.OptionalUse);
                 this.MetaThisParameter.AttachTo(this);
             }
 

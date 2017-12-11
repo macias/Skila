@@ -11,11 +11,11 @@ namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Interfaces
-    {    
+    {
         [TestMethod]
         public IErrorReporter ErrorCallingConstructor()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -30,7 +30,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructor(typename,out cons_ref)),
-                    Tools.Readout("x")
+                    ExpressionFactory.Readout("x")
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -45,12 +45,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuckTypingInterfaces()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = true });
+            return duckTyping(new Options() { InterfaceDuckTyping = true, AllowDiscardingAnyExpressionDuringTests = true });
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = false });
+            return duckTyping(new Options() { InterfaceDuckTyping = false, AllowDiscardingAnyExpressionDuringTests = true });
         }
 
         private IErrorReporter duckTyping(IOptions options)
@@ -68,12 +68,11 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false) },
+                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                     Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("x"),
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))));
 
@@ -84,7 +83,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
-                    Tools.Readout("i"),
+                    ExpressionFactory.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
                 })));
 
@@ -98,13 +97,13 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuckTypingInterfaceValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  AllowDiscardingAnyExpressionDuringTests = true });
         }
 
         [TestMethod]
         public IErrorReporter ErrorDuckTypingProtocolValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , AllowDiscardingAnyExpressionDuringTests = true });
         }
 
         private IErrorReporter errorDuckTypingValues(IOptions options)
@@ -124,7 +123,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value),
-                    Tools.Readout("i"),
+                    ExpressionFactory.Readout("i"),
                     Return.Create(IntLiteral.Create("2"))
                 })));
 

@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -58,7 +58,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
@@ -85,7 +85,7 @@ namespace Skila.Tests.Semantics
                         initValue: Undef.Create()),
                     VariableDeclaration.CreateStatement("b", NameReference.Create("Bar"),
                         initValue: NameReference.Create("f")),
-                    Tools.Readout("b")
+                    ExpressionFactory.Readout("b")
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -181,7 +181,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -193,7 +193,10 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] { decl, Tools.Readout("foo") })));
+                Block.CreateStatement(new[] {
+                    decl,
+                    ExpressionFactory.Readout("foo")
+                })));
 
             var resolver = NameResolver.Create(env);
 

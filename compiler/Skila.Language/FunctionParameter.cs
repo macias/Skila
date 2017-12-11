@@ -16,13 +16,15 @@ namespace Skila.Language
     {
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
-             bool isNameRequired)
+             bool isNameRequired,
+             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(name, typeName, variadic, defaultValue, isNameRequired: isNameRequired);
+            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue, isNameRequired: isNameRequired);
         }
-        public static FunctionParameter Create(string name, INameReference typeName)
+        public static FunctionParameter Create(string name, INameReference typeName,
+            ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(name, typeName, Variadic.None, null, isNameRequired: false);
+            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null, isNameRequired: false);
         }
 
         public bool IsNameRequired { get; }
@@ -41,6 +43,7 @@ namespace Skila.Language
 
         public bool IsComputed { get; private set; }
 
+        public ExpressionReadMode UsageMode { get; }
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
@@ -60,9 +63,10 @@ namespace Skila.Language
         public IEnumerable<ISurfable> Surfables { get { yield return this.TypeName; } }
 
 
-        private FunctionParameter(string name, INameReference typeName, Variadic variadic,
+        private FunctionParameter(ExpressionReadMode readMode, string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue, bool isNameRequired)
         {
+            this.UsageMode = readMode;
             this.Modifier = EntityModifier.None;
             this.Name = NameDefinition.Create(name);
             this.IsNameRequired = isNameRequired;

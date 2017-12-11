@@ -23,14 +23,6 @@ namespace Skila.Tests
             foreach (T v in values)
                 @this.Add(v);
         }
-        public static IExpression Readout(string name)
-        {
-            return ExpressionFactory.Readout(name);
-        }
-        public static IExpression Readout(IExpression expr)
-        {
-            return ExpressionFactory.Readout(expr);
-        }
         public static IEntity Target(this IEntityInstance instance)
         {
             if (instance is EntityInstance)

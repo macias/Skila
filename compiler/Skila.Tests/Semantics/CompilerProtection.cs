@@ -50,10 +50,8 @@ namespace Skila.Tests.Semantics
                 new[] {
                     // converting itself
                     FunctionParameter.Create("value", NameReference.Create("Foo", NameReference.Create("T")), Variadic.None,
-                        null, isNameRequired: false) },
-                    Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout("value")
-                    }))
+                        null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement())
                 ));
 
             var decl = root_ns.AddNode(

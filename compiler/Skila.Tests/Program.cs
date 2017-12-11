@@ -24,21 +24,21 @@ namespace Skila.Tests
             //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-             // new Semantics.NameResolution().ResolvingIt();
+            // new Semantics.NameResolution().ResolvingIt();
             //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-            //  new Semantics.Expressions().ErrorCastingToSet();
+              new Semantics.Expressions().ErrorDiscardingNonFunctionCall();
             //new MethodDefinitions().Basics();
-            //   new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
+            //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
             //new Semantics.TypeMatching().UnionMatching();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.Variables().FunctionAssignment();
             //new Semantics.Types().ErrorStaticMemberReference();
             // new Semantics.Concurrency().ErrorSpawningMutables();
 
-              new Execution.Properties().Indexer();
-             //new Execution.Objects().UsingEnums();
+            //new Execution.Properties().Indexer();
+            //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().DereferenceOnAssignment();
             // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Concurrency().SingleMessage();

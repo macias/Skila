@@ -73,6 +73,8 @@ namespace Skila.Language.Expressions
         {
             ctx.ValAssignTracker?.Assigned(this.Lhs);
 
+            if (!ctx.Env.Options.AllowDiscardingAnyExpressionDuringTests && this.Lhs.IsSink() && !(this.RhsValue is FunctionCall))
+                ctx.AddError(ErrorCode.DiscardingNonFunctionCall, this);
         }
 
         public override void Evaluate(ComputationContext ctx)

@@ -75,5 +75,6 @@
         ConstructorCallFromFunctionBody = 71,
         CrossReferencingBaseMember = 72,
         MissingThisPrefix = 73,
+        DiscardingNonFunctionCall = 74,
     }
 }

@@ -13,7 +13,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningMutableToImmutable()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -27,12 +27,12 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
                         mutable_init),
-                    Tools.Readout("x"),
+                    ExpressionFactory.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
                     VariableDeclaration.CreateStatement("y", 
                         NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
-                    Tools.Readout("y"),
+                    ExpressionFactory.Readout("y"),
             })));
 
             var resolver = NameResolver.Create(env);
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorViolatingConstConstraint()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -95,8 +95,8 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameReference.Create("Point",NameReference.Create("Foo")), Undef.Create()),
                     VariableDeclaration.CreateStatement("y", wrong_type, Undef.Create()),
-                    Tools.Readout("x"),
-                    Tools.Readout("y"),
+                    ExpressionFactory.Readout("x"),
+                    ExpressionFactory.Readout("y"),
             })));
 
 

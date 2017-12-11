@@ -36,7 +36,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingThis()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -105,7 +105,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCrossReferencingBaseMember()
         {
-            var env = Environment.Create(new Options());
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
@@ -136,7 +136,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ScopeShadowing()
         {
-            var env = Environment.Create(new Options() { ScopeShadowing = true });
+            var env = Environment.Create(new Options() { ScopeShadowing = true, AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -165,7 +165,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorScopeShadowing()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse());
@@ -193,7 +193,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReservedKeyword()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.SelfFunctionName, null, IntLiteral.Create("3"));
@@ -216,7 +216,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingBeforeDefinition()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -227,8 +227,8 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
                     VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
-                    Tools.Readout("a"),
-                    Tools.Readout("x")
+                    ExpressionFactory.Readout("a"),
+                    ExpressionFactory.Readout("x")
                 })));
 
             var resolver = NameResolver.Create(env);

@@ -42,7 +42,7 @@ namespace Skila.Language.Extensions
                     {
                         if (ctx.EvalLocalNames != null)
                         {
-                            if (node.DebugId.Id ==  198)
+                            if (node.DebugId.Id == 198)
                             {
                                 ;
                             }
@@ -80,13 +80,13 @@ namespace Skila.Language.Extensions
 
             if (node is IScope && ctx.EvalLocalNames != null)
             {
-                foreach (IBindable bindable in ctx.EvalLocalNames.RemoveLayer())
+                foreach (ILocalBindable bindable in ctx.EvalLocalNames.RemoveLayer())
                 {
                     // do not report regular variables here, because we have to make difference between
                     // reading and assigning, loop label does not have such distinction
                     // and function parameter is always assigned
                     if (bindable is IAnchor
-                        || (bindable is FunctionParameter param && param.Name.Name != NameFactory.ThisVariableName))
+                        || (bindable is FunctionParameter param && param.UsageMode == ExpressionReadMode.ReadRequired))
                         ctx.AddError(ErrorCode.BindableNotUsed, bindable);
                 }
             }

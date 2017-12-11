@@ -24,10 +24,9 @@ namespace Skila.Tests.Semantics
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {
                     FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
-                        null,isNameRequired:false)}, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
-                        Block.CreateStatement(new[] {
-                            ExpressionFactory.Readout("p")
-                        }))));
+                        null,isNameRequired:false, usageMode: ExpressionReadMode.CannotBeRead)}, 
+                        ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                        Block.CreateStatement())));
 
             FunctionArgument mutable_arg = FunctionArgument.Create(NameReference.Create("r"));
             NameReference mutable_method = NameReference.Create("r", "empty");

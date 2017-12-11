@@ -14,7 +14,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPersistentReferenceType()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
@@ -30,7 +30,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     decl2,
-                    Tools.Readout("bar")
+                    ExpressionFactory.Readout("bar")
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -45,7 +45,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHeapTypeOnStack()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl = VariableDeclaration.CreateStatement("bar", NameFactory.StringTypeReference(),
@@ -57,7 +57,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.VoidTypeReference(),
                 Block.CreateStatement(new[] {
                     decl,
-                    Tools.Readout("bar")
+                    ExpressionFactory.Readout("bar")
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -71,7 +71,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ImplicitValueReferenceConversion()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
@@ -82,7 +82,11 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] { decl_src, decl_dst, Tools.Readout("bar") })));
+                Block.CreateStatement(new[] {
+                    decl_src,
+                    decl_dst,
+                    ExpressionFactory.Readout("bar")
+                })));
 
             var resolver = NameResolver.Create(env);
 
@@ -95,7 +99,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ImplicitPointerReferenceConversion()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
@@ -107,7 +111,11 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] { decl_src, decl_dst, Tools.Readout("bar") })));
+                Block.CreateStatement(new[] {
+                    decl_src,
+                    decl_dst,
+                    ExpressionFactory.Readout("bar")
+                })));
 
             var resolver = NameResolver.Create(env);
 
@@ -133,10 +141,9 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] {
-                    ExpressionFactory.Readout("x"),
-                }))
-                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()))));
+                Block.CreateStatement())
+                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                    usageMode: ExpressionReadMode.CannotBeRead)));
 
             var resolver = NameResolver.Create(env);
 

@@ -73,7 +73,7 @@ namespace Skila.Language
 
         public bool OverrideMutability { get; }
         public bool IsRoot { get; }
-        public IExpression Prefix { get;  private set; }
+        public IExpression Prefix { get; private set; }
         public string Name { get; }
         public IReadOnlyCollection<INameReference> TemplateArguments { get; }
         public Binding Binding { get; }
@@ -231,7 +231,7 @@ namespace Skila.Language
                         ;
                     }
 
-                    EntityFindMode find_mode = this.isPropertyIndexerCallReference 
+                    EntityFindMode find_mode = this.isPropertyIndexerCallReference
                         ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
 
                     // referencing static member?
@@ -400,6 +400,9 @@ namespace Skila.Language
                         ctx.AddError(ErrorCode.MissingThisPrefix, this);
                 }
             }
+
+            if (this.Binding.Match.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
+                ctx.AddError(ErrorCode.CannotReadExpression, this);
         }
 
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
