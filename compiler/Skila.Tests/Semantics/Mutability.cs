@@ -13,7 +13,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningMutableToImmutable()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorViolatingConstConstraint()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -111,7 +111,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutableGlobalVariables()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")

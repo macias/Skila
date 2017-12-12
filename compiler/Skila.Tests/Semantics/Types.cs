@@ -25,7 +25,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConflictingModifier,type_def.Modifier));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConflictingModifier, type_def.Modifier));
 
             return resolver;
         }

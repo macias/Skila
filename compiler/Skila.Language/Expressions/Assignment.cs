@@ -73,7 +73,7 @@ namespace Skila.Language.Expressions
         {
             ctx.ValAssignTracker?.Assigned(this.Lhs);
 
-            if (!ctx.Env.Options.AllowDiscardingAnyExpressionDuringTests && this.Lhs.IsSink() && !(this.RhsValue is FunctionCall))
+            if (!ctx.Env.Options.DiscardingAnyExpressionDuringTests && this.Lhs.IsSink() && !(this.RhsValue is FunctionCall))
                 ctx.AddError(ErrorCode.DiscardingNonFunctionCall, this);
         }
 

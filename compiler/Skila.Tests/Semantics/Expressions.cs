@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCastingToSet()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             NameReferenceUnion type_set = NameReferenceUnion.Create(
@@ -67,7 +67,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAddressingRValue()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             IntLiteral int_literal = IntLiteral.Create("1");
@@ -95,14 +95,14 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReadingIfAsExpression()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
                 new IExpression[] { IntLiteral.Create("5")
                 },
                     IfBranch.CreateElse(new[] { IntLiteral.Create("7") }));
-            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
+            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl);
 
             root_ns.AddNode(decl);
 
@@ -116,11 +116,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingNonValue()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             NameReference non_value = NameFactory.IntTypeReference();
-            var decl = VariableDeclaration.CreateStatement("x", null, initValue: non_value);
+            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value);
 
             root_ns.AddNode(decl);
 
@@ -135,7 +135,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringFunctionResult()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -223,7 +223,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingFunctionVoidResult()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

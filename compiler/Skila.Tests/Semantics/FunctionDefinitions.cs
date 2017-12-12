@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCannotInferResultType()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             IExpression lambda = FunctionBuilder.CreateLambda(null,
@@ -93,7 +93,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AnonymousVariadicParameters()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null,
@@ -114,15 +114,14 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.AnonymousTailVariadicParameter, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(param2, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AnonymousTailVariadicParameter, param2));
 
             return resolver;
         }
         [TestMethod]
-        public IErrorReporter VariadicParametersInvalidLimits()
+        public IErrorReporter ErrorVariadicParametersInvalidLimits()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(4, 3), null,

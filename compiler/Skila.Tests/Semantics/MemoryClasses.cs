@@ -14,7 +14,10 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPersistentReferenceType()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+                GlobalVariables = true,
+                TypelessVariablesDuringTests = true
+            });
             var root_ns = env.Root;
 
             var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
@@ -45,7 +48,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHeapTypeOnStack()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl = VariableDeclaration.CreateStatement("bar", NameFactory.StringTypeReference(),
@@ -71,7 +74,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ImplicitValueReferenceConversion()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IntTypeReference(), initValue: IntLiteral.Create("3"));
@@ -99,7 +102,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ImplicitPointerReferenceConversion()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),

@@ -76,5 +76,7 @@
         CrossReferencingBaseMember = 72,
         MissingThisPrefix = 73,
         DiscardingNonFunctionCall = 74,
+        GlobalVariable = 75,
+        MissingTypeName = 76,
     }
 }

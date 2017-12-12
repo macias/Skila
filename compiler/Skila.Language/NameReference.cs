@@ -384,7 +384,7 @@ namespace Skila.Language
                 // exclusion for constructors because it might be legal or not, but nevertheless
                 // both cases are handled elsewhere
                 || !target_func.IsConstructor())
-                && !ctx.Env.Options.BaseReferenceEnabled)
+                && !ctx.Env.Options.ReferencingBase)
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
 
             {

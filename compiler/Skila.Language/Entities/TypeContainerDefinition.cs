@@ -13,7 +13,7 @@ namespace Skila.Language.Entities
     public abstract class TypeContainerDefinition : TemplateDefinition
     {
         protected TypeContainerDefinition(EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints) : base(modifier, name,constraints)
+            IEnumerable<TemplateConstraint> constraints) : base(modifier, name, constraints)
         {
         }
 
@@ -35,16 +35,16 @@ namespace Skila.Language.Entities
                     }
                 }
             }
-            {   // detecting variables duplicates
-                foreach (VariableDeclaration second_var in this.NestedEntities()
-                    .WhereType<VariableDeclaration>()
-                    .GroupBy(it => it.Name, EntityBareNameComparer.Instance)
-                    .Select(group => group.Skip(1).FirstOrDefault())
-                    .Where(it => it != null))
-                {
-                    ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, second_var);
-                }
+            
+            // detecting variables duplicates
+            foreach (VariableDeclaration second_var in this.NestedFields
+                .GroupBy(it => it.Name, EntityBareNameComparer.Instance)
+                .Select(group => group.Skip(1).FirstOrDefault())
+                .Where(it => it != null))
+            {
+                ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, second_var);
             }
+
         }
 
     }

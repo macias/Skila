@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingConstructor()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -45,12 +45,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuckTypingInterfaces()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = true, AllowDiscardingAnyExpressionDuringTests = true });
+            return duckTyping(new Options() { InterfaceDuckTyping = true, DiscardingAnyExpressionDuringTests = true });
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = false, AllowDiscardingAnyExpressionDuringTests = true });
+            return duckTyping(new Options() { InterfaceDuckTyping = false, DiscardingAnyExpressionDuringTests = true });
         }
 
         private IErrorReporter duckTyping(IOptions options)
@@ -97,13 +97,13 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuckTypingInterfaceValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  AllowDiscardingAnyExpressionDuringTests = true });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  DiscardingAnyExpressionDuringTests = true });
         }
 
         [TestMethod]
         public IErrorReporter ErrorDuckTypingProtocolValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , AllowDiscardingAnyExpressionDuringTests = true });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , DiscardingAnyExpressionDuringTests = true });
         }
 
         private IErrorReporter errorDuckTypingValues(IOptions options)

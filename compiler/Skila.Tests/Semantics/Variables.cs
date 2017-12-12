@@ -13,9 +13,26 @@ namespace Skila.Tests.Semantics
     public class Variables
     {
         [TestMethod]
+        public IErrorReporter ErrorInvalidVariable()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("3"));
+            root_ns.AddNode(decl);
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.GlobalVariable, decl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeName, decl));
+
+            return resolver;
+        }
+        [TestMethod]
         public IErrorReporter DetectingUsage()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -37,7 +54,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReassigningFixedVariable()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
@@ -61,7 +78,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCompoundDefaultValue()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameReferenceUnion.Create(
@@ -103,7 +120,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AssignmentTypeChecking()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -123,7 +140,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TypeInference()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -157,7 +174,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter FunctionAssignment()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

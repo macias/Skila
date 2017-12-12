@@ -36,7 +36,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingThis()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -105,7 +105,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCrossReferencingBaseMember()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
@@ -136,7 +136,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ScopeShadowing()
         {
-            var env = Environment.Create(new Options() { ScopeShadowing = true, AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { ScopeShadowing = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -165,7 +165,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorScopeShadowing()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse());
@@ -193,7 +193,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReservedKeyword()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.SelfFunctionName, null, IntLiteral.Create("3"));
@@ -216,7 +216,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingBeforeDefinition()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -242,7 +242,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCircularReference()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -253,15 +253,14 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.CircularReference, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(decl, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CircularReference, decl));
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorDuplicatedName()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
@@ -270,8 +269,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
-            Assert.AreEqual(ErrorCode.NameAlreadyExists, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(second_decl, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NameAlreadyExists, second_decl));
 
             return resolver;
         }

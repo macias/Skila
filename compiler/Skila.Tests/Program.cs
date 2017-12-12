@@ -18,7 +18,8 @@ namespace Skila.Tests
         public static void Main()
         {
             //   new Semantics.CompilerProtection().Environment();
-            //new Semantics.Templates().ErrorHasConstraint();
+            // new Semantics.Concurrency().ErrorSpawningMutables();
+            //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
             // new Exceptions().ErrorThrowingNonException();
             //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
@@ -28,14 +29,13 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
             //  new OverloadCalls().PreferringNonVariadicFunction();
             //  new Variables().TypeInference();
-              new Semantics.Expressions().ErrorDiscardingNonFunctionCall();
+            // new Semantics.Expressions().ErrorDiscardingNonFunctionCall();
             //new MethodDefinitions().Basics();
             //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
             //new Semantics.TypeMatching().UnionMatching();
-            //  new Semantics.Flow().ErrorReadingIfWithoutElse();
-            //new Semantics.Variables().FunctionAssignment();
+            //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.Types().ErrorStaticMemberReference();
-            // new Semantics.Concurrency().ErrorSpawningMutables();
+            new Semantics.Variables().ErrorInvalidVariable();
 
             //new Execution.Properties().Indexer();
             //new Execution.Objects().UsingEnums();
@@ -61,6 +61,13 @@ namespace Skila.Tests
                 runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
 
                 Console.WriteLine($"Interpretation time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
+            }
+
+            if (AssertX.Fails.Any())
+            {
+                Console.WriteLine("Fails");
+                foreach (string s in AssertX.Fails.OrderBy(it => it))
+                    Console.WriteLine(s);
             }
             Console.ReadLine();
         }

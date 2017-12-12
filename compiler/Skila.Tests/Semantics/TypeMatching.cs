@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -58,7 +58,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
@@ -97,7 +97,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTestingValueType()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -110,15 +110,13 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.IsTypeOfKnownTypes, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(is_type, resolver.ErrorManager.Errors.Single().Node);
-
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorTestingKnownTypes()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -131,15 +129,14 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.IsTypeOfKnownTypes, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(is_type, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorTestingMismatchedTypes()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -153,15 +150,14 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(is_type, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter TypeTesting()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -181,7 +177,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { AllowDiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -209,33 +205,34 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPassingValues()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create());
+            NameReference foo_ref = NameReference.Create("foo");
             var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ObjectTypeReference(),
-                initValue: NameReference.Create("foo"));
+                initValue: foo_ref);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, foo_ref));
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter AssigningUndef()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
 
             var resolver = NameResolver.Create(env);
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
 
             return resolver;
         }
@@ -243,7 +240,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter PassingPointers()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

@@ -241,5 +241,16 @@ namespace Skila.Language.Entities
             this.closures.Add(closure);
             closure.AttachTo(this);
         }
+
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
+
+            if (!ctx.Env.Options.TypelessVariablesDuringTests && this.Owner is TypeContainerDefinition && this.TypeName == null)
+                ctx.AddError(ErrorCode.MissingTypeName, this);
+
+            if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
+                ctx.AddError(ErrorCode.GlobalVariable, this);
+        }
     }
 }

@@ -6,7 +6,11 @@
         public bool InterfaceDuckTyping { get; set; }
 
         public bool ScopeShadowing { get; set; }
-        public bool BaseReferenceEnabled { get; set; }
-        public bool AllowDiscardingAnyExpressionDuringTests { get; set; }
+        public bool ReferencingBase { get; set; }
+        public bool DiscardingAnyExpressionDuringTests { get; set; }
+        public bool GlobalVariables { get; set; }
+        // todo: limit usage of this option and eventually remove it completely
+        public bool TypelessVariablesDuringTests { get; set; }
+
     }
 }

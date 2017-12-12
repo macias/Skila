@@ -2,6 +2,7 @@
 using System.Linq;
 using NaiveLanguageTools.Common;
 using System.Collections.Generic;
+using Skila.Language.Semantics;
 
 namespace Skila.Language.Entities
 {
@@ -22,6 +23,12 @@ namespace Skila.Language.Entities
         private Namespace(NameDefinition name) : base(EntityModifier.None, name,null)
         {
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+        }
+
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
+
         }
     }
 }

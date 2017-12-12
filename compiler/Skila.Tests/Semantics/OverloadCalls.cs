@@ -14,7 +14,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter PreferringNonVariadicFunction()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -48,7 +48,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DistinctTypesOverloadCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -87,7 +87,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DistinctRequiredNamesOverloadCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -126,7 +126,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplatedSpecializedOverloadCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -159,7 +159,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InheritanceSpecializedOverloadCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(

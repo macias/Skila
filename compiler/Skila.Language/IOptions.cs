@@ -11,8 +11,10 @@
         // in Skila we have "super" to call the base function of the current one, so supporting "base.foo()" for cross-calling
         // other base functions is rather not welcome because promote probably incorrect code
         // todo: btw. handling of "base" keyword is terrible, so fix it
-        bool BaseReferenceEnabled { get; }
+        bool ReferencingBase { get; }
         // use it only on selected tests
-        bool AllowDiscardingAnyExpressionDuringTests { get; }
+        bool DiscardingAnyExpressionDuringTests { get; }
+        bool GlobalVariables { get; }
+        bool TypelessVariablesDuringTests { get; }
     }
 }
