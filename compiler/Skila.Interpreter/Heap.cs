@@ -52,16 +52,16 @@ namespace Skila.Interpreter
             }
         }
 
-        internal void TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut)
+        internal bool TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut)
         {
             if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
-                return;
+                return false;
 
             obj = obj.Dereference();
 
             // todo: after adding nulls to Skila remove this condition
             if (obj == null)
-                return;
+                return false;
 
             if (obj.DebugId.Id == 8758)
             {
@@ -90,6 +90,8 @@ namespace Skila.Interpreter
                 else
                     this.refCounts[obj] = count;
             }
+
+            return true;
         }
 
         internal void TryInc(ExecutionContext ctx, ObjectData obj)

@@ -6,6 +6,7 @@ using NaiveLanguageTools.Common;
 using System.Collections.Generic;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
+using Skila.Language.Extensions;
 
 namespace Skila.Language.Builders
 {
@@ -27,9 +28,9 @@ namespace Skila.Language.Builders
             TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
             builder = builder
                 .Modifier(EntityModifier.Enum)
-                .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference())
+                .Parents(NameFactory.EquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference(), 
+                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                 .WithEquatableEquals()
@@ -39,7 +40,7 @@ namespace Skila.Language.Builders
                         Return.Create(Undef.Create())
                     }))
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp",builder.CreateTypeNameReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(), ExpressionReadMode.CannotBeRead)))
                     ;
 
             return builder;
@@ -56,7 +57,7 @@ namespace Skila.Language.Builders
 
         private readonly NameDefinition name;
         private readonly List<INode> features;
-        private NameReference[] parents;
+        private IEnumerable<NameReference> parents;
         private EntityModifier modifier;
         private TypeDefinition build;
         private bool allowSlicing;
@@ -69,10 +70,10 @@ namespace Skila.Language.Builders
         }
         public TypeBuilder Parents(params NameReference[] parents)
         {
-            if (this.parents != null || this.build != null)
+            if (this.build != null)
                 throw new InvalidOperationException();
 
-            this.parents = parents;
+            this.parents = parents.Concat(this.parents??Enumerable.Empty<NameReference>()).StoreReadOnly();
             return this;
         }
         public NameReference CreateTypeNameReference()
@@ -121,10 +122,10 @@ namespace Skila.Language.Builders
 
         public TypeBuilder Modifier(EntityModifier modifier)
         {
-            if (this.modifier != null || this.build != null)
+            if (this.build != null)
                 throw new InvalidOperationException();
 
-            this.modifier = modifier;
+            this.modifier = modifier | this.modifier;
             return this;
         }
 

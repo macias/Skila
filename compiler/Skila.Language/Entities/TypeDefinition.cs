@@ -130,6 +130,8 @@ namespace Skila.Language.Entities
                 .Where(it => !(it is FunctionDefinition func) || !func.IsConstructor())
                 .ToHashSet();
 
+            var missing_func_implementations = new List<FunctionDefinition>();
+
             foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
             {
                 foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.NestedFunctions))
@@ -138,7 +140,7 @@ namespace Skila.Language.Entities
                     {
                         // we can skip implementation or abstract signature of the function in the abstract type
                         if (deriv_info.Base.Modifier.HasAbstract && !this.Modifier.IsAbstract)
-                            ctx.AddError(ErrorCode.MissingFunctionImplementation, this, deriv_info.Base);
+                            missing_func_implementations.Add(deriv_info.Base);
                     }
                     else
                     {
@@ -168,6 +170,23 @@ namespace Skila.Language.Entities
                 }
             }
 
+            foreach (FunctionDefinition missing_impl in missing_func_implementations)
+            {
+                bool found = false;
+                foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+                {
+
+                    if (ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(missing_impl, out FunctionDefinition dummy))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, missing_impl);
+            }
+
             this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
             this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
             this.availableEntities = inherited_entities.Concat(this.NestedEntities()).StoreReadOnly();
@@ -185,6 +204,12 @@ namespace Skila.Language.Entities
             foreach (NameReference parent in this.ParentNames.Skip(1))
                 if (parent.Evaluation.Components.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                     ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);
+
+            {
+                TypeDefinition primary_parent = this.Inheritance.GetTypeImplementationParent()?.TargetType;
+                if (primary_parent != null && this.Modifier.HasEnum != primary_parent.Modifier.HasEnum)
+                    ctx.AddError(ErrorCode.EnumCrossInheritance, this);
+            }
 
             if (!this.Modifier.IsAbstract)
             {

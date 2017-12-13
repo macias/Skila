@@ -17,15 +17,14 @@ namespace Skila.Language
             this.IsPartial = isPartial;
         }
 
-        public bool TryGetDerived(ref FunctionDefinition function)
+        public bool TryGetDerived(FunctionDefinition baseFunction,out FunctionDefinition derivedFunction)
         {
-            if (!this.baseDerivedMapping.TryGetValue(function, out FunctionDefinition derived_func))
+            if (!this.baseDerivedMapping.TryGetValue(baseFunction, out derivedFunction))
                 return false;
 
-            if (derived_func == null)
+            if (derivedFunction == null)
                 throw new Exception("Internal error");
 
-            function = derived_func;
             return true;
         }
     }

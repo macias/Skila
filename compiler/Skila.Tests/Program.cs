@@ -19,33 +19,32 @@ namespace Skila.Tests
         {
             //   new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
+            // new Semantics.Exceptions().ErrorThrowingNonException();
+            new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
-            // new Semantics.Inheritance().ErrorMissingFunctionImplementation();
-            // new Exceptions().ErrorThrowingNonException();
-            //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
-            //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
-            // new Semantics.NameResolution().ResolvingIt();
             //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
-            //  new OverloadCalls().PreferringNonVariadicFunction();
-            //  new Variables().TypeInference();
-            // new Semantics.Expressions().ErrorDiscardingNonFunctionCall();
-            //new MethodDefinitions().Basics();
             //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
-            //new Semantics.TypeMatching().UnionMatching();
+            //new Semantics.Inheritance().ErrorEnumCrossInheritance();
+            //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
+            //new Semantics.MethodDefinitions().Basics();
+            //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
+            // new Semantics.NameResolution().ResolvingIt();
+            //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
+            //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().ErrorHasConstraint();
+            //new Semantics.TypeMatching().UnionMatching();
             //new Semantics.Types().ErrorStaticMemberReference();
-            new Semantics.Variables().ErrorInvalidVariable();
+            //new Semantics.Variables().ErrorInvalidVariable();
 
-            //new Execution.Properties().Indexer();
-            //new Execution.Objects().UsingEnums();
-            //new Execution.Pointers().DereferenceOnAssignment();
-            // new Execution.FunctionCalls().LambdaRecursiveCall();
+            //  new Execution.Closures().ResultTypeInference();
             //new Execution.Concurrency().SingleMessage();
+            // new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Inheritance().VirtualCall();
             //new Execution.Interfaces().TraitFunctionCall();
+            //new Execution.Objects().UsingEnums();
+            //new Execution.Pointers().ExplicitDereferencing();
+            //new Execution.Properties().Indexer();
             //new Execution.Templates().HasConstraintWithValue();
-            //  new Execution.Closures().ResultTypeInference();
 
             {
                 double start = Stopwatch.GetTimestamp();

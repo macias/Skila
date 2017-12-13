@@ -196,7 +196,7 @@ namespace Skila.Interpreter
             return value_disposed;
         }
 
-        internal ObjectData Copy()
+        internal ObjectData Clone()
         {
             return new ObjectData(this);
         }

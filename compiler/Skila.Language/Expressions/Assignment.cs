@@ -102,8 +102,7 @@ namespace Skila.Language.Expressions
                             ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
                         else
                         {
-                            IEntityVariable rhs_var = this.RhsValue.TryGetEntityVariable();
-                            if (lhs_var == rhs_var)
+                            if (sameTargets(this.Lhs, this.RhsValue))
                                 ctx.AddError(ErrorCode.SelfAssignment, this);
                         }
                     }
@@ -117,6 +116,38 @@ namespace Skila.Language.Expressions
                     ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
             }
         }
+
+        private static bool sameTargets(IExpression lhs, IExpression rhs)
+        {
+            NameReference lhs_ref;
+            IEntity lhs_target = tryGetEntity(lhs, out lhs_ref);
+            if (lhs_target == null)
+                return false;
+            NameReference rhs_ref;
+            IEntity rhs_target = tryGetEntity(rhs, out rhs_ref);
+            if (lhs_target != rhs_target)
+                return false;
+
+            if (lhs_ref.Prefix == null && rhs_ref.Prefix == null)
+                return true;
+            else
+                return sameTargets(lhs_ref.Prefix, rhs_ref.Prefix);
+        }
+
+        public static IEntity tryGetEntity(IExpression expr, out NameReference nameReference)
+        {
+            if (expr is NameReference name_ref)
+            {
+                nameReference = name_ref;
+                return name_ref.Binding.Match.Target;
+            }
+            else
+            {
+                nameReference = null;
+                return null;
+            }
+        }
+
 
         public void AddClosure(TypeDefinition closure)
         {

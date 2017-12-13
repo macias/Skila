@@ -64,6 +64,7 @@
     <Compile Include="Entities\IMember.cs" />
     <Compile Include="EntityInstanceIntersection.cs" />
     <Compile Include="EntityInstanceSet.cs" />
+    <Compile Include="Expressions\Dereference.cs" />
     <Compile Include="Expressions\BoolOperator.cs" />
     <Compile Include="Expressions\ReinterpretType.cs" />
     <Compile Include="Extensions\ISurfableExtension.Surfed.cs" />

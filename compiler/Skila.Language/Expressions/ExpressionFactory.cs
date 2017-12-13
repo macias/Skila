@@ -119,6 +119,10 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression Add(string lhs, string rhs)
+        {
+            return Add(NameReference.Create(lhs), NameReference.Create(rhs));
+        }
         public static IExpression And(IExpression lhs, IExpression rhs)
         {
             return BoolOperator.Create(BoolOperator.OpMode.And, lhs, rhs);

@@ -13,6 +13,30 @@ namespace Skila.Tests.Semantics
     public class Expressions
     {
         [TestMethod]
+        public IErrorReporter ErrorDereferencingValue()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            IntLiteral value = IntLiteral.Create("3");
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create( Dereference.Create(value)),
+            })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.DereferencingValue, value));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorDiscardingNonFunctionCall()
         {
             var env = Environment.Create();
@@ -283,22 +307,37 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
+            root_ns.AddBuilder(TypeBuilder.Create("Oint")
+                .Modifier(EntityModifier.Mutable)
+                .With(Property.Create("x", NameFactory.IntTypeReference(),
+                    new[] { Property.CreateAutoField(NameFactory.IntTypeReference(), null, EntityModifier.Reassignable) },
+                    new[] { Property.CreateAutoGetter(NameFactory.IntTypeReference()) },
+                    new[] { Property.CreateAutoSetter(NameFactory.IntTypeReference()) })));
+
             var var_decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                 Undef.Create(), EntityModifier.Reassignable);
-            var assign = Assignment.CreateStatement(NameReference.Create("x"), NameReference.Create("x"));
-            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
+
+            IExpression assign_var = Assignment.CreateStatement(NameReference.Create("x"), NameReference.Create("x"));
+            IExpression assign_prop = Assignment.CreateStatement(NameReference.Create("a", "x"), NameReference.Create("a", "x"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
                           NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                           ExpressionReadMode.OptionalUse,
                           NameFactory.VoidTypeReference(),
                           Block.CreateStatement(new IExpression[] {
                               var_decl,
-                              assign,
+                              assign_var,
+                              VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Oint")),
+                              VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructor("Oint")),
+                              Assignment.CreateStatement(NameReference.Create("a","x"),NameReference.Create("b","x")),
+                              assign_prop,
                           })));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfAssignment, assign));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfAssignment, assign_var));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfAssignment, assign_prop));
 
             return resolver;
         }

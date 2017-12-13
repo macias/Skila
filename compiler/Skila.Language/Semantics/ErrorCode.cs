@@ -78,5 +78,7 @@
         DiscardingNonFunctionCall = 74,
         GlobalVariable = 75,
         MissingTypeName = 76,
+        EnumCrossInheritance = 77,
+        DereferencingValue = 78,
     }
 }

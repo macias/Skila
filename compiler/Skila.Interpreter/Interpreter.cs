@@ -255,7 +255,7 @@ namespace Skila.Interpreter
             // this method is for saving time on semantic analysis, so when you run it you know
             // the only thing is going on is execution
 
-            ExecutionContext ctx = ExecutionContext.Create(env,this);
+            ExecutionContext ctx = ExecutionContext.Create(env, this);
             ExecValue result = this.Executed(main, ctx);
 
             ctx.Routines.Complete();
@@ -343,6 +343,10 @@ namespace Skila.Interpreter
             {
                 result = execute(reinterpret, ctx);
             }
+            else if (node is Dereference dereference)
+            {
+                result = execute(dereference, ctx);
+            }
             else
                 throw new NotImplementedException();
 
@@ -403,7 +407,7 @@ namespace Skila.Interpreter
                 if (ret.Value.IsDereferenced != ret.IsDereferencing)
                     throw new Exception("Internal error");
                 if (ret.IsDereferencing)
-                    obj = obj.Dereference().Copy();
+                    obj = obj.Dereference().Clone();
                 ctx.Heap.TryInc(ctx, obj);
                 return ExecValue.CreateReturn(obj);
             }
@@ -460,6 +464,12 @@ namespace Skila.Interpreter
             ObjectData lhs_obj = (Executed(reinterpret.Lhs, ctx)).ExprValue;
             ObjectData result = ObjectData.CreateInstance(ctx, reinterpret.RhsTypeName.Evaluation.Components, lhs_obj.PlainValue);
             return ExecValue.CreateExpression(result);
+        }
+        private ExecValue execute(Dereference dereference, ExecutionContext ctx)
+        {
+            ExecValue val = Executed(dereference.Expr,ctx);
+            ObjectData obj = val.ExprValue.TryDereference(ctx.Env);
+            return ExecValue.CreateExpression(obj);
         }
         private ExecValue execute(Spawn spawn, ExecutionContext ctx)
         {
@@ -613,7 +623,7 @@ namespace Skila.Interpreter
                 if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
                     throw new Exception("Internal error");
                 // ...and once we have the mapping we get target function
-                else if (!vtable.TryGetDerived(ref targetFunc))
+                else if (!vtable.TryGetDerived(targetFunc, out targetFunc))
                     throw new Exception("Internal error");
             }
             else if (ctx.Env.Dereferenced(this_eval, out IEntityInstance __inner_this, out bool via_pointer))
@@ -648,8 +658,9 @@ namespace Skila.Interpreter
                     {
                         if (ancestor.TryGetDuckVirtualTable(inner_type, out VirtualTable vtable))
                         {
-                            if (vtable.TryGetDerived(ref targetFunc))
+                            if (vtable.TryGetDerived(targetFunc, out FunctionDefinition derived))
                             {
+                                targetFunc = derived;
                                 found_duck = true;
                                 break;
                             }
@@ -665,7 +676,9 @@ namespace Skila.Interpreter
 
                 if (duck_virtual || targetFunc.Modifier.IsVirtual)
                 {
-                    if (!thisValue.InheritanceVirtualTable.TryGetDerived(ref targetFunc))
+                    if (thisValue.InheritanceVirtualTable.TryGetDerived(targetFunc, out FunctionDefinition derived))
+                        targetFunc = derived;
+                    else
                     {
                         // it is legal in duck mode to have a miss, but it case of classis virtual call
                         // we simply HAVE TO have the entry for each virtual function
@@ -734,7 +747,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(Assignment assign, ExecutionContext ctx)
         {
-            if (assign.DebugId.Id == 2805)
+            if (assign.DebugId.Id == 3100)
             {
                 ;
             }
@@ -753,13 +766,18 @@ namespace Skila.Interpreter
                 ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(assign, assign.RhsValue);
                 ctx.Heap.TryInc(ctx, rhs_obj);
 
-                if (assign.Lhs.Cast<NameReference>().Binding.Match.Target is Property)
+                if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property)
                 {
                     callPropertySetter(assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj, ctx);
                 }
                 else
                 {
                     lhs = Executed(assign.Lhs, ctx);
+
+                    if (ctx.Heap.TryDec(ctx, lhs.ExprValue, passingOut: false))
+                    {
+                        ;
+                    }
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -777,16 +795,14 @@ namespace Skila.Interpreter
                 rhs_val = Executed(decl.InitValue, ctx);
 
             ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl, decl.InitValue);
-            if (decl.DebugId.Id == 2560)
+            if (decl.DebugId.Id == 3062)
             {
                 ;
             }
 
-            // if (decl.InitValue != null && decl.InitValue.IsDereferenced)
-            //   rhs_obj = rhs_obj.Dereference();
-            ctx.Heap.TryInc(ctx, rhs_obj);
-
-            ctx.LocalVariables.Add(decl, rhs_obj);
+            ObjectData lhs_obj = rhs_obj.Clone();
+            ctx.LocalVariables.Add(decl, lhs_obj);
+            ctx.Heap.TryInc(ctx, lhs_obj);
 
             if (decl.DebugId.Id == 352)
             {

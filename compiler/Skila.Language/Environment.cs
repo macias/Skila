@@ -364,18 +364,18 @@ namespace Skila.Language
             return instance.Enumerate().All(it => it.IsOfType(PointerType));
         }
 
-        public bool Dereferenced(EntityInstance instance, out IEntityInstance result, out bool viaPointer)
+        public bool Dereferenced(IEntityInstance instance, out IEntityInstance result, out bool viaPointer)
         {
             if (IsPointerOfType(instance))
             {
                 viaPointer = true;
-                result = instance.TemplateArguments.Single();
+                result = instance.Cast<EntityInstance>().TemplateArguments.Single();
                 return true;
             }
             else if (IsReferenceOfType(instance))
             {
                 viaPointer = false;
-                result = instance.TemplateArguments.Single();
+                result = instance.Cast<EntityInstance>().TemplateArguments.Single();
                 return true;
             }
             else

@@ -13,6 +13,33 @@ namespace Skila.Tests.Semantics
     public class Inheritance
     {
         [TestMethod]
+        public IErrorReporter ErrorEnumCrossInheritance()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Whatever")
+                .Modifier(EntityModifier.Base));
+
+            TypeDefinition from_reg = root_ns.AddBuilder(TypeBuilder.CreateEnum("Size")
+                .Parents("Whatever")
+                .Modifier(EntityModifier.Base)
+                .With(EnumCaseBuilder.Create("small", "big")));
+
+            TypeDefinition from_enum = root_ns.AddBuilder(TypeBuilder.Create("Another")
+                .Parents("Size")
+                .Modifier(EntityModifier.Base));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EnumCrossInheritance, from_enum));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EnumCrossInheritance, from_reg));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorNonVirtualInterfacePattern()
         {
             var env = Environment.Create();
