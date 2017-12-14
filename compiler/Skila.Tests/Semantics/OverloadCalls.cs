@@ -35,11 +35,11 @@ namespace Skila.Tests.Semantics
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call));
+                call, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(func_def2, call.Resolution.TargetFunctionInstance.Target);
 
             return resolver;
@@ -71,13 +71,13 @@ namespace Skila.Tests.Semantics
             var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             var call2 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("s")));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call1));
+                call1, modifier: EntityModifier.Public));
             root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(),
-                call2));
+                call2, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
             Assert.AreEqual(func_def2, call2.Resolution.TargetFunctionInstance.Target);
 
@@ -110,13 +110,13 @@ namespace Skila.Tests.Semantics
             var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create("x",NameReference.Create("i")));
             var call2 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create("y",NameReference.Create("i")));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call1));
+                call1, modifier: EntityModifier.Public));
             root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(),
-                call2));
+                call2, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(func_def1, call1.Resolution.TargetFunctionInstance.Target);
             Assert.AreEqual(func_def2, call2.Resolution.TargetFunctionInstance.Target);
 
@@ -143,10 +143,11 @@ namespace Skila.Tests.Semantics
                 NameFactory.DoubleTypeReference(), 
                 Block.CreateStatement(new[] {
                     Return.Create(DoubleLiteral.Create("3.3")) })));
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create(), 
+                modifier: EntityModifier.Public));
             var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call1));
+                call1, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -176,10 +177,11 @@ namespace Skila.Tests.Semantics
                 NameFactory.DoubleTypeReference(), 
                 Block.CreateStatement(new[] {
                     Return.Create(DoubleLiteral.Create("3.3")) })));
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create(), 
+                modifier: EntityModifier.Public));
             var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call1));
+                call1, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 

@@ -106,6 +106,8 @@ namespace Skila.Language.Entities
 
         public bool IsIndexer => this.Name.Name == NameFactory.PropertyIndexerName;
 
+        public bool IsMemberUsed { get; private set; }
+
         private Property(EntityModifier modifier, string name, IEnumerable<FunctionParameter> parameters, INameReference typeName,
             IEnumerable<VariableDeclaration> fields, IEnumerable<FunctionDefinition> getters, IEnumerable<FunctionDefinition> setters)
         {
@@ -136,6 +138,7 @@ namespace Skila.Language.Entities
 
         public void Validate(ComputationContext ctx)
         {
+            IEntityScopeExtension.Validate(this,ctx);
         }
 
         public bool IsReadingValueOfNode(IExpression node)
@@ -165,6 +168,11 @@ namespace Skila.Language.Entities
             this.Setter?.AttachTo(this);
 
             return true;
+        }
+
+        public void SetIsMemberUsed()
+        {
+            this.IsMemberUsed = true;
         }
 
     }

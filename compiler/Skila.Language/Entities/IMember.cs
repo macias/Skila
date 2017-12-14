@@ -2,5 +2,7 @@
 {
     public interface IMember : IEntity
     {
+        bool IsMemberUsed { get; }
+        void SetIsMemberUsed();
     }
 }

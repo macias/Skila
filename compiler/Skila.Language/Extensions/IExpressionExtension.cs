@@ -12,21 +12,20 @@ namespace Skila.Language.Extensions
                 ctx.AddError(ErrorCode.NoValueExpression, @this);
         }
 
-        public static VariableDeclaration TryGetVariable(this IExpression lhs)
+        public static T TryGetTargetEntity<T>(this IExpression expr,out NameReference nameReference)
+            where T : class, IEntity
         {
-            if (lhs is NameReference name_ref && name_ref.Binding.Match.Target is VariableDeclaration decl)
-                return decl;
+            nameReference = expr as NameReference;
+            if (nameReference!=null)
+            {
+                return nameReference.Binding.Match.Target as T;
+            }
             else
+            {
                 return null;
+            }
         }
 
-        public static IEntityVariable TryGetEntityVariable(this IExpression lhs)
-        {
-            if (lhs is NameReference name_ref && name_ref.Binding.Match.Target is IEntityVariable decl)
-                return decl;
-            else
-                return null;
-        }
         public static bool IsValue(this IExpression @this,IOptions options)
         {
             NameReference nameReference = (@this as NameReference);

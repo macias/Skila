@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null)));
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Public)));
 
             var resolver = NameResolver.Create(env);
 
@@ -58,7 +58,8 @@ namespace Skila.Tests.Semantics
                     new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), 
                         Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement())));
-            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null);
+            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null, 
+                EntityModifier.Public);
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
                 .With(field_decl));
 
@@ -77,7 +78,8 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, EntityModifier.Static)));
+                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, 
+                    EntityModifier.Static | EntityModifier.Public)));
 
             NameReference field_ref = NameReference.Create("f", "field");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
@@ -90,30 +92,40 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, field_ref));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.StaticMemberAccessInInstanceContext, field_ref));
 
             return resolver;
         }
-
+    
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            NameReference field_ref = NameReference.Create( "field");
+            NameReference field_ref1 = NameReference.Create("field");
+
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null))
+                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, EntityModifier.Public))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.DoubleTypeReference(),
-                    Block.CreateStatement(new[] { Return.Create(field_ref) }))
+                    Block.CreateStatement(new[] { Return.Create(field_ref1) }))
                     .Modifier(EntityModifier.Static)));
+
+            NameReference field_ref2 = NameReference.Create("Foo", "field");
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("some_func"), Enumerable.Empty<FunctionParameter>(),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.DoubleTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                                    Return.Create(field_ref2) })));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref2));
 
             return resolver;
         }

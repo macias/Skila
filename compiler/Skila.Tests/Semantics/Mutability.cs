@@ -53,9 +53,9 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
-                null, EntityModifier.Reassignable);
+                null, EntityModifier.Reassignable | EntityModifier.Public);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
-                Undef.Create());
+                Undef.Create(), modifier: EntityModifier.Public);
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
                .With(decl1)
                .With(decl2));
@@ -80,7 +80,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Foo"));
 
             VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
-                Undef.Create());
+                Undef.Create(), modifier: EntityModifier.Public);
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
                .Constraints(ConstraintBuilder.Create("T")
@@ -118,9 +118,9 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
-                null, EntityModifier.Reassignable);
+                null, EntityModifier.Reassignable | EntityModifier.Public);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("Bar"),
-                null);
+                null, modifier: EntityModifier.Public);
 
             root_ns.AddNode(decl1);
             root_ns.AddNode(decl2);

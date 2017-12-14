@@ -80,5 +80,6 @@
         MissingTypeName = 76,
         EnumCrossInheritance = 77,
         DereferencingValue = 78,
+        StaticMemberAccessInInstanceContext = 79,
     }
 }

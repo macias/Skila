@@ -126,9 +126,8 @@ namespace Skila.Tests.Semantics
                 new IExpression[] { IntLiteral.Create("5")
                 },
                     IfBranch.CreateElse(new[] { IntLiteral.Create("7") }));
-            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -144,9 +143,9 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             NameReference non_value = NameFactory.IntTypeReference();
-            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value, 
+                modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -261,7 +260,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
-                call);
+                call, EntityModifier.Public);
             root_ns.AddNode(decl);
 
             var resolver = NameResolver.Create(env);

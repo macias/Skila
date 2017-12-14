@@ -21,7 +21,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
-                initValue: Undef.Create());
+                initValue: Undef.Create(), modifier: EntityModifier.Public);
             root_ns.AddNode(decl1);
 
             var decl2 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),

@@ -102,8 +102,8 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.DoubleTypeReference());
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.ObjectTypeReference(), initValue: Undef.Create());
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.ObjectTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -121,8 +121,8 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()), initValue: Undef.Create());
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()), initValue: Undef.Create(), modifier: EntityModifier.Public);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -142,8 +142,8 @@ namespace Skila.Tests.Semantics
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IntTypeReference()));
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
-                initValue: Undef.Create());
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
+                initValue: Undef.Create(), modifier: EntityModifier.Public);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -163,8 +163,8 @@ namespace Skila.Tests.Semantics
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()));
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
-                initValue: Undef.Create());
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type);
+                initValue: Undef.Create(), modifier: EntityModifier.Public);
+            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -209,10 +209,10 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create());
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
             NameReference foo_ref = NameReference.Create("foo");
             var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ObjectTypeReference(),
-                initValue: foo_ref);
+                initValue: foo_ref, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
@@ -229,7 +229,8 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(), 
+                modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
@@ -245,9 +246,9 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
-                initValue: Undef.Create());
+                initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
-                initValue: NameReference.Create("foo"));
+                initValue: NameReference.Create("foo"), modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 

@@ -30,6 +30,7 @@ namespace Skila.Language.Entities
         private IExpression autoFieldDefaultInit;
         public IExpression InitValue => this.initValue;
         private readonly List<TypeDefinition> closures;
+        public bool IsMemberUsed { get; private set; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
@@ -252,5 +253,15 @@ namespace Skila.Language.Entities
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
         }
+
+        public void SetIsMemberUsed()
+        {
+            if (this.DebugId.Id==2965)
+            {
+                ;
+            }
+            this.IsMemberUsed = true;
+        }
+
     }
 }

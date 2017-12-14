@@ -67,6 +67,7 @@
     <Compile Include="Expressions\Dereference.cs" />
     <Compile Include="Expressions\BoolOperator.cs" />
     <Compile Include="Expressions\ReinterpretType.cs" />
+    <Compile Include="Extensions\IEntityScopeExtension.cs" />
     <Compile Include="Extensions\ISurfableExtension.Surfed.cs" />
     <Compile Include="Extensions\ILambdaTransferExtension.cs" />
     <Compile Include="EvaluationInfo.cs" />

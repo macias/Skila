@@ -122,7 +122,7 @@ namespace Skila.Language.Flow
 
                 }
 
-                if (Next != null && IsElse)
+                if (Next != null && this.IsElse)
                     ctx.ErrorManager.AddError(ErrorCode.MiddleElseBranch, this);
             }
         }

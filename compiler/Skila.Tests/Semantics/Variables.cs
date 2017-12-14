@@ -18,7 +18,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("3"));
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("3"), modifier: EntityModifier.Public);
             root_ns.AddNode(decl);
 
             var resolver = NameResolver.Create(env);
@@ -84,7 +84,7 @@ namespace Skila.Tests.Semantics
             var decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameReferenceUnion.Create(
                 new[] { NameFactory.PointerTypeReference(NameFactory.BoolTypeReference()),
                     NameFactory.PointerTypeReference(NameFactory.IntTypeReference())}),
-                initValue: null));
+                initValue: null, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -101,11 +101,11 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_1 = VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create());
+            var decl_1 = VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(), modifier: EntityModifier.Public);
             root_ns.AddNode(decl_1);
             var var_1_ref = NameReference.Create("x");
             var decl_2 = root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(),
-                var_1_ref));
+                var_1_ref, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
             Assert.AreEqual(1, decl_1.TypeName.Binding().Matches.Count);
@@ -125,9 +125,11 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
-            root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(), NameReference.Create("x")));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(), NameReference.Create("x"),
+                modifier: EntityModifier.Public));
             var x_ref = NameReference.Create("x");
-            root_ns.AddNode(VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), x_ref));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), x_ref,
+                modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -189,15 +191,15 @@ namespace Skila.Tests.Semantics
 
             // x *IFunction<Int,Double> = foo
             root_ns.AddNode(VariableDeclaration.CreateStatement("x",
-                NameFactory.PointerTypeReference( NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference())),
-                initValue: NameReference.Create("foo")));
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference())),
+                initValue: NameReference.Create("foo"), modifier: EntityModifier.Public));
             var foo_ref = NameReference.Create("foo");
             // y *IFunction<Double,Int> = foo
             VariableDeclaration decl = VariableDeclaration.CreateStatement("y",
                 NameFactory.PointerTypeReference(NameReference.Create(NameFactory.FunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference())),
-                initValue: foo_ref);
+                initValue: foo_ref, modifier: EntityModifier.Public);
             root_ns.AddNode(decl);
-                
+
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, foo_ref.Binding.Matches.Count);
@@ -214,6 +216,11 @@ namespace Skila.Tests.Semantics
         {
             var env = Environment.Create();
             var root_ns = env.Root;
+
+            VariableDeclaration member = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(),
+                IntLiteral.Create("5"));
+            root_ns.AddBuilder(TypeBuilder.Create("Thing")
+                .With(member));
 
             var decl1 = VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null);
             var decl2 = VariableDeclaration.CreateStatement("t", NameFactory.IntTypeReference(), null);
@@ -232,10 +239,11 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl1));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl2));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, member));
 
             return resolver;
         }

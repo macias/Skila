@@ -3,6 +3,7 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using System.Collections.Generic;
 using Skila.Language.Semantics;
+using Skila.Language.Extensions;
 
 namespace Skila.Language.Entities
 {

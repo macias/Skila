@@ -87,6 +87,7 @@ namespace Skila.Language.Entities
 
         internal LambdaTrap LambdaTrap { get; set; }
 
+        public bool IsMemberUsed { get; private set; }
         public override IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
@@ -281,6 +282,12 @@ namespace Skila.Language.Entities
         {
             return false;
         }
+
+        public void SetIsMemberUsed()
+        {
+            this.IsMemberUsed = true;
+        }
+
 
         #region IExpression
         // function is an expression only for a moment, as lambda, until it is lifted as closure method

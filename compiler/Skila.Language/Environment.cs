@@ -93,7 +93,10 @@ namespace Skila.Language
                 */
             this.DoubleType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.DoubleTypeName)
                 .Modifier(EntityModifier.Native)
-                .Parents(NameFactory.ObjectTypeReference()));
+                .Parents(NameFactory.ObjectTypeReference())
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                    null, Block.CreateStatement()))
+                );
 
             // spread functions family
             {
@@ -191,7 +194,6 @@ namespace Skila.Language
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private | EntityModifier.Native, null, Block.CreateStatement()))
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
                   new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
@@ -201,7 +203,6 @@ namespace Skila.Language
                   Block.CreateStatement(new IExpression[] { })));*/
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Private | EntityModifier.Native, null, Block.CreateStatement()))
                 .Slicing(true));
 
             /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),

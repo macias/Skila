@@ -44,7 +44,7 @@ namespace Skila.Language.Expressions
             return IfBranch.CreateIf(condition, new[] { success }, IfBranch.CreateElse(new[] { failure }));
         }
 
-        public static IExpression Readout(string name)
+        public static IExpression Readout(params string[] name)
         {
             return Readout(NameReference.Create(name));
         }

@@ -76,11 +76,15 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAccessForbidden()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
+                .With(FunctionBuilder.Create("dummyReader",ExpressionReadMode.CannotBeRead,NameFactory.VoidTypeReference(),
+                    Block.CreateStatement(new[] {
+                        ExpressionFactory.Readout(NameFactory.ThisVariableName,"x")
+                    })))
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
                     EntityModifier.Private | EntityModifier.Reassignable)));
 
@@ -263,12 +267,14 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")));
-            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("2")));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1"), 
+                modifier: EntityModifier.Public));
+            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), 
+                IntLiteral.Create("2"), modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NameAlreadyExists, second_decl));
 
             return resolver;

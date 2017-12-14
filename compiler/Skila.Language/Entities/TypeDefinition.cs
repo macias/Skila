@@ -245,7 +245,7 @@ namespace Skila.Language.Entities
             if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol)
                 return;
 
-            if (!this.NestedFunctions.Where(it => it.IsInitConstructor()).Any())
+            if (!this.Modifier.HasNative && !this.NestedFunctions.Where(it => it.IsInitConstructor()).Any())
             {
                 this.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Public, null, Block.CreateStatement()));
             }
@@ -277,6 +277,9 @@ namespace Skila.Language.Entities
                 isStatic ? EntityModifier.Static : EntityModifier.None,
                 Block.CreateStatement(field_defaults));
             this.AddNode(zero_constructor);
+
+            if (isStatic) // static constructor is used by runtime, not by user
+                zero_constructor.SetIsMemberUsed();
 
             return true;
         }

@@ -45,6 +45,7 @@ namespace Skila.Language.Entities
                 ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, second_var);
             }
 
+            IEntityScopeExtension.Validate(this, ctx);
         }
 
     }

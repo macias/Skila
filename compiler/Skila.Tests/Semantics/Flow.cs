@@ -226,7 +226,7 @@ namespace Skila.Tests.Semantics
             var dead_return = Return.Create(DoubleLiteral.Create("3.3"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
-                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false, 
+                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
                 NameFactory.DoubleTypeReference(),
@@ -259,7 +259,7 @@ namespace Skila.Tests.Semantics
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
-                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false, 
+                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
@@ -292,7 +292,7 @@ namespace Skila.Tests.Semantics
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
-                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false, 
+                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.VoidTypeReference(),
@@ -319,8 +319,8 @@ namespace Skila.Tests.Semantics
 
             var dead_return = Return.Create(DoubleLiteral.Create("3.3"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), 
-                new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false, 
+                NameDefinition.Create("foo"),
+                new[] { FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                     usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
                 NameFactory.DoubleTypeReference(),
@@ -365,9 +365,8 @@ namespace Skila.Tests.Semantics
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal },
                 IfBranch.CreateElse(new[] { int_literal }));
-            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", null, if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -388,9 +387,8 @@ namespace Skila.Tests.Semantics
             var str_literal = DoubleLiteral.Create("3.3");
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal });
-            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", null, if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -410,13 +408,12 @@ namespace Skila.Tests.Semantics
 
             var if_ctrl = IfBranch.CreateIf(str_literal, new[] { IntLiteral.Create("5") },
                 IfBranch.CreateElse(new[] { IntLiteral.Create("5") }));
-            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(ErrorCode.TypeMismatch, resolver.ErrorManager.Errors.Single().Code);
             Assert.AreEqual(str_literal, resolver.ErrorManager.Errors.Single().Node);
 
@@ -541,17 +538,16 @@ namespace Skila.Tests.Semantics
 
             var cond = BoolLiteral.CreateTrue();
 
-            var if_ctrl = IfBranch.CreateIf(cond, new[] { IntLiteral.Create("5") },
-                IfBranch.CreateElse(new[] { IntLiteral.Create("5") },
-                IfBranch.CreateElse(new[] { IntLiteral.Create("5") })));
-            var decl = VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl);
+            IfBranch if_else = IfBranch.CreateElse(new[] { IntLiteral.Create("5") },
+                IfBranch.CreateElse(new[] { IntLiteral.Create("5") }));
+            var if_ctrl = IfBranch.CreateIf(cond, new[] { IntLiteral.Create("5") }, if_else);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.MiddleElseBranch, resolver.ErrorManager.Errors.Single().Code);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MiddleElseBranch, if_else));
 
             return resolver;
         }
@@ -569,9 +565,8 @@ namespace Skila.Tests.Semantics
                                     NameReference.Create( "y")
                 },
                     IfBranch.CreateElse(new[] { wrong_name_ref }));
-            var decl = VariableDeclaration.CreateStatement("x", null, if_ctrl);
 
-            root_ns.AddNode(decl);
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", null, if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 

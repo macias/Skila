@@ -144,7 +144,7 @@ namespace Skila.Language.Semantics
 
             var state = this.executionMode == ExecutionMode.Certain ? VariableState.Assigned : VariableState.Maybe;
 
-            VariableDeclaration decl = lhs.TryGetVariable();
+            VariableDeclaration decl = lhs.TryGetTargetEntity<VariableDeclaration>(out NameReference dummy);
             if (decl != null)
             {
                 if (this.variables.TryGetValue(decl, out VariableInfo info) && info.State != VariableState.Assigned)

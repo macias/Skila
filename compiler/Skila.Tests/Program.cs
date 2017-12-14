@@ -20,9 +20,9 @@ namespace Skila.Tests
             //   new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
-            new Semantics.Expressions().ErrorSelfAssignment();
+            // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
-            //new Semantics.FunctionCalls().ErrorUnqualifiedBaseConstructorCall();
+            //new Semantics.FunctionCalls().ProperMethodCallTypeInference();
             //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
             //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
@@ -33,8 +33,8 @@ namespace Skila.Tests
             //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
-            //new Semantics.Types().ErrorStaticMemberReference();
-            //new Semantics.Variables().ErrorInvalidVariable();
+            new Semantics.Types().ErrorInstanceMemberReference();
+            //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
             //new Execution.Concurrency().SingleMessage();
@@ -72,6 +72,7 @@ namespace Skila.Tests
         }
 
         private static void runTest<T>(string @namespace, bool checkErrorCoverage)
+            where T : class
         {
             HashSet<ErrorCode> reported_errors = checkErrorCoverage ? new HashSet<ErrorCode>() : null;
             var missed_atrr = new List<string>();
@@ -142,6 +143,7 @@ namespace Skila.Tests
         }
 
         private static IEnumerable<string> runTest<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
+            where T : class
         {
             int init_fails = failed;
 
@@ -164,6 +166,8 @@ namespace Skila.Tests
                         // this is not just dumb casting -- it checks if the given test returns the expected object
                         // so for example, semantic test is not mixed with interpretation test
                         T result = method.Invoke(test, new object[] { }).Cast<T>();
+                        if (result == null)
+                            throw new Exception("Internal error");
                         if (result is IErrorReporter reporter)
                             errors.AddRange(reporter.Errors.Select(it => it.Code));
                         ClearWrite(test_name);

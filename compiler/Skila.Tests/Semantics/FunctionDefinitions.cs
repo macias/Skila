@@ -109,11 +109,11 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3"))
                 })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AnonymousTailVariadicParameter, param2));
 
             return resolver;
@@ -134,7 +134,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(DoubleLiteral.Create("3.3"))
                 })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), null, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
