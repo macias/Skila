@@ -26,7 +26,9 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName, IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
         {
             return FunctionBuilder.Create(NameFactory.PropertySetter,
-                ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(), Block.CreateStatement(instructions))
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(instructions))
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter, 
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first
@@ -44,7 +46,9 @@ namespace Skila.Language.Entities
         {
             return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertyGetter),
                 null,
-                null, ExpressionReadMode.CannotBeRead, typeName,
+                null, 
+                ExpressionReadMode.ReadRequired,
+                typeName,
                 Block.CreateStatement(new[] {
                     Return.Create(passedExpression)
                 }));
@@ -54,7 +58,8 @@ namespace Skila.Language.Entities
             return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
-                ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
                 Block.CreateStatement(new[] {
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),
                         NameReference.Create(NameFactory.PropertySetterValueParameter ))

@@ -68,8 +68,8 @@ namespace Skila.Language.Flow
 
                         if (this.Value == null)
                         {
-                            if (!ctx.Env.IsVoidType(func_result))
-                                ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
+                            if (!ctx.Env.IsVoidType(func_result) && !ctx.Env.IsUnitType(func_result))
+                                ctx.ErrorManager.AddError(ErrorCode.EmptyReturn, this);
                         }
                         else
                         {

@@ -72,21 +72,24 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
+            Return empty_return = Return.Create();
             var func_def_int = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
-                Block.CreateStatement(new[] { Return.Create() })));
+                Block.CreateStatement(new[] { empty_return })));
+            IntLiteral return_value = IntLiteral.Create("5");
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foox"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.VoidTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("5")) })));
+                Block.CreateStatement(new[] { Return.Create(return_value) })));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count());
-            Assert.IsTrue(resolver.ErrorManager.Errors.All(it => it.Code == ErrorCode.TypeMismatch));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EmptyReturn,empty_return));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, return_value));
 
             return resolver;
         }

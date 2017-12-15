@@ -190,7 +190,11 @@ namespace Skila.Language
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
                 .Modifier(EntityModifier.Native)
+                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue,NameFactory.UnitTypeReference(),null,
+                    EntityModifier.Static | EntityModifier.Native))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
                 .Parents(NameFactory.ObjectTypeReference()));
+            
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
@@ -249,8 +253,9 @@ namespace Skila.Language
                     }))
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), ExpressionReadMode.CannotBeRead)))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), ExpressionReadMode.CannotBeRead,
-                    NameFactory.VoidTypeReference(), Block.CreateStatement())
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), 
+                    ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
+                    Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
@@ -356,6 +361,14 @@ namespace Skila.Language
             //            return VoidType.InstanceOf.MatchesTarget(typeInstance, allowSlicing: false);
             return VoidType.InstanceOf.IsSame(typeInstance, jokerMatchesAll: false);
         }
+        public bool IsUnitType(IEntityInstance typeInstance)
+        {
+            return typeInstance.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
+        }
+        public bool IsOfUnitType(INameReference typeName)
+        {
+            return IsUnitType(typeName.Evaluation.Components);
+        }
         public bool IsReferenceOfType(IEntityInstance instance)
         {
             return instance.Enumerate().All(it => it.IsOfType(ReferenceType));
@@ -409,10 +422,6 @@ namespace Skila.Language
         public bool IsPointerLikeOfType(IEntityInstance instance)
         {
             return instance.Enumerate().All(it => it.IsOfType(PointerType) || it.IsOfType(ReferenceType));
-        }
-        public bool IsOfUnitType(INameReference typeName)
-        {
-            return typeName.Evaluation.Components.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
         }
     }
 }

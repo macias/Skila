@@ -28,6 +28,10 @@ namespace Skila.Interpreter
         }
         internal static ObjectData CreateType(ExecutionContext ctx, IEntityInstance typeInstance)
         {
+            if (typeInstance.DebugId.Id == 652)
+            {
+                ;
+            }
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
             return new ObjectData(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
         }
@@ -102,22 +106,19 @@ namespace Skila.Interpreter
                 if (!isStatic)
                     ctx.TypeRegistry.Add(ctx, this.RunTimeTypeInstance);
 
-                if (!this.IsNative)
+                this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
+                var translators = new List<EntityInstance>();
+                foreach (EntityInstance type_instance in this.RunTimeTypeInstance
+                    .PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)).Concat(this.RunTimeTypeInstance))
                 {
-                    this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
-                    var translators = new List<EntityInstance>();
-                    foreach (EntityInstance type_instance in this.RunTimeTypeInstance
-                        .PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)).Concat(this.RunTimeTypeInstance))
-                    {
-                        translators.Add(type_instance);
+                    translators.Add(type_instance);
 
-                        foreach (VariableDeclaration field in type_instance.TargetType.AllNestedFields
-                            .Where(it => it.Modifier.HasStatic == isStatic))
-                        {
-                            EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
-                            field_type = field_type.TranslateThrough((translators as IEnumerable<EntityInstance>).Reverse());
-                            this.fields.Add(field, ObjectData.CreateEmpty(ctx, field_type));
-                        }
+                    foreach (VariableDeclaration field in type_instance.TargetType.AllNestedFields
+                        .Where(it => it.Modifier.HasStatic == isStatic))
+                    {
+                        EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
+                        field_type = field_type.TranslateThrough((translators as IEnumerable<EntityInstance>).Reverse());
+                        this.fields.Add(field, ObjectData.CreateEmpty(ctx, field_type));
                     }
                 }
             }

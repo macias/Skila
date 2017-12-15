@@ -110,6 +110,39 @@ namespace Skila.Tests.Execution
         }
 
         [TestMethod]
+        public IInterpreter ReturningUnit()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("getMe"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    Return.Create()
+                })));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("u",NameFactory.UnitTypeReference(),
+                        FunctionCall.Create(NameReference.Create("getMe"))),
+                    ExpressionFactory.Readout("u"),
+                    Return.Create(IntLiteral.Create("2"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter OptionalParameters()
         {
             var env = Language.Environment.Create();

@@ -17,6 +17,7 @@ namespace Skila.Language
         public const string FunctionTypeName = "IFunction";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
+        public const string UnitValue = "unit";
         public const string ObjectTypeName = "Object";
         public const string ReferenceTypeName = "Ref";
         public const string PointerTypeName = "Ptr";

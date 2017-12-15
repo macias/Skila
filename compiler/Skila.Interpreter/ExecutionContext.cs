@@ -7,7 +7,9 @@ namespace Skila.Interpreter
     {
         public static ExecutionContext Create(Environment env, Interpreter interpreter)
         {
-            return new ExecutionContext(env,interpreter);
+            var ctx = new ExecutionContext(env,interpreter);
+            ctx.TypeRegistry.Add(ctx, env.UnitType.InstanceOf);
+            return ctx;
         }
 
         public Interpreter Interpreter { get; } 
@@ -27,6 +29,7 @@ namespace Skila.Interpreter
             this.Heap = new Heap();
             this.Routines = new RoutineRegistry();
             this.TypeRegistry = new TypeRegistry();
+
             this.Interpreter = interpreter;
         }
         private ExecutionContext(ExecutionContext src) : this()

@@ -64,7 +64,7 @@ namespace Skila.Language.Flow
             this.Body = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.postCheck = postCheck;
 
-            this.ReadMode = ExpressionReadMode.CannotBeRead; // temporary state
+            this.ReadMode = ExpressionReadMode.CannotBeRead; // todo: temporary state
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

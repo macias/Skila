@@ -21,6 +21,7 @@ namespace Skila.Interpreter
         {
             this.types = new Dictionary<EntityInstance, ObjectData>();
         }
+
         internal ObjectData Add(ExecutionContext ctx, EntityInstance typeInstance)
         {
             lock (this.threadLock)

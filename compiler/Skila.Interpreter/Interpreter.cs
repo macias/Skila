@@ -68,6 +68,17 @@ namespace Skila.Interpreter
                     else
                         throw new NotImplementedException();
                 }
+                else if (owner_type==ctx.Env.UnitType)
+                {
+                    if (func.IsDefaultInitConstructor())
+                    {
+                        this_value.Assign(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, UnitType.UnitValue));
+                        return ExecValue.CreateReturn(null);
+                    }
+                    else
+                        throw new NotImplementedException();
+
+                }
                 else if (owner_type == ctx.Env.IntType)
                 {
                     if (func.Name.Name == NameFactory.AddOperator)
@@ -174,7 +185,7 @@ namespace Skila.Interpreter
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"{owner_type}");
                 }
             }
             else
@@ -189,7 +200,8 @@ namespace Skila.Interpreter
                 throw new Exception("Internal error");
 
             ExecValue ret = Executed(func.UserBody, ctx);
-            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components))
+            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components) 
+                || ctx.Env.IsUnitType(func.ResultTypeName.Evaluation.Components))
                 return ExecValue.CreateReturn(null);
             else
                 return ret;
@@ -486,11 +498,14 @@ namespace Skila.Interpreter
             FunctionDefinition func = prepareFunctionCall(call, ref ctx);
 
             ExecValue ret = Executed(func, ctx);
+            ObjectData ret_value = ret.RetValue;
 
-            if (ret.RetValue != null)
-                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: call.IsRead);
+            if (ret_value == null)
+                ret_value = ctx.TypeRegistry.Add(ctx, ctx.Env.UnitType.InstanceOf).Fields.Single();
+            else
+                ctx.Heap.TryDec(ctx, ret_value, passingOut: call.IsRead);
 
-            return ExecValue.CreateExpression(ret.RetValue);
+            return ExecValue.CreateExpression(ret_value);
         }
 
         private ExecValue callPropertyGetter(NameReference name, ExecutionContext ctx)
@@ -788,6 +803,11 @@ namespace Skila.Interpreter
 
         private ExecValue execute(VariableDeclaration decl, ExecutionContext ctx)
         {
+            if (decl.DebugId.Id == 3020)
+            {
+                ;
+            }
+
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(ObjectData.CreateEmpty(ctx, decl.Evaluation.Aggregate));
@@ -795,10 +815,6 @@ namespace Skila.Interpreter
                 rhs_val = Executed(decl.InitValue, ctx);
 
             ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl, decl.InitValue);
-            if (decl.DebugId.Id == 3062)
-            {
-                ;
-            }
 
             ObjectData lhs_obj = rhs_obj.Clone();
             ctx.LocalVariables.Add(decl, lhs_obj);

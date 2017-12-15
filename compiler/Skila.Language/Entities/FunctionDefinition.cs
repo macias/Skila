@@ -51,7 +51,9 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition(modifier,
                                 NameFactory.InitConstructorNameDefinition(), null,
-                                parameters, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                                parameters, 
+                                ExpressionReadMode.OptionalUse,
+                                NameFactory.UnitTypeReference(),
                                 constructorChainCall, body: body);
         }
 
@@ -71,7 +73,9 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition(modifier | EntityModifier.Private,
                                 NameFactory.ZeroConstructorNameDefinition(), null,
-                                null, ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                                null, 
+                                ExpressionReadMode.OptionalUse,
+                                NameFactory.UnitTypeReference(),
                                 constructorChainCall: null, body: body);
         }
 

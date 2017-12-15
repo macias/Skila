@@ -47,6 +47,39 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter ErrorIgnoringGetter()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
+                .With(Property.Create("x", NameFactory.IntTypeReference(),
+                    new[] { Property.CreateAutoField(NameFactory.IntTypeReference(), IntLiteral.Create("1"), EntityModifier.Reassignable) },
+                    new[] { Property.CreateAutoGetter(NameFactory.IntTypeReference()) },
+                    new[] { Property.CreateAutoSetter(NameFactory.IntTypeReference()) }
+                )));
+
+            NameReference getter_call = NameReference.Create("p", "x");
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("getter"),
+                null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
+                    getter_call
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ExpressionValueNotUsed, getter_call));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorMultipleAccessors()
         {
             var env = Language.Environment.Create();

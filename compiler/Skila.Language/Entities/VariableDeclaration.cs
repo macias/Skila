@@ -178,11 +178,10 @@ namespace Skila.Language.Entities
                     if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
                     {
                         TypeDefinition type_def = type_instance.TargetType;
-                        type_def.Evaluated(ctx);
-                        if (!type_def.HasDefaultPublicConstructor())
+                        if (!type_def.HasDefaultConstructor())
                         {
                             ctx.ErrorManager.AddErrorTranslation(ErrorCode.TargetFunctionNotFound, this.autoFieldDefaultInit,
-                                ErrorCode.NoDefaultConstructor, this);
+                            ErrorCode.NoDefaultConstructor, this);
                         }
                     }
                     else
@@ -256,7 +255,7 @@ namespace Skila.Language.Entities
 
         public void SetIsMemberUsed()
         {
-            if (this.DebugId.Id==2965)
+            if (this.DebugId.Id == 2965)
             {
                 ;
             }

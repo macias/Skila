@@ -30,15 +30,15 @@ namespace Skila.Tests
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-            //   new Semantics.Properties().ErrorAlteringReadOnlyProperty();
+               new Semantics.Properties().ErrorIgnoringGetter();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
-            new Semantics.Types().ErrorInstanceMemberReference();
+            //new Semantics.Types().ErrorInstanceMemberReference();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
             //new Execution.Concurrency().SingleMessage();
-            // new Execution.FunctionCalls().LambdaRecursiveCall();
+           //  new Execution.FunctionCalls().ReturningUnit();
             //new Execution.Inheritance().VirtualCall();
             //new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();
