@@ -24,6 +24,11 @@ namespace Skila.Interpreter
 
         internal ObjectData Add(ExecutionContext ctx, EntityInstance typeInstance)
         {
+            if (typeInstance.DebugId.Id == 3400)
+            {
+                ;
+            }
+
             lock (this.threadLock)
             {
                 ObjectData type_object;
@@ -46,8 +51,13 @@ namespace Skila.Interpreter
                 if (type_object != null)
                 {
                     Interpreter.SetupFunctionCallData(ref ctx, typeInstance.TemplateArguments, null, null);
-                    ctx.Interpreter.Executed(typeInstance.TargetType.NestedFunctions.Single(it => it.IsZeroConstructor() 
+                    ctx.Interpreter.Executed(typeInstance.TargetType.NestedFunctions.Single(it => it.IsZeroConstructor()
                         && it.Modifier.HasStatic), ctx);
+
+                    if (typeInstance.DebugId.Id == 3400)
+                    {
+                        ;
+                    }
                 }
 
                 return type_object;

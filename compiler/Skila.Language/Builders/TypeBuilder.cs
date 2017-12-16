@@ -29,11 +29,20 @@ namespace Skila.Language.Builders
             builder = builder
                 .Modifier(EntityModifier.Enum)
                 .Parents(NameFactory.EquatableTypeReference())
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private,
                     new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
-                .WithEquatableEquals()
+                    // copy constructor
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameReference.Create(name),
+                        ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement()))
+                .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName,ExpressionReadMode.ReadRequired,NameFactory.IntTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native))
+                 // when enum inherits an enum it won't call super to check equality
+                .WithEquatableEquals(EntityModifier.UnchainBase)
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {

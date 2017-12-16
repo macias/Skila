@@ -13,6 +13,39 @@ namespace Skila.Tests.Semantics
     public class Inheritance
     {
         [TestMethod]
+        public IErrorReporter ErrorInvalidDirectionPassingEnums()
+        {
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
+                .With(EnumCaseBuilder.Create("Sat", "Sun"))
+                .Modifier(EntityModifier.Base));
+
+            root_ns.AddBuilder(TypeBuilder.CreateEnum("First")
+                .With(EnumCaseBuilder.Create("Mon"))
+                .Parents("Weekend"));
+
+            IExpression init_value = ExpressionFactory.HeapConstructor("First", NameReference.Create("First", "Mon"));
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("some"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",NameFactory.PointerTypeReference( NameReference.Create("Weekend")),
+                        init_value),
+                    ExpressionFactory.Readout("a")
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorEnumCrossInheritance()
         {
             var env = Language.Environment.Create();

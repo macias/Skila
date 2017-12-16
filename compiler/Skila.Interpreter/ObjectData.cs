@@ -91,6 +91,7 @@ namespace Skila.Interpreter
 #endif
             internal IEnumerable<ObjectData> Fields => this.fields?.Values ?? Enumerable.Empty<ObjectData>();
 
+            private readonly ObjectData primaryParentType; // set only for types, not instances
             private readonly Dictionary<VariableDeclaration, ObjectData> fields;
 
             public object PlainValue { get; }
@@ -105,11 +106,21 @@ namespace Skila.Interpreter
 
                 if (!isStatic)
                     ctx.TypeRegistry.Add(ctx, this.RunTimeTypeInstance);
+                else
+                {
+                    EntityInstance primary = this.RunTimeTypeInstance.TargetType.Inheritance.GetTypeImplementationParent();
+                    if (primary != null)
+                        this.primaryParentType = ctx.TypeRegistry.Add(ctx, primary);
+                }
 
                 this.fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
                 var translators = new List<EntityInstance>();
-                foreach (EntityInstance type_instance in this.RunTimeTypeInstance
-                    .PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)).Concat(this.RunTimeTypeInstance))
+
+                IEnumerable<EntityInstance> source_types = new[] { this.RunTimeTypeInstance };
+                if (!isStatic)
+                    source_types = source_types.Concat(this.RunTimeTypeInstance.PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)));
+
+                foreach (EntityInstance type_instance in source_types)
                 {
                     translators.Add(type_instance);
 
@@ -126,7 +137,7 @@ namespace Skila.Interpreter
             public Data(Data src)
             {
                 // pointer/references sits here, so on copy simply assign the pointer/reference value
-                if (src.PlainValue is ICopyableValue val)
+                if (src.PlainValue is IInstanceValue val)
                     this.PlainValue = val.Copy();
                 else
                     this.PlainValue = src.PlainValue;
@@ -139,7 +150,15 @@ namespace Skila.Interpreter
 
             internal ObjectData GetField(IEntity entity)
             {
-                return this.fields[entity.Cast<VariableDeclaration>()];
+
+                VariableDeclaration field = entity.Cast<VariableDeclaration>();
+                if (this.fields.TryGetValue(field, out ObjectData data))
+                    return data;
+                // types do not inherit static fields the way instances do, so we refer to parent's fields to get its field
+                else if (this.primaryParentType != null)
+                    return this.primaryParentType.GetField(entity);
+                else
+                    throw new Exception("Internal error -- no such field");
             }
         }
 

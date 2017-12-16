@@ -133,29 +133,55 @@ namespace Skila.Language
 
             if (target.TargetType.AllowSlicedSubstitution)
                 allowSlicing = true;
-            else if (!allowSlicing)
-            {
-                // we already checked if the types are the same
-                return TypeMatch.No;
-            }
 
-            foreach (EntityInstance inherited_input in new[] { input }.Concat(input.Inheritance(ctx).AncestorsIncludingObject))
+
+            if (allowSlicing)
             {
-                bool match = templateMatches(ctx, inversedVariance, inherited_input, target, allowSlicing);
-                if (match)
+                foreach (EntityInstance inherited_input in new[] { input }.Concat(input.Inheritance(ctx).AncestorsIncludingObject
+                    // enum substitution works in reverse so we have to exclude these from here
+                    .Where(it => !it.TargetType.Modifier.HasEnum)))
                 {
-                    // we cannot shove mutable type in disguise as immutable one, consider such scenario
-                    // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
-                    // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
-                    // this would be disastrous when working concurrently
-                    if (!inherited_input.IsImmutableType(ctx) && target.IsImmutableType(ctx))
-                        return TypeMatch.No;
-                    else if (input == target)
-                        return TypeMatch.Same;
-                    else
-                        return TypeMatch.Substitute;
+                    bool match = templateMatches(ctx, inversedVariance, inherited_input, target, allowSlicing);
+                    if (match)
+                    {
+                        // we cannot shove mutable type in disguise as immutable one, consider such scenario
+                        // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
+                        // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
+                        // this would be disastrous when working concurrently
+                        if (!inherited_input.IsImmutableType(ctx) && target.IsImmutableType(ctx))
+                            return TypeMatch.No;
+                        else if (input == target)
+                            return TypeMatch.Same;
+                        else
+                            return TypeMatch.Substitute;
+                    }
                 }
             }
+
+            if (input.TargetType.Modifier.HasEnum)
+                foreach (EntityInstance inherited_target in new[] { target }.Concat(target.Inheritance(ctx).AncestorsIncludingObject)
+                    .Where(it => it.TargetType.Modifier.HasEnum))
+                {
+                    // please note that unlike normal type matching we reversed the types, in enum you can
+                    // pass base type as descendant!
+                    bool match = templateMatches(ctx, inversedVariance, inherited_target, input,
+                        // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
+                        allowSlicing: true);
+
+                    if (match)
+                    {
+                        // we cannot shove mutable type in disguise as immutable one, consider such scenario
+                        // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
+                        // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
+                        // this would be disastrous when working concurrently
+                        if (!inherited_target.IsImmutableType(ctx) && input.IsImmutableType(ctx))
+                            return TypeMatch.No;
+                        else if (input == target)
+                            return TypeMatch.Same;
+                        else
+                            return TypeMatch.Substitute;
+                    }
+                }
 
             return TypeMatch.No;
         }

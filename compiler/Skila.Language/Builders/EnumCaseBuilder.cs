@@ -32,8 +32,9 @@ namespace Skila.Language.Builders
                 foreach (string s in cases)
                 {
                     build.Add(VariableDeclaration.CreateStatement(s, typename,
-                        IntLiteral.Create($"{build.Count}"),
-                        EntityModifier.Static | EntityModifier.Public));
+                        // we cannot set the initial value here because we don't know how many cases are in parent enums
+                        Undef.Create(),
+                        EntityModifier.Enum | EntityModifier.Static | EntityModifier.Public));
                 }
             }
 

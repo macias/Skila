@@ -2,7 +2,9 @@
 
 namespace Skila.Interpreter
 {
-    internal sealed class Chunk : ICopyableValue
+    // Chunk in Skila is value type, not reference one, so we need this wrapper for proper copy 
+
+    internal sealed class Chunk : IInstanceValue
     {
         private readonly ObjectData[] data;
 
@@ -16,7 +18,7 @@ namespace Skila.Interpreter
         {
             this.data = data;
         }
-        public ICopyableValue Copy()
+        public IInstanceValue Copy()
         {
             return new Chunk(this.data.Select(it => it.Copy()).ToArray());
         }

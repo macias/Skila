@@ -40,7 +40,7 @@ namespace Skila.Language.Expressions
         internal FunctionCall constructorChainCall { get; private set; } // used in constructors
         private IExpression zeroConstructorCall;
 
-        private readonly IReadOnlyList<IExpression> instructions;
+        private readonly List<IExpression> instructions;
         public IEnumerable<IExpression> Instructions => new[] { constructorChainCall, zeroConstructorCall }
             .Where(it => it != null)
             .Concat(this.instructions);
@@ -53,7 +53,7 @@ namespace Skila.Language.Expressions
 
         private Block(Purpose purpose, ExpressionReadMode readMode, IEnumerable<IExpression> body) : base(readMode)
         {
-            this.instructions = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnlyList();
+            this.instructions = (body ?? Enumerable.Empty<IExpression>()).ToList();
             this.Mode = purpose;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -76,6 +76,15 @@ namespace Skila.Language.Expressions
                 IExpression last = this.Instructions.LastOrDefault();
                 this.Evaluation = last?.Evaluation ?? ctx.Env.VoidEvaluation;
             }
+        }
+
+        internal void Append(IExpression instruction)
+        {
+            if (this.Evaluation != null)
+                throw new Exception("Internal error");
+
+            this.instructions.Add(instruction);
+            instruction.AttachTo(this);
         }
 
         internal void SetZeroConstructorCall(FunctionCall call)

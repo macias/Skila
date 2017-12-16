@@ -65,6 +65,16 @@ namespace Skila.Interpreter
                         this_value.Assign(ctx.FunctionArguments.Single());
                         return ExecValue.CreateReturn(null);
                     }
+                    else if (func.Name.Name==NameFactory.ConvertFunctionName)
+                    {
+                        if (ctx.Env.IsIntType(func.ResultTypeName.Evaluation.Components))
+                        {
+                            ObjectData result = ObjectData.CreateInstance(ctx, func.ResultTypeName.Evaluation.Components, this_value.PlainValue);
+                            return ExecValue.CreateReturn(result);
+                        }
+                        else
+                            throw new NotImplementedException();
+                    }
                     else
                         throw new NotImplementedException();
                 }
@@ -745,7 +755,7 @@ namespace Skila.Interpreter
 
         private ExecValue execute(NameReference name, ExecutionContext ctx)
         {
-            if (name.DebugId.Id == 2475)
+            if (name.DebugId.Id == 3459)
             {
                 ;
             }

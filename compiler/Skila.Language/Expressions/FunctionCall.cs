@@ -46,7 +46,7 @@ namespace Skila.Language.Expressions
         {
             return Constructor(NameReference.Create(name), arguments);
         }
-        public static FunctionCall CreateToCall(IExpression expr, NameReference typeName)
+        public static FunctionCall ConvCall(IExpression expr, NameReference typeName)
         {
             return new FunctionCall(CallMode.Regular, NameReference.Create(expr, NameFactory.ConvertFunctionName),
                 arguments: null, requestedOutcomeType: typeName);

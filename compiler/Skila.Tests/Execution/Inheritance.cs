@@ -12,6 +12,43 @@ namespace Skila.Tests.Execution
     public class Inheritance
     {
         [TestMethod]
+        public IInterpreter InheritingEnums()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
+                .With(EnumCaseBuilder.Create("Sat", "Sun"))
+                .Modifier(EntityModifier.Base));
+
+            root_ns.AddBuilder(TypeBuilder.CreateEnum("First")
+                .With(EnumCaseBuilder.Create("Mon"))
+                .Parents("Weekend"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",NameReference.Create("Weekend"),  
+                       // please note we only refer to "Sat" through "First", the type is still "Weekend"
+                        NameReference.Create("First","Sat")),
+                    VariableDeclaration.CreateStatement("b",NameReference.Create("First"), NameReference.Create("Weekend","Sun"),EntityModifier.Reassignable),
+                    Assignment.CreateStatement(NameReference.Create("b"),NameReference.Create("First","Mon")),
+                    VariableDeclaration.CreateStatement("x",null, FunctionCall.ConvCall(NameReference.Create("a"),NameFactory.IntTypeReference())),
+                    VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),NameFactory.IntTypeReference())),
+                    Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter TypeUnion()
         {
             var env = Environment.Create();

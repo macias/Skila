@@ -7,7 +7,7 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
-        public static TypeBuilder WithEquatableEquals(this TypeBuilder builder)
+        public static TypeBuilder WithEquatableEquals(this TypeBuilder builder,EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -21,7 +21,7 @@ namespace Skila.Language.Expressions
                         Return.Create(ExpressionFactory.Equal(NameReference.Create(NameFactory.ThisVariableName),
                             ExpressionFactory.OptionValue(NameReference.Create("obj")))),
                                             }))
-                                            .Modifier(EntityModifier.Refines)
+                                            .Modifier(EntityModifier.Refines | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))));
         }
@@ -53,18 +53,20 @@ namespace Skila.Language.Expressions
             return Assignment.CreateStatement(NameReference.Sink(), expr);
         }
 
-        public static IExpression HeapConstructor(string innerTypeName)
+        public static IExpression HeapConstructor(string innerTypeName, params IExpression[] arguments)
         {
-            return HeapConstructor(NameReference.Create(innerTypeName));
+            return HeapConstructor(NameReference.Create(innerTypeName),arguments);
         }
         public static IExpression HeapConstructor(NameReference innerTypeName)
         {
+            return HeapConstructor(innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
+            /*
 #if USE_NEW_CONS
             return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName));
 #else
             NameReference dummy;
             return constructorCall(innerTypeName, out dummy, true);
-#endif
+#endif*/
         }
         public static IExpression HeapConstructor(NameReference innerTypeName, params IExpression[] arguments)
         {

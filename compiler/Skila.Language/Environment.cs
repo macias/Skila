@@ -69,7 +69,7 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create("source", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
@@ -193,7 +193,7 @@ namespace Skila.Language
                 .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create("source", NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -373,6 +373,10 @@ namespace Skila.Language
         public bool IsUnitType(IEntityInstance typeInstance)
         {
             return typeInstance.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
+        }
+        public bool IsIntType(IEntityInstance typeInstance)
+        {
+            return typeInstance.IsSame(this.IntType.InstanceOf, jokerMatchesAll: false);
         }
         public bool IsOfUnitType(INameReference typeName)
         {

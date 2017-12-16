@@ -210,7 +210,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 2956)
+            if (this.DebugId.Id ==  3316)
             {
                 ;
             }
@@ -223,7 +223,10 @@ namespace Skila.Language
                 if (this.Name == NameFactory.SelfFunctionName)
                     return new[] { this.EnclosingScope<FunctionDefinition>() };
                 else if (this.Name == NameFactory.ItTypeName)
-                    return new[] { this.EnclosingScope<TypeDefinition>() };
+                {
+                    TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
+                    return new[] { enclosing_type };
+                }
                 else if (this.Name == NameFactory.BaseVariableName)
                 {
                     TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
@@ -267,16 +270,16 @@ namespace Skila.Language
                                     if (enclosing_function.Modifier.HasStatic)
                                     {
                                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
-                                        entities = filterTargetEntities(entities,it => !(it is IMember) || it.Modifier.HasStatic);
+                                        entities = filterTargetEntities(entities, it => !(it is IMember) || it.Modifier.HasStatic);
                                     }
                                     else
                                     {
                                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
-                                        entities = filterTargetEntities(entities,it => 
-//                                            !(it is IMember)
-                                            //||
-                                            !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                                            || !it.Modifier.HasStatic);
+                                        entities = filterTargetEntities(entities, it =>
+                                             //                                            !(it is IMember)
+                                             //||
+                                             !ctx.Env.Options.StaticMemberOnlyThroughTypeName
+                                             || !it.Modifier.HasStatic);
                                     }
                                 }
 

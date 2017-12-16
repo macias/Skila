@@ -116,6 +116,21 @@ namespace Skila.Language.Entities
         {
             computeAncestors(ctx, new HashSet<TypeDefinition>());
 
+            if (this.Modifier.HasEnum)
+            {
+                // finally we are at point when we know from which offset we can start setting ids for enum cases
+
+                FunctionDefinition zero_constructor = this.NestedFunctions.Single(it => it.IsZeroConstructor() && it.Modifier.HasStatic);
+                if (zero_constructor.IsComputed)
+                    throw new System.Exception("Internal error -- we cannot alter the body after the function was already computed");
+
+                int enum_ord = this.InstanceOf.PrimaryAncestors(ctx).Select(it => it.TargetType)
+                    .Sum(it => it.NestedFields.Count(f => f.Modifier.HasEnum));
+
+                foreach (VariableDeclaration decl in this.NestedFields.Where(it => it.Modifier.HasEnum))
+                    zero_constructor.UserBody.Append(decl.CreateFieldInitCall(IntLiteral.Create($"{enum_ord++}")));
+
+            }
 
             // base method -> derived (here) method
             var virtual_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
@@ -146,10 +161,10 @@ namespace Skila.Language.Entities
                     {
                         inherited_entities.Remove(deriv_info.Base);
 
-                        if (!deriv_info.Derived.Modifier.HasRefines)
-                            ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
-                        else
+                        if (deriv_info.Derived.Modifier.HasRefines)
                             derivation_mapping[deriv_info.Derived].Add(deriv_info.Base);
+                        else if (!deriv_info.Base.Modifier.IsSealed)
+                            ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
                         if (!deriv_info.Base.Modifier.IsSealed)
                         {
@@ -264,13 +279,16 @@ namespace Skila.Language.Entities
 
         private bool createZeroConstructor(bool isStatic)
         {
-            IEnumerable<IExpression> field_defaults = this.AllNestedFields
-                .Where(it => it.Modifier.HasStatic == isStatic)
+            IEnumerable<VariableDeclaration> focus_fields = this.AllNestedFields
+                .Where(it => it.Modifier.HasStatic == isStatic);
+
+            IEnumerable<IExpression> field_defaults = focus_fields
                 .Select(it => it.DetachFieldInitialization())
                 .Where(it => it != null)
                 .StoreReadOnly();
 
-            if (!field_defaults.Any())
+            // enum fields are special, we will get their initial values later
+            if (!field_defaults.Any() && !focus_fields.Any(it => it.Modifier.HasEnum))
                 return false;
 
             FunctionDefinition zero_constructor = FunctionDefinition.CreateZeroConstructor(

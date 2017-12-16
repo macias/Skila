@@ -79,7 +79,7 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
-            if (targetTypeName.DebugId.Id== 2793)
+            if (targetTypeName.DebugId.Id== 3400)
             {
                 ;
             }
@@ -116,7 +116,7 @@ namespace Skila.Language.Extensions
             else if (match == TypeMatch.OutConversion)
             {
                 source.DetachFrom(@this);
-                source = FunctionCall.CreateToCall(source, (targetTypeName as EntityInstance).NameOf);
+                source = FunctionCall.ConvCall(source, (targetTypeName as EntityInstance).NameOf);
                 source.AttachTo(@this);
                 TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)

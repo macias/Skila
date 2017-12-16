@@ -110,16 +110,11 @@ namespace Skila.Language.Entities
             if (this.InitValue.IsUndef())
                 return null;
 
-            // we have to give target for name, because this could be property field, and it is in scope
-            // of a property not enclosed type, so from constructor such field is invisible
-            NameReference field_reference = this.Name.CreateNameReference(
-                this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(), this.InstanceOf);
-
             if (this.InitValue == null)
             {
                 // we need to save it for later to change the errors, user does not see this call, but she/he
                 // sees the field
-                this.autoFieldDefaultInit = FunctionCall.Constructor(NameReference.Create(field_reference,
+                this.autoFieldDefaultInit = FunctionCall.Constructor(NameReference.Create(fieldReference(),
                     NameFactory.InitConstructorName));
                 return this.autoFieldDefaultInit;
             }
@@ -142,12 +137,11 @@ namespace Skila.Language.Entities
                     init = block.InitializationStep;
                     init.DetachFrom(block);
 
-                    init.Name.ReplacePrefix(field_reference);
+                    init.Name.ReplacePrefix(fieldReference());
                 }
                 else
                 {
-                    init = FunctionCall.Constructor(NameReference.Create(field_reference, NameFactory.InitConstructorName),
-                        FunctionArgument.Create(this.initValue));
+                    init = CreateFieldInitCall(this.initValue);
                 }
 
                 this.initValue = null;
@@ -155,6 +149,21 @@ namespace Skila.Language.Entities
             }
             else
                 throw new InvalidOperationException();
+        }
+
+        public FunctionCall CreateFieldInitCall(IExpression initExpr)
+        {
+            return FunctionCall.Constructor(NameReference.Create(fieldReference(), NameFactory.InitConstructorName),
+                                    FunctionArgument.Create(initExpr));
+        }
+
+        private NameReference fieldReference()
+        {
+            return this.Name.CreateNameReference(
+                            this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(),
+            // we have to give target for name, because this could be property field, and it is in scope
+            // of a property not enclosed type, so from constructor such field is invisible
+                            this.InstanceOf);
         }
 
         public override void Evaluate(ComputationContext ctx)
