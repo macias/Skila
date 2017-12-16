@@ -266,7 +266,7 @@ namespace Skila.Language.Entities
                 }
             }
 
-            if (!this.IsDeclaration)
+            if (!this.IsDeclaration && !this.Modifier.HasNative)
             {
                 if (!ctx.Env.IsOfVoidType(this.ResultTypeName)
                     && !ctx.Env.IsOfUnitType(this.ResultTypeName)

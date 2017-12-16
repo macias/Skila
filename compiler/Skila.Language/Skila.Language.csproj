@@ -54,6 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Builders\PropertyMemberBuilder.cs" />
+    <Compile Include="Builders\PropertyBuilder.cs" />
     <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />

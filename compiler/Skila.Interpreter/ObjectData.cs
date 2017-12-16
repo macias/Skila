@@ -125,8 +125,12 @@ namespace Skila.Interpreter
 
             public Data(Data src)
             {
-                // pointer/references sits here, so on copy simply assing the pointer/reference value
-                this.PlainValue = src.PlainValue;
+                // pointer/references sits here, so on copy simply assign the pointer/reference value
+                if (src.PlainValue is ICopyableValue val)
+                    this.PlainValue = val.Copy();
+                else
+                    this.PlainValue = src.PlainValue;
+
                 this.IsNative = src.IsNative;
                 this.RunTimeTypeInstance = src.RunTimeTypeInstance;
                 // however make copies of the fields
@@ -197,7 +201,7 @@ namespace Skila.Interpreter
             return value_disposed;
         }
 
-        internal ObjectData Clone()
+        internal ObjectData Copy()
         {
             return new ObjectData(this);
         }

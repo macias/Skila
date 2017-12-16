@@ -17,34 +17,49 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember
     {
-        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName, IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName, 
+            IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        {
+            return CreateIndexerGetter(propertyTypeName, parameters, EntityModifier.None, instructions);
+        }
+        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
+            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, params IExpression[] instructions)
         {
             return FunctionBuilder.Create(NameFactory.PropertyGetter,
                 ExpressionReadMode.ReadRequired, propertyTypeName, Block.CreateStatement(instructions))
+                .Modifier(modifier)
                 .Parameters(parameters);
         }
-        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName, IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName, 
+            IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+        {
+            return CreateIndexerSetter(propertyTypeName, parameters, EntityModifier.None, instructions);
+        }
+        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
+            IEnumerable<FunctionParameter> parameters,EntityModifier modifier, params IExpression[] instructions)
         {
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 Block.CreateStatement(instructions))
-                    .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter, 
+                .Modifier(modifier)
+                    .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first
-                        propertyTypeName, Variadic.None, null, isNameRequired: true)));
+                        propertyTypeName, Variadic.None, null, isNameRequired: true, 
+                        usageMode: modifier.HasNative? ExpressionReadMode.CannotBeRead : ExpressionReadMode.ReadRequired)));
         }
         public static VariableDeclaration CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
             return VariableDeclaration.CreateStatement(NameFactory.PropertyAutoField, typeName, initValue, modifier);
         }
-        public static FunctionDefinition CreateAutoGetter(INameReference typeName)
+        public static FunctionDefinition CreateAutoGetter(INameReference typeName,EntityModifier modifier = null)
         {
-            return CreateProxyGetter(typeName, NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField));
+            return CreateProxyGetter(typeName, NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),modifier);
         }
-        internal static FunctionDefinition CreateProxyGetter(INameReference typeName, IExpression passedExpression)
+        internal static FunctionDefinition CreateProxyGetter(INameReference typeName, IExpression passedExpression,EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertyGetter),
+            return FunctionDefinition.CreateFunction(modifier, NameDefinition.Create(NameFactory.PropertyGetter),
                 null,
                 null, 
                 ExpressionReadMode.ReadRequired,

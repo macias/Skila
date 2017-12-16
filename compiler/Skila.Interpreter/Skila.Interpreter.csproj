@@ -50,6 +50,8 @@
     <Compile Include="Channels\IChannel.cs" />
     <Compile Include="Channels\UnbufferedChannel.cs" />
     <Compile Include="ExecutionContext.cs" />
+    <Compile Include="Chunk.cs" />
+    <Compile Include="ICopyableValue.cs" />
     <Compile Include="UnitType.cs" />
     <Compile Include="IInterpreter.cs" />
     <Compile Include="RoutineRegistry.cs" />

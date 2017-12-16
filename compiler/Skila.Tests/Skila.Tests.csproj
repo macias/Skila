@@ -54,6 +54,7 @@
     <Compile Include="Execution\Concurrency.cs" />
     <Compile Include="Execution\Interfaces.cs" />
     <Compile Include="Execution\Inheritance.cs" />
+    <Compile Include="Execution\Collections.cs" />
     <Compile Include="Execution\Properties.cs" />
     <Compile Include="Execution\Pointers.cs" />
     <Compile Include="Execution\Objects.cs" />

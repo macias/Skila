@@ -1,5 +1,8 @@
-﻿using Skila.Language;
+﻿
+using Skila.Language;
+using Skila.Language.Entities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Skila.Interpreter
 {
@@ -7,12 +10,12 @@ namespace Skila.Interpreter
     {
         public static ExecutionContext Create(Environment env, Interpreter interpreter)
         {
-            var ctx = new ExecutionContext(env,interpreter);
+            var ctx = new ExecutionContext(env, interpreter);
             ctx.TypeRegistry.Add(ctx, env.UnitType.InstanceOf);
             return ctx;
         }
 
-        public Interpreter Interpreter { get; } 
+        public Interpreter Interpreter { get; }
 
         public Environment Env { get; }
         public VariableRegistry LocalVariables;
@@ -23,7 +26,7 @@ namespace Skila.Interpreter
         public RoutineRegistry Routines { get; }
         internal TypeRegistry TypeRegistry { get; }
 
-        private ExecutionContext(Environment env,Interpreter interpreter) :this ()
+        private ExecutionContext(Environment env, Interpreter interpreter) : this()
         {
             this.Env = env;
             this.Heap = new Heap();
@@ -46,6 +49,14 @@ namespace Skila.Interpreter
         internal ExecutionContext Clone()
         {
             return new ExecutionContext(this);
+        }
+
+        internal ObjectData GetArgument(FunctionDefinition func, string paramName)
+        {
+            FunctionParameter param = func.Parameters.SingleOrDefault(it => it.Name.Name == paramName);
+            if (param == null)
+                throw new System.Exception("Internal error");
+            return this.FunctionArguments[param.Index];
         }
     }
 }

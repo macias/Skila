@@ -54,11 +54,10 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.IntTypeReference(),
-                    new[] { Property.CreateAutoField(NameFactory.IntTypeReference(), IntLiteral.Create("1"), EntityModifier.Reassignable) },
-                    new[] { Property.CreateAutoGetter(NameFactory.IntTypeReference()) },
-                    new[] { Property.CreateAutoSetter(NameFactory.IntTypeReference()) }
-                )));
+                .With(PropertyBuilder.Create("x", NameFactory.IntTypeReference())
+                    .WithAutoField(IntLiteral.Create("1"), EntityModifier.Reassignable)
+                    .WithAutoGetter()
+                    .WithAutoSetter()));
 
             NameReference getter_call = NameReference.Create("p", "x");
             root_ns.AddBuilder(FunctionBuilder.Create(

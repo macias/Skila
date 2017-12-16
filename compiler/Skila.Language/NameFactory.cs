@@ -60,6 +60,9 @@ namespace Skila.Language
 
         public const string EnumConstructorParameter = "ord";
 
+        public const string ChunkSizeConstructorParameter = "size";
+        public const string ChunkIndexIndexerParameter = "index";
+
         public const string OptionHasValue = "HasValue";
         public const string OptionValue = "Value";
 
@@ -144,7 +147,11 @@ namespace Skila.Language
         }
         public static NameReference ChunkTypeReference(string templateParamName)
         {
-            return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, NameReference.Create(templateParamName));
+            return ChunkTypeReference(NameReference.Create(templateParamName));
+        }
+        public static NameReference ChunkTypeReference(INameReference templateParamName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
         }
 
         public static NameReference ObjectTypeReference(bool overrideMutability = false)
@@ -193,6 +200,10 @@ namespace Skila.Language
         public static NameReference ReferenceTypeReference(INameReference name)
         {
             return NameReference.Create(NameReference.Root, NameFactory.ReferenceTypeName, name);
+        }
+        public static NameReference ReferenceTypeReference(string name)
+        {
+            return ReferenceTypeReference(NameReference.Create(name));
         }
 
         internal static INameReference ShouldBeThisTypeReference(string typeName)

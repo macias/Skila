@@ -73,19 +73,15 @@ namespace Skila.Language
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                    Block.CreateStatement(new[] {
-                        Return.Create(Undef.Create())
-                    }))
+                    Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
                 .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement(new[] {
-                        Return.Create(Undef.Create())
-                    }))
+                    Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
                 );
 
             /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
@@ -150,9 +146,26 @@ namespace Skila.Language
             this.ISequenceType = this.CollectionsNamespace.AddBuilder(
                 TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "T", VarianceMode.Out))
                     .Parents(NameFactory.IIterableTypeReference("T")));
+
+            // todo: in this form this type is broken, size is runtime info, yet we allow the assignment on the stack
+            // however it is not yet decided what we will do, maybe this type will be used only internally, 
+            // maybe we will introduce two kinds of it, etc.
             this.ChunkType = this.CollectionsNamespace.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "T", VarianceMode.Out))
-                    .Parents(NameFactory.ISequenceTypeReference("T")));
+                    .Modifier(EntityModifier.Mutable)
+                    .Parents(NameFactory.ISequenceTypeReference("T"))
+                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(), 
+                                ExpressionReadMode.CannotBeRead)
+                        },
+                        Block.CreateStatement()))
+                    .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("T"))
+                        .With(PropertyMemberBuilder.CreateIndexerSetter(
+                                FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
+                            .Modifier(EntityModifier.Native))
+                        .With(PropertyMemberBuilder.CreateIndexerGetter(
+                                FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
+                            .Modifier(EntityModifier.Native))));
 
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(
@@ -184,17 +197,17 @@ namespace Skila.Language
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) }))
+                    Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                 .Parents(NameFactory.ObjectTypeReference()));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
                 .Modifier(EntityModifier.Native)
-                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue,NameFactory.UnitTypeReference(),null,
+                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
                     EntityModifier.Static | EntityModifier.Native))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
                 .Parents(NameFactory.ObjectTypeReference()));
-            
+
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
@@ -248,20 +261,16 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelSend),
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement(new[] {
-                        Return.Create(Undef.Create())
-                    }))
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), ExpressionReadMode.CannotBeRead)))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose), 
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelClose),
                     ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ChannelReceive),
                     ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
-                    Block.CreateStatement(new IExpression[] {
-                        Return.Create(Undef.Create())
-                    }))
+                    Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                 /*.With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelTryReceive),
                     null,

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
-using Skila.Language.Extensions;
 
 namespace Skila.Language
 {

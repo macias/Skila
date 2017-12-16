@@ -68,12 +68,43 @@ namespace Skila.Interpreter
                     else
                         throw new NotImplementedException();
                 }
-                else if (owner_type==ctx.Env.UnitType)
+                else if (owner_type == ctx.Env.UnitType)
                 {
                     if (func.IsDefaultInitConstructor())
                     {
                         this_value.Assign(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance, UnitType.UnitValue));
                         return ExecValue.CreateReturn(null);
+                    }
+                    else
+                        throw new NotImplementedException();
+
+                }
+                else if (owner_type == ctx.Env.ChunkType)
+                {
+                    if (func.IsInitConstructor()
+                        && func.Parameters.Count == 1 && func.Parameters.Single().Name.Name == NameFactory.ChunkSizeConstructorParameter)
+                    {
+                        IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
+                        ObjectData size_obj = ctx.FunctionArguments.Single();
+                        int size = size_obj.PlainValue.Cast<int>();
+                        ObjectData[] chunk = Enumerable.Range(0, size).Select(_ => ObjectData.CreateEmpty(ctx, elem_type)).ToArray();
+                        this_value.Assign(ObjectData.CreateInstance(ctx, this_value.RunTimeTypeInstance,new Chunk(chunk)));
+                        return ExecValue.CreateReturn(null);
+                    }
+                    else if (func.Name.Name==NameFactory.PropertySetter)
+                    {
+                        ObjectData idx_obj = ctx.GetArgument(func,NameFactory.ChunkIndexIndexerParameter);
+                        int idx = idx_obj.PlainValue.Cast<int>();
+                        Chunk chunk = this_value.PlainValue.Cast<Chunk>();
+                        chunk[idx] = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
+                        return ExecValue.CreateReturn(null);
+                    }
+                    else if (func.Name.Name == NameFactory.PropertyGetter)
+                    {
+                        ObjectData idx_obj = ctx.GetArgument(func, NameFactory.ChunkIndexIndexerParameter);
+                        int idx = idx_obj.PlainValue.Cast<int>();
+                        Chunk chunk = this_value.PlainValue.Cast<Chunk>();
+                        return ExecValue.CreateReturn(chunk[idx]);
                     }
                     else
                         throw new NotImplementedException();
@@ -200,7 +231,7 @@ namespace Skila.Interpreter
                 throw new Exception("Internal error");
 
             ExecValue ret = Executed(func.UserBody, ctx);
-            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components) 
+            if (ctx.Env.IsVoidType(func.ResultTypeName.Evaluation.Components)
                 || ctx.Env.IsUnitType(func.ResultTypeName.Evaluation.Components))
                 return ExecValue.CreateReturn(null);
             else
@@ -419,7 +450,7 @@ namespace Skila.Interpreter
                 if (ret.Value.IsDereferenced != ret.IsDereferencing)
                     throw new Exception("Internal error");
                 if (ret.IsDereferencing)
-                    obj = obj.Dereference().Clone();
+                    obj = obj.Dereference().Copy();
                 ctx.Heap.TryInc(ctx, obj);
                 return ExecValue.CreateReturn(obj);
             }
@@ -479,7 +510,7 @@ namespace Skila.Interpreter
         }
         private ExecValue execute(Dereference dereference, ExecutionContext ctx)
         {
-            ExecValue val = Executed(dereference.Expr,ctx);
+            ExecValue val = Executed(dereference.Expr, ctx);
             ObjectData obj = val.ExprValue.TryDereference(ctx.Env);
             return ExecValue.CreateExpression(obj);
         }
@@ -816,7 +847,7 @@ namespace Skila.Interpreter
 
             ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(decl, decl.InitValue);
 
-            ObjectData lhs_obj = rhs_obj.Clone();
+            ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
             ctx.Heap.TryInc(ctx, lhs_obj);
 
