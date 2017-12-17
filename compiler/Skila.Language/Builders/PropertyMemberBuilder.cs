@@ -4,6 +4,7 @@ using Skila.Language.Entities;
 using System.Collections.Generic;
 using Skila.Language.Extensions;
 using System.Linq;
+using Skila.Language.Expressions;
 
 namespace Skila.Language.Builders
 {
@@ -14,26 +15,33 @@ namespace Skila.Language.Builders
         {
             IndexGetter,
             IndexSetter,
+            Getter,
         }
-        public static PropertyMemberBuilder CreateIndexerGetter(params FunctionParameter[] parameters)
+        public static PropertyMemberBuilder CreateGetter(params IExpression[] instructions)
         {
-            return new PropertyMemberBuilder(MemberType.IndexGetter, parameters);
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.Getter, instructions);
+            return builder;
         }
-        public static PropertyMemberBuilder CreateIndexerSetter(params FunctionParameter[] parameters)
+        public static PropertyMemberBuilder CreateIndexerGetter(params IExpression[] instructions)
         {
-            return new PropertyMemberBuilder(MemberType.IndexSetter, parameters);
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexGetter, instructions);
+            return builder;
+        }
+        public static PropertyMemberBuilder CreateIndexerSetter(params IExpression[] instructions)
+        {
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexSetter,instructions);
+            return builder;
         }
 
         private readonly MemberType memberType;
         private IMember build;
-        private readonly IEnumerable<FunctionParameter> parameters;
         private EntityModifier modifier;
-        private IEnumerable<IExpression> instructions;
+        private readonly IEnumerable<IExpression> instructions;
 
-        private PropertyMemberBuilder(MemberType memberType, IEnumerable<FunctionParameter> parameters)
+        private PropertyMemberBuilder(MemberType memberType,params IExpression[] instructions)
         {
             this.memberType = memberType;
-            this.parameters = parameters.StoreReadOnly();
+            this.instructions = instructions.StoreReadOnly();
         }
 
 
@@ -46,26 +54,22 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public PropertyMemberBuilder Code(params IExpression[] instructions)
-        {
-            if (build != null || this.instructions != null)
-                throw new Exception();
-
-            this.instructions = instructions.StoreReadOnly();
-            return this;
-        }
-
-        internal IMember Build(NameReference typename)
+        internal IMember Build(PropertyBuilder propertyBuilder)
         {
             if (build == null)
             {
                 switch (memberType)
                 {
                     case MemberType.IndexGetter:
-                        build = Property.CreateIndexerGetter(typename, parameters, modifier, instructions?.ToArray());
+                        build = Property.CreateIndexerGetter(propertyBuilder.Typename, propertyBuilder.Params, modifier, 
+                            instructions?.ToArray());
                         break;
                     case MemberType.IndexSetter:
-                        build = Property.CreateIndexerSetter(typename, parameters, modifier, instructions?.ToArray());
+                        build = Property.CreateIndexerSetter(propertyBuilder.Typename, propertyBuilder.Params, modifier, 
+                            instructions?.ToArray());
+                        break;
+                    case MemberType.Getter:
+                        build = Property.CreateGetter(propertyBuilder.Typename, Block.CreateStatement(instructions), modifier);
                         break;
                     default: throw new Exception();
                 }

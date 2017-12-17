@@ -20,6 +20,10 @@ namespace Skila.Language.Expressions
         {
             return new Block(Purpose.Regular, readMode, body);
         }
+        public static Block CreateStatement(params IExpression[] body)
+        {
+            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
+        }
         public static Block CreateStatement(IEnumerable<IExpression> body)
         {
             return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);

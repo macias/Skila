@@ -49,7 +49,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
                 new[] {
                     // converting itself
-                    FunctionParameter.Create("value", NameReference.Create("Foo", NameReference.Create("T")), Variadic.None,
+                    FunctionParameter.Create(NameFactory.SourceConvConstructorParameter, NameReference.Create("Foo", NameReference.Create("T")), Variadic.None,
                         null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement())
                 ));

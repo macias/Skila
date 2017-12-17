@@ -22,6 +22,8 @@ namespace Skila.Language.Entities
 
         public IEnumerable<TypeDefinition> NestedTypes => this.NestedTemplates.WhereType<TypeDefinition>();
         public IEnumerable<FunctionDefinition> NestedFunctions => this.NestedTemplates.WhereType<FunctionDefinition>();
+        public IEnumerable<FunctionDefinition> AllNestedFunctions => this.NestedFunctions
+            .Concat(this.NestedProperties.SelectMany(it => it.Accessors));
         public IEnumerable<VariableDeclaration> NestedFields => this.ownedNodes.WhereType<VariableDeclaration>();
         // directly nested fields + property fields
         public IEnumerable<VariableDeclaration> AllNestedFields => this.NestedFields
@@ -55,7 +57,6 @@ namespace Skila.Language.Entities
         public abstract IEnumerable<IEntity> AvailableEntities { get; }
 
         public bool IsSurfed { get; set; }
-        public virtual IEnumerable<ISurfable> Surfables => this.NestedTemplates;
 
         // used to protect ourselves against adding extra nodes after the object is built
         // used in functions and types, not namespaces

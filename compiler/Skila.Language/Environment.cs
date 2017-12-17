@@ -160,11 +160,11 @@ namespace Skila.Language
                         },
                         Block.CreateStatement()))
                     .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("T"))
-                        .With(PropertyMemberBuilder.CreateIndexerSetter(
-                                FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
+                        .Parameters(FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(),
+                            ExpressionReadMode.CannotBeRead))
+                        .With(PropertyMemberBuilder.CreateIndexerSetter()
                             .Modifier(EntityModifier.Native))
-                        .With(PropertyMemberBuilder.CreateIndexerGetter(
-                                FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
+                        .With(PropertyMemberBuilder.CreateIndexerGetter()
                             .Modifier(EntityModifier.Native))));
 
 
@@ -306,8 +306,9 @@ namespace Skila.Language
                             .Modifier(EntityModifier.Mutable)
                             .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 null,
-                                new[] { Property.CreateProxyGetter(NameFactory.BoolTypeReference(),
-                                    NameReference.Create(NameFactory.ThisVariableName, has_value_field)) },
+                                new[] { Property.CreateGetter(NameFactory.BoolTypeReference(),
+                                Block.CreateStatement(Return.Create(
+                                    NameReference.Create(NameFactory.ThisVariableName, has_value_field)))) },
                                 null
                             ))
                             .With(Property.Create(NameFactory.OptionValue, NameReference.Create("T"),

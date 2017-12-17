@@ -82,21 +82,36 @@ namespace Skila.Language
 
         public override IEnumerable<INode> OwnedNodes { get { yield break; } }
 
+        public EntityModifier AccessLevels
+        {
+            get
+            {
+                EntityModifier mod = EntityModifier.None;
+                if (this.HasPublic)
+                    mod |= EntityModifier.Public;
+                if (this.HasProtected)
+                    mod |= EntityModifier.Protected;
+                if (this.HasPrivate)
+                    mod |= EntityModifier.Private;
+                return mod;
+            }
+        }
+
         private EntityModifier(ModifierIndex index)
         {
             var flags = new int[EnumExtensions.GetValues<ModifierIndex>().Count()];
-            this.flags = flags;
 
             ++flags[(int)index];
 
+            this.flags = flags;
         }
         private EntityModifier(params EntityModifier[] modifiers)
         {
             var flags = new int[EnumExtensions.GetValues<ModifierIndex>().Count()];
-            this.flags = flags;
-
             for (int i = 0; i < flags.Length; ++i)
                 flags[i] = modifiers.Sum(it => it.flags[i]);
+
+            this.flags = flags;
         }
 
         public override string ToString()

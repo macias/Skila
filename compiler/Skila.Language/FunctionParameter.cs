@@ -60,7 +60,6 @@ namespace Skila.Language
         }
 
         public bool IsSurfed { get; set; }
-        public IEnumerable<ISurfable> Surfables { get { yield return this.TypeName; } }
 
 
         private FunctionParameter(ExpressionReadMode readMode, string name, INameReference typeName, Variadic variadic,

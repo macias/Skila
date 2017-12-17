@@ -39,6 +39,7 @@ namespace Skila.Language
         public const string SelfFunctionName = "self";
         public const string SuperFunctionName = "super";
         public const string SourceCopyConstructorParameter = "source";
+        public const string SourceConvConstructorParameter = "value";
 
         public const string AddOperator = "+";
         public const string EqualOperator = "==";

@@ -61,7 +61,6 @@ namespace Skila.Language.Entities
         public bool IsInheritanceComputed => this.Inheritance != null;
 
         private bool isEvaluated;
-        public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.ParentNames);
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
             .Concat(this.ParentNames)
@@ -101,7 +100,7 @@ namespace Skila.Language.Entities
         {
             base.Surf(ctx);
 
-            compute(ctx);
+            this.compute(ctx);
         }
 
         public override void Evaluate(ComputationContext ctx)
@@ -132,10 +131,15 @@ namespace Skila.Language.Entities
 
             }
 
+            if (this.DebugId.Id==3056)
+            {
+                ;
+            }
+
             // base method -> derived (here) method
             var virtual_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
             // derived (here) method -> base methods
-            Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = this.NestedFunctions
+            Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = this.AllNestedFunctions
                 .Where(it => it.Modifier.HasRefines)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
@@ -149,7 +153,7 @@ namespace Skila.Language.Entities
 
             foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
             {
-                foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.NestedFunctions))
+                foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.AllNestedFunctions))
                 {
                     if (deriv_info.Derived == null)
                     {

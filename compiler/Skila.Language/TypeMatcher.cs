@@ -159,6 +159,11 @@ namespace Skila.Language
             }
 
             if (input.TargetType.Modifier.HasEnum)
+            {
+                // another option for enum-"inheritance" would be dropping it altogether, and copying all the values from the
+                // base enum. Adding conversion constructor from base to child type will suffice and allow to get rid
+                // of those enum-inheritance matching
+
                 foreach (EntityInstance inherited_target in new[] { target }.Concat(target.Inheritance(ctx).AncestorsIncludingObject)
                     .Where(it => it.TargetType.Modifier.HasEnum))
                 {
@@ -182,6 +187,7 @@ namespace Skila.Language
                             return TypeMatch.Substitute;
                     }
                 }
+            }
 
             return TypeMatch.No;
         }

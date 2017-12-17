@@ -25,7 +25,7 @@ namespace Skila.Language.Expressions
             return new FunctionCall(CallMode.Indexer,
                 // alternative approach (below, commented out) would be to refer indexer accessor indirectly, 
                 // via indexer itself, so instead of:
-                // my_obj.idxGet(5)
+                // my_obj.|INDEXER-MODE|Get(5)
                 // we would have:
                 // my_obj.idx.idxGet(5)
                 // the latter approach seems cleaner but requires more handling in code

@@ -140,8 +140,14 @@ namespace Skila.Language.Extensions
         public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc,
             FunctionDefinition baseFunc, EntityInstance baseTemplate)
         {
+            // property-getters can override regular methods
+            if ((derivedFunc.Owner is Property derived_prop) && derived_prop.Getter==derivedFunc) 
+            {
+                if (!EntityNameArityComparer.Instance.Equals(derived_prop.Name, baseFunc.Name))
+                    return false;
+            }
             // todo: we have to check constraints as well
-            if (!EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
+            else if (!EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
                 return false;
 
             foreach (Tuple<TemplateParameter, TemplateParameter> param_pair in derivedFunc.Name.Parameters

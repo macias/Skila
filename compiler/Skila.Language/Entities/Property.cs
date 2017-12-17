@@ -15,7 +15,7 @@ namespace Skila.Language.Entities
     // to make sure there will be no problem in defining and passing this data
     // when user defines fancy parameters for indexer
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember
+    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
     {
         public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName, 
             IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
@@ -55,18 +55,19 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateAutoGetter(INameReference typeName,EntityModifier modifier = null)
         {
-            return CreateProxyGetter(typeName, NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),modifier);
+            return CreateGetter(typeName, 
+                Block.CreateStatement(Return.Create(
+                    NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField))),
+                modifier);
         }
-        internal static FunctionDefinition CreateProxyGetter(INameReference typeName, IExpression passedExpression,EntityModifier modifier = null)
+        internal static FunctionDefinition CreateGetter(INameReference typeName, Block body,EntityModifier modifier = null)
         {
             return FunctionDefinition.CreateFunction(modifier, NameDefinition.Create(NameFactory.PropertyGetter),
                 null,
                 null, 
                 ExpressionReadMode.ReadRequired,
                 typeName,
-                Block.CreateStatement(new[] {
-                    Return.Create(passedExpression)
-                }));
+                body);
         }
         public static FunctionDefinition CreateAutoSetter(INameReference typeName)
         {
@@ -110,15 +111,18 @@ namespace Skila.Language.Entities
         private readonly IReadOnlyCollection<FunctionDefinition> setters;
         public IReadOnlyCollection<VariableDeclaration> Fields { get; }
 
+        public IEnumerable<FunctionDefinition> Accessors => new[] { this.Getter, this.Setter }.Where(it => it != null);
+
         public FunctionDefinition Getter { get { return getters.FirstOrDefault(); } }
         public FunctionDefinition Setter { get { return setters.FirstOrDefault(); } }
 
         public IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+        public bool IsSurfed { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }
             .Concat(Fields)
             .Where(it => it != null);
-        public EntityModifier Modifier { get; }
+        public EntityModifier Modifier { get; private set; }
 
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
@@ -183,6 +187,12 @@ namespace Skila.Language.Entities
             if (!base.AttachTo(parent))
                 return false;
 
+            if (!this.Modifier.IsAccessSet) 
+            {
+                if (parent is TypeContainerDefinition)
+                    this.SetModifier(this.Modifier | EntityModifier.Public);
+            }
+
             // we need to notify accessors about attachment to type, so those methods could create correct "this" parameter
             this.Getter?.AttachTo(this);
             this.Setter?.AttachTo(this);
@@ -190,9 +200,19 @@ namespace Skila.Language.Entities
             return true;
         }
 
+        private void SetModifier(EntityModifier modifier)
+        {
+            this.Modifier = modifier;
+        }
+
         public void SetIsMemberUsed()
         {
             this.IsMemberUsed = true;
+        }
+
+        public void Surf(ComputationContext ctx)
+        {
+            ;
         }
 
     }

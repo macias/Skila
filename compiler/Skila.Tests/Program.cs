@@ -24,13 +24,13 @@ namespace Skila.Tests
             //  new Semantics.Flow().ErrorReadingIfWithoutElse();
             //new Semantics.FunctionCalls().ProperMethodCallTypeInference();
             //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
-            new Semantics.Inheritance().ErrorInvalidDirectionPassingEnums();
+            //new Semantics.Inheritance().ErrorInvalidDirectionPassingEnums();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-            //  new Semantics.Properties().ErrorIgnoringGetter();
+              //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
             //new Semantics.Types().ErrorInstanceMemberReference();
@@ -44,7 +44,7 @@ namespace Skila.Tests
             //new Execution.Interfaces().TODO_InheritingEnums();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
-            //new Execution.Properties().Indexer();
+            new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
 
             {

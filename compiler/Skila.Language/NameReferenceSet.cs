@@ -20,7 +20,6 @@ namespace Skila.Language
             .Where(it => it != null);
 
         public bool IsSurfed { get; set; }
-        public IEnumerable<ISurfable> Surfables => this.Names.WhereType<ISurfable>();
 
         public bool IsComputed { get; protected set; }
 

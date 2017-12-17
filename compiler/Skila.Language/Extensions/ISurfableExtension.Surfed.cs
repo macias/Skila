@@ -30,7 +30,7 @@ namespace Skila.Language.Extensions
                 return;
             }
 
-            node.Surfables.ForEach(it => Surfed(it, ctx));
+            node.OwnedNodes.WhereType<ISurfable>().ForEach(it => Surfed(it, ctx));
             node.Surf(ctx);
 
             node.IsSurfed = true;

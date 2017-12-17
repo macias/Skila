@@ -12,6 +12,28 @@ namespace Skila.Tests.Semantics
     public class Properties
     {
         [TestMethod]
+        public IErrorReporter ErrorGetterOverridesNothing()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            Property property = PropertyBuilder.Create("getMe", NameFactory.IntTypeReference())
+                    .With(PropertyMemberBuilder.CreateGetter(Return.Create(IntLiteral.Create("2")))
+                        .Modifier(EntityModifier.Refines));
+
+            var type = root_ns.AddBuilder(TypeBuilder.Create("Last")
+                .Modifier(EntityModifier.Base)
+                .With(property));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToDerive, property.Getter));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorAssigningRValue()
         {
             var env = Environment.Create();

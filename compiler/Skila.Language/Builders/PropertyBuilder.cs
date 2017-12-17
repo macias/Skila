@@ -24,13 +24,14 @@ namespace Skila.Language.Builders
         private readonly List<FunctionDefinition> setters;
         private Property build;
         private readonly string name;
-        private readonly NameReference typename;
+        public NameReference Typename { get; }
         private readonly EntityModifier modifier;
+        public IEnumerable<FunctionParameter> Params { get; private set; }
 
         private PropertyBuilder(string name, NameReference typename,EntityModifier modifier)
         {
             this.name = name;
-            this.typename = typename;
+            this.Typename = typename;
             this.modifier = modifier;
 
             this.fields = new List<VariableDeclaration>();
@@ -43,12 +44,21 @@ namespace Skila.Language.Builders
             if (build == null)
             {
                 if (this.name == null)
-                    build = Property.CreateIndexer(this.typename, fields, getters, setters,modifier);
+                    build = Property.CreateIndexer(this.Typename, fields, getters, setters,modifier);
                 else
-                    build = Property.Create(this.name, this.typename, fields, getters, setters,modifier);
+                    build = Property.Create(this.name, this.Typename, fields, getters, setters,modifier);
             }
 
             return build;
+        }
+
+        public PropertyBuilder Parameters(params FunctionParameter[] parameters)
+        {
+            if (this.Params != null || this.build != null)
+                throw new InvalidOperationException();
+
+            this.Params = parameters;
+            return this;
         }
 
         public PropertyBuilder With(PropertyMemberBuilder builder)
@@ -56,7 +66,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            IMember member = builder.Build(this.typename);
+            IMember member = builder.Build(this);
             if (member is VariableDeclaration decl)
                 this.fields.Add(decl);
             else if (member is FunctionDefinition func)
@@ -79,7 +89,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.fields.Add(Property.CreateAutoField(this.typename, initValue, modifier));
+            this.fields.Add(Property.CreateAutoField(this.Typename, initValue, modifier));
 
             return this;
         }
@@ -89,7 +99,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.getters.Add(Property.CreateAutoGetter(this.typename));
+            this.getters.Add(Property.CreateAutoGetter(this.Typename));
 
             return this;
         }
@@ -99,9 +109,14 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.setters.Add(Property.CreateAutoSetter(this.typename));
+            this.setters.Add(Property.CreateAutoSetter(this.Typename));
 
             return this;
+        }
+
+        public static implicit operator Property(PropertyBuilder @this)
+        {
+            return @this.Build();
         }
     }
 }

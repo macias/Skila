@@ -88,7 +88,6 @@ namespace Skila.Language
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(Prefix);
 
         public bool IsSurfed { get; set; }
-        public IEnumerable<ISurfable> Surfables => this.OwnedNodes.WhereType<ISurfable>();
 
         public static NameReference Root => new NameReference(false, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);

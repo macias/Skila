@@ -103,8 +103,6 @@ namespace Skila.Language.Entities
             .Concat(this.thisNameReference)
             .Where(it => it != null);
 
-        public override IEnumerable<ISurfable> Surfables => base.Surfables.Concat(this.Parameters).Concat(ResultTypeName);
-
         public bool IsDeclaration => this.UserBody == null;
 
         public bool IsLambdaInvoker => this.Name.Name == NameFactory.LambdaInvoke;
@@ -211,8 +209,13 @@ namespace Skila.Language.Entities
                 this.MetaThisParameter.AttachTo(this);
             }
 
-            if (result && parent is TypeContainerDefinition && !this.Modifier.IsAccessSet)
-                this.SetModifier(this.Modifier | EntityModifier.Public);
+            if (!this.Modifier.IsAccessSet)
+            {
+                if (parent is TypeContainerDefinition)
+                    this.SetModifier(this.Modifier | EntityModifier.Public);
+                else if (parent is Property prop) 
+                    this.SetModifier(this.Modifier | prop.Modifier.AccessLevels);
+            }
 
             return result;
         }

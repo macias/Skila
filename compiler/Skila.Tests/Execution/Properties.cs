@@ -13,6 +13,92 @@ namespace Skila.Tests.Execution
     public class Properties
     {
         [TestMethod]
+        public IInterpreter OverridingMethodWithIndexerGetter()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference()))));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Middle")
+                .Parents("IProvider")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(Return.Create(IntLiteral.Create("500"))))
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Last")
+                .Parents("Middle")
+                .Modifier(EntityModifier.Base)
+                .With(PropertyBuilder.CreateIndexer(NameFactory.IntTypeReference())
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
+                    .With(PropertyMemberBuilder.CreateIndexerGetter(Return.Create(IntLiteral.Create("2")))
+                        .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference("IProvider"),
+                        ExpressionFactory.HeapConstructor("Last")),
+                    Return.Create(FunctionCall.Create(NameReference.Create("p",NameFactory.PropertyIndexerName),
+                        FunctionArgument.Create(IntLiteral.Create("18"))))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter OverridingMethodWithGetter()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
+                .With(FunctionBuilder.CreateDeclaration("getMe", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Middle")
+                .Parents("IProvider")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(Return.Create(IntLiteral.Create("500"))))
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Last")
+                .Parents("Middle")
+                .Modifier(EntityModifier.Base)
+                .With(PropertyBuilder.Create("getMe", NameFactory.IntTypeReference())
+                    .With(PropertyMemberBuilder.CreateGetter(Return.Create(IntLiteral.Create("2")))
+                        .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference("IProvider"),
+                        ExpressionFactory.HeapConstructor("Last")),
+                    Return.Create(FunctionCall.Create( NameReference.Create("p","getMe")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter Indexer()
         {
             var env = Language.Environment.Create();

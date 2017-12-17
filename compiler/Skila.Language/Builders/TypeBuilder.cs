@@ -23,6 +23,20 @@ namespace Skila.Language.Builders
             typeParameters.ForEach(it => buff.Add(it, VarianceMode.None));
             return new TypeBuilder(NameDefinition.Create(name, buff.Values));
         }
+        /*private TypeBuilder WithBaseEnum(string typename)
+        {
+            if (this.build != null)
+                throw new InvalidOperationException();
+
+            NameReference typename_ref = NameReference.Create(typename);
+            this.embedTypeNames.Add(typename_ref);
+            this.With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Implicit,
+                 new[] { FunctionParameter.Create(NameFactory.SourceConvConstructorParameter, typename_ref,
+                        ExpressionReadMode.CannotBeRead) },
+                 Block.CreateStatement()));
+
+            return this;
+        }*/
         public static TypeBuilder CreateEnum(string name)
         {
             TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
@@ -67,6 +81,7 @@ namespace Skila.Language.Builders
         private readonly NameDefinition name;
         private readonly List<INode> features;
         private IEnumerable<NameReference> parents;
+        //private List<NameReference> embedTypeNames;
         private EntityModifier modifier;
         private TypeDefinition build;
         private bool allowSlicing;
@@ -76,6 +91,7 @@ namespace Skila.Language.Builders
         {
             this.name = name;
             this.features = new List<INode>();
+            //this.embedTypeNames = new List<NameReference>();
         }
         public TypeBuilder Parents(params NameReference[] parents)
         {
@@ -151,6 +167,7 @@ namespace Skila.Language.Builders
                     features.OrderBy(it => it is VariableDeclaration ? 0 : 1));
             return build;
         }
+
         public static implicit operator TypeDefinition(TypeBuilder @this)
         {
             return @this.Build();
