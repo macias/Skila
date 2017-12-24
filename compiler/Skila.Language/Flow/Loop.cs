@@ -87,7 +87,7 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidEvaluation;
+                this.Evaluation = ctx.Env.UnitEvaluation;
 
                 this.DataTransfer(ctx, ref this.preCheck, ctx.Env.BoolType.InstanceOf);
                 this.DataTransfer(ctx, ref this.postCheck, ctx.Env.BoolType.InstanceOf);

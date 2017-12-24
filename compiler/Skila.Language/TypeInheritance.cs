@@ -4,6 +4,7 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using System;
+using Skila.Language.Data;
 
 namespace Skila.Language
 {
@@ -20,6 +21,14 @@ namespace Skila.Language
             => this.addObject ? this.MinimalParentsWithoutObject.Concat(this.objectType) : this.MinimalParentsWithoutObject;
 
         private EntityInstance objectType { get; }
+     /*   public Tree<EntityInstance> AncestorsTreeWithoutObject { get {
+                var root = new Tree<EntityInstance>(null, null);
+                foreach (EntityInstance parent in this.MinimalParentsWithoutObject)
+                    root.Add(parent);
+
+                return root;
+            } }*/
+
         private readonly bool addObject;
 
         public TypeInheritance(EntityInstance objectType, IEnumerable<EntityInstance> minimalParents,

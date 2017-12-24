@@ -38,7 +38,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     Assignment.CreateStatement(NameReference.Sink(),
                         VariableDeclaration.CreateExpression("result", NameFactory.IntTypeReference(),initValue: Undef.Create())),
@@ -61,7 +62,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("3")),
                     assignment,
@@ -153,7 +155,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     var_x,
                     var_y,
@@ -232,7 +235,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     loop,
                 })));

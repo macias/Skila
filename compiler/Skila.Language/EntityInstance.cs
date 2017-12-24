@@ -16,33 +16,38 @@ namespace Skila.Language
     {
         public static EntityInstance RAW_CreateUnregistered(IEntity target, EntityInstanceSignature signature)
         {
-            return new EntityInstance(target, signature.TemplateArguments, signature.OverrideMutability);
+            return new EntityInstance(target, signature.TemplateArguments, signature.OverrideMutability, signature.Translation);
         }
-        internal static EntityInstance Create(ComputationContext ctx, IEntity target,
+
+        internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
             IEnumerable<INameReference> arguments, bool overrideMutability)
         {
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return target.GetInstanceOf(arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
+            return targetInstance.Target.GetInstance(arguments.Select(it => it.Evaluated(ctx)), overrideMutability,
+                TemplateTranslation.Combine(targetInstance.Translation, targetInstance.Target.Name.Parameters, arguments));
         }
-
 
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstanceOf(null, overrideMutability: false);
+        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null, overrideMutability: false, translation: null);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
         public bool OverrideMutability { get; }
+
+        internal TemplateTranslation Translation { get; }
+
         public IEntity Target { get; }
         public TypeDefinition TargetType => this.Target.CastType();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
+        public TemplateParameter TemplateParameterTarget => this.TargetType.TemplateParameter;
         public EntityInstance Aggregate { get; private set; }
         public IEntityInstance Evaluation { get; private set; }
         public bool MissingTemplateArguments => !this.TemplateArguments.Any() && this.Target.Name.Arity > 0;
@@ -74,7 +79,8 @@ namespace Skila.Language
 
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
-        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments, bool overrideMutability,
+            TemplateTranslation translation)
         {
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");
@@ -85,6 +91,12 @@ namespace Skila.Language
             this.TemplateArguments = arguments.StoreReadOnlyList();
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
             this.OverrideMutability = overrideMutability;
+            this.Translation = translation;
+
+            if (this.DebugId.Id == 4835)
+            {
+                ;
+            }
         }
 
         internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
@@ -107,7 +119,10 @@ namespace Skila.Language
                 string args = "";
                 if (this.TemplateArguments.Any())
                     args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                return (this.OverrideMutability ? "mutable " : "") + this.Target.Name.Name + args;
+                string result = (this.OverrideMutability ? "mutable " : "") + this.Target.Name.Name + args;
+                if (this.Translation != null)
+                    result += $" [{this.Translation}]";
+                return result;
             }
         }
 
@@ -121,7 +136,8 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.Target.Evaluated(ctx).TranslateThrough(this);
+                IEntityInstance eval = this.Target.Evaluated(ctx);
+                this.Evaluation = eval.TranslateThrough(this);
                 if (this.Evaluation.IsJoker)
                     this.Aggregate = EntityInstance.Joker;
                 else
@@ -147,7 +163,7 @@ namespace Skila.Language
 
         public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
         {
-            if (closedTemplate.DebugId.Id == 11091 && this.DebugId.Id == 1029)
+            if (closedTemplate.DebugId.Id == 3386 && this.DebugId.Id == 486)
             {
                 ;
             }
@@ -161,37 +177,44 @@ namespace Skila.Language
             if (closedTemplate.TemplateArguments.Any() && this.IsTemplateParameterOf(closedTemplate.TargetTemplate))
             {
                 translated = true;
-                return closedTemplate.TemplateArguments[this.TargetType.TemplateParameter.Index];
+                return closedTemplate.TemplateArguments[this.TemplateParameterTarget.Index];
             }
-            else
+
             {
-                EntityInstance self = this;
-                foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
+                if (closedTemplate.Translation != null && this.TargetsTemplateParameter
+                                && closedTemplate.Translation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
                 {
-                    self = self.TranslateThrough(arg);
-                }
-
-                if (!self.TemplateArguments.Any())
-                {
-                    return self;
-                }
-                else
-                {
-                    bool trans = false;
-
-                    var trans_arguments = new List<IEntityInstance>();
-                    foreach (IEntityInstance arg in self.TemplateArguments)
-                        trans_arguments.Add(arg.TranslateThrough(closedTemplate, ref trans));
-
-                    if (trans)
-                    {
-                        translated = true;
-                        return self.Target.GetInstanceOf(trans_arguments, this.OverrideMutability);
-                    }
-                    else
-                        return self;
+                    translated = true;
+                    return trans.TranslateThrough(closedTemplate, ref translated);
                 }
             }
+
+            EntityInstance self = this;
+
+            foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
+            {
+                self = self.TranslateThrough(arg);
+            }
+
+            TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTemplate.Translation);
+
+            if (self.TemplateArguments.Any())
+            {
+                bool trans = false;
+
+                var trans_arguments = new List<IEntityInstance>();
+                foreach (IEntityInstance arg in self.TemplateArguments)
+                    trans_arguments.Add(arg.TranslateThrough(closedTemplate, ref trans));
+
+                if (trans)
+                {
+                    translated = true;
+                    return self.Target.GetInstance(trans_arguments, this.OverrideMutability, translation);
+                }
+            }
+
+            self = self.Target.GetInstance(self.TemplateArguments, self.OverrideMutability, translation);
+            return self;
         }
 
         public TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing)
@@ -230,7 +253,7 @@ namespace Skila.Language
             return true;
         }
 
-        public ConstraintMatch ArgumentMatchesConstraintsOf(ComputationContext ctx, EntityInstance closedTemplate,
+        public ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance closedTemplate,
             TemplateParameter param)
         {
             if (this.DebugId.Id == 11139)
@@ -249,7 +272,8 @@ namespace Skila.Language
             }
 
             {
-                VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf, allowPartial: false);
+                VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, this, param.AssociatedType.InstanceOf,
+                    allowPartial: false);
                 if (vtable == null)
                     return ConstraintMatch.MissingFunction;
             }

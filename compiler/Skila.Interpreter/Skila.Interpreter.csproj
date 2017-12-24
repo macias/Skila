@@ -46,11 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Async\AsyncAutoResetEvent.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\IChannel.cs" />
     <Compile Include="Channels\UnbufferedChannel.cs" />
     <Compile Include="ExecutionContext.cs" />
     <Compile Include="Chunk.cs" />
+    <Compile Include="CallInfo.cs" />
+    <Compile Include="ICallContext.cs" />
     <Compile Include="IInstanceValue.cs" />
     <Compile Include="UnitType.cs" />
     <Compile Include="IInterpreter.cs" />

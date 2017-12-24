@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true   });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -41,7 +41,8 @@ namespace Skila.Tests.Semantics
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, init_value),
                     ExpressionFactory.Readout("a")
@@ -58,7 +59,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
@@ -79,7 +80,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("f", NameReference.Create("Foo"),
                         initValue: Undef.Create()),
@@ -177,7 +179,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -188,7 +190,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     decl,
                     ExpressionFactory.Readout("foo")

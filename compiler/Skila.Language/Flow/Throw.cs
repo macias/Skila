@@ -43,7 +43,7 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidEvaluation;
+                this.Evaluation = ctx.Env.UnitEvaluation;
 
                 NameReference req_typename = NameFactory.PointerTypeReference(NameFactory.ExceptionTypeReference());
                 IEntityInstance eval_typename = req_typename.Evaluated(ctx);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NaiveLanguageTools.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,11 +19,11 @@ namespace Skila.Interpreter
             this.errors = new List<Exception>();
         }
 
-        public void Complete()
+        public void CompleteWith(Task mainTask)
         {
             Task[] tt;
             lock (this.threadLock)
-                tt = this.tasks.ToArray();
+                tt = this.tasks.Concat(mainTask).ToArray();
 
             Task.WaitAll(tt);
             lock (this.threadLock)
@@ -32,10 +33,8 @@ namespace Skila.Interpreter
                     throw new Exception("Routine failed");
             }
         }
-        internal void Run(Func<ExecValue> func)
+        internal void Run(Task<ExecValue> routine)
         {
-            Task<ExecValue> routine = Task.Run(() => func());
-
             lock (this.threadLock)
                 tasks.Add(routine);
 

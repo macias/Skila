@@ -24,6 +24,8 @@ namespace Skila.Language
         public const string BoolTypeName = "Bool";
         public const string IntTypeName = "Int";
         //public const string EnumTypeName = "Enum";
+        public const string OrderingTypeName = "Ordering";
+        public const string ComparableTypeName = "Comparable";
         public const string StringTypeName = "String";
         public const string ChannelTypeName = "Channel";
         public const string OptionTypeName = "Option";
@@ -41,9 +43,19 @@ namespace Skila.Language
         public const string SourceCopyConstructorParameter = "source";
         public const string SourceConvConstructorParameter = "value";
 
+        public const string OrderingLess = "less";
+        public const string OrderingEqual = "equal";
+        public const string OrderingGreater = "greater";
+
+        public const string ComparableCompare = "compare";
+
         public const string AddOperator = "+";
         public const string EqualOperator = "==";
         public const string NotEqualOperator = "!=";
+        public const string GreaterOperator = ">";
+        public const string GreaterEqualOperator = ">=";
+        public const string LessOperator = "<";
+        public const string LessEqualOperator = "<=";
         public const string NotOperator = "not";
 
         public const string PropertyIndexerName = "at";
@@ -93,10 +105,10 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, IntTypeName);
         }
-       /* public static NameReference EnumTypeReference()
-        {
-            return NameReference.Create(NameReference.Root, EnumTypeName);
-        }*/
+        /* public static NameReference EnumTypeReference()
+         {
+             return NameReference.Create(NameReference.Root, EnumTypeName);
+         }*/
         public static NameReference ThisReference()
         {
             return NameReference.Create(ThisVariableName);
@@ -108,10 +120,6 @@ namespace Skila.Language
         public static NameReference BoolTypeReference()
         {
             return NameReference.Create(NameReference.Root, BoolTypeName);
-        }
-        public static NameReference VoidTypeReference()
-        {
-            return NameReference.Create(NameReference.Root, VoidTypeName);
         }
 
         internal static NameDefinition InitConstructorNameDefinition()
@@ -125,6 +133,19 @@ namespace Skila.Language
         internal static NameDefinition NewConstructorNameDefinition()
         {
             return NameDefinition.Create(NewConstructorName);
+        }
+
+        public static NameReference OrderingEqualReference()
+        {
+            return NameReference.Create(OrderingTypeReference(), OrderingEqual);
+        }
+        public static NameReference OrderingLessReference()
+        {
+            return NameReference.Create(OrderingTypeReference(), OrderingLess);
+        }
+        public static NameReference OrderingGreaterReference()
+        {
+            return NameReference.Create(OrderingTypeReference(), OrderingGreater);
         }
 
         public static NameReference IIterableTypeReference(string templateParamName)
@@ -143,9 +164,17 @@ namespace Skila.Language
         {
             return NameReference.Create(ConcurrencyNamespaceReference(), ChannelTypeName, templateParamName);
         }
+        public static NameReference SpreadFunctionReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
+        }
         public static NameReference ISequenceTypeReference(string templateParamName)
         {
-            return NameReference.Create(CollectionsNamespaceReference(), ISequenceTypeName, NameReference.Create(templateParamName));
+            return ISequenceTypeReference(NameReference.Create(templateParamName));
+        }
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
         public static NameReference ChunkTypeReference(string templateParamName)
         {
@@ -177,6 +206,14 @@ namespace Skila.Language
         public static NameReference StringTypeReference()
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.StringTypeName);
+        }
+        public static NameReference ComparableTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), NameFactory.ComparableTypeName);
+        }
+        public static NameReference OrderingTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
         public static NameReference OptionTypeReference(INameReference name)
         {

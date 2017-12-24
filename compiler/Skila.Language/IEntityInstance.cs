@@ -22,7 +22,7 @@ namespace Skila.Language
 
         IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated);
         IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated);
-        ConstraintMatch ArgumentMatchesConstraintsOf(ComputationContext ctx, EntityInstance verifiedInstance, TemplateParameter param);
+        ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance verifiedInstance, TemplateParameter param);
 
         TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target, VarianceMode variance, bool allowSlicing);
         TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, EntityInstance input, VarianceMode variance, bool allowSlicing);

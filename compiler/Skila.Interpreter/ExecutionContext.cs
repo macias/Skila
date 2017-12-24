@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace Skila.Interpreter
 {
-    internal struct ExecutionContext
+    internal struct ExecutionContext : ICallContext
     {
         public static ExecutionContext Create(Environment env, Interpreter interpreter)
         {
             var ctx = new ExecutionContext(env, interpreter);
-            ctx.TypeRegistry.Add(ctx, env.UnitType.InstanceOf);
+            ctx.TypeRegistry.RegisterAdd(ctx, env.UnitType.InstanceOf).Wait();
             return ctx;
         }
 

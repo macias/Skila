@@ -46,7 +46,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("c", null,IntLiteral.Create("3")),
                     discard,
@@ -64,7 +65,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCastingToSet()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             NameReferenceUnion type_set = NameReferenceUnion.Create(
@@ -73,7 +74,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.ObjectTypeReference(), Undef.Create()),
                     VariableDeclaration.CreateStatement("c", null,ExpressionFactory.Cast(NameReference.Create("x"), type_set)),
@@ -91,7 +93,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAddressingRValue()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             IntLiteral int_literal = IntLiteral.Create("1");
@@ -99,7 +101,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, AddressOf.CreatePointer(int_literal)),
                     VariableDeclaration.CreateStatement("y", null, AddressOf.CreateReference(IntLiteral.Create("2"))),
@@ -144,7 +147,7 @@ namespace Skila.Tests.Semantics
 
             NameReference non_value = NameFactory.IntTypeReference();
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value, 
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value,
                 modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
@@ -322,7 +325,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                           NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                           ExpressionReadMode.OptionalUse,
-                          NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                          
                           Block.CreateStatement(new IExpression[] {
                               var_decl,
                               assign_var,

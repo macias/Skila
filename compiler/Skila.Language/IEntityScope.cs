@@ -1,16 +1,11 @@
-﻿using NaiveLanguageTools.Common;
-using Skila.Language.Comparers;
-using Skila.Language.Entities;
-using Skila.Language.Extensions;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Skila.Language
 {
     // scope which can hold unordered entities (i.e. it is not executed like block)
     public interface IEntityScope : IScope
     {
-        IEnumerable<IEntity> AvailableEntities { get; }
+        IEnumerable<EntityInstance> AvailableEntities { get; }
     }
 
     public enum EntityFindMode

@@ -1,10 +1,12 @@
-﻿namespace Skila.Language
+﻿using System.Threading;
+
+namespace Skila.Language
 {
 #if DEBUG
     public sealed class DebugId
     {
         private static int ID;
-        public readonly int Id = ID++;
+        public readonly int Id = Interlocked.Increment(ref ID);
 
         public DebugId()
         {

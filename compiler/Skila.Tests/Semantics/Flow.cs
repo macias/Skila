@@ -25,7 +25,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     decl,
                     if_assign,
@@ -56,7 +57,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
                     loop,
@@ -80,7 +82,7 @@ namespace Skila.Tests.Semantics
             // to make sure it is gone, we run the test twice with reversed commands
             foreach (bool reverse in new[] { false, true })
             {
-                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
                 var root_ns = env.Root;
 
                 NameReference var_ref = NameReference.Create("s");
@@ -116,7 +118,8 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     NameDefinition.Create("main"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
                     outer_loop,
@@ -138,7 +141,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReadingInitializedAfterConditionalBreak()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             var if_break = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { LoopInterrupt.CreateBreak() });
@@ -151,7 +154,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
                     loop,
@@ -171,7 +175,7 @@ namespace Skila.Tests.Semantics
         {
             // this one is correct, because in one branch we exit from function, in other we do the assignment
 
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             var return_or_assign = IfBranch.CreateIf(BoolLiteral.CreateFalse(),
@@ -180,7 +184,8 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
                     return_or_assign,
@@ -247,7 +252,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableCodeAfterBreak()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             var dead_step = ExpressionFactory.Readout("i");
@@ -262,7 +267,8 @@ namespace Skila.Tests.Semantics
                     FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     loop
                 })));
@@ -279,7 +285,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableCodeAfterBreakSingleReport()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
             var root_ns = env.Root;
 
             var dead_return = Return.Create();
@@ -295,7 +301,8 @@ namespace Skila.Tests.Semantics
                     FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     loop
                 })));
@@ -371,8 +378,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.PassingVoidValue, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(if_ctrl, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReadExpression, if_ctrl));
 
             return resolver;
         }
@@ -519,7 +525,8 @@ namespace Skila.Tests.Semantics
             var func_def_int = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] { brk })));
 
             var resolver = NameResolver.Create(env);

@@ -25,7 +25,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
                 TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)
@@ -55,7 +56,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
                 TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
                     .BaseOf(baseof_name)
@@ -78,16 +80,18 @@ namespace Skila.Tests.Semantics
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
                 ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference());
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+
+            // this function accepts any parameter where parameter type has function "getMe"
+            FunctionDefinition constrained_func = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
                 TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
                      }))
                      .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
-                     .Parameters(FunctionParameter.Create("t", NameFactory.PointerTypeReference("T"), Variadic.None,
-                        null, isNameRequired: false)));
+                     .Parameters(FunctionParameter.Create("t", NameFactory.PointerTypeReference("T"))));
 
-            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
+            // this type does NOT have function "getMe"
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("YMan")
                 .With(FunctionBuilder.Create(NameDefinition.Create("missing"),
                     ExpressionReadMode.ReadRequired,
                     NameFactory.IntTypeReference(),
@@ -95,13 +99,13 @@ namespace Skila.Tests.Semantics
                         Return.Create(IntLiteral.Create("2"))
                     }))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("proxy"), FunctionArgument.Create(NameReference.Create("y")));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("proxy"), FunctionArgument.Create(NameReference.Create("y_man")));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("y_man",null,ExpressionFactory.HeapConstructor(NameReference.Create("YMan"))),
                     Return.Create(call)
                 })));
 

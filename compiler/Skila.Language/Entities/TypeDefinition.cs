@@ -71,8 +71,8 @@ namespace Skila.Language.Entities
         public VirtualTable InheritanceVirtualTable { get; private set; }
         public DerivationTable DerivationTable { get; private set; }
 
-        private IEnumerable<IEntity> availableEntities;
-        public override IEnumerable<IEntity> AvailableEntities => this.availableEntities;
+        private IReadOnlyCollection<EntityInstance> availableEntitiesX;
+        public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntitiesX;
 
         private TypeDefinition(EntityModifier modifier,
             bool allowSlicing,
@@ -131,7 +131,7 @@ namespace Skila.Language.Entities
 
             }
 
-            if (this.DebugId.Id==3056)
+            if (this.DebugId.Id == 4713)
             {
                 ;
             }
@@ -143,30 +143,49 @@ namespace Skila.Language.Entities
                 .Where(it => it.Modifier.HasRefines)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
-            HashSet<IEntity> inherited_entities = this.Inheritance.MinimalParentsWithoutObject
-                .SelectMany(it => it.TargetType.AvailableEntities ?? Enumerable.Empty<IEntity>())
-                .Where(it => it.Modifier.HasPublic || it.Modifier.HasProtected)
-                .Where(it => !(it is FunctionDefinition func) || !func.IsConstructor())
-                .ToHashSet();
+            var inherited_instances = new HashSet<EntityInstance>();
 
             var missing_func_implementations = new List<FunctionDefinition>();
 
             foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
             {
+                foreach (EntityInstance entity_instance in (ancestor.TargetType.AvailableEntities ?? Enumerable.Empty<EntityInstance>())
+                    .Where(it => it.Target.Modifier.HasPublic || it.Target.Modifier.HasProtected)
+                    .Where(it => !(it.Target is FunctionDefinition func) || !func.IsConstructor()))
+                {
+                    if (entity_instance.DebugId.Id==3895)
+                    {
+                        ;
+                    }
+                    EntityInstance translated = entity_instance.TranslateThrough(ancestor);
+                    inherited_instances.Add(translated);
+                }
+
+
                 foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.AllNestedFunctions))
                 {
                     if (deriv_info.Derived == null)
                     {
                         // we can skip implementation or abstract signature of the function in the abstract type
-                        if (deriv_info.Base.Modifier.HasAbstract && !this.Modifier.IsAbstract)
+                        if ((deriv_info.Base.Modifier.HasAbstract || deriv_info.Base.Modifier.HasPinned)
+                            && !this.Modifier.IsAbstract)
                             missing_func_implementations.Add(deriv_info.Base);
                     }
                     else
                     {
-                        inherited_entities.Remove(deriv_info.Base);
+                        {
+                            EntityInstance base_instance = deriv_info.Base.InstanceOf.TranslateThrough(ancestor);
+                            inherited_instances.Remove(base_instance);
+                        }
 
                         if (deriv_info.Derived.Modifier.HasRefines)
+                        {
                             derivation_mapping[deriv_info.Derived].Add(deriv_info.Base);
+                            // user does not have to repeat "pinned" all the time, but for easier tracking of pinned methods
+                            // we add it automatically
+                            if (deriv_info.Base.Modifier.HasPinned)
+                                deriv_info.Derived.SetModifier(deriv_info.Derived.Modifier | EntityModifier.Pinned);
+                        }
                         else if (!deriv_info.Base.Modifier.IsSealed)
                             ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
 
@@ -203,12 +222,18 @@ namespace Skila.Language.Entities
                 }
 
                 if (!found)
-                    ctx.AddError(ErrorCode.MissingFunctionImplementation, this, missing_impl);
+                {
+                    ErrorCode err_code = missing_impl.Modifier.HasPinned
+                        ? ErrorCode.PinnedFunctionMissingImplementation
+                        : ErrorCode.AbstractFunctionMissingImplementation;
+                    ctx.AddError(err_code, this, missing_impl);
+                }
             }
 
             this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
             this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
-            this.availableEntities = inherited_entities.Concat(this.NestedEntities()).StoreReadOnly();
+            this.availableEntitiesX = inherited_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
+
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToDerive, func);
@@ -432,8 +457,7 @@ namespace Skila.Language.Entities
 
             // add implicit Object only if it is not Object itself and if there are no given parents
             // when there are parents given we will get Object through parents
-            // also exclude Void, this is separate type from entire hierarchy
-            if (this != ctx.Env.ObjectType && !parents.Any() && this != ctx.Env.VoidType)
+            if (this != ctx.Env.ObjectType && !parents.Any())
                 ordered_parents.Add(ctx.Env.ObjectType.InstanceOf);
 
             this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,

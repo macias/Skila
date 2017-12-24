@@ -139,7 +139,8 @@ namespace Skila.Tests.Semantics
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), IntLiteral.Create("5"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p", NameReference.Create("Point"), Undef.Create()),
                     assignment,

@@ -14,7 +14,9 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPersistentReferenceType()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
                 GlobalVariables = true,
                 TypelessVariablesDuringTests = true
             });
@@ -30,7 +32,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     decl2,
                     ExpressionFactory.Readout("bar")
@@ -57,7 +60,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     decl,
                     ExpressionFactory.Readout("bar")
@@ -84,7 +88,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
@@ -113,7 +118,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
@@ -136,14 +142,16 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create( IntLiteral.Create("5")))
                 })));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement())
                 .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                     usageMode: ExpressionReadMode.CannotBeRead)));

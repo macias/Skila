@@ -17,6 +17,10 @@ namespace Skila.Language
         {
             return new Variadic(min, max);
         }
+        public static Variadic Create()
+        {
+            return Create(0, null);
+        }
 
         private readonly bool isSet;
         public int MinLimit { get; }
@@ -24,7 +28,10 @@ namespace Skila.Language
         private readonly int? maxLimit;
         public int MaxLimit => this.maxLimit ?? int.MaxValue;
 
-        public bool HasValidLimits { get { return MinLimit <= MaxLimit; } }
+        public bool HasValidLimits { get { return MinLimit <= MaxLimit && MinLimit>=0; } }
+
+        public bool HasUpperLimit => this.maxLimit.HasValue;
+        public bool HasLowerLimit => this.MinLimit > 0;
 
         private Variadic()
         {

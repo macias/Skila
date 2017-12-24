@@ -37,6 +37,13 @@ namespace Skila.Language.Builders
         {
             return new FunctionBuilder(NameDefinition.Create( name), null, callMode, result, body);
         }
+        public static FunctionBuilder Create(
+                   string name,
+                   INameReference result,
+                   Block body)
+        {
+            return new FunctionBuilder(NameDefinition.Create(name), null, ExpressionReadMode.ReadRequired, result, body);
+        }
         public static FunctionBuilder CreateDeclaration(
                        NameDefinition name,
                        ExpressionReadMode callMode,
@@ -50,6 +57,12 @@ namespace Skila.Language.Builders
                        INameReference result)
         {
             return CreateDeclaration(NameDefinition.Create(name),callMode,result);
+        }
+        public static FunctionBuilder CreateDeclaration(
+                       string name,
+                       INameReference result)
+        {
+            return CreateDeclaration(NameDefinition.Create(name), ExpressionReadMode.ReadRequired, result);
         }
         public static FunctionBuilder Create(
                    NameDefinition name,

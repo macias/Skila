@@ -15,8 +15,7 @@ namespace Skila.Language.Entities
     public abstract class TemplateDefinition : Node, IEntity, IEntityScope,ISurfable
     {
         private readonly HashSet<INode> ownedNodes;
-        private readonly Lazy<EntityInstance> instanceOf;
-        public EntityInstance InstanceOf => this.instanceOf.Value;
+        public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
 
         public NameDefinition Name { get; }
 
@@ -39,9 +38,7 @@ namespace Skila.Language.Entities
             .Concat(Modifier)
             .Where(it => it != null);
 
-        // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on
-        // the purpose -- to have just single instance per template+arguments
-        private readonly Dictionary<EntityInstanceSignature, EntityInstance> instancesCache;
+        private readonly EntityInstanceCache instancesCache;
 
         public bool IsComputed { get; protected set; }
         public EvaluationInfo Evaluation { get; protected set; }
@@ -54,7 +51,7 @@ namespace Skila.Language.Entities
         // that T has method "copy" itself, otherwise the method "Array.copy" is not available
         public IEnumerable<TemplateConstraint> Conditionals { get; }
 
-        public abstract IEnumerable<IEntity> AvailableEntities { get; }
+        public abstract IEnumerable<EntityInstance> AvailableEntities { get; }
 
         public bool IsSurfed { get; set; }
 
@@ -69,7 +66,6 @@ namespace Skila.Language.Entities
             this.Constraints = (constraints ?? Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
             this.ownedNodes = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
             this.Name = name;
-            this.instancesCache = new Dictionary<EntityInstanceSignature, EntityInstance>();
 
             {
                 var set = this.Constraints.ToHashSet();
@@ -85,7 +81,7 @@ namespace Skila.Language.Entities
                 this.Conditionals = set;
             }
 
-            this.instanceOf = new Lazy<EntityInstance>(() => this.GetInstanceOf(this.Name.Parameters.Select(it => it.InstanceOf), overrideMutability: false));
+            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf), overrideMutability: false, translation:null));
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
@@ -111,17 +107,9 @@ namespace Skila.Language.Entities
             return this.ownedNodes.Contains(elem);
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments,bool overrideMutability)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments,bool overrideMutability,TemplateTranslation translation)
         {
-            var signature = new EntityInstanceSignature(arguments, overrideMutability);
-
-            EntityInstance result;
-            if (!this.instancesCache.TryGetValue(signature, out result))
-            {
-                result = EntityInstance.RAW_CreateUnregistered(this, signature);
-                this.instancesCache.Add(signature, result);
-            }
-            return result;
+            return this.instancesCache.GetInstance(arguments, overrideMutability,translation);
         }
 
         public override string ToString()

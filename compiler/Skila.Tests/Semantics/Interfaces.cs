@@ -26,7 +26,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructor(typename,out cons_ref)),

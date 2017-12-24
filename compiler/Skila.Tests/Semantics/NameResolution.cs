@@ -42,7 +42,9 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Base)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Protected))
-                .With(FunctionBuilder.Create("foo", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("foo", ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement())));
 
             NameReference x_ref = NameReference.Create("x");
@@ -52,9 +54,13 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Next")
                 .Parents("Point")
                 .With(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null))
-                .With(FunctionBuilder.Create("bar", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("bar", ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement()))
-                .With(FunctionBuilder.Create("all", ExpressionReadMode.OptionalUse, NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("all", ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement(new IExpression[] {
                         ExpressionFactory.Readout(x_ref),
                         ExpressionFactory.Readout(y_ref),
@@ -81,7 +87,9 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(FunctionBuilder.Create("dummyReader",ExpressionReadMode.CannotBeRead,NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("dummyReader", ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement(new[] {
                         ExpressionFactory.Readout(NameFactory.ThisVariableName,"x")
                     })))
@@ -92,7 +100,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
                     Assignment.CreateStatement(private_ref,IntLiteral.Create("5")),
@@ -122,7 +131,8 @@ namespace Skila.Tests.Semantics
                 .Parents("Keeper")
                 .With(FunctionBuilder.Create(NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout(cross_reference),
                 })))
@@ -146,7 +156,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
                     Block.CreateStatement(new IExpression[]{
@@ -176,7 +187,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
                     Block.CreateStatement(new IExpression[]{
@@ -204,7 +216,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout( decl)
                 })));
@@ -227,7 +240,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foox"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
                     VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),
@@ -267,9 +281,9 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1"), 
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1"),
                 modifier: EntityModifier.Public));
-            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), 
+            var second_decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(),
                 IntLiteral.Create("2"), modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);

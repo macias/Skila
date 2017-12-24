@@ -78,7 +78,7 @@ namespace Skila.Language.Expressions
             if (this.Evaluation == null)
             {
                 IExpression last = this.Instructions.LastOrDefault();
-                this.Evaluation = last?.Evaluation ?? ctx.Env.VoidEvaluation;
+                this.Evaluation = last?.Evaluation ?? ctx.Env.UnitEvaluation;
             }
         }
 

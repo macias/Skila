@@ -99,7 +99,9 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter BasicInstanceMethodCall()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
                 GlobalVariables = true,
                 TypelessVariablesDuringTests = true
             });
@@ -156,7 +158,8 @@ namespace Skila.Tests.Semantics
             var call = FunctionCall.Create(NameReference.Create(NameReference.Create("y"), "foo"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("Foo")),
                         initValue: Undef.Create()),
@@ -321,7 +324,8 @@ namespace Skila.Tests.Semantics
             NameReference non_func_ref = NameReference.Create("i");
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
                     FunctionCall.Create(non_func_ref)
@@ -340,9 +344,9 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null, false, 
+            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null, false,
                 usageMode: ExpressionReadMode.CannotBeRead);
-            var param2 = FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.Create(0, null), null, 
+            var param2 = FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.Create(0, null), null,
                 isNameRequired: true, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
@@ -408,7 +412,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null, 
+            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(0, null), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 new[] { param1 },
@@ -436,7 +440,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(3, 5), null, 
+            var param1 = FunctionParameter.Create("x", NameFactory.IntTypeReference(), Variadic.Create(3, 5), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
@@ -475,10 +479,9 @@ namespace Skila.Tests.Semantics
             foreach (var arg in call1.Arguments.Concat(call2.Arguments).Concat(call3.Arguments).Concat(call4.Arguments))
                 Assert.AreEqual(param1, arg.MappedTo);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count());
-            Assert.IsTrue(resolver.ErrorManager.Errors.All(it => it.Code == ErrorCode.InvalidNumberVariadicArguments));
-            Assert.AreEqual(call1, resolver.ErrorManager.Errors[0].Node);
-            Assert.AreEqual(call4, resolver.ErrorManager.Errors[1].Node);
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call4));
 
             return resolver;
         }
@@ -496,7 +499,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     Return.Create(DoubleLiteral.Create("3.3")) }))
                 .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), usageMode: ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.None, IntLiteral.Create("3"), false, 
+                    FunctionParameter.Create("y", NameFactory.IntTypeReference(), Variadic.None, IntLiteral.Create("3"), false,
                         usageMode: ExpressionReadMode.CannotBeRead)));
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
@@ -535,7 +538,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
             Assert.AreEqual(env.IntType.InstanceOf, param_eval);
 
             return resolver;
@@ -558,7 +561,8 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new[] {
                     // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null, NameReference.Create("foo")),
@@ -574,8 +578,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
-            Assert.AreEqual(env.IntType.InstanceOf, param_eval);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            Assert.AreEqual(env.IntType, param_eval.Target());
 
             return resolver;
         }
@@ -601,7 +605,8 @@ namespace Skila.Tests.Semantics
                 FunctionArgument.Create(IntLiteral.Create("2")));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("f",
                         NameReference.Create("Foo", NameFactory.IntTypeReference()), initValue: Undef.Create()),
@@ -640,7 +645,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
             Assert.AreEqual(env.IntType.InstanceOf, param_eval);
 
             return resolver;
@@ -649,7 +654,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateDirectArgumentMapping()
         {
-            var env = Environment.Create(new Options() {  GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -668,7 +673,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
             Assert.AreEqual(env.IntType.InstanceOf, param_eval);
 
             return resolver;
@@ -694,7 +699,8 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new[] {
                     // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null,
@@ -711,8 +717,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArgIndex(0);
-            Assert.AreEqual(env.IntType.InstanceOf, param_eval);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            Assert.AreEqual(env.IntType, param_eval.Target());
 
             return resolver;
         }
@@ -736,7 +742,8 @@ namespace Skila.Tests.Semantics
             NameReference function_reference = NameReference.Create("foo");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+
                 Block.CreateStatement(new[] {
                     // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null, function_reference),
@@ -767,7 +774,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("result", NameReference.Create("R"), initValue: Undef.Create()),
                     Return.Create(NameReference.Create("result"))
                 }))
-                .Parameters(FunctionParameter.Create("q", NameReference.Create("T"), Variadic.None, null, false, 
+                .Parameters(FunctionParameter.Create("q", NameReference.Create("T"), Variadic.None, null, false,
                     usageMode: ExpressionReadMode.CannotBeRead)));
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo", NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference()),
@@ -798,7 +805,7 @@ namespace Skila.Tests.Semantics
                     defaultValue: IntLiteral.Create("1"), isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead)));
             var call = FunctionCall.Create(NameReference.Create("foo"));
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(),
-                call,EntityModifier.Public));
+                call, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 

@@ -21,16 +21,16 @@ namespace Skila.Tests
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
-            //  new Semantics.Flow().ErrorReadingIfWithoutElse();
+            //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().ProperMethodCallTypeInference();
-            //  new Semantics.FunctionDefinitions().ErrorUsingDisabledParameters();
-            //new Semantics.Inheritance().ErrorInvalidDirectionPassingEnums();
+            // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
+            //new Semantics.Inheritance().ErrorMissingPinnedDefinition();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-              //new Semantics.Properties().ErrorGetterOverridesNothing();
+            //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
             //new Semantics.Types().ErrorInstanceMemberReference();
@@ -39,17 +39,17 @@ namespace Skila.Tests
             //  new Execution.Closures().ResultTypeInference();
             //  new Execution.Collections().ChunkOnHeap();
             //new Execution.Concurrency().SingleMessage();
-            //  new Execution.FunctionCalls().ReturningUnit();
+            new Execution.FunctionCalls().NoLimitsVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
-            //new Execution.Interfaces().TODO_InheritingEnums();
+            //new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
-            new Execution.Properties().OverridingMethodWithIndexerGetter();
+            // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
 
             {
                 double start = Stopwatch.GetTimestamp();
-                runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
+               runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
                 Console.WriteLine($"Semantics time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
             }

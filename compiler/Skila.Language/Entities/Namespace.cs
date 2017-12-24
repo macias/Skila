@@ -10,7 +10,7 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Namespace : TypeContainerDefinition
     {
-        public override IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+        public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
 
         public static Namespace Create(NameDefinition name)
         {

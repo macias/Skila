@@ -22,7 +22,7 @@
         ReferenceNotFound = 18,
         MiddleElseBranch = 19,
         ReturnOutsideFunction = 20,
-        PassingVoidValue = 21,
+        ConverterDeclaredWithIgnoredOutput = 21,
         LoopControlOutsideLoop = 22,
         NameAlreadyExists = 23,
         CircularReference = 24,
@@ -54,7 +54,7 @@
         CannotSpawnWithMutableArgument = 50,
         CannotSpawnOnMutableContext = 51,
         MissingDerivedModifier = 52,
-        MissingFunctionImplementation = 53,
+        AbstractFunctionMissingImplementation = 53,
         NonAbstractTypeWithAbstractMethod = 54,
         SealedTypeWithBaseMethod = 55,
         CannotDeriveSealedMethod = 56,
@@ -82,5 +82,8 @@
         DereferencingValue = 78,
         StaticMemberAccessInInstanceContext = 79,
         EmptyReturn = 80,
+        PinnedFunctionMissingImplementation = 81,
+        ConverterWithParameters = 82,
+        ConverterNotPinned = 83,
     }
 }

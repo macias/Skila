@@ -144,7 +144,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 3277)
+            if (this.DebugId.Id == 4841 || this.DebugId.Id ==4829)
             {
                 ;
             }
@@ -169,7 +169,7 @@ namespace Skila.Language
             else
             {
                 ErrorCode errorCode = ErrorCode.ReferenceNotFound;
-                IEnumerable<IEntity> entities = computeBinding(ctx, ref errorCode);
+                IEnumerable<EntityInstance> entities = computeBinding(ctx, ref errorCode);
 
                 this.Binding.Set(entities
                     .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
@@ -205,40 +205,41 @@ namespace Skila.Language
             this.Evaluation = new EvaluationInfo(eval, aggregate);
         }
 
-        private IEnumerable<IEntity> computeBinding(ComputationContext ctx,
+        private IEnumerable<EntityInstance> computeBinding(ComputationContext ctx,
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id ==  3316)
+            if (this.DebugId.Id ==  4786)
             {
                 ;
             }
+
             if (this.IsRoot)
             {
-                return new[] { ctx.Env.Root };
+                return new[] { ctx.Env.Root.InstanceOf };
             }
             else if (this.Prefix == null)
             {
                 if (this.Name == NameFactory.SelfFunctionName)
-                    return new[] { this.EnclosingScope<FunctionDefinition>() };
+                    return new[] { this.EnclosingScope<FunctionDefinition>().InstanceOf };
                 else if (this.Name == NameFactory.ItTypeName)
                 {
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { enclosing_type };
+                    return new[] { enclosing_type.InstanceOf };
                 }
                 else if (this.Name == NameFactory.BaseVariableName)
                 {
                     TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { curr_type.Inheritance.GetTypeImplementationParent().Target };
+                    return new[] { curr_type.Inheritance.GetTypeImplementationParent() };
                 }
                 else if (this.IsSuperReference)
                 {
                     FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                     func = func.TryGetSuperFunction(ctx);
                     if (func == null)
-                        return Enumerable.Empty<IEntity>();
+                        return Enumerable.Empty<EntityInstance>();
                     else
-                        return new[] { func };
+                        return new[] { func.InstanceOf };
                 }
                 else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
                 {
@@ -250,11 +251,11 @@ namespace Skila.Language
                         entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
                     }
 
-                    return new[] { entity };
+                    return new[] { entity.InstanceOf };
                 }
                 else
                 {
-                    IEnumerable<IEntity> entities = Enumerable.Empty<IEntity>();
+                    IEnumerable<EntityInstance> entities = Enumerable.Empty<EntityInstance>();
                     foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
                     {
                         entities = scope.FindEntities(this, EntityFindMode.ScopeLimited);
@@ -269,16 +270,14 @@ namespace Skila.Language
                                     if (enclosing_function.Modifier.HasStatic)
                                     {
                                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
-                                        entities = filterTargetEntities(entities, it => !(it is IMember) || it.Modifier.HasStatic);
+                                        entities = filterTargetEntities(entities, it => !(it.Target is IMember) || it.Target.Modifier.HasStatic);
                                     }
                                     else
                                     {
                                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
                                         entities = filterTargetEntities(entities, it =>
-                                             //                                            !(it is IMember)
-                                             //||
                                              !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                                             || !it.Modifier.HasStatic);
+                                             || !it.Target.Modifier.HasStatic);
                                     }
                                 }
 
@@ -308,18 +307,18 @@ namespace Skila.Language
                     && prefix_ref.Binding.Match.Target.IsType())
                 {
                     TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                    IEnumerable<IEntity> entities = target_type.FindEntities(this, find_mode);
+                    IEnumerable<EntityInstance> entities = target_type.FindEntities(this, find_mode);
 
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
 
-                    entities = filterTargetEntities(entities,it => it.Modifier.HasStatic);
+                    entities = filterTargetEntities(entities,it => it.Target.Modifier.HasStatic);
 
                     return entities;
                 }
                 else
                 {
-                    if (this.DebugId.Id == 3277)
+                    if (this.DebugId.Id == 3114)
                     {
                         ;
                     }
@@ -327,12 +326,12 @@ namespace Skila.Language
                     bool dereferenced = false;
                     TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
                         .TargetTemplate;
-                    IEnumerable<IEntity> entities = prefix_target.FindEntities(this, find_mode);
+                    IEnumerable<EntityInstance> entities = prefix_target.FindEntities(this, find_mode);
 
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    entities = filterTargetEntities(entities,it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Modifier.HasStatic);
+                    entities = filterTargetEntities(entities,it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Target.Modifier.HasStatic);
 
                     if (this.Prefix.DebugId.Id == 2572)
                     {
@@ -351,30 +350,30 @@ namespace Skila.Language
 
         // this function tries to minimize number of errors -- in case we cannot resolve a name
         // because of the filter, we set potential target as used, otherwise we would get both errors (not found + not used)
-        private IEnumerable<IEntity> filterTargetEntities(IEnumerable<IEntity> entities, Func<IEntity, bool> pred)
+        private IEnumerable<EntityInstance> filterTargetEntities(IEnumerable<EntityInstance> entities, Func<EntityInstance, bool> pred)
         {
-            IEntity entity = entities.FirstOrDefault();
+            EntityInstance entity = entities.FirstOrDefault();
             entities = entities.Where(pred);
             if (entity != null && !entities.Any())
                 trySetTargetUsage(entity);
 
             return entities;
         }
-
-        private void trySetTargetUsage(IEntity target)
+      
+        private void trySetTargetUsage(EntityInstance entityInstance)
         {
             if ((this.Owner as Assignment)?.Lhs != this)
             {
                 FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
                 // zero constructor is built automatically so any usage inside does not count
                 if ((enclosing_func == null || !enclosing_func.IsZeroConstructor())
-                    && target is IMember member)
+                    && entityInstance.Target is IMember member)
                     member.SetIsMemberUsed();
             }
         }
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 3044)
+            if (this.DebugId.Id == 4841)
             {
                 ;
             }
@@ -430,15 +429,7 @@ namespace Skila.Language
                 }
             }
 
-            trySetTargetUsage(this.Binding.Match.Target);
-            /*    if ((this.Owner as Assignment)?.Lhs != this)
-                {
-                    FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
-                    // zero constructor is built automatically so any usage inside does not count
-                    if ((enclosing_func == null || !enclosing_func.IsZeroConstructor())
-                        && this.Binding.Match.Target is IMember member)
-                        member.SetIsMemberUsed();
-                }*/
+            trySetTargetUsage(this.Binding.Match);
 
             if (this.IsSuperReference && this.EnclosingScope<FunctionDefinition>().Modifier.HasUnchainBase)
                 ctx.AddError(ErrorCode.SuperCallWithUnchainedBase, this);
@@ -473,7 +464,7 @@ namespace Skila.Language
                 {
                     FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    if (enclosing_type != null && enclosing_type.AvailableEntities.Contains(member)
+                    if (enclosing_type != null && enclosing_type.AvailableEntities.Select(it => it.Target).Contains(member)
                          // in lambdas do not require fully qualified name because user sees it a function
                          // not a method inside closure type
                          && (enclosing_func == null || !enclosing_func.IsLambdaInvoker))

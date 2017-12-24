@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions
             Indexer,
             Regular
         }
-        public static FunctionCall Indexer(IExpression name, params FunctionArgument[] arguments)
+        public static FunctionCall Indexer(IExpression expr, params FunctionArgument[] arguments)
         {
             // we create indexer-getters for all cases initially, then we have to only check assignments LHS
             // and convert only those to indexer-setters
@@ -29,10 +29,18 @@ namespace Skila.Language.Expressions
                 // we would have:
                 // my_obj.idx.idxGet(5)
                 // the latter approach seems cleaner but requires more handling in code
-                NameReference.Create(name, NameFactory.PropertyGetter),
+                NameReference.Create(expr, NameFactory.PropertyGetter),
                 // NameReference.Create(NameReference.Create(name, NameFactory.PropertyIndexerName), NameFactory.PropertyGetter),
                 arguments,
                 requestedOutcomeType: null);
+        }
+        public static FunctionCall Create(IExpression name)
+        {
+            return Create(name, Enumerable.Empty<FunctionArgument>().ToArray());
+        }
+        public static FunctionCall Create(IExpression name, params IExpression[] arguments)
+        {
+            return Create(name,arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static FunctionCall Create(IExpression name, params FunctionArgument[] arguments)
         {
@@ -149,7 +157,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 155)
+                if (this.DebugId.Id ==  3688)
                 {
                     ;
                 }
@@ -192,7 +200,7 @@ namespace Skila.Language.Expressions
                 {
                     IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
-                            createCallContext(ctx, this.Name, it.Target), targetInstance: it))
+                            createCallContext(ctx, this.Name, it.Target), targetFunctionInstance: it))
                         .Where(it => it != null)
                         .StoreReadOnly();
                     targets = targets.Where(it => it.AllArgumentsMapped()).StoreReadOnly();
@@ -220,7 +228,7 @@ namespace Skila.Language.Expressions
                                 targets.Select(it => it.TargetFunctionInstance.Target));
                         }
 
-                        this.Resolution.SetMappings();
+                        this.Resolution.SetMappings(ctx);
 
                         if (targets.Count() == 1)
                         {
@@ -246,6 +254,9 @@ namespace Skila.Language.Expressions
                             this.Callee.Evaluated(ctx);
 
                             this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
+
+                            if (!this.Name.Binding.HasMatch)
+                                throw new Exception("We've just lost our binding, probably something wrong with template translations");
                         }
 
                         if (this.DebugId.Id == 228)
@@ -324,7 +335,7 @@ namespace Skila.Language.Expressions
                             weight += 2;
 
                         // prefer exact match instead more general match (Int->Int is better than Int->Object)
-                        IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArgIndex(arg.Index);
+                        IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArg(arg);
                         TypeMatch m = call_target.TypeMatches[arg.Index].Value;
                         if (m.HasFlag(TypeMatch.Substitute))
                             weight += 4;

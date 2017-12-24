@@ -14,7 +14,8 @@ namespace Skila.Language
 #endif
 
         public bool IsComputed { get; private set; }
-        public IReadOnlyCollection<EntityInstance> Matches { get; private set; }
+        private IReadOnlyCollection<EntityInstance> matches;
+        public IReadOnlyCollection<EntityInstance> Matches => this.matches;
         public bool HasMatch => this.Matches.Count > 0;
 
         public EntityInstance Match
@@ -32,7 +33,11 @@ namespace Skila.Language
         }
         public void Set(IEnumerable<EntityInstance> matches)
         {
-            this.Matches = matches.StoreReadOnly();
+            if (this.debugId.Id ==        4842)
+            {
+                ;
+            }
+            this.matches = matches.StoreReadOnly();
             if (this.Matches.Any(it => it.IsJoker))
                 throw new ArgumentException("Cannot pass joker for binding.");
             if (this.IsComputed)
@@ -46,11 +51,11 @@ namespace Skila.Language
         }
         public void Filter(Func<EntityInstance, bool> matching)
         {
-            if (this.debugId.Id == 2462)
+            if (this.debugId.Id == 4842)
             {
                 ;
             }
-            this.Matches = this.Matches.Where(matching).ToArray();
+            this.matches = this.Matches.Where(matching).ToArray();
         }
         public override string ToString()
         {

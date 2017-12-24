@@ -6,7 +6,7 @@ namespace Skila.Interpreter.Channels
     interface IChannel<T>
     {
         void Close();
-        Option<T> Receive();
-        bool Send(T value);
+        Task<Option<T>> ReceiveAsync();
+        Task<bool> SendAsync(T value);
     }
 }

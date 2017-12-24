@@ -10,13 +10,13 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class PropertyBuilder : IBuilder<Property>
     {
-        public static PropertyBuilder Create(string name, NameReference typename,EntityModifier modifier = null)
+        public static PropertyBuilder Create(string name, NameReference typename, EntityModifier modifier = null)
         {
-            return new PropertyBuilder(name, typename,modifier);
+            return new PropertyBuilder(name, typename, modifier);
         }
-        public static PropertyBuilder CreateIndexer(NameReference typename,EntityModifier modifier = null)
+        public static PropertyBuilder CreateIndexer(NameReference valueTypeName, EntityModifier modifier = null)
         {
-            return new PropertyBuilder(null, typename,modifier);
+            return new PropertyBuilder(null, valueTypeName, modifier);
         }
 
         private readonly List<VariableDeclaration> fields;
@@ -24,14 +24,14 @@ namespace Skila.Language.Builders
         private readonly List<FunctionDefinition> setters;
         private Property build;
         private readonly string name;
-        public NameReference Typename { get; }
+        public NameReference ValueTypeName { get; }
         private readonly EntityModifier modifier;
         public IEnumerable<FunctionParameter> Params { get; private set; }
 
-        private PropertyBuilder(string name, NameReference typename,EntityModifier modifier)
+        private PropertyBuilder(string name, NameReference valueTypeName, EntityModifier modifier)
         {
             this.name = name;
-            this.Typename = typename;
+            this.ValueTypeName = valueTypeName;
             this.modifier = modifier;
 
             this.fields = new List<VariableDeclaration>();
@@ -44,9 +44,9 @@ namespace Skila.Language.Builders
             if (build == null)
             {
                 if (this.name == null)
-                    build = Property.CreateIndexer(this.Typename, fields, getters, setters,modifier);
+                    build = Property.CreateIndexer(this.ValueTypeName, fields, getters, setters, modifier);
                 else
-                    build = Property.Create(this.name, this.Typename, fields, getters, setters,modifier);
+                    build = Property.Create(this.name, this.ValueTypeName, fields, getters, setters, modifier);
             }
 
             return build;
@@ -89,7 +89,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.fields.Add(Property.CreateAutoField(this.Typename, initValue, modifier));
+            this.fields.Add(Property.CreateAutoField(this.ValueTypeName, initValue, modifier));
 
             return this;
         }
@@ -99,7 +99,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.getters.Add(Property.CreateAutoGetter(this.Typename));
+            this.getters.Add(Property.CreateAutoGetter(this.ValueTypeName));
 
             return this;
         }
@@ -109,7 +109,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            this.setters.Add(Property.CreateAutoSetter(this.Typename));
+            this.setters.Add(Property.CreateAutoSetter(this.ValueTypeName));
 
             return this;
         }

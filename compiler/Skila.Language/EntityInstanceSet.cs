@@ -88,12 +88,12 @@ namespace Skila.Language
                 return this;
         }
 
-        public ConstraintMatch ArgumentMatchesConstraintsOf(ComputationContext ctx, EntityInstance verifiedInstance,
+        public ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance verifiedInstance,
             TemplateParameter param)
         {
             foreach (IEntityInstance arg in this.Instances)
             {
-                ConstraintMatch match = arg.ArgumentMatchesConstraintsOf(ctx, verifiedInstance, param);
+                ConstraintMatch match = arg.ArgumentMatchesParameterConstraints(ctx, verifiedInstance, param);
                 if (match != ConstraintMatch.Yes)
                     return match;
             }

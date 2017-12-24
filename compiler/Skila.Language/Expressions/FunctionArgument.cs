@@ -50,7 +50,8 @@ namespace Skila.Language.Expressions
 
         private readonly List<TypeDefinition> closures;
 
-        public FunctionParameter MappedTo { get; set; }
+        internal bool IsSpread => this.Expression is Spread;
+        public FunctionParameter MappedTo { get; private set; }
         public ExpressionReadMode ReadMode => Expression.ReadMode;
 
         private FunctionArgument(string nameLabel, IExpression expression)
@@ -62,6 +63,14 @@ namespace Skila.Language.Expressions
             this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+        }
+
+        internal void SetTargetParam(ComputationContext ctx, FunctionParameter param)
+        {
+            this.MappedTo = param;
+
+            if (param.IsVariadic && this.IsSpread)
+                this.Expression.Cast<Spread>().Setup(ctx,param.Variadic);
         }
         public bool IsLValue(ComputationContext ctx)
         {

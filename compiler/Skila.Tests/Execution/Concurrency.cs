@@ -70,7 +70,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("sender"),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),                
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(IntLiteral.Create("2")))),

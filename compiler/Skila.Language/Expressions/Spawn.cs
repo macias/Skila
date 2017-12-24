@@ -41,7 +41,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidEvaluation;
+                this.Evaluation = ctx.Env.UnitEvaluation;
 
                 foreach (FunctionArgument arg in this.Call.Arguments)
                     if (!arg.Evaluation.Components.IsImmutableType(ctx))

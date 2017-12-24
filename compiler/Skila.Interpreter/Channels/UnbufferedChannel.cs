@@ -1,37 +1,32 @@
 ﻿using System;
 using NaiveLanguageTools.Common;
 using System.Threading;
+using Skila.Interpreter.Async;
+using System.Threading.Tasks;
 
 namespace Skila.Interpreter.Channels
 {
-    sealed class UnbufferedChannel<T> : IDisposable, IChannel<T>
+    sealed class UnbufferedChannel<T> : IChannel<T>
     {
         private readonly object threadLock = new object();
 
         bool isClosed;
         bool hasValue;
         T value;
-        private readonly AutoResetEvent beforeWriteGuard;
-        private readonly AutoResetEvent afterWriteGuard;
-        private readonly AutoResetEvent readGuard;
+        private readonly AsyncAutoResetEvent beforeWriteGuard;
+        private readonly AsyncAutoResetEvent afterWriteGuard;
+        private readonly AsyncAutoResetEvent readGuard;
 
         public UnbufferedChannel()
         {
-            this.beforeWriteGuard = new AutoResetEvent(true);
-            this.afterWriteGuard = new AutoResetEvent(false);
-            this.readGuard = new AutoResetEvent(false);
+            this.beforeWriteGuard = new AsyncAutoResetEvent(true);
+            this.afterWriteGuard = new AsyncAutoResetEvent(false);
+            this.readGuard = new AsyncAutoResetEvent(false);
         }
 
-        public void Dispose()
+        public async Task<bool> SendAsync(T value)
         {
-            this.beforeWriteGuard.Dispose();
-            this.afterWriteGuard.Dispose();
-            this.readGuard.Dispose();
-        }
-
-        public bool Send(T value)
-        {
-            this.beforeWriteGuard.WaitOne();
+           await this.beforeWriteGuard.WaitOneAsync().ConfigureAwait(false);
 
             lock (this.threadLock)
             {
@@ -46,17 +41,17 @@ namespace Skila.Interpreter.Channels
             }
 
             this.readGuard.Set();
-            this.afterWriteGuard.WaitOne();
+            await this.afterWriteGuard.WaitOneAsync().ConfigureAwait(false);
             this.beforeWriteGuard.Set();
 
             return true;
         }
 
-        public Option<T> Receive()
+        public async Task<Option<T>> ReceiveAsync()
         {
             Option<T> result;
 
-            this.readGuard.WaitOne();
+            await this.readGuard.WaitOneAsync().ConfigureAwait(false);
             lock (this.threadLock)
             {
                 if (this.isClosed && !this.hasValue)

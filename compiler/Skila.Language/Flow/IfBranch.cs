@@ -27,7 +27,7 @@ namespace Skila.Language.Flow
         private bool? isRead;
         public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
 
-        public ExpressionReadMode ReadMode { get; }
+        public ExpressionReadMode ReadMode { get; private set; }
         public bool IsElse => this.Condition == null;
         private IExpression condition;
         public IExpression Condition => this.condition;
@@ -79,42 +79,17 @@ namespace Skila.Language.Flow
             if (this.Evaluation == null)
             {
                 if (ReadMode == ExpressionReadMode.CannotBeRead)
-                    this.Evaluation = ctx.Env.VoidEvaluation;
+                    this.Evaluation = ctx.Env.UnitEvaluation;
                 else
                 {
                     IEntityInstance eval = this.Body.Evaluation.Components;
                     IEntityInstance aggregate = this.Body.Evaluation.Aggregate;
 
-                    if (Next != null)
+                    if (Next != null && !computeLowestCommonAncestor(ctx, ref eval, ref aggregate))
                     {
-                        if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
-                        {
-                            eval = ctx.Env.VoidType.InstanceOf;
-                            aggregate = ctx.Env.VoidType.InstanceOf;
-                        }
-                        else if (!TypeMatcher.LowestCommonAncestor(ctx, aggregate, Next.Evaluation.Aggregate, out aggregate))
-                        {
-                            eval = ctx.Env.VoidType.InstanceOf;
-                            aggregate = ctx.Env.VoidType.InstanceOf;
-                        }
-                        else
-                        {
-                            foreach (IEvaluable part in new IEvaluable[] { Body, Next })
-                            {
-                                if (part.Evaluation.Components.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
-                                {
-                                    eval = ctx.Env.VoidType.InstanceOf;
-                                    aggregate = ctx.Env.VoidType.InstanceOf;
-                                    break;
-                                }
-                                if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, allowSlicing: false) == TypeMatch.No)
-                                {
-                                    eval = ctx.Env.VoidType.InstanceOf;
-                                    aggregate = ctx.Env.VoidType.InstanceOf;
-                                    break;
-                                }
-                            }
-                        }
+                        eval = ctx.Env.UnitType.InstanceOf;
+                        aggregate = ctx.Env.UnitType.InstanceOf;
+                        ReadMode = ExpressionReadMode.CannotBeRead;
                     }
 
                     this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>());
@@ -125,6 +100,35 @@ namespace Skila.Language.Flow
                 if (Next != null && this.IsElse)
                     ctx.ErrorManager.AddError(ErrorCode.MiddleElseBranch, this);
             }
+        }
+
+        private bool computeLowestCommonAncestor(ComputationContext ctx, ref IEntityInstance eval, ref IEntityInstance aggregate)
+        {
+            if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
+            {
+                return false;
+            }
+            else if (!TypeMatcher.LowestCommonAncestor(ctx, aggregate, Next.Evaluation.Aggregate, out aggregate))
+            {
+                return false;
+            }
+            else
+            {
+                foreach (IEvaluable part in new IEvaluable[] { Body, Next })
+                {
+                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
+                    {
+                        return false;
+                    }
+                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, allowSlicing: false) == TypeMatch.No)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+
+            return true;
         }
 
         public bool IsLValue(ComputationContext ctx)

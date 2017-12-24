@@ -13,7 +13,7 @@ namespace Skila.Language.Extensions
         {
             foreach (IMember member in @this.NestedMembers())
                 if (!member.Modifier.HasNative
-                    && member.Modifier.HasPrivate 
+                    && member.Modifier.HasPrivate
                     && !member.Modifier.IsVirtual  // in NVI pattern private is used externally
                     && !member.IsMemberUsed)
                     ctx.AddError(ErrorCode.BindableNotUsed, member);
@@ -22,14 +22,20 @@ namespace Skila.Language.Extensions
         {
             return scope.OwnedNodes.WhereType<IEntity>();
         }
+
+        public static IEnumerable<EntityInstance> NestedEntityInstances(this IEntityScope scope)
+        {
+            return scope.OwnedNodes.WhereType<IEntity>().Select(it => it.InstanceOf);
+        }
         public static IEnumerable<IEntity> NestedMembers(this IEntityScope scope)
         {
             return scope.OwnedNodes.WhereType<IMember>();
         }
 
-        public static IEnumerable<IEntity> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
+        public static IEnumerable<EntityInstance> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
         {
-            IEnumerable<IEntity> entities = scope.AvailableEntities ?? scope.NestedEntities();
+            IEnumerable<EntityInstance> entities = scope.AvailableEntities ?? scope.NestedEntityInstances();
+
             if (scope is TypeDefinition typedef)
             {
                 if (findMode == EntityFindMode.WithCurrentProperty)
@@ -43,29 +49,36 @@ namespace Skila.Language.Extensions
                 }
                 else if (findMode == EntityFindMode.AvailableIndexersOnly)
                 {
-                    entities = entities.WhereType<Property>(it => it.IsIndexer).SelectMany(prop => prop.AvailableEntities);
+                    entities = entities.Select(it => it.Target).WhereType<Property>(it => it.IsIndexer)
+                        .SelectMany(prop => prop.AvailableEntities);
                 }
             }
 
-            foreach (IEntity entity in entities)
+            var result = new List<EntityInstance>();
+
+            foreach (EntityInstance entity_instance in entities)
             {
+                IEntity entity = entity_instance.Target;
+
                 if (name.Arity > 0)
                 {
                     if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
-                        yield return entity;
+                        result.Add(entity_instance);
                 }
                 // coalesce to true, so if we don't have template at all (like simple variable def) then use bare comparison too
                 else if ((entity as TemplateDefinition)?.IsFunction() ?? true)
                 {
                     if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
-                        yield return entity;
+                        result.Add(entity_instance);
                 }
                 else
                 {
                     if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
-                        yield return entity;
+                        result.Add(entity_instance);
                 }
             }
+
+            return result;
         }
     }
 }

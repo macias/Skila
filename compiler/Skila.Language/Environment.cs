@@ -21,7 +21,6 @@ namespace Skila.Language
         public IReadOnlyList<TypeDefinition> FunctionTypes => this.functionTypes;
         public TypeDefinition ReferenceType { get; }
         public TypeDefinition PointerType { get; }
-        public TypeDefinition VoidType { get; }
         public TypeDefinition UnitType { get; }
         public TypeDefinition BoolType { get; }
         public TypeDefinition ExceptionType { get; }
@@ -36,6 +35,8 @@ namespace Skila.Language
         public TypeDefinition IntType { get; }
         //public TypeDefinition EnumType { get; }
         public TypeDefinition StringType { get; }
+        public TypeDefinition OrderingType { get; }
+        public TypeDefinition ComparableType { get; }
         public TypeDefinition DoubleType { get; }
         public TypeDefinition ObjectType { get; }
 
@@ -48,7 +49,7 @@ namespace Skila.Language
         public FunctionDefinition OptionValueConstructor { get; }
         public FunctionDefinition OptionEmptyConstructor { get; }
 
-        public EvaluationInfo VoidEvaluation { get; }
+        public EvaluationInfo UnitEvaluation { get; }
 
         public IOptions Options { get; }
         private Environment(IOptions options)
@@ -97,11 +98,13 @@ namespace Skila.Language
             // spread functions family
             {
                 // no limits
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result",
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"), ExpressionReadMode.CannotBeRead) },
+                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T")),
+                        ExpressionReadMode.CannotBeRead) },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ISequenceTypeReference("T"),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                    Block.CreateStatement(new IExpression[] {
                        decl,
                        Return.Create(NameReference.Create("result"))
@@ -109,14 +112,16 @@ namespace Skila.Language
             }
             {
                 // with min limit
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result",
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"),ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T")),
+                            ExpressionReadMode.CannotBeRead),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
                    },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ISequenceTypeReference("T"),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                    Block.CreateStatement(new IExpression[] {
                        decl,
                        Return.Create(NameReference.Create("result"))
@@ -124,15 +129,17 @@ namespace Skila.Language
             }
             {
                 // with min+max limit
-                var decl = VariableDeclaration.CreateStatement("result", NameFactory.ISequenceTypeReference("T"), Undef.Create());
+                var decl = VariableDeclaration.CreateStatement("result",
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")), Undef.Create());
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
-                        FunctionParameter.Create("coll", NameFactory.IIterableTypeReference("T"),ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T")),
+                            ExpressionReadMode.CannotBeRead),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
                         FunctionParameter.Create("max", NameFactory.IntTypeReference(),ExpressionReadMode.CannotBeRead),
                     },
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.ISequenceTypeReference("T"),
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                     Block.CreateStatement(new IExpression[] {
                         decl,
                         Return.Create(NameReference.Create("result"))
@@ -141,31 +148,35 @@ namespace Skila.Language
             }
 
             this.IIterableType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, "T", VarianceMode.Out))
-                    .Parents(NameFactory.ObjectTypeReference()));
+                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, "ITT", VarianceMode.Out))
+                    .Parents(NameFactory.ObjectTypeReference())
+                    .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired,
+                        NameFactory.ReferenceTypeReference(NameReference.Create("ITT")))  
+                        .Parameters(FunctionParameter.Create("index", NameFactory.IntTypeReference()))));
+
             this.ISequenceType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "T", VarianceMode.Out))
-                    .Parents(NameFactory.IIterableTypeReference("T")));
+                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "SQT", VarianceMode.Out))
+                    .Parents(NameFactory.IIterableTypeReference("SQT"))); 
 
             // todo: in this form this type is broken, size is runtime info, yet we allow the assignment on the stack
             // however it is not yet decided what we will do, maybe this type will be used only internally, 
             // maybe we will introduce two kinds of it, etc.
             this.ChunkType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "T", VarianceMode.Out))
+                TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "CHT", VarianceMode.Out))
                     .Modifier(EntityModifier.Mutable)
-                    .Parents(NameFactory.ISequenceTypeReference("T"))
+                    .Parents(NameFactory.ISequenceTypeReference("CHT"))
                     .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
-                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(), 
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(),
                                 ExpressionReadMode.CannotBeRead)
                         },
                         Block.CreateStatement()))
-                    .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("T"))
+                    .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("CHT"))
                         .Parameters(FunctionParameter.Create(NameFactory.ChunkIndexIndexerParameter, NameFactory.IntTypeReference(),
                             ExpressionReadMode.CannotBeRead))
                         .With(PropertyMemberBuilder.CreateIndexerSetter()
                             .Modifier(EntityModifier.Native))
                         .With(PropertyMemberBuilder.CreateIndexerGetter()
-                            .Modifier(EntityModifier.Native))));
+                            .Modifier(EntityModifier.Native | EntityModifier.Refines))));
 
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(
@@ -186,9 +197,6 @@ namespace Skila.Language
 
             this.functionTypes = new List<TypeDefinition>();
 
-            this.VoidType = Root.AddBuilder(TypeBuilder.Create(NameFactory.VoidTypeName)
-                .Modifier(EntityModifier.Native));
-
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
@@ -208,8 +216,10 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
                 .Parents(NameFactory.ObjectTypeReference()));
 
+            this.UnitEvaluation = new EvaluationInfo(this.UnitType.InstanceOf);
+
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
-            this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "T", VarianceMode.Out))
+            this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "RFT", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
@@ -218,7 +228,7 @@ namespace Skila.Language
               this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
                   new[] { FunctionParameter.Create("value", NameFactory.PointerTypeReference(NameReference.Create("T")), Variadic.None, null, isNameRequired: false) },
                   Block.CreateStatement(new IExpression[] { })));*/
-            this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "T", VarianceMode.Out))
+            this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "PTT", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
                 .Slicing(true));
 
@@ -230,6 +240,12 @@ namespace Skila.Language
                 .Modifier(EntityModifier.HeapOnly)
                 //.Slicing(true)
                 .Parents(NameFactory.ObjectTypeReference()));
+
+            this.OrderingType = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.OrderingTypeName)
+                .With(EnumCaseBuilder.Create(NameFactory.OrderingLess, NameFactory.OrderingEqual, NameFactory.OrderingGreater)));
+
+            this.ComparableType = createComparableType();
+
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
 
@@ -247,8 +263,6 @@ namespace Skila.Language
             foreach (int param_count in Enumerable.Range(0, 15))
                 this.functionTypes.Add(createFunction(Root, param_count));
             this.functionTypes.ForEach(it => Root.AddNode(it));
-
-            this.VoidEvaluation = new EvaluationInfo(this.VoidType.InstanceOf);
         }
 
         private static TypeDefinition createChannelType()
@@ -330,6 +344,64 @@ namespace Skila.Language
                             .Build();
         }
 
+        private static TypeDefinition createComparableType()
+        {
+
+            /*
+             *   interface Comparable refines Equatable
+    def compare(cmp Self) Ordering;
+
+    final refines def ==(cmp Self) Bool => this.compare(cmp)==Ordering.equal;
+
+    def <(cmp Self) Bool => this.compare(cmp)==Ordering.less;
+    def <=(cmp Self) Bool => this.compare(cmp) != Ordering.greater;
+    def >(cmp Self) Bool => this.compare(cmp)==Ordering.greater;
+    def >=(cmp Self) Bool => this.compare(cmp) != Ordering.less;
+
+    def min(cmp `Self) `Self => this<cmp ? this : cmp;
+    def max(cmp `Self) `Self => this>cmp ? this : cmp;
+  end
+
+             */
+            var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Equal(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                        NameReference.Create("cmp")), NameFactory.OrderingEqualReference()))))
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+
+            var gt = FunctionBuilder.Create(NameFactory.GreaterOperator, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Equal(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                        NameReference.Create("cmp")), NameFactory.OrderingGreaterReference()))))
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+            var lt = FunctionBuilder.Create(NameFactory.LessOperator, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Equal(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                        NameReference.Create("cmp")), NameFactory.OrderingLessReference()))))
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+            var ge = FunctionBuilder.Create(NameFactory.GreaterEqualOperator, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.NotEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                        NameReference.Create("cmp")), NameFactory.OrderingLessReference()))))
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+            var le = FunctionBuilder.Create(NameFactory.LessEqualOperator, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.NotEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                        NameReference.Create("cmp")), NameFactory.OrderingGreaterReference()))))
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+
+            return TypeBuilder.CreateInterface(NameFactory.ComparableTypeName)
+                .Parents(NameFactory.EquatableTypeReference())
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.ComparableCompare, NameFactory.OrderingTypeReference()))
+                .WithEquatableEquals()
+                .With(eq)
+                .With(gt)
+                .With(lt)
+                .With(ge)
+                .With(le);
+
+        }
+
         private TypeDefinition createFunction(Namespace root, int paramCount)
         {
             var type_parameters = TemplateParametersBuffer.Create();
@@ -361,16 +433,6 @@ namespace Skila.Language
             return functionTypes.Any(it => it == instance.Target);
         }
 
-        internal bool IsOfVoidType(INameReference typeName)
-        {
-            return typeName != null && IsVoidType(typeName.Evaluation.Components);//.IsSame(this.VoidType.InstanceOf, jokerMatchesAll: false);
-        }
-
-        public bool IsVoidType(IEntityInstance typeInstance)
-        {
-            //            return VoidType.InstanceOf.MatchesTarget(typeInstance, allowSlicing: false);
-            return VoidType.InstanceOf.IsSame(typeInstance, jokerMatchesAll: false);
-        }
         public bool IsUnitType(IEntityInstance typeInstance)
         {
             return typeInstance.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);

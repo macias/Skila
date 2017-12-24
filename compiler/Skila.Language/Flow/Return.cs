@@ -58,7 +58,7 @@ namespace Skila.Language.Flow
                     if (func.IsResultTypeNameInfered)
                     {
                         if (this.Value == null)
-                            func.AddResultTypeCandidate(ctx.Env.VoidType.InstanceOf.NameOf);
+                            func.AddResultTypeCandidate(ctx.Env.UnitType.InstanceOf.NameOf);
                         else
                             func.AddResultTypeCandidate(this.Value.Evaluation.Components.NameOf);
                     }
@@ -68,7 +68,7 @@ namespace Skila.Language.Flow
 
                         if (this.Value == null)
                         {
-                            if (!ctx.Env.IsVoidType(func_result) && !ctx.Env.IsUnitType(func_result))
+                            if (!ctx.Env.IsUnitType(func_result))
                                 ctx.ErrorManager.AddError(ErrorCode.EmptyReturn, this);
                         }
                         else
@@ -78,7 +78,7 @@ namespace Skila.Language.Flow
                     }
                 }
 
-                this.Evaluation = ctx.Env.VoidEvaluation;
+                this.Evaluation = ctx.Env.UnitEvaluation;
             }
         }
     }

@@ -61,15 +61,15 @@ namespace Skila.Language.Builders
                 switch (memberType)
                 {
                     case MemberType.IndexGetter:
-                        build = Property.CreateIndexerGetter(propertyBuilder.Typename, propertyBuilder.Params, modifier, 
+                        build = Property.CreateIndexerGetter(propertyBuilder.ValueTypeName, propertyBuilder.Params, modifier, 
                             instructions?.ToArray());
                         break;
                     case MemberType.IndexSetter:
-                        build = Property.CreateIndexerSetter(propertyBuilder.Typename, propertyBuilder.Params, modifier, 
+                        build = Property.CreateIndexerSetter(propertyBuilder.ValueTypeName, propertyBuilder.Params, modifier, 
                             instructions?.ToArray());
                         break;
                     case MemberType.Getter:
-                        build = Property.CreateGetter(propertyBuilder.Typename, Block.CreateStatement(instructions), modifier);
+                        build = Property.CreateGetter(propertyBuilder.ValueTypeName, Block.CreateStatement(instructions), modifier);
                         break;
                     default: throw new Exception();
                 }

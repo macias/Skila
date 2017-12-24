@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope,IMember
+    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope, IMember
     {
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -51,7 +51,7 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition(modifier,
                                 NameFactory.InitConstructorNameDefinition(), null,
-                                parameters, 
+                                parameters,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
                                 constructorChainCall, body: body);
@@ -69,11 +69,11 @@ namespace Skila.Language.Entities
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
                 constructorChainCall: null, body: body);
         }
-        public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier,Block body)
+        public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier, Block body)
         {
             return new FunctionDefinition(modifier | EntityModifier.Private,
                                 NameFactory.ZeroConstructorNameDefinition(), null,
-                                null, 
+                                null,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
                                 constructorChainCall: null, body: body);
@@ -92,7 +92,7 @@ namespace Skila.Language.Entities
         internal LambdaTrap LambdaTrap { get; set; }
 
         public bool IsMemberUsed { get; private set; }
-        public override IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+        public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
             // parameters have to go before user body, so they are registered for use
@@ -142,7 +142,7 @@ namespace Skila.Language.Entities
 
         public NameReference CreateFunctionInterface()
         {
-            return NameFactory.FunctionTypeReference(this.Parameters.Select(it => it.TypeName), this.ResultTypeName);
+            return NameFactory.FunctionTypeReference(this.Parameters.Select(it => it.ElementTypeName), this.ResultTypeName);
         }
 
         internal void AddResultTypeCandidate(INameReference typenameCandidate)
@@ -153,7 +153,7 @@ namespace Skila.Language.Entities
         internal void InferResultType(ComputationContext ctx)
         {
             if (!this.resultTypeCandidates.Any()) // no returns
-                this.ResultTypeName = ctx.Env.VoidType.InstanceOf.NameOf;
+                this.ResultTypeName = ctx.Env.UnitType.InstanceOf.NameOf;
             else
             {
                 IEntityInstance common = this.resultTypeCandidates.First();
@@ -204,7 +204,7 @@ namespace Skila.Language.Entities
                 NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
                     NameFactory.ReferenceTypeReference(type_name),
-                    Variadic.None, null, isNameRequired: false, 
+                    Variadic.None, null, isNameRequired: false,
                     usageMode: ExpressionReadMode.OptionalUse);
                 this.MetaThisParameter.AttachTo(this);
             }
@@ -213,7 +213,7 @@ namespace Skila.Language.Entities
             {
                 if (parent is TypeContainerDefinition)
                     this.SetModifier(this.Modifier | EntityModifier.Public);
-                else if (parent is Property prop) 
+                else if (parent is Property prop)
                     this.SetModifier(this.Modifier | prop.Modifier.AccessLevels);
             }
 
@@ -259,6 +259,19 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
+            {
+                TypeDefinition type_owner = this.OwnerType();
+                if (this.Name.Name == NameFactory.ConvertFunctionName && type_owner != null)
+                {
+                    if (this.Parameters.Any())
+                        ctx.AddError(ErrorCode.ConverterWithParameters, this);
+                    if (!this.Modifier.HasPinned && !type_owner.Modifier.HasEnum && !type_owner.Modifier.IsSealed)
+                        ctx.AddError(ErrorCode.ConverterNotPinned, this);
+                    if (this.CallMode != ExpressionReadMode.ReadRequired)
+                        ctx.AddError(ErrorCode.ConverterDeclaredWithIgnoredOutput, this);
+                }
+            }
+
             if (this.Modifier.HasRefines && !this.Modifier.HasUnchainBase)
             {
                 if (!this.IsDeclaration
@@ -271,8 +284,7 @@ namespace Skila.Language.Entities
 
             if (!this.IsDeclaration && !this.Modifier.HasNative)
             {
-                if (!ctx.Env.IsOfVoidType(this.ResultTypeName)
-                    && !ctx.Env.IsOfUnitType(this.ResultTypeName)
+                if (!ctx.Env.IsOfUnitType(this.ResultTypeName)
                     && !this.UserBody.Validation.IsTerminated)
                     ctx.AddError(ErrorCode.MissingReturn, this.UserBody);
             }

@@ -13,6 +13,38 @@ namespace Skila.Tests.Semantics
     public class Inheritance
     {
         [TestMethod]
+        public IErrorReporter ErrorMissingPinnedDefinition()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Start")
+                .Modifier(EntityModifier.Base)
+                .With(FunctionBuilder.Create("getSome",
+                 NameFactory.IntTypeReference(),
+                    Block.CreateStatement(Return.Create(IntLiteral.Create("3"))))
+                    .Modifier(EntityModifier.Pinned)));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Middle")
+                .Modifier(EntityModifier.Base)
+                .Parents("Start")
+                .With(FunctionBuilder.Create("getSome",
+                 NameFactory.IntTypeReference(),
+                    Block.CreateStatement(Return.Create(IntLiteral.Create("3"))))
+                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+
+            TypeDefinition end_type = root_ns.AddBuilder(TypeBuilder.Create("End")
+                .Parents("Middle"));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PinnedFunctionMissingImplementation, end_type));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorInvalidDirectionPassingEnums()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -79,27 +111,39 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ITransmogrifier")
-                .With(FunctionBuilder.CreateDeclaration("transmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference())
+                .With(FunctionBuilder.CreateDeclaration("transmogrify", ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference()
+                
+                )
                     .Modifier(EntityModifier.Private))
-                .With(FunctionBuilder.CreateDeclaration("untransmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference())
+                .With(FunctionBuilder.CreateDeclaration("untransmogrify", ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference()
+                
+                )
                     .Modifier(EntityModifier.Private))
             );
 
             NameReference private_reference = NameReference.Create(NameFactory.ThisVariableName, "transmogrify");
             // refining private is OK, but we cannot change the access to it
             FunctionDefinition public_func = FunctionBuilder.Create("untransmogrify", ExpressionReadMode.CannotBeRead,
-                    NameFactory.VoidTypeReference(), Block.CreateStatement())
+                NameFactory.UnitTypeReference(),
+                    
+                    Block.CreateStatement())
                 .Modifier(EntityModifier.Refines);
 
             root_ns.AddBuilder(TypeBuilder.Create("CardboardBox")
                 .Parents("ITransmogrifier")
                 // refining private is OK
-                .With(FunctionBuilder.Create("transmogrify", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("transmogrify", ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Refines | EntityModifier.Private))
                 .With(public_func)
                 // but using it -- not
-                .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead, NameFactory.VoidTypeReference(),
+                .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement(new[] {
                         FunctionCall.Create(private_reference)
                     })))
@@ -245,21 +289,6 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter LowestCommonAncestorVoidObject()
-        {
-            var env = Language.Environment.Create();
-            var root_ns = env.Root;
-
-            var resolver = NameResolver.Create(env);
-
-            bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                env.VoidType.InstanceOf, env.ObjectType.InstanceOf, out IEntityInstance common);
-            Assert.IsFalse(found);
-
-            return resolver;
-        }
-
-        [TestMethod]
         public IErrorReporter ParentNamesResolving()
         {
             var env = Language.Environment.Create();
@@ -316,7 +345,8 @@ namespace Skila.Tests.Semantics
                     NameFactory.IntTypeReference()))
                 .With(FunctionBuilder.Create(NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement()))
                 .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
@@ -332,7 +362,8 @@ namespace Skila.Tests.Semantics
             FunctionDefinition fin_impl = FunctionBuilder.Create(
                     NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                    
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
@@ -343,7 +374,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingFunctionImplementation, type_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AbstractFunctionMissingImplementation, type_impl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingDerivedModifier, bar_impl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotDeriveSealedMethod, fin_impl));
 
@@ -364,7 +395,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("MiddleImpl")
                 // ok to ignore the functions inside abstract type
-                .Modifier(EntityModifier.Abstract | EntityModifier.Base)
+                .Modifier(EntityModifier.Abstract)
                 .Parents(NameReference.Create("Inter")));
 
             // there is still function to implement
@@ -374,7 +405,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingFunctionImplementation, type_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AbstractFunctionMissingImplementation, type_impl));
 
             return resolver;
         }

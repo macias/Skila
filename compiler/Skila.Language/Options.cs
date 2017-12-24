@@ -11,6 +11,5 @@
         public bool GlobalVariables { get; set; }
         // todo: limit usage of this option and eventually remove it completely
         public bool TypelessVariablesDuringTests { get; set; }
-
     }
 }

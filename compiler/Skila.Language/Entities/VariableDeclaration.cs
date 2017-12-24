@@ -22,8 +22,8 @@ namespace Skila.Language.Entities
             return new VariableDeclaration(EntityModifier.None, ExpressionReadMode.ReadRequired, name, typeName, initValue);
         }
 
-        private readonly Lazy<EntityInstance> instanceOf;
-        public EntityInstance InstanceOf => this.instanceOf.Value;
+        public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
+        private readonly EntityInstanceCache instancesCache;
         public NameDefinition Name { get; }
         public INameReference TypeName { get; }
         private IExpression initValue;
@@ -50,7 +50,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+           this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.closures = new List<TypeDefinition>();
 
@@ -80,9 +80,9 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
         {
-            return this.InstanceOf;
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -170,7 +170,7 @@ namespace Skila.Language.Entities
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2636)
+                if (this.DebugId.Id == 3123)
                 {
                     ;
                 }

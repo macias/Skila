@@ -31,10 +31,11 @@ namespace Skila.Language
         public bool IsOptional => this.DefaultValue != null;
         public Variadic Variadic { get; }
         public bool IsVariadic => this.Variadic != Variadic.None;
-        private readonly Lazy<EntityInstance> instanceOf;
-        public EntityInstance InstanceOf => this.instanceOf.Value;
+        public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
+        private readonly EntityInstanceCache instancesCache;
         public NameDefinition Name { get; }
         public EntityModifier Modifier { get; }
+        public INameReference ElementTypeName { get; }
         public INameReference TypeName { get; }
         private IExpression defaultValue;
         public IExpression DefaultValue => this.defaultValue;
@@ -69,11 +70,17 @@ namespace Skila.Language
             this.Modifier = EntityModifier.None;
             this.Name = NameDefinition.Create(name);
             this.IsNameRequired = isNameRequired;
-            this.TypeName = typeName;
-            this.defaultValue = defaultValue;
             this.Variadic = variadic;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.ElementTypeName = typeName;
+            if (this.IsVariadic)
+                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference( typeName));
+            else
+                this.TypeName = typeName;
+
+            this.defaultValue = defaultValue;
+
+            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -83,7 +90,8 @@ namespace Skila.Language
             string variadic_str = this.Variadic.ToString();
             if (variadic_str != "")
                 variadic_str = " " + variadic_str;
-            return this.Name + (this.IsNameRequired ? ":" : "") + $" {this.TypeName}{variadic_str}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
+            return this.Name + (this.IsNameRequired ? ":" : "") 
+                + $" {this.ElementTypeName}{variadic_str}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 
         public void Surf(ComputationContext ctx)
@@ -121,9 +129,9 @@ namespace Skila.Language
         {
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
         {
-            return this.InstanceOf;
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public bool IsReadingValueOfNode(IExpression node)
@@ -143,11 +151,6 @@ namespace Skila.Language
 
             return true;
         }
-
-        /*internal FunctionParameter Clone()
-        {
-            return new FunctionParameter(this.Name.Name, this.TypeName.Clone(), this.Variadic, this.DefaultValue?.Clone(), IsNameRequired);
-        }*/
 
         /* public static bool CanDifferentiateByUsage(FunctionParameter p1, FunctionParameter p2)
          {

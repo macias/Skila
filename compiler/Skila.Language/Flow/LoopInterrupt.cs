@@ -68,7 +68,7 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = ctx.Env.VoidEvaluation;
+                this.Evaluation = ctx.Env.UnitEvaluation;
 
                 if (this.Label == null)
                     this.AssociatedLoop = this.EnclosingScope<Loop>();

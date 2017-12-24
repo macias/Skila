@@ -33,9 +33,6 @@ namespace Skila.Language.Extensions
             }
             else
             {
-                if (parent_reading && ctx.Env.IsVoidType(node.Evaluation.Components))
-                    ctx.AddError(ErrorCode.PassingVoidValue, node);
-
                 if (node.ReadMode == ExpressionReadMode.OptionalUse)
                     return;
                 else if (node.ReadMode == ExpressionReadMode.ReadRequired)

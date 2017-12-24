@@ -17,7 +17,7 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
     {
-        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName, 
+        public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
         {
             return CreateIndexerGetter(propertyTypeName, parameters, EntityModifier.None, instructions);
@@ -30,13 +30,13 @@ namespace Skila.Language.Entities
                 .Modifier(modifier)
                 .Parameters(parameters);
         }
-        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName, 
+        public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
         {
             return CreateIndexerSetter(propertyTypeName, parameters, EntityModifier.None, instructions);
         }
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
-            IEnumerable<FunctionParameter> parameters,EntityModifier modifier, params IExpression[] instructions)
+            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, params IExpression[] instructions)
         {
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
@@ -46,25 +46,25 @@ namespace Skila.Language.Entities
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first
-                        propertyTypeName, Variadic.None, null, isNameRequired: true, 
-                        usageMode: modifier.HasNative? ExpressionReadMode.CannotBeRead : ExpressionReadMode.ReadRequired)));
+                        propertyTypeName, Variadic.None, null, isNameRequired: true,
+                        usageMode: modifier.HasNative ? ExpressionReadMode.CannotBeRead : ExpressionReadMode.ReadRequired)));
         }
         public static VariableDeclaration CreateAutoField(INameReference typeName, IExpression initValue, EntityModifier modifier = null)
         {
             return VariableDeclaration.CreateStatement(NameFactory.PropertyAutoField, typeName, initValue, modifier);
         }
-        public static FunctionDefinition CreateAutoGetter(INameReference typeName,EntityModifier modifier = null)
+        public static FunctionDefinition CreateAutoGetter(INameReference typeName, EntityModifier modifier = null)
         {
-            return CreateGetter(typeName, 
+            return CreateGetter(typeName,
                 Block.CreateStatement(Return.Create(
                     NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField))),
                 modifier);
         }
-        internal static FunctionDefinition CreateGetter(INameReference typeName, Block body,EntityModifier modifier = null)
+        internal static FunctionDefinition CreateGetter(INameReference typeName, Block body, EntityModifier modifier = null)
         {
             return FunctionDefinition.CreateFunction(modifier, NameDefinition.Create(NameFactory.PropertyGetter),
                 null,
-                null, 
+                null,
                 ExpressionReadMode.ReadRequired,
                 typeName,
                 body);
@@ -102,8 +102,8 @@ namespace Skila.Language.Entities
             return Create(NameFactory.PropertyIndexerName, typeName, fields, getters, setters, modifier);
         }
 
-        private readonly Lazy<EntityInstance> instanceOf;
-        public EntityInstance InstanceOf => this.instanceOf.Value;
+        public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
+        private readonly EntityInstanceCache instancesCache;
         public NameDefinition Name { get; }
         public INameReference TypeName { get; }
 
@@ -116,7 +116,7 @@ namespace Skila.Language.Entities
         public FunctionDefinition Getter { get { return getters.FirstOrDefault(); } }
         public FunctionDefinition Setter { get { return setters.FirstOrDefault(); } }
 
-        public IEnumerable<IEntity> AvailableEntities => this.NestedEntities();
+        public IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
         public bool IsSurfed { get; set; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }
@@ -145,7 +145,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-            this.instanceOf = new Lazy<EntityInstance>(() => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+           this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -155,10 +155,19 @@ namespace Skila.Language.Entities
             return result;
         }
 
-        public EntityInstance GetInstanceOf(IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
         {
-            return this.InstanceOf;
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
+
+        /*public EntityInstance GetTransInstanceOf(EntityInstance entityInstance, IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        {
+            if (entityInstance.Target != this)
+                throw new InvalidOperationException();
+
+            return entityInstance;
+        }*/
+
 
         public void Validate(ComputationContext ctx)
         {

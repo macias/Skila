@@ -13,6 +13,42 @@ namespace Skila.Tests.Semantics
     public class FunctionDefinitions
     {
         [TestMethod]
+        public IErrorReporter ErrorInvalidConverters()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionDefinition conv1 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
+                 NameFactory.IntTypeReference(),
+                    Block.CreateStatement(Return.Create(IntLiteral.Create("3"))));
+            FunctionDefinition conv2 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
+                 ExpressionReadMode.OptionalUse,
+                 NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(Return.Create(Undef.Create())))
+                    .Modifier(EntityModifier.Pinned);
+            FunctionDefinition conv3 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
+                 NameFactory.StringTypeReference(),
+                    Block.CreateStatement(Return.Create(Undef.Create())))
+                    .Modifier(EntityModifier.Pinned)
+                    .Parameters(FunctionParameter.Create("x",NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Start")
+                .Modifier(EntityModifier.Base)
+                .With(conv1)
+                .With(conv2)
+                .With(conv3));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConverterNotPinned, conv1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConverterDeclaredWithIgnoredOutput, conv2));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConverterWithParameters, conv3));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorCannotInferResultType()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -27,7 +63,8 @@ namespace Skila.Tests.Semantics
                     })).Build();
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("me"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new IExpression[] {
                     // f = () => x
                     VariableDeclaration.CreateStatement("f",null,lambda),
@@ -57,7 +94,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foox"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] { Return.Create() })));
 
             var resolver = NameResolver.Create(env);
@@ -82,7 +120,8 @@ namespace Skila.Tests.Semantics
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foox"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.VoidTypeReference(),
+                NameFactory.UnitTypeReference(),
+                
                 Block.CreateStatement(new[] { Return.Create(return_value) })));
 
             var resolver = NameResolver.Create(env);
