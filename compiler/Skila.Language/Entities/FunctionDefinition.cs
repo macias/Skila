@@ -209,6 +209,10 @@ namespace Skila.Language.Entities
                 this.MetaThisParameter.AttachTo(this);
             }
 
+            // marking regular functions a static one will make further processing easier
+            if (!this.Modifier.HasStatic && this.EnclosingScope<TypeContainerDefinition>().IsNamespace())
+                this.SetModifier(this.Modifier | EntityModifier.Static);
+
             if (!this.Modifier.IsAccessSet)
             {
                 if (parent is TypeContainerDefinition)
@@ -272,7 +276,7 @@ namespace Skila.Language.Entities
                 }
             }
 
-            if (this.Modifier.HasRefines && !this.Modifier.HasUnchainBase)
+            if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
             {
                 if (!this.IsDeclaration
                     && this.OwnerType().DerivationTable.TryGetSuper(this, out FunctionDefinition dummy)

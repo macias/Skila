@@ -11,7 +11,7 @@ namespace Skila.Interpreter
         public static ExecutionContext Create(Environment env, Interpreter interpreter)
         {
             var ctx = new ExecutionContext(env, interpreter);
-            ctx.TypeRegistry.RegisterAdd(ctx, env.UnitType.InstanceOf).Wait();
+            ctx.TypeRegistry.RegisterAddAsync(ctx, env.UnitType.InstanceOf).Wait();
             return ctx;
         }
 
@@ -55,7 +55,7 @@ namespace Skila.Interpreter
         {
             FunctionParameter param = func.Parameters.SingleOrDefault(it => it.Name.Name == paramName);
             if (param == null)
-                throw new System.Exception("Internal error");
+                throw new System.Exception($"Internal error {ExceptionCode.SourceInfo()}");
             return this.FunctionArguments[param.Index];
         }
     }

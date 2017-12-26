@@ -34,6 +34,10 @@ namespace Skila.Language.Extensions
         {
             return @this.Cast<TypeDefinition>();
         }
+        public static TypeContainerDefinition CastTypeContainer(this INode @this)
+        {
+            return @this.Cast<TypeContainerDefinition>();
+        }
         public static Namespace CastNamespace(this INode @this)
         {
             return @this.Cast<Namespace>();

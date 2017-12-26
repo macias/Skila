@@ -14,7 +14,7 @@ namespace Skila.Language.Extensions
             foreach (IMember member in @this.NestedMembers())
                 if (!member.Modifier.HasNative
                     && member.Modifier.HasPrivate
-                    && !member.Modifier.IsVirtual  // in NVI pattern private is used externally
+                    && !member.Modifier.IsPolymorphic  // in NVI pattern private is used externally
                     && !member.IsMemberUsed)
                     ctx.AddError(ErrorCode.BindableNotUsed, member);
         }

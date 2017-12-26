@@ -71,8 +71,8 @@ namespace Skila.Language.Entities
         public VirtualTable InheritanceVirtualTable { get; private set; }
         public DerivationTable DerivationTable { get; private set; }
 
-        private IReadOnlyCollection<EntityInstance> availableEntitiesX;
-        public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntitiesX;
+        private IReadOnlyCollection<EntityInstance> availableEntities;
+        public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntities;
 
         private TypeDefinition(EntityModifier modifier,
             bool allowSlicing,
@@ -131,16 +131,19 @@ namespace Skila.Language.Entities
 
             }
 
-            if (this.DebugId.Id == 4713)
+            if (this.DebugId.Id == 213)
             {
                 ;
             }
 
             // base method -> derived (here) method
-            var virtual_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
+            var virtual_mapping = new VirtualTable(isPartial: false);
+            foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsWithoutObject.Reverse())
+                virtual_mapping.OverrideWith(parent_instance.TargetType.InheritanceVirtualTable);
+
             // derived (here) method -> base methods
             Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = this.AllNestedFunctions
-                .Where(it => it.Modifier.HasRefines)
+                .Where(it => it.Modifier.HasOverride)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
             var inherited_instances = new HashSet<EntityInstance>();
@@ -153,7 +156,7 @@ namespace Skila.Language.Entities
                     .Where(it => it.Target.Modifier.HasPublic || it.Target.Modifier.HasProtected)
                     .Where(it => !(it.Target is FunctionDefinition func) || !func.IsConstructor()))
                 {
-                    if (entity_instance.DebugId.Id==3895)
+                    if (entity_instance.DebugId.Id == 3895)
                     {
                         ;
                     }
@@ -167,8 +170,7 @@ namespace Skila.Language.Entities
                     if (deriv_info.Derived == null)
                     {
                         // we can skip implementation or abstract signature of the function in the abstract type
-                        if ((deriv_info.Base.Modifier.HasAbstract || deriv_info.Base.Modifier.HasPinned)
-                            && !this.Modifier.IsAbstract)
+                        if (deriv_info.Base.Modifier.RequiresDerivation && !this.Modifier.IsAbstract)
                             missing_func_implementations.Add(deriv_info.Base);
                     }
                     else
@@ -178,7 +180,7 @@ namespace Skila.Language.Entities
                             inherited_instances.Remove(base_instance);
                         }
 
-                        if (deriv_info.Derived.Modifier.HasRefines)
+                        if (deriv_info.Derived.Modifier.HasOverride)
                         {
                             derivation_mapping[deriv_info.Derived].Add(deriv_info.Base);
                             // user does not have to repeat "pinned" all the time, but for easier tracking of pinned methods
@@ -191,7 +193,7 @@ namespace Skila.Language.Entities
 
                         if (!deriv_info.Base.Modifier.IsSealed)
                         {
-                            virtual_mapping.Add(deriv_info.Base, deriv_info.Derived);
+                            virtual_mapping.Update(deriv_info.Base, deriv_info.Derived);
 
                             // the rationale for keeping the same access level is this
                             // narrowing is pretty easy to skip by downcasting
@@ -202,7 +204,7 @@ namespace Skila.Language.Entities
                             if (!deriv_info.Base.Modifier.SameAccess(deriv_info.Derived.Modifier))
                                 ctx.AddError(ErrorCode.AlteredAccessLevel, deriv_info.Derived.Modifier);
                         }
-                        else if (deriv_info.Derived.Modifier.HasRefines)
+                        else if (deriv_info.Derived.Modifier.HasOverride)
                             ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
                     }
                 }
@@ -223,16 +225,13 @@ namespace Skila.Language.Entities
 
                 if (!found)
                 {
-                    ErrorCode err_code = missing_impl.Modifier.HasPinned
-                        ? ErrorCode.PinnedFunctionMissingImplementation
-                        : ErrorCode.AbstractFunctionMissingImplementation;
-                    ctx.AddError(err_code, this, missing_impl);
+                    ctx.AddError(ErrorCode.VirtualFunctionMissingImplementation, this, missing_impl);
                 }
             }
 
-            this.InheritanceVirtualTable = new VirtualTable(virtual_mapping, isPartial: false);
+            this.InheritanceVirtualTable = virtual_mapping;
             this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
-            this.availableEntitiesX = inherited_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
+            this.availableEntities = inherited_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
 
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
@@ -408,7 +407,9 @@ namespace Skila.Language.Entities
                 return false;
 
             var parents = new HashSet<EntityInstance>(ReferenceEqualityComparer<EntityInstance>.Instance);
-            var ancestors = new HashSet<EntityInstance>(ReferenceEqualityComparer<EntityInstance>.Instance);
+            // distance to given ancestor, please note that we need to maximize distance to Object, since technically
+            // object is parent of every type, so seeing "1" everytime is not productive
+            var ancestors = new Dictionary<EntityInstance, int>(ReferenceEqualityComparer<EntityInstance>.Instance);
 
             foreach (NameReference parent_name in this.ParentNames)
             {
@@ -429,12 +430,24 @@ namespace Skila.Language.Entities
                     ctx.AddError(ErrorCode.CyclicTypeHierarchy, parent_name);
 
                 if (parent.TargetType.IsInheritanceComputed)
-                    parent.TargetType.Inheritance.AncestorsWithoutObject.Select(it => it.TranslateThrough(parent))
-                        .ForEach(it => ancestors.Add(it));
+                    foreach (TypeAncestor ancestor in parent.TargetType.Inheritance.TypeAncestorsWithoutObject
+                        .Select(it => new TypeAncestor(it.AncestorInstance.TranslateThrough(parent), it.Distance + 1)))
+                    {
+                        int dist;
+                        if (ancestors.TryGetValue(ancestor.AncestorInstance, out dist))
+                        {
+                            if (ancestor.AncestorInstance == ctx.Env.ObjectType.InstanceOf)
+                                ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
+                            else
+                                ancestors[ancestor.AncestorInstance] = System.Math.Min(dist, ancestor.Distance);
+                        }
+                        else
+                            ancestors.Add(ancestor.AncestorInstance, ancestor.Distance);
+                    }
             }
 
             // now we have minimal parents
-            parents.ExceptWith(ancestors);
+            parents.ExceptWith(ancestors.Keys);
 
             if (this.DebugId.Id == 85)
             {
@@ -460,8 +473,24 @@ namespace Skila.Language.Entities
             if (this != ctx.Env.ObjectType && !parents.Any())
                 ordered_parents.Add(ctx.Env.ObjectType.InstanceOf);
 
-            this.Inheritance = new TypeInheritance(ctx.Env.ObjectType.InstanceOf,
-                ordered_parents, completeAncestors: ordered_parents.Concat(ancestors));
+            foreach (EntityInstance parent in ordered_parents)
+                ancestors.Add(parent, 1);
+
+            int object_dist;
+            if (ancestors.Any())
+            {
+                object_dist = ancestors.Max(it => it.Value);
+                if (!ancestors.ContainsKey(ctx.Env.ObjectType.InstanceOf))
+                    ++object_dist;
+            }
+            else if (this == ctx.Env.ObjectType)
+                object_dist = 0;
+            else
+                throw new System.Exception("Internal exception");
+
+            this.Inheritance = new TypeInheritance(new TypeAncestor(ctx.Env.ObjectType.InstanceOf, object_dist),
+                ordered_parents,
+                orderedCompleteAncestors: ancestors.Select(it => new TypeAncestor(it.Key, it.Value)).OrderBy(it => it.Distance));
 
             return true;
         }

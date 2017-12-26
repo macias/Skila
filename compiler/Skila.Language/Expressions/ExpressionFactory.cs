@@ -13,17 +13,36 @@ namespace Skila.Language.Expressions
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                             Block.CreateStatement(new[] {
                         // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.Cast(NameReference.Create("cmp"),
+                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.DownCast(NameReference.Create("cmp"),
                             NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
-                        // if not obj.hasValue then return false
-                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),Return.Create(BoolLiteral.CreateFalse())),
+                        // if not obj.hasValue then throw
+                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),
+                            ExpressionFactory.GenericThrow()),
                         // return this==obj.value
-                        Return.Create(ExpressionFactory.Equal(NameReference.Create(NameFactory.ThisVariableName),
+                        Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             ExpressionFactory.OptionValue(NameReference.Create("obj")))),
                                             }))
-                                            .Modifier(EntityModifier.Refines | modifier)
+                                            .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))));
+        }
+        public static TypeBuilder WithComparableCompare(this TypeBuilder builder, EntityModifier modifier = null)
+        {
+            return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
+                                            ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                            Block.CreateStatement(new[] {
+                        // let obj = cmp cast? Int
+                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.DownCast(NameReference.Create("cmp"),
+                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
+                        // if not obj.hasValue then return false
+                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),ExpressionFactory.GenericThrow()),
+                        // return this.compare(obj.value)
+                        Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
+                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
+                                            }))
+                                            .Modifier(EntityModifier.Override | modifier)
+                                            .Parameters(FunctionParameter.Create("cmp",
+                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference()))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -35,8 +54,14 @@ namespace Skila.Language.Expressions
             return FunctionCall.Constructor(NameReference.Create(NameFactory.ThisVariableName, NameFactory.InitConstructorName),
                 arguments);
         }
-        public static IExpression Cast(IExpression lhs, INameReference rhsTypeName)
+        public static IExpression DownCast(IExpression lhs, INameReference rhsTypeName)
         {
+            // if the expression is not of the given type we get null
+            // if it is the runtime type IS PRESERVED
+            // say you have statically types object
+            // x *Object
+            // and in runtime x is Orange
+            // if you cast it to Vehicle you will get null, when you cast it to Fruit you will get Orange (sic!)
             IExpression condition = IsType.Create(lhs, rhsTypeName);
             IExpression success = ExpressionFactory.StackConstructor(NameFactory.OptionTypeReference(rhsTypeName),
                 FunctionArgument.Create(ReinterpretType.Create(lhs, rhsTypeName)));
@@ -129,17 +154,25 @@ namespace Skila.Language.Expressions
         {
             return BoolOperator.Create(BoolOperator.OpMode.And, lhs, rhs);
         }
-        public static IExpression Equal(IExpression lhs, IExpression rhs)
+        public static IExpression IsEqual(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.EqualOperator), FunctionArgument.Create(rhs));
         }
-        public static IExpression NotEqual(IExpression lhs, IExpression rhs)
+        public static IExpression IsLess(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.LessOperator), FunctionArgument.Create(rhs));
+        }
+        public static IExpression IsGreater(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.GreaterOperator), FunctionArgument.Create(rhs));
+        }
+        public static IExpression IsNotEqual(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.NotEqualOperator), FunctionArgument.Create(rhs));
         }
         public static IExpression NotEqual(string lhs, string rhs)
         {
-            return NotEqual(NameReference.Create(lhs), NameReference.Create(rhs));
+            return IsNotEqual(NameReference.Create(lhs), NameReference.Create(rhs));
         }
         public static IExpression Not(IExpression expr)
         {

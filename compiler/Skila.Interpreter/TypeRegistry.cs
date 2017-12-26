@@ -27,19 +27,19 @@ namespace Skila.Interpreter
         // consider type Unit, in order to create it we need to create "unit" instance of type Unit, but this would mean
         // waiting for created type "Unit" but we are building it already, so we would wait forever
         // that is why during creation of static "unit" field, we register type "Unit" but we don't wait for the outcome
-        internal async Task RegisterAdd(ExecutionContext ctx, EntityInstance typeInstance)
+        internal async Task RegisterAddAsync(ExecutionContext ctx, EntityInstance typeInstance)
         {
-            await register(ctx, typeInstance).ConfigureAwait(false);
+            await registerAsync(ctx, typeInstance).ConfigureAwait(false);
         }
 
-        internal async Task<ObjectData> RegisterGet(ExecutionContext ctx, EntityInstance typeInstance)
+        internal async Task<ObjectData> RegisterGetAsync(ExecutionContext ctx, EntityInstance typeInstance)
         {
-            TaskCompletionSource<ObjectData> tcs = await register(ctx, typeInstance).ConfigureAwait(false);
+            TaskCompletionSource<ObjectData> tcs = await registerAsync(ctx, typeInstance).ConfigureAwait(false);
             ObjectData obj_data = await tcs.Task.ConfigureAwait(false);
             return obj_data;
         }
 
-        private async Task<TaskCompletionSource<ObjectData>> register(ExecutionContext ctx, EntityInstance typeInstance)
+        private async Task<TaskCompletionSource<ObjectData>> registerAsync(ExecutionContext ctx, EntityInstance typeInstance)
         {
             if (typeInstance.DebugId.Id == 3400)
             {
@@ -70,16 +70,18 @@ namespace Skila.Interpreter
             {
                 ObjectData type_object = null;
 
-                IEnumerable<VariableDeclaration> static_fields = typeInstance.TargetType.NestedFields.Where(it => it.Modifier.HasStatic);
+                TypeContainerDefinition target = typeInstance.Target.CastTypeContainer();
+
+                IEnumerable<VariableDeclaration> static_fields = target.NestedFields.Where(it => it.Modifier.HasStatic);
                 if (static_fields.Any())
-                    type_object = await ObjectData.CreateType(ctx, typeInstance).ConfigureAwait(false);
+                    type_object = await ObjectData.CreateTypeAsync(ctx, typeInstance).ConfigureAwait(false);
 
                 type_entry.SetResult(type_object);
 
                 if (type_object != null)
                 {
                     Interpreter.SetupFunctionCallData(ref ctx, typeInstance.TemplateArguments, metaThis: null, functionArguments: null);
-                    await ctx.Interpreter.ExecutedAsync(typeInstance.TargetType.NestedFunctions.Single(it => it.IsZeroConstructor()
+                    await ctx.Interpreter.ExecutedAsync(target.NestedFunctions.Single(it => it.IsZeroConstructor()
                         && it.Modifier.HasStatic), ctx).ConfigureAwait(false);
 
                     if (typeInstance.DebugId.Id == 3400)

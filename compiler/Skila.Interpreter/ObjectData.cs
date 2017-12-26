@@ -22,34 +22,34 @@ namespace Skila.Interpreter
         public DebugId DebugId { get; } = new DebugId();
 #endif
 
-        internal static Task< ObjectData> CreateInstance(ExecutionContext ctx, IEntityInstance typeInstance, object value)
+        internal static Task<ObjectData> CreateInstanceAsync(ExecutionContext ctx, IEntityInstance typeInstance, object value)
         {
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
-            return constructor(ctx, type_def.Modifier.HasNative, value, typeInstance, isStatic: false);
+            return constructorAsync(ctx, type_def.Modifier.HasNative, value, typeInstance, isStatic: false);
         }
-        internal static Task<ObjectData> CreateType(ExecutionContext ctx, IEntityInstance typeInstance)
+        internal static Task<ObjectData> CreateTypeAsync(ExecutionContext ctx, IEntityInstance typeInstance)
         {
             if (typeInstance.DebugId.Id == 652)
             {
                 ;
             }
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
-            return constructor(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
+            return constructorAsync(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
         }
 
-        private static async Task<ObjectData> constructor(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance, bool isStatic)
+        private static async Task<ObjectData> constructorAsync(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance, bool isStatic)
         {
             EntityInstance runtime_instance = typeInstance.Cast<EntityInstance>();
 
             ObjectData primary_parent = null;
 
             if (!isStatic)
-                await ctx.TypeRegistry.RegisterAdd(ctx, runtime_instance).ConfigureAwait(false);
+                await ctx.TypeRegistry.RegisterAddAsync(ctx, runtime_instance).ConfigureAwait(false);
             else
             {
                 EntityInstance primary = runtime_instance.TargetType.Inheritance.GetTypeImplementationParent();
                 if (primary != null)
-                    primary_parent = await ctx.TypeRegistry.RegisterGet(ctx, primary).ConfigureAwait(false);
+                    primary_parent = await ctx.TypeRegistry.RegisterGetAsync(ctx, primary).ConfigureAwait(false);
             }
 
             var fields = new Dictionary<VariableDeclaration, ObjectData>(ReferenceEqualityComparer<VariableDeclaration>.Instance);
@@ -68,16 +68,16 @@ namespace Skila.Interpreter
                 {
                     EntityInstance field_type = field.Evaluation.Components.Cast<EntityInstance>();
                     field_type = field_type.TranslateThrough((translators as IEnumerable<EntityInstance>).Reverse());
-                    fields.Add(field, await ObjectData.CreateEmpty(ctx, field_type).ConfigureAwait(false));
+                    fields.Add(field, await ObjectData.CreateEmptyAsync(ctx, field_type).ConfigureAwait(false));
                 }
             }
 
-            return new ObjectData(ctx, isNative, value, runtime_instance, isStatic,primary_parent,fields);
+            return new ObjectData(ctx, isNative, value, runtime_instance, isStatic, primary_parent, fields);
         }
 
-        internal static Task<ObjectData> CreateEmpty(ExecutionContext ctx, IEntityInstance typeInstance)
+        internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
         {
-            return CreateInstance(ctx, typeInstance, null);
+            return CreateInstanceAsync(ctx, typeInstance, null);
         }
 
         private int isDisposedFlag;
@@ -142,9 +142,9 @@ namespace Skila.Interpreter
             {
                 this.PlainValue = value;
                 this.IsNative = isNative;
-                this.RunTimeTypeInstance = typeInstance;               
+                this.RunTimeTypeInstance = typeInstance;
                 this.primaryParentType = primary_parent;
-                this.fields = fields;                
+                this.fields = fields;
             }
 
             public Data(Data src)
@@ -173,16 +173,21 @@ namespace Skila.Interpreter
                 else
                     throw new Exception("Internal error -- no such field");
             }
+
+            public override string ToString()
+            {
+                return $"plain value {this.PlainValue} C# {this.PlainValue.GetType()}";
+            }
         }
 
-        private ObjectData(ExecutionContext ctx, bool isNative, object value, EntityInstance typeInstance, bool isStatic, 
-            ObjectData primary_parent,Dictionary<VariableDeclaration, ObjectData> fields)
+        private ObjectData(ExecutionContext ctx, bool isNative, object value, EntityInstance typeInstance, bool isStatic,
+            ObjectData primary_parent, Dictionary<VariableDeclaration, ObjectData> fields)
         {
             if (this.DebugId.Id == 9167)
             {
                 ;
             }
-            this.data = new Data(ctx, isNative, value, typeInstance, isStatic,primary_parent,fields);
+            this.data = new Data(ctx, isNative, value, typeInstance, isStatic, primary_parent, fields);
         }
 
         private ObjectData(ObjectData src)
@@ -239,10 +244,10 @@ namespace Skila.Interpreter
             return new ObjectData(this);
         }
 
-        internal Task<ObjectData> Reference(ExecutionContext ctx)
+        internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
-            return ObjectData.CreateInstance(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance }, 
-                overrideMutability: false,translation:null), this);
+            return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance },
+                overrideMutability: false, translation: null), this);
         }
 
         internal ObjectData TryDereference(Language.Environment env)
@@ -256,7 +261,7 @@ namespace Skila.Interpreter
         {
             bool dereferencing = childExpr != null && childExpr.IsDereferenced;
             if (dereferencing != parentExpr.IsDereferencing)
-                throw new Exception("Internal error");
+                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
             if (parentExpr.IsDereferencing)
                 return this.Dereference();
@@ -275,7 +280,7 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            if (this.DebugId.Id == 2802)
+            if (this.DebugId.Id == 5421)
             {
                 ;
             }

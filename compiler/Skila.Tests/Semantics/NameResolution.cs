@@ -6,6 +6,7 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Semantics;
 using Skila.Language.Flow;
+using Skila.Language.Extensions;
 
 namespace Skila.Tests.Semantics
 {

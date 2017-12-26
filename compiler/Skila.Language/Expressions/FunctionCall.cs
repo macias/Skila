@@ -129,7 +129,7 @@ namespace Skila.Language.Expressions
 
             FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
 
-            if (this.Resolution.TargetFunction.Modifier.IsVirtual
+            if (this.Resolution.TargetFunction.Modifier.IsPolymorphic
                 && enclosing_func != null && enclosing_func.IsConstructor()
                 && !enclosing_func.OwnerType().Modifier.IsSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
@@ -203,7 +203,6 @@ namespace Skila.Language.Expressions
                             createCallContext(ctx, this.Name, it.Target), targetFunctionInstance: it))
                         .Where(it => it != null)
                         .StoreReadOnly();
-                    targets = targets.Where(it => it.AllArgumentsMapped()).StoreReadOnly();
                     targets = targets.Where(it => it.RequiredParametersUsed()).StoreReadOnly();
                     targets = targets.Where(it => it.ArgumentTypesMatchParameters(ctx)).StoreReadOnly();
                     if (this.RequestedOutcomeTypeName != null)
@@ -318,40 +317,43 @@ namespace Skila.Language.Expressions
                 return targets;
 
             // the less, the better
-            var arguments_matches = new List<Tuple<CallResolution, List<int>>>();
+            var arguments_matches = new List<Tuple<CallResolution, List<FunctionOverloadWeight>>>();
             foreach (CallResolution call_target in targets)
             {
-                List<int> matches = call_target.Arguments
+                List<FunctionOverloadWeight> matches = call_target.Arguments
                     .Select(arg =>
                     {
                         FunctionParameter param = call_target.GetParamByArgIndex(arg.Index);
-                        int weight = 0;
+                        var weight = new FunctionOverloadWeight();
                         // prefer non-variadic parameters
                         if (param.IsVariadic)
-                            weight += 1;
+                            weight.Penalty += 1;
                         // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
                         // note we use untranslated param evaluation here to achieve this effect
                         if (!param.Evaluation.Components.IsSame(arg.Evaluation.Components, jokerMatchesAll: true))
-                            weight += 2;
+                            weight.Penalty += 2;
 
                         // prefer exact match instead more general match (Int->Int is better than Int->Object)
                         IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArg(arg);
                         TypeMatch m = call_target.TypeMatches[arg.Index].Value;
                         if (m.HasFlag(TypeMatch.Substitute))
-                            weight += 4;
+                        {
+                            weight.Penalty += 4;
+                            weight.SubstitutionDistance = m.Distance;
+                        }
                         else if (!m.HasFlag(TypeMatch.Same)) // conversions
-                            weight += 8;
+                            weight.Penalty += 8;
 
                         return weight;
                     })
                     .ToList();
                 // bonus if optional parameters are explicitly targeted (i.e. default values are not used)
-                matches.Add(call_target.AllParametersUsed() ? 0 : 1);
+                matches.Add(new FunctionOverloadWeight(call_target.AllParametersUsed() ? 0 : 1));
 
                 arguments_matches.Add(Tuple.Create(call_target, matches));
             }
 
-            Option<Tuple<CallResolution, List<int>>> best = arguments_matches
+            Option<Tuple<CallResolution, List<FunctionOverloadWeight>>> best = arguments_matches
                 .IntransitiveMin((a, b) => Extensions.Tools.HasOneLessNoneGreaterThan(a.Item2, b.Item2, (x, y) => x < y));
 
             if (best.HasValue)

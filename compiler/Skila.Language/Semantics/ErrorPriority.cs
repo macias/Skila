@@ -28,6 +28,9 @@ namespace Skila.Language.Semantics
 
             add(ErrorCode.MissingThisPrefix, 
                 ErrorCode.InstanceMemberAccessInStaticContext);
+
+            add(ErrorCode.VirtualFunctionMissingImplementation,
+                ErrorCode.EnumCrossInheritance);
         }
         private void add(ErrorCode lower, params ErrorCode[] higherCodes)
         {

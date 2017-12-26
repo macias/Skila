@@ -63,10 +63,15 @@ namespace Skila.Language.Builders
 
         public PropertyBuilder With(PropertyMemberBuilder builder)
         {
+            return With(builder, out IMember member);
+        }
+
+        public PropertyBuilder With(PropertyMemberBuilder builder,out IMember member)
+        {
             if (build != null)
                 throw new Exception();
 
-            IMember member = builder.Build(this);
+            member = builder.Build(this);
             if (member is VariableDeclaration decl)
                 this.fields.Add(decl);
             else if (member is FunctionDefinition func)

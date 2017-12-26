@@ -78,7 +78,7 @@ namespace Skila.Tests.Semantics
                 
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.ObjectTypeReference(), Undef.Create()),
-                    VariableDeclaration.CreateStatement("c", null,ExpressionFactory.Cast(NameReference.Create("x"), type_set)),
+                    VariableDeclaration.CreateStatement("c", null,ExpressionFactory.DownCast(NameReference.Create("x"), type_set)),
                     ExpressionFactory.Readout("c"),
             })));
 

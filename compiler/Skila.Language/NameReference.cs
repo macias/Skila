@@ -441,7 +441,7 @@ namespace Skila.Language
                     // if the access to entity is private and it is overriden entity it means we have Non-Virtual Interface pattern
                     // as we should forbid access to such entity
                     // this condition checks only if disallow opening access from private to protected/public during derivation
-                    if (binding_target.Modifier.HasRefines
+                    if (binding_target.Modifier.HasOverride
                         // this is classic check if we are targeting types in current scope
                         || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>()))
                     {
@@ -503,7 +503,9 @@ namespace Skila.Language
         {
             IExpression prefix = this.Prefix;
             if (prefix != null)
+            {
                 return prefix;
+            }
 
             if (!callTarget.IsFunction())
                 throw new Exception("Internal error (if it is callable why is not wrapped into closure already)");

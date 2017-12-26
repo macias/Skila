@@ -72,11 +72,11 @@ namespace Skila.Interpreter
             {
                 int count;
                 if (!this.refCounts.TryGetValue(obj, out count))
-                    throw new Exception("Internal error");
+                    throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
                 --count;
                 if (count < 0)
-                    throw new Exception("Internal error");
+                    throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
                 if (count == 0 && !passingOut)
                 {

@@ -9,12 +9,18 @@ namespace Skila.Language
     {
         public bool IsPartial { get; }
         // base function -> derived one
-        private readonly IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> baseDerivedMapping;
+        private readonly Dictionary<FunctionDefinition, FunctionDefinition> baseDerivedMapping;
 
-        public VirtualTable(IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> mapping, bool isPartial)
+        public VirtualTable(Dictionary<FunctionDefinition, FunctionDefinition> mapping, bool isPartial)
         {
             this.baseDerivedMapping = mapping;
             this.IsPartial = isPartial;
+        }
+
+        public VirtualTable(bool isPartial)
+        {
+            IsPartial = isPartial;
+            this.baseDerivedMapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
         }
 
         public bool TryGetDerived(FunctionDefinition baseFunction,out FunctionDefinition derivedFunction)
@@ -26,6 +32,23 @@ namespace Skila.Language
                 throw new Exception("Internal error");
 
             return true;
+        }
+
+        internal void OverrideWith(VirtualTable table)
+        {
+            if (table == null)
+                return;
+
+            foreach (KeyValuePair<FunctionDefinition,FunctionDefinition> entry in table.baseDerivedMapping)
+                this.Update(entry.Key,entry.Value);
+        }
+
+        internal void Update(FunctionDefinition baseFunc, FunctionDefinition derivedFunc)
+        {
+            if (baseDerivedMapping.ContainsKey(baseFunc))
+                baseDerivedMapping[baseFunc] = derivedFunc;
+            else
+                baseDerivedMapping.Add(baseFunc, derivedFunc);
         }
     }
 }

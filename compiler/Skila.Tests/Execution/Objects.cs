@@ -57,7 +57,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,NameReference.Create("Size","small")),
-                    IfBranch.CreateIf(ExpressionFactory.NotEqual(NameReference.Create( "s"),NameReference.Create("Size","big")),
+                    IfBranch.CreateIf(ExpressionFactory.IsNotEqual(NameReference.Create( "s"),NameReference.Create("Size","big")),
                         new[]{ Return.Create(IntLiteral.Create("2")) }),
                     Return.Create(IntLiteral.Create("5"))
                 })));

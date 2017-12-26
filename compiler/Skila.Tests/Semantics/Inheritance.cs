@@ -6,6 +6,7 @@ using Skila.Language.Builders;
 using Skila.Language.Semantics;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
+using Skila.Language.Extensions;
 
 namespace Skila.Tests.Semantics
 {
@@ -31,7 +32,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.Create("getSome",
                  NameFactory.IntTypeReference(),
                     Block.CreateStatement(Return.Create(IntLiteral.Create("3"))))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             TypeDefinition end_type = root_ns.AddBuilder(TypeBuilder.Create("End")
                 .Parents("Middle"));
@@ -39,7 +40,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PinnedFunctionMissingImplementation, end_type));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualFunctionMissingImplementation, end_type));
 
             return resolver;
         }
@@ -129,7 +130,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
                     
                     Block.CreateStatement())
-                .Modifier(EntityModifier.Refines);
+                .Modifier(EntityModifier.Override);
 
             root_ns.AddBuilder(TypeBuilder.Create("CardboardBox")
                 .Parents("ITransmogrifier")
@@ -138,7 +139,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
                     
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Refines | EntityModifier.Private))
+                    .Modifier(EntityModifier.Override | EntityModifier.Private))
                 .With(public_func)
                 // but using it -- not
                 .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead,
@@ -169,7 +170,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("3"))
                     }))
-                    .Modifier(EntityModifier.Refines);
+                    .Modifier(EntityModifier.Override);
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
                 .With(function));
 
@@ -365,7 +366,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
                     
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase);
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(bar_impl)
                 .With(fin_impl)
@@ -374,7 +375,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AbstractFunctionMissingImplementation, type_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualFunctionMissingImplementation, type_impl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingDerivedModifier, bar_impl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotDeriveSealedMethod, fin_impl));
 
@@ -405,7 +406,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AbstractFunctionMissingImplementation, type_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualFunctionMissingImplementation, type_impl));
 
             return resolver;
         }
@@ -433,7 +434,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
                     }))
-                    .Modifier(EntityModifier.Refines))
+                    .Modifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IX")));
 
             var resolver = NameResolver.Create(env);
@@ -469,7 +470,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Refines))
+                    .Modifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);
@@ -508,7 +509,7 @@ namespace Skila.Tests.Semantics
                         Return.Create(IntLiteral.Create("2"))
                     }))
                     .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))
-                    .Modifier(EntityModifier.Refines))
+                    .Modifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
             var resolver = NameResolver.Create(env);

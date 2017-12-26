@@ -23,15 +23,7 @@ namespace Skila.Tests
             foreach (T v in values)
                 @this.Add(v);
         }
-        public static IEntity Target(this IEntityInstance instance)
-        {
-            if (instance is EntityInstance)
-                return (instance as EntityInstance).Target;
-            else if (instance is EntityInstanceUnion)
-                return (instance as EntityInstanceUnion).Instances.Single().Target();
-            else
-                throw new NotImplementedException();
-        }
+      
         public static Binding Binding(this INameReference nameRef)
         {
             if (nameRef is NameReference)

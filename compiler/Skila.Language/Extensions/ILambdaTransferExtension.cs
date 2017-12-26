@@ -26,7 +26,7 @@ namespace Skila.Language.Extensions
                         NameReference.Create(it.Name.Name)))
                     ));
 
-            lambda.SetModifier(EntityModifier.Refines | lambda.Modifier);
+            lambda.SetModifier(EntityModifier.Override | lambda.Modifier);
 
             TypeDefinition functor = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
                 .With(fields)
@@ -77,7 +77,7 @@ namespace Skila.Language.Extensions
                             NameReference.Create(func_field_ref, funcReference.Name,funcReference.TemplateArguments.ToArray()),
                                 function.Parameters.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray()))
                     }))
-                    .Modifier(EntityModifier.Refines)
+                    .Modifier(EntityModifier.Override)
                     .Parameters(trans_parameters.ToArray());
 
 

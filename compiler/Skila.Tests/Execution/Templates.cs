@@ -24,7 +24,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new[] {
                     Return.Create(IntLiteral.Create("2"))
                 }))
-                .Modifier(EntityModifier.Refines))
+                .Modifier(EntityModifier.Override))
                 .Parents("ISay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T")

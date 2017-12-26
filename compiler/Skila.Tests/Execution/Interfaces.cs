@@ -26,8 +26,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("e",NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()),
                         IntLiteral.Create("3")),
                     // i Int = 7
-                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(),
-                        IntLiteral.Create("7")),
+                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(), IntLiteral.Create("7")),
                     // if e!=i and i!=e then return 2
                     IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.NotEqual("e","i"),ExpressionFactory.NotEqual("e","i")),
                         new[]{ Return.Create(IntLiteral.Create("2")) }),
@@ -142,7 +141,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
                     .Parents(NameReference.Create("Y")));
 
             root_ns.AddBuilder(FunctionBuilder.Create(

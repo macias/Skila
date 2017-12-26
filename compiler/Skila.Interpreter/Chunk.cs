@@ -8,6 +8,8 @@ namespace Skila.Interpreter
     {
         private readonly ObjectData[] data;
 
+        public int Count => this.data.Length;
+
         public ObjectData this[int idx]
         {
             get { return this.data[idx]; }

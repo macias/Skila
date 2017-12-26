@@ -99,8 +99,11 @@ namespace Skila.Language
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
             if (matches.All(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
-            else if (matches.All(it => it == TypeMatch.Same || it == TypeMatch.Substitute))
-                return TypeMatch.Substitute;
+
+            IEnumerable<TypeMatch> substitutions = matches.Where(it => it == TypeMatch.Same || it == TypeMatch.Substitute)
+                .OrderByDescending(it => it.Distance);
+            if (substitutions.Count() == matches.Count())
+                return substitutions.First();
             else
                 return TypeMatch.No;
         }
@@ -110,8 +113,11 @@ namespace Skila.Language
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing));
             if (matches.All(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
-            else if (matches.All(it => it == TypeMatch.Same || it == TypeMatch.Substitute))
-                return TypeMatch.Substitute;
+
+            IEnumerable<TypeMatch> substitutions = matches.Where(it => it==TypeMatch.Same || it == TypeMatch.Substitute)
+                .OrderByDescending(it => it.Distance);
+            if (substitutions.Count()==matches.Count())
+                return substitutions.First();
             else
                 return TypeMatch.No;
         }

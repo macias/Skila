@@ -26,9 +26,35 @@ namespace Skila.Language
             if (!targetFunctionInstance.Target.IsFunction())
                 throw new Exception("Internal error");
 
+
+            FunctionDefinition target_function = targetFunctionInstance.Target.CastFunction();
+
+            var arg_param_mapping = new List<int>(capacity: argumentsProvider.Arguments.Count);
+            int param_idx = 0;
+            foreach (FunctionArgument arg in argumentsProvider.Arguments)
+            {
+                FunctionParameter param;
+
+                if (arg.HasNameLabel)
+                    param = target_function.Parameters.FirstOrDefault(it => it.Name.Name == arg.NameLabel);
+                else
+                    param = param_idx < target_function.Parameters.Count ? target_function.Parameters[param_idx] : null;
+
+                if (param == null)
+                    return null; // not matching for argument, so this is not the function we are looking for
+                else
+                {
+                    arg_param_mapping.Add(param.Index);
+                    // progress with indexing only if we are not hitting variadic parameter
+                    param_idx = param.Index + (param.IsVariadic ? 0 : 1);
+                }
+            }
+
+
             return new CallResolution(ctx, templateArguments, argumentsProvider,
-                    callContext,
-                    targetFunctionInstance);
+                callContext,
+                targetFunctionInstance,
+                arg_param_mapping);
         }
 
         private const int noMapping = -1;
@@ -59,47 +85,26 @@ namespace Skila.Language
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
-            EntityInstance targetFunctionInstance)
+            EntityInstance targetFunctionInstance,
+            IReadOnlyList<int> argParamMapping)
         {
             this.MetaThisArgument = callContext.MetaThisArgument;
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
             this.typeMatches = new TypeMatch?[this.TargetFunction.Parameters.Count];
             this.templateArguments = templateArguments.StoreReadOnly();
+            this.argParamMapping = argParamMapping;
 
-            if (this.DebugId.Id == 4835)
+            if (this.DebugId.Id == 5691)
             {
                 ;
             }
+
 
             extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
-            {
-                var arg_param_mapping = new List<int>();
-                int param_idx = 0;
-                foreach (FunctionArgument arg in this.Arguments)
-                {
-                    FunctionParameter param;
-
-                    if (arg.HasNameLabel)
-                        param = this.TargetFunction.Parameters.FirstOrDefault(it => it.Name.Name == arg.NameLabel);
-                    else
-                        param = param_idx < this.TargetFunction.Parameters.Count ? this.TargetFunction.Parameters[param_idx] : null;
-
-                    if (param == null)
-                        arg_param_mapping.Add(noMapping);
-                    else
-                    {
-                        arg_param_mapping.Add(param.Index);
-                        // progress with indexing only if we are not hitting variadic parameter
-                        param_idx = param.Index + (param.IsVariadic ? 0 : 1);
-                    }
-                }
-
-                this.argParamMapping = arg_param_mapping;
-            }
 
             // compute param->arg mapping
             if (!this.argParamMapping.Any())
@@ -117,7 +122,6 @@ namespace Skila.Language
                 }
                 this.paramArgMapping = param_arg_mapping;
             }
-
 
             this.InferredTemplateArguments = inferTemplateArguments(ctx);
 
@@ -178,7 +182,7 @@ namespace Skila.Language
                 // in case of variadic parameter several arguments hit the same param, so their type matching can be different
                 if (!this.typeMatches[idx].HasValue)
                     this.typeMatches[idx] = match;
-                else if (this.typeMatches[idx] != match)
+                else if (this.typeMatches[idx].Value != match)
                     throw new NotImplementedException();
 
                 if (match == TypeMatch.No)
@@ -214,32 +218,38 @@ namespace Skila.Language
             return this.TargetFunction.Parameters[this.argParamMapping[argIndex]];
         }
 
-        private IEnumerable<int> getArgumentIndices(int paramIndex)
+        private IEnumerable<FunctionArgument> getArguments(int paramIndex)
         {
             if (paramIndex >= this.paramArgMapping.Count)
-                return Enumerable.Empty<int>();
+                return Enumerable.Empty<FunctionArgument>();
             else
-                return this.paramArgMapping[paramIndex];
+                return this.paramArgMapping[paramIndex].Select(arg_idx => this.Arguments[arg_idx]);
         }
 
         private bool isParameterUsed(int paramIndex)
         {
-            return this.getArgumentIndices(paramIndex).Any();
+            return this.getArguments(paramIndex).Any();
         }
 
         internal IEnumerable<IEnumerable<FunctionArgument>> GetArgumentsMultipleTargeted()
         {
             return this.TargetFunction.Parameters
                 .Where(param => !param.IsVariadic)
-                .Select(param => getArgumentIndices(param.Index))
-                .Where(indices => indices.Count() > 1)
-                .Select(indices => indices.Select(idx => this.Arguments[idx]));
+                .Select(param => getArguments(param.Index))
+                .Where(indices => indices.Count() > 1);
         }
 
         internal IEnumerable<FunctionParameter> GetUnfulfilledVariadicParameters()
         {
-            return this.TargetFunction.Parameters
-                .Where(param => param.IsVariadic && !param.Variadic.IsWithinLimits(getArgumentIndices(param.Index).Count()));
+            foreach (FunctionParameter param in this.TargetFunction.Parameters.Where(param => param.IsVariadic))
+            {
+                IEnumerable<FunctionArgument> arguments = getArguments(param.Index);
+                if (arguments.Any(it => it.IsSpread))
+                    continue;
+
+                if (!param.Variadic.IsWithinLimits(arguments.Count()))
+                    yield return param;
+            }
         }
 
         public bool AllParametersUsed()
@@ -251,12 +261,6 @@ namespace Skila.Language
         public bool RequiredParametersUsed()
         {
             bool result = this.TargetFunction.Parameters.Where(it => !it.IsOptional).All(it => isParameterUsed(it.Index));
-            return result;
-        }
-
-        public bool AllArgumentsMapped()
-        {
-            bool result = this.argParamMapping.All(it => it != noMapping);
             return result;
         }
 

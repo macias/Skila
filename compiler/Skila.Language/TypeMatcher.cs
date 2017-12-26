@@ -137,23 +137,24 @@ namespace Skila.Language
 
             if (allowSlicing)
             {
-                foreach (EntityInstance inherited_input in new[] { input }.Concat(input.Inheritance(ctx).AncestorsIncludingObject
+                foreach (TypeAncestor inherited_input in new[] { new TypeAncestor(input, 0) }
+                    .Concat(input.Inheritance(ctx).TypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
-                    .Where(it => !it.TargetType.Modifier.HasEnum)))
+                    .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum)))
                 {
-                    bool match = templateMatches(ctx, inversedVariance, inherited_input, target, allowSlicing);
+                    bool match = templateMatches(ctx, inversedVariance, inherited_input.AncestorInstance, target, allowSlicing);
                     if (match)
                     {
                         // we cannot shove mutable type in disguise as immutable one, consider such scenario
                         // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
                         // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
                         // this would be disastrous when working concurrently
-                        if (!inherited_input.IsImmutableType(ctx) && target.IsImmutableType(ctx))
+                        if (!inherited_input.AncestorInstance.IsImmutableType(ctx) && target.IsImmutableType(ctx))
                             return TypeMatch.No;
                         else if (input == target)
                             return TypeMatch.Same;
                         else
-                            return TypeMatch.Substitute;
+                            return TypeMatch.Substitution(inherited_input.Distance);
                     }
                 }
             }
@@ -164,12 +165,13 @@ namespace Skila.Language
                 // base enum. Adding conversion constructor from base to child type will suffice and allow to get rid
                 // of those enum-inheritance matching
 
-                foreach (EntityInstance inherited_target in new[] { target }.Concat(target.Inheritance(ctx).AncestorsIncludingObject)
-                    .Where(it => it.TargetType.Modifier.HasEnum))
+                foreach (TypeAncestor inherited_target in new[] { new TypeAncestor( target,0) }
+                    .Concat(target.Inheritance(ctx).TypeAncestorsIncludingObject)
+                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum))
                 {
                     // please note that unlike normal type matching we reversed the types, in enum you can
                     // pass base type as descendant!
-                    bool match = templateMatches(ctx, inversedVariance, inherited_target, input,
+                    bool match = templateMatches(ctx, inversedVariance, inherited_target.AncestorInstance, input,
                         // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
                         allowSlicing: true);
 
@@ -179,12 +181,12 @@ namespace Skila.Language
                         // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
                         // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
                         // this would be disastrous when working concurrently
-                        if (!inherited_target.IsImmutableType(ctx) && input.IsImmutableType(ctx))
+                        if (!inherited_target.AncestorInstance.IsImmutableType(ctx) && input.IsImmutableType(ctx))
                             return TypeMatch.No;
                         else if (input == target)
                             return TypeMatch.Same;
                         else
-                            return TypeMatch.Substitute;
+                            return TypeMatch.Substitution(inherited_target.Distance);
                     }
                 }
             }
@@ -270,7 +272,7 @@ namespace Skila.Language
             if (closedTemplate == null || closedTemplate.IsJoker)
                 return ConstraintMatch.Yes;
 
-            if (closedTemplate.Target.DebugId.Id==3703)
+            if (closedTemplate.Target.DebugId.Id == 3703)
             {
                 ;
             }

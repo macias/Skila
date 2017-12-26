@@ -54,7 +54,7 @@
         CannotSpawnWithMutableArgument = 50,
         CannotSpawnOnMutableContext = 51,
         MissingDerivedModifier = 52,
-        AbstractFunctionMissingImplementation = 53,
+        VirtualFunctionMissingImplementation = 53,
         NonAbstractTypeWithAbstractMethod = 54,
         SealedTypeWithBaseMethod = 55,
         CannotDeriveSealedMethod = 56,
@@ -82,7 +82,7 @@
         DereferencingValue = 78,
         StaticMemberAccessInInstanceContext = 79,
         EmptyReturn = 80,
-        PinnedFunctionMissingImplementation = 81,
+        NestedValueOfItself = 81,
         ConverterWithParameters = 82,
         ConverterNotPinned = 83,
     }

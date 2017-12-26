@@ -17,14 +17,14 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            //   new Semantics.CompilerProtection().Environment();
+             // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().ProperMethodCallTypeInference();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
-            //new Semantics.Inheritance().ErrorMissingPinnedDefinition();
+            //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
@@ -33,15 +33,15 @@ namespace Skila.Tests
             //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
-            //new Semantics.Types().ErrorInstanceMemberReference();
+            //new Semantics.Types().ErrorCircularValueNesting();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
             //  new Execution.Collections().ChunkOnHeap();
             //new Execution.Concurrency().SingleMessage();
-            new Execution.FunctionCalls().NoLimitsVariadicFunctionWithSpread();
+            new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
-            //new Execution.Interfaces().TraitFunctionCall();
+           // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();

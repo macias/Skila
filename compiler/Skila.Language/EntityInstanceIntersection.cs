@@ -17,7 +17,7 @@ namespace Skila.Language
             return new EntityInstanceIntersection(instances);
         }
 
-        private EntityInstanceIntersection(IEnumerable<IEntityInstance> instances) :base(instances)
+        private EntityInstanceIntersection(IEnumerable<IEntityInstance> instances) : base(instances)
         {
         }
 
@@ -29,9 +29,9 @@ namespace Skila.Language
         protected override bool hasSymmetricRelation(IEntityInstance other,
             Func<IEntityInstance, IEntityInstance, bool> relation)
         {
-            Func<EntityInstanceIntersection, IEntityInstance, bool> check_all 
+            Func<EntityInstanceIntersection, IEntityInstance, bool> check_all
                 = (set, instance) => set.Instances.All(it => relation(instance, it));
-            Func<EntityInstanceIntersection, IEntityInstance, bool> check_any 
+            Func<EntityInstanceIntersection, IEntityInstance, bool> check_any
                 = (set, instance) => set.Instances.Any(it => relation(instance, it));
 
             var other_set = other as EntityInstanceIntersection;
@@ -41,7 +41,7 @@ namespace Skila.Language
                 // when comparing two unions the rule is simple: each instance from this has to have its identical counterpart in the other union
                 // and in reverse, each instance from the other has to have its counterpart in this union, so for example
                 // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
-                return this.Instances.All(it => check_any(other_set, it)) 
+                return this.Instances.All(it => check_any(other_set, it))
                     && other_set.Instances.All(it => check_any(this, it));
         }
 
@@ -50,8 +50,8 @@ namespace Skila.Language
             return Create(instances);
         }
 
-     
-        public override TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, 
+
+        public override TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance,
             EntityInstance input, VarianceMode variance, bool allowSlicing)
         {
             TypeMatch match = TypeMatch.No;
@@ -93,20 +93,24 @@ namespace Skila.Language
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
             if (matches.Any(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
-            else if (matches.Any(it => it== TypeMatch.Substitute))
-                return TypeMatch.Substitute;
+
+            IEnumerable<TypeMatch> substitutions = matches.Where(it => it == TypeMatch.Substitute).OrderBy(it => it.Distance);
+            if (substitutions.Any())
+                return substitutions.First();
             else
                 return TypeMatch.No;
         }
 
-        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, 
+        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance,
             IEntityInstance target, VarianceMode variance, bool allowSlicing)
         {
             IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing));
             if (matches.Any(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
-            else if (matches.Any(it => it == TypeMatch.Substitute))
-                return TypeMatch.Substitute;
+
+            IEnumerable<TypeMatch> substitutions = matches.Where(it => it == TypeMatch.Substitute).OrderBy(it => it.Distance);
+            if (substitutions.Any())
+                return substitutions.First();
             else
                 return TypeMatch.No;
         }

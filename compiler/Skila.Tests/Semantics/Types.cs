@@ -14,6 +14,59 @@ namespace Skila.Tests.Semantics
     public class Types
     {
         [TestMethod]
+        public IErrorReporter CircularPointerNesting()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
+                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                .With(VariableDeclaration.CreateStatement("s", NameFactory.PointerTypeReference(NameReference.Create("Form")),
+                Undef.Create(), EntityModifier.Private)));
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
+                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                .With(VariableDeclaration.CreateStatement("f", NameFactory.PointerTypeReference(NameReference.Create("Shape")),
+                Undef.Create(), EntityModifier.Private)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorCircularValueNesting()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("s", NameReference.Create("Form"), null, EntityModifier.Private);
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
+                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                .With(decl1));
+
+            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("f", NameReference.Create("Shape"), null, EntityModifier.Private);
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
+                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                .With(decl2));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself,decl1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl2));
+
+            return resolver;
+        }
+
+
+        [TestMethod]
         public IErrorReporter ErrorConflictingModifier()
         {
             var env = Language.Environment.Create();
@@ -55,10 +108,10 @@ namespace Skila.Tests.Semantics
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                    new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(), 
+                    new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(),
                         Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement())));
-            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null, 
+            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null,
                 EntityModifier.Public);
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
                 .With(field_decl));
@@ -78,7 +131,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null,
                     EntityModifier.Static | EntityModifier.Public)));
 
             NameReference field_ref = NameReference.Create("f", "field");
@@ -96,7 +149,7 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
-    
+
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
@@ -137,16 +190,16 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("foo"), 
+                    NameDefinition.Create("foo"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference());
             FunctionDefinition abstract_func = FunctionBuilder.Create(
-                    NameDefinition.Create("bar"), 
+                    NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
                     .Modifier(EntityModifier.Abstract);
             FunctionDefinition base_func = FunctionBuilder.Create(
-                    NameDefinition.Create("basic"), 
+                    NameDefinition.Create("basic"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
                     .Modifier(EntityModifier.Base);

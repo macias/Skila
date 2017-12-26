@@ -6,6 +6,7 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using Skila.Language.Extensions;
 
 namespace Skila.Tests.Semantics
 {
@@ -203,7 +204,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(super_function_reference))
                     }))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             FunctionDefinition func = FunctionBuilder.Create(
                 NameDefinition.Create("getB"),
@@ -212,7 +213,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("1"))
                 }))
-            .Modifier(EntityModifier.Refines);
+            .Modifier(EntityModifier.Override);
 
             root_ns.AddBuilder(TypeBuilder.Create("Alter")
                 .Parents("Middle")
@@ -255,7 +256,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(super_function_reference))
                     }))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             var resolver = NameResolver.Create(env);
 

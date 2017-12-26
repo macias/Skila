@@ -15,9 +15,12 @@ namespace Skila.Language.Extensions
             }
             catch (InvalidCastException ex)
             {
+                Type t_type = typeof(T);
+                Type this_type = @this?.GetType();
+
                 throw new InvalidCastException("Invalid cast exception for "
-                    + (@this == null ? "value null" : "type " + @this.GetType())
-                    + " to type " + typeof(T) + ".", ex);
+                    + (@this == null ? "value null" : "type " + this_type)
+                    + " to type " + t_type + ".", ex);
             }
         }
 

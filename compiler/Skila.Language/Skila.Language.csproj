@@ -154,6 +154,8 @@
     <Compile Include="ConstraintMatch.cs" />
     <Compile Include="TemplateConstraint.cs" />
     <Compile Include="EntityInstanceSignature.cs" />
+    <Compile Include="TypeAncestor.cs" />
+    <Compile Include="FunctionOverloadWeight.cs" />
     <Compile Include="Variadic.cs" />
     <Compile Include="ExpressionReadMode.cs" />
     <Compile Include="IIndexed.cs" />

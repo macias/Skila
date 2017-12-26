@@ -108,13 +108,13 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("3"))
                     }))
-                    .Modifier(EntityModifier.Refines)
+                    .Modifier(EntityModifier.Override)
                     )
                 .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("-1"))
                     }))
-                    .Modifier(EntityModifier.Refines)
+                    .Modifier(EntityModifier.Override)
                     ));
 
             NameReferenceIntersection intersection = NameReferenceIntersection.Create(
@@ -166,7 +166,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
                 .Parents(NameReference.Create("MyBase")));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -207,7 +207,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("-50"))
                     }))
-                    .Modifier(EntityModifier.Refines))
+                    .Modifier(EntityModifier.Override))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
@@ -215,7 +215,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("51"))
                     }))
-                    .Modifier(EntityModifier.Refines)));
+                    .Modifier(EntityModifier.Override)));
 
             root_ns.AddBuilder(TypeBuilder.Create("End")
                 .Parents("Middle")
@@ -226,7 +226,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("-1000"))
                     }))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
@@ -237,7 +237,7 @@ namespace Skila.Tests.Execution
                             ExpressionFactory.Add(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName)),
                                 FunctionCall.Create(NameReference.Create(NameFactory.BaseVariableName,"getA")))))
                     }))
-                    .Modifier(EntityModifier.Refines)));
+                    .Modifier(EntityModifier.Override)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),

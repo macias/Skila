@@ -27,7 +27,7 @@ namespace Skila.Tests.Execution
                 .Modifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(Return.Create(IntLiteral.Create("500"))))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
@@ -36,7 +36,7 @@ namespace Skila.Tests.Execution
                 .With(PropertyBuilder.CreateIndexer(NameFactory.IntTypeReference())
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(Return.Create(IntLiteral.Create("2")))
-                        .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))));
+                        .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -71,14 +71,14 @@ namespace Skila.Tests.Execution
                 .Modifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement(Return.Create(IntLiteral.Create("500"))))
-                    .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase)));
+                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")
                 .Modifier(EntityModifier.Base)
                 .With(PropertyBuilder.Create("getMe", NameFactory.IntTypeReference())
                     .With(PropertyMemberBuilder.CreateGetter(Return.Create(IntLiteral.Create("2")))
-                        .Modifier(EntityModifier.Refines | EntityModifier.UnchainBase))));
+                        .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -113,13 +113,13 @@ namespace Skila.Tests.Execution
                     new[] { VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1"),
                         EntityModifier.Reassignable) },
                     new[] { Property.CreateIndexerGetter(property_typename, property_parameters,
-                        IfBranch.CreateIf(ExpressionFactory.Equal(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
+                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
                             Return.Create(NameReference.CreateThised("x"))
                             },IfBranch.CreateElse(new[]{
                                 Return.Create(IntLiteral.Create("300"))
                             }))) },
                     new[] { Property.CreateIndexerSetter(property_typename, property_parameters,
-                        IfBranch.CreateIf(ExpressionFactory.Equal(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
+                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
                             Assignment.CreateStatement(NameReference.CreateThised("x"),
                                 NameReference.Create(NameFactory.PropertySetterValueParameter))
                             })) }

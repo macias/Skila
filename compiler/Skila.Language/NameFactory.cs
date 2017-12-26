@@ -59,6 +59,7 @@ namespace Skila.Language
         public const string NotOperator = "not";
 
         public const string PropertyIndexerName = "at";
+        public const string IterableCount = "count";
 
         public const string LambdaInvoke = "invoke";
 
@@ -75,7 +76,7 @@ namespace Skila.Language
         public const string EnumConstructorParameter = "ord";
 
         public const string ChunkSizeConstructorParameter = "size";
-        public const string ChunkIndexIndexerParameter = "index";
+        public const string IndexIndexerParameter = "index";
 
         public const string OptionHasValue = "HasValue";
         public const string OptionValue = "Value";

@@ -251,9 +251,30 @@ namespace Skila.Language.Entities
             closure.AttachTo(this);
         }
 
+        private bool validateStorage(ComputationContext ctx, TypeDefinition ownerType)
+        {
+            // todo: improve this to detect types containing arrays of values of itself (for example)
+            if (ownerType == null || this.Modifier.HasStatic)
+                return true;
+
+            TypeDefinition eval_type = this.Evaluation.Components.Target().CastType();
+            if (ownerType == eval_type)
+                return false;
+
+            foreach (VariableDeclaration field in eval_type.AllNestedFields)
+            {
+                if (!field.validateStorage(ctx, ownerType))
+                    return false;
+            }
+
+            return true;
+        }
         public override void Validate(ComputationContext ctx)
         {
             base.Validate(ctx);
+
+            if (!validateStorage(ctx,this.OwnerType()))
+                ctx.AddError(ErrorCode.NestedValueOfItself,this);
 
             if (!ctx.Env.Options.TypelessVariablesDuringTests && this.Owner is TypeContainerDefinition && this.TypeName == null)
                 ctx.AddError(ErrorCode.MissingTypeName, this);
