@@ -40,7 +40,7 @@ namespace Skila.Language.Expressions
         }
         public static FunctionCall Create(IExpression name, params IExpression[] arguments)
         {
-            return Create(name,arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return Create(name, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static FunctionCall Create(IExpression name, params FunctionArgument[] arguments)
         {
@@ -119,7 +119,7 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            return this.Callee + "(" + Arguments.Select(it => it.ToString()).Join(",") + ")";
+            return this.Callee + "(" + Arguments.Select(it => it == null ? "Ø" : it.ToString()).Join(",") + ")";
         }
 
         public void Validate(ComputationContext ctx)
@@ -157,7 +157,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id ==  3688)
+                if (this.DebugId.Id == 3688)
                 {
                     ;
                 }
@@ -204,6 +204,7 @@ namespace Skila.Language.Expressions
                         .Where(it => it != null)
                         .StoreReadOnly();
                     targets = targets.Where(it => it.RequiredParametersUsed()).StoreReadOnly();
+                    targets = targets.Where(it => it.CorrectlyFormedArguments()).StoreReadOnly();
                     targets = targets.Where(it => it.ArgumentTypesMatchParameters(ctx)).StoreReadOnly();
                     if (this.RequestedOutcomeTypeName != null)
                         targets = targets.Where(it => it.OutcomeMatchesRequest(ctx)).StoreReadOnly();
@@ -227,14 +228,21 @@ namespace Skila.Language.Expressions
                                 targets.Select(it => it.TargetFunctionInstance.Target));
                         }
 
-                        this.Resolution.SetMappings(ctx);
+                        foreach (var group in this.Resolution.GetArgumentsMultipleTargeted())
+                            // we only report second "override" because if there are more 
+                            // it is more likely user forgot to mark parameter variadic
+                            ctx.ErrorManager.AddError(ErrorCode.ArgumentForFunctionAlreadyGiven, group.Skip(1).FirstOrDefault());
+
+                        foreach (FunctionParameter param in this.Resolution.GetUnfulfilledVariadicParameters())
+                            ctx.ErrorManager.AddError(ErrorCode.InvalidNumberVariadicArguments, this, param);
+
 
                         if (targets.Count() == 1)
                         {
                             this.Resolution.EnhanceArguments(ctx);
-                            /*  if (this.Resolution.TargetInstance.Target.CastFunction().IsInitConstructor() 
-                                  && this.Resolution.ObjectInstanceType) */
                         }
+
+                        this.Resolution.SetMappings(ctx);
 
                         // filtering here is a bit shaky -- if we don't use type inference
                         // we have to filter by what we bind to, but if we use inference
@@ -275,17 +283,6 @@ namespace Skila.Language.Expressions
 
                 foreach (IExpression arg in Arguments)
                     arg.ValidateValueExpression(ctx);
-
-                if (this.Resolution != null)
-                {
-                    foreach (var group in this.Resolution.GetArgumentsMultipleTargeted())
-                        // we only report second "override" because if there are more 
-                        // it is more likely user forgot to mark parameter variadic
-                        ctx.ErrorManager.AddError(ErrorCode.ArgumentForFunctionAlreadyGiven, group.Skip(1).FirstOrDefault());
-
-                    foreach (FunctionParameter param in this.Resolution.GetUnfulfilledVariadicParameters())
-                        ctx.ErrorManager.AddError(ErrorCode.InvalidNumberVariadicArguments, this, param);
-                }
             }
         }
 

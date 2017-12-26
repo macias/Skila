@@ -22,7 +22,7 @@ namespace Skila.Tests
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingMixedIf();
-            //new Semantics.FunctionCalls().ProperMethodCallTypeInference();
+            //new Semantics.FunctionCalls().InvalidNumberForVariadicParameter();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
@@ -39,7 +39,7 @@ namespace Skila.Tests
             //  new Execution.Closures().ResultTypeInference();
             //  new Execution.Collections().ChunkOnHeap();
             //new Execution.Concurrency().SingleMessage();
-            new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
+            new Execution.FunctionCalls().MinMaxLimitVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
            // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();

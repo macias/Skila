@@ -19,6 +19,10 @@ namespace Skila.Interpreter
         {
             this.debugMode = debugMode;
         }
+        private async Task<ObjectData> createChunk(ExecutionContext ctx, EntityInstance chunkRunTimeInstance, ObjectData[] elements)
+        {
+            return await ObjectData.CreateInstanceAsync(ctx, chunkRunTimeInstance, new Chunk(elements)).ConfigureAwait(false);
+        }
         private async Task<ExecValue> executeAsync(FunctionDefinition func, ExecutionContext ctx)
         {
             if (func.DebugId.Id == 170)
@@ -106,7 +110,7 @@ namespace Skila.Interpreter
                         ObjectData size_obj = ctx.FunctionArguments.Single();
                         int size = size_obj.PlainValue.Cast<int>();
                         ObjectData[] chunk = (await Task.WhenAll(Enumerable.Range(0, size).Select(_ => ObjectData.CreateEmptyAsync(ctx, elem_type))).ConfigureAwait(false)).ToArray();
-                        this_value.Assign(await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, new Chunk(chunk)).ConfigureAwait(false));
+                        this_value.Assign(await createChunk(ctx, this_value.RunTimeTypeInstance, chunk).ConfigureAwait(false));
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func == ctx.Env.ChunkAtSet)
@@ -114,7 +118,10 @@ namespace Skila.Interpreter
                         ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
                         int idx = idx_obj.PlainValue.Cast<int>();
                         Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                        chunk[idx] = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
+                        ObjectData arg_ref_object = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
+                        // indexer takes reference to element
+                        ObjectData arg_val = arg_ref_object.TryDereference(ctx.Env);
+                        chunk[idx] = arg_val;
                         return ExecValue.CreateReturn(null);
                     }
                     else if (func == ctx.Env.ChunkAtGet)
@@ -122,7 +129,10 @@ namespace Skila.Interpreter
                         ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
                         int idx = idx_obj.PlainValue.Cast<int>();
                         Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                        return ExecValue.CreateReturn(chunk[idx]);
+                        ObjectData obj_value = chunk[idx];
+                        // indexer returns reference to an element value
+                        ObjectData obj_ref = await obj_value.ReferenceAsync(ctx).ConfigureAwait(false);
+                        return ExecValue.CreateReturn(obj_ref);
                     }
                     else if (func == ctx.Env.ChunkCount)
                     {
@@ -674,17 +684,40 @@ namespace Skila.Interpreter
             }
 
             var args = new ObjectData[call.Resolution.TargetFunction.Parameters.Count];
-            foreach (FunctionArgument arg in call.Arguments)
+            foreach (var param in call.Resolution.TargetFunction.Parameters)
             {
-                ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
-                ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
-                ctx.Heap.TryInc(ctx, arg_obj);
+                IReadOnlyCollection<FunctionArgument> arguments = call.Resolution.GetArguments(param.Index).StoreReadOnly();
+                if (!arguments.Any())
+                    continue;
 
-                int idx = arg.MappedTo.Index;
-                if (args[idx] != null)
-                    throw new NotImplementedException();
+                if (arguments.Count == 1)
+                {
+                    FunctionArgument arg = arguments.Single();
+                    ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
+                    ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
+                    ctx.Heap.TryInc(ctx, arg_obj);
+
+                    args[param.Index] = arg_obj;
+                }
                 else
-                    args[idx] = arg_obj;
+                {
+                    // preparing arguments to be passed as one for variadic parameter
+                    var chunk = new ObjectData[arguments.Count];
+                    int i = 0;
+                    foreach (FunctionArgument arg in arguments)
+                    {
+                        ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
+                        ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
+                        ctx.Heap.TryInc(ctx, arg_obj);
+
+                        chunk[i] = arg_obj;
+                        ++i;
+                    }
+
+                    args[param.Index] = await createChunk(ctx,
+                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, false, null),
+                        chunk).ConfigureAwait(false);
+                }
             }
 
             FunctionDefinition target_func = getTargetFunction(ctx, call, this_value, call.Resolution.TargetFunction);

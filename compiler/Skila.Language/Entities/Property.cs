@@ -26,7 +26,8 @@ namespace Skila.Language.Entities
             IEnumerable<FunctionParameter> parameters, EntityModifier modifier, params IExpression[] instructions)
         {
             return FunctionBuilder.Create(NameFactory.PropertyGetter,
-                ExpressionReadMode.ReadRequired, propertyTypeName, Block.CreateStatement(instructions))
+                ExpressionReadMode.ReadRequired, propertyTypeName,
+                Block.CreateStatement(instructions))
                 .Modifier(modifier)
                 .Parameters(parameters);
         }
@@ -145,7 +146,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-           this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -171,7 +172,7 @@ namespace Skila.Language.Entities
 
         public void Validate(ComputationContext ctx)
         {
-            IEntityScopeExtension.Validate(this,ctx);
+            IEntityScopeExtension.Validate(this, ctx);
         }
 
         public bool IsReadingValueOfNode(IExpression node)
@@ -196,7 +197,7 @@ namespace Skila.Language.Entities
             if (!base.AttachTo(parent))
                 return false;
 
-            if (!this.Modifier.IsAccessSet) 
+            if (!this.Modifier.IsAccessSet)
             {
                 if (parent is TypeContainerDefinition)
                     this.SetModifier(this.Modifier | EntityModifier.Public);

@@ -52,7 +52,7 @@ namespace Skila.Language
         public int Index
         {
             get { return index.Value; }
-            set
+            private set
             {
                 if (this.index.HasValue && this.index.Value != value)
                     throw new InvalidOperationException("Index is already set.");
@@ -152,6 +152,10 @@ namespace Skila.Language
             return true;
         }
 
+        public void SetIndex(int index)
+        {
+            this.Index = index;
+        }
         /* public static bool CanDifferentiateByUsage(FunctionParameter p1, FunctionParameter p2)
          {
              // to tell the difference we need different names (quite obvious)

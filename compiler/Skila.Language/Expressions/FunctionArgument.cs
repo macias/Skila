@@ -40,7 +40,7 @@ namespace Skila.Language.Expressions
         public int Index
         {
             get { return index.Value; }
-            set
+            private set
             {
                 if (this.index.HasValue && this.index.Value != value)
                     throw new InvalidOperationException("Index is already set.");
@@ -102,6 +102,10 @@ namespace Skila.Language.Expressions
 
         }
 
+        public void SetIndex(int index)
+        {
+            this.Index = index;
+        }
         public void AddClosure(TypeDefinition closure)
         {
             this.closures.Add(closure);

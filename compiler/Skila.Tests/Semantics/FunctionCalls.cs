@@ -14,6 +14,118 @@ namespace Skila.Tests.Semantics
     public class FunctionCalls
     {
         [TestMethod]
+        public IErrorReporter RegularFunctionWithSpreadCall()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("sum"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    Return.Create(Undef.Create())
+                }))
+                .Parameters(FunctionParameter.Create("n", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(NameFactory.IntTypeReference())),
+                    Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("sum"), Spread.Create(NameReference.Create("x")));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.IntTypeReference()),
+                            FunctionArgument.Create(IntLiteral.Create("2"))),
+                        EntityModifier.Reassignable),
+                    Return.Create(call)
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TargetFunctionNotFound, call));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter VariadicFunctionWithMixedFormArguments()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("sum"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    Return.Create(Undef.Create())
+                }))
+                .Parameters(FunctionParameter.Create("n", NameFactory.IntTypeReference(), Variadic.Create(),
+                    null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("sum"),
+                         Spread.Create(NameReference.Create("x")), IntLiteral.Create("77"));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.IntTypeReference()),
+                            FunctionArgument.Create(IntLiteral.Create("2"))),
+                        EntityModifier.Reassignable),
+                    Return.Create(call)
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TargetFunctionNotFound, call));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter VariadicFunctionMissingSpread()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("sum"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    Return.Create(Undef.Create())
+                }))
+                .Parameters(FunctionParameter.Create("n", NameFactory.IntTypeReference(), Variadic.Create(),
+                    null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("sum"), NameReference.Create("x"));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.IntTypeReference()),
+                            FunctionArgument.Create(IntLiteral.Create("2"))),
+                        EntityModifier.Reassignable),
+                    Return.Create(call)
+                })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TargetFunctionNotFound, call));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorUnqualifiedBaseConstructorCall()
         {
             var env = Language.Environment.Create();
@@ -366,7 +478,7 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count());
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             Assert.AreEqual(param1, arg1.MappedTo);
             Assert.AreEqual(param1, arg2.MappedTo);
             Assert.AreEqual(param2, arg3.MappedTo);
@@ -429,8 +541,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.TargetFunctionNotFound, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(call, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TargetFunctionNotFound, call));
 
             return resolver;
         }
@@ -477,12 +588,12 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            foreach (var arg in call1.Arguments.Concat(call2.Arguments).Concat(call3.Arguments).Concat(call4.Arguments))
-                Assert.AreEqual(param1, arg.MappedTo);
-
             Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call1));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call4));
+
+            foreach (var arg in call1.Arguments.Concat(call2.Arguments).Concat(call3.Arguments).Concat(call4.Arguments))
+                Assert.AreEqual(param1, arg.MappedTo);
 
             return resolver;
         }

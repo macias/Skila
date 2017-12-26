@@ -18,28 +18,50 @@ namespace Skila.Language
 
     public struct TypeMatch
     {
-        public static readonly TypeMatch No = new TypeMatch(0);
-        public static readonly TypeMatch Same = new TypeMatch(1 << 1);
-        public static readonly TypeMatch Substitute = new TypeMatch(1 << 2);
-        public static readonly TypeMatch InConversion = new TypeMatch(1 << 3);
-        public static readonly TypeMatch OutConversion = new TypeMatch(1 << 4);
-        public static readonly TypeMatch ImplicitReference = new TypeMatch(1 << 5);
-        public static readonly TypeMatch AutoDereference = new TypeMatch(1 << 6);
+        [Flags]
+        private enum MatchFlag
+        {
+            No = 0,
+
+            Same = 1 << 1,
+            Substitute = 1 << 2,
+            InConversion = 1 << 3,
+            OutConversion = 1 << 4,
+            ImplicitReference = 1 << 5,
+            AutoDereference = 1 << 6,
+        }
+
+        public static readonly TypeMatch No = new TypeMatch(MatchFlag.No);
+        public static readonly TypeMatch Same = new TypeMatch(MatchFlag.Same);
+        public static readonly TypeMatch Substitute = new TypeMatch(MatchFlag.Substitute);
+        public static readonly TypeMatch InConversion = new TypeMatch(MatchFlag.InConversion);
+        public static readonly TypeMatch OutConversion = new TypeMatch(MatchFlag.OutConversion);
+        public static readonly TypeMatch ImplicitReference = new TypeMatch(MatchFlag.ImplicitReference);
+        public static readonly TypeMatch AutoDereference = new TypeMatch(MatchFlag.AutoDereference);
 
         public static TypeMatch Substitution(int distance)
         {
             return new TypeMatch(TypeMatch.Substitute.flag, distance);
         }
 
-        private readonly int flag;
+        private readonly MatchFlag flag;
         public int Distance { get; } // makes sense for substitution
 
-        private TypeMatch(int flag, int distance = 0)
+        private TypeMatch(MatchFlag flag, int distance = 0)
         {
             this.flag = flag;
             this.Distance = distance;
         }
 
+        public override string ToString()
+        {
+            string s = this.flag.ToString();
+
+            if (this.flag.HasFlag(MatchFlag.Substitute))
+                s += $"({Distance})";
+
+            return s;
+        }
         public override bool Equals(object obj)
         {
             if (obj is TypeMatch m)

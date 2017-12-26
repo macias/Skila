@@ -4,7 +4,8 @@ namespace Skila.Language
 {
     public interface IIndexed
     {
-        int Index { get; set; }
+        int Index { get; }
+        void SetIndex(int index);
     }
 
     public static class IIndexedExtensions
@@ -15,7 +16,7 @@ namespace Skila.Language
             int index = 0;
             foreach (T elem in @this)
             {
-                elem.Index = index;
+                elem.SetIndex(index);
                 ++index;
                 yield return elem;
             }
