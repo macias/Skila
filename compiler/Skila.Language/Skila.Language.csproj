@@ -207,6 +207,7 @@
     <Compile Include="VirtualTable.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Documentation\Mutability.md" />
     <None Include="Documentation\Processing.md" />
     <None Include="Documentation\References.md" />
     <None Include="Documentation\Assignments.md" />

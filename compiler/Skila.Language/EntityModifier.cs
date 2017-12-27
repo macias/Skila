@@ -83,10 +83,9 @@ namespace Skila.Language
                                 || this.HasFinal;
 
         public bool IsPolymorphic => this.HasOverride || this.HasBase || this.HasAbstract || this.HasPinned;
-        public bool IsImmutable => !this.HasMutable;
         public bool IsAccessSet => this.HasPublic || this.HasPrivate || this.HasProtected;
         public bool IsAbstract => this.HasInterface || this.HasProtocol || this.HasAbstract;
-        public bool RequiresDerivation => this.IsAbstract || (this.HasPinned && !this.HasFinal);
+        public bool RequiresOverride => this.IsAbstract || (this.HasPinned && !this.HasFinal);
 
         public override IEnumerable<INode> OwnedNodes { get { yield break; } }
 

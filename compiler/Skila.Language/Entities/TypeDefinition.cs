@@ -170,7 +170,7 @@ namespace Skila.Language.Entities
                     if (deriv_info.Derived == null)
                     {
                         // we can skip implementation or abstract signature of the function in the abstract type
-                        if (deriv_info.Base.Modifier.RequiresDerivation && !this.Modifier.IsAbstract)
+                        if (deriv_info.Base.Modifier.RequiresOverride && !this.Modifier.IsAbstract)
                             missing_func_implementations.Add(deriv_info.Base);
                     }
                     else
@@ -189,7 +189,7 @@ namespace Skila.Language.Entities
                                 deriv_info.Derived.SetModifier(deriv_info.Derived.Modifier | EntityModifier.Pinned);
                         }
                         else if (!deriv_info.Base.Modifier.IsSealed)
-                            ctx.AddError(ErrorCode.MissingDerivedModifier, deriv_info.Derived);
+                            ctx.AddError(ErrorCode.MissingOverrideModifier, deriv_info.Derived);
 
                         if (!deriv_info.Base.Modifier.IsSealed)
                         {
@@ -205,7 +205,7 @@ namespace Skila.Language.Entities
                                 ctx.AddError(ErrorCode.AlteredAccessLevel, deriv_info.Derived.Modifier);
                         }
                         else if (deriv_info.Derived.Modifier.HasOverride)
-                            ctx.AddError(ErrorCode.CannotDeriveSealedMethod, deriv_info.Derived);
+                            ctx.AddError(ErrorCode.CannotOverrideSealedMethod, deriv_info.Derived);
                     }
                 }
             }
@@ -235,7 +235,7 @@ namespace Skila.Language.Entities
 
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
-                ctx.AddError(ErrorCode.NothingToDerive, func);
+                ctx.AddError(ErrorCode.NothingToOverride, func);
 
             this.isEvaluated = true;
         }
@@ -263,7 +263,7 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
             }
 
-            if (this.Modifier.IsImmutable)
+            if (!this.Modifier.HasMutable)
             {
                 foreach (NameReference parent in this.ParentNames)
                     if (!parent.Evaluation.Components.IsImmutableType(ctx))

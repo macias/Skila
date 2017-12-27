@@ -114,12 +114,12 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ITransmogrifier")
                 .With(FunctionBuilder.CreateDeclaration("transmogrify", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference()
-                
+
                 )
                     .Modifier(EntityModifier.Private))
                 .With(FunctionBuilder.CreateDeclaration("untransmogrify", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference()
-                
+
                 )
                     .Modifier(EntityModifier.Private))
             );
@@ -128,7 +128,7 @@ namespace Skila.Tests.Semantics
             // refining private is OK, but we cannot change the access to it
             FunctionDefinition public_func = FunctionBuilder.Create("untransmogrify", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement())
                 .Modifier(EntityModifier.Override);
 
@@ -137,14 +137,14 @@ namespace Skila.Tests.Semantics
                 // refining private is OK
                 .With(FunctionBuilder.Create("transmogrify", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Override | EntityModifier.Private))
                 .With(public_func)
                 // but using it -- not
                 .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement(new[] {
                         FunctionCall.Create(private_reference)
                     })))
@@ -160,7 +160,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorNothingToDerive()
+        public IErrorReporter ErrorNothingToOverride()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -177,7 +177,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToDerive, function));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, function));
 
             return resolver;
         }
@@ -347,7 +347,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.Create(NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement()))
                 .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
@@ -364,7 +364,7 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create("fin"),
                     ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Override | EntityModifier.UnchainBase);
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
@@ -376,8 +376,8 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualFunctionMissingImplementation, type_impl));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingDerivedModifier, bar_impl));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotDeriveSealedMethod, fin_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingOverrideModifier, bar_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotOverrideSealedMethod, fin_impl));
 
             return resolver;
         }
@@ -412,7 +412,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ProperBasicMethodDerivation()
+        public IErrorReporter ProperBasicMethodOverride()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -445,7 +445,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ProperGenericMethodDerivation()
+        public IErrorReporter ProperGenericMethodOverride()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -481,7 +481,95 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ProperGenericWithCostraintsMethodDerivation()
+        public IErrorReporter ProperGenericMethodOverrideWithGenericOutput()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IMyInterface",
+                    TemplateParametersBuffer.Create().Add("TI").Values))
+                .With(FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("bar"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
+
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MyImpl",
+                    TemplateParametersBuffer.Create().Add("MV").Values))
+                .With(FunctionBuilder.Create(
+                    NameDefinition.Create("bar"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
+                    Block.CreateStatement(new[] {
+                        Return.Create(Undef.Create())
+                    }))
+                    .Modifier(EntityModifier.Override))
+                .Parents(NameReference.Create("IMyInterface", NameReference.Create("MV"))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorMixedMemoryClassOverrideWithGenericOutput()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            // here we define to return reference and value of generic type
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IMyInterface",
+                    TemplateParametersBuffer.Create().Add("TI").Values))
+                .With(FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("bar"),
+                    ExpressionReadMode.OptionalUse,
+                    NameReference.Create("TI")))
+                .With(FunctionBuilder.CreateDeclaration(
+                    NameDefinition.Create("foo"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
+
+            // and here we override the above functions but with changed output -- in case of reference we try to set result type as value
+            // and in case of function with value output we try to set result type as reference
+            // in short wy try to make such overrides (for result types)
+            // V -> &V
+            // &V -> V
+            FunctionDefinition func1_impl = FunctionBuilder.Create(
+                    NameDefinition.Create("bar"),
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
+                    Block.CreateStatement(new[] {
+                        Return.Create(Undef.Create())
+                    }))
+                    .Modifier(EntityModifier.Override);
+            FunctionDefinition func2_impl = FunctionBuilder.Create(
+                    NameDefinition.Create("foo"),
+                    ExpressionReadMode.OptionalUse,
+                    NameReference.Create("MV"),
+                    Block.CreateStatement(new[] {
+                        Return.Create(Undef.Create())
+                    }))
+                    .Modifier(EntityModifier.Override);
+
+            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MyImpl",
+                    TemplateParametersBuffer.Create().Add("MV").Values))
+                .With(func1_impl)
+                .With(func2_impl)
+                .Parents(NameReference.Create("IMyInterface", NameReference.Create("MV"))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VirtualFunctionMissingImplementation, type_impl, 2));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, func1_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, func2_impl));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ProperGenericWithCostraintsMethodOverride()
         {
             var env = Environment.Create();
             var root_ns = env.Root;

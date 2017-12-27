@@ -1,4 +1,9 @@
-﻿namespace Skila.Language
+﻿using Skila.Language.Extensions;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
+namespace Skila.Language
 {
     public interface IOptions
     {
@@ -16,5 +21,18 @@
         bool DiscardingAnyExpressionDuringTests { get; }
         bool GlobalVariables { get; }
         bool TypelessVariablesDuringTests { get; }
+    }
+
+    public static class IOptionsExtension
+    {
+        public static IEnumerable<string> GetEnabledProperties<T>(this T options)
+            where T : IOptions
+        {
+            return typeof(IOptions)
+                            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                            .Where(it => it.GetValue(options).Cast<bool>())
+                            .Select(it => it.Name)
+                            .OrderBy(it => it);
+        }
     }
 }

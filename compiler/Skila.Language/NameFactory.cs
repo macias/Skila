@@ -169,13 +169,13 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName)
+        public static NameReference ISequenceTypeReference(string templateParamName, bool overrideMutability = false)
         {
-            return ISequenceTypeReference(NameReference.Create(templateParamName));
+            return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, bool overrideMutability = false)
         {
-            return NameReference.Create(CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
+            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
         public static NameReference ChunkTypeReference(string templateParamName)
         {

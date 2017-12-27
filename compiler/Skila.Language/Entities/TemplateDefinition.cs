@@ -81,7 +81,8 @@ namespace Skila.Language.Entities
                 this.Conditionals = set;
             }
 
-            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf), overrideMutability: false, translation:null));
+            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf), 
+                overrideMutability: false, translation:null));
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)

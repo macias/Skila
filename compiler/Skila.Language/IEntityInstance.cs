@@ -76,7 +76,7 @@ namespace Skila.Language
                 if (!target.IsType())
                     throw new Exception("Internal error");
 
-                if (!target.Modifier.IsImmutable || instance.OverrideMutability)
+                if (target.Modifier.HasMutable || instance.OverrideMutability)
                     return false;
 
                 foreach (VariableDeclaration field in target.CastType().AllNestedFields)
@@ -86,9 +86,11 @@ namespace Skila.Language
                         return false;
                 }
 
-                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer)
-                    && !val_instance.IsImmutableType(ctx, visited))
-                    return false;
+                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer))
+                {
+                    if (!val_instance.IsImmutableType(ctx, visited))
+                        return false;
+                }
             }
 
             return true;

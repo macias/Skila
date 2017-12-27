@@ -1,4 +1,7 @@
-﻿namespace Skila.Language
+﻿using NaiveLanguageTools.Common;
+using System.Linq;
+
+namespace Skila.Language
 {
     public sealed class Options : IOptions
     {
@@ -11,5 +14,10 @@
         public bool GlobalVariables { get; set; }
         // todo: limit usage of this option and eventually remove it completely
         public bool TypelessVariablesDuringTests { get; set; }
+
+        public override string ToString()
+        {
+            return this.GetEnabledProperties().Join(", ");
+        }
     }
 }

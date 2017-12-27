@@ -17,17 +17,17 @@ namespace Skila.Tests
 
         public static void Main()
         {
-             // new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().InvalidNumberForVariadicParameter();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
-            //new Semantics.Inheritance().ErrorEnumCrossInheritance();
+            //new Semantics.Inheritance().ErrorMixedMemoryClassOverrideWithGenericOutput();
             //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
             //new Semantics.MethodDefinitions().Basics();
-            //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
+            //new Semantics.Mutability().ErrorMutabilityLaunderingOnReturn();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorGetterOverridesNothing();
@@ -39,9 +39,9 @@ namespace Skila.Tests
             //  new Execution.Closures().ResultTypeInference();
             //  new Execution.Collections().ChunkOnHeap();
             //new Execution.Concurrency().SingleMessage();
-            new Execution.FunctionCalls().MinMaxLimitVariadicFunction();
+             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
-           // new Execution.Interfaces().TraitFunctionCall();
+            // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();

@@ -12,6 +12,57 @@ namespace Skila.Tests.Execution
     public class FunctionCalls
     {
         [TestMethod]
+        public IInterpreter OptionalNoLimitsVariadicFunction()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create("provider",NameFactory.ChunkTypeReference(NameFactory.IntTypeReference()),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("x", null,
+                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.IntTypeReference()),
+                            FunctionArgument.Create(IntLiteral.Create("2")))),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(IntLiteral.Create("0"))),
+                        IntLiteral.Create("-6")),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(IntLiteral.Create("1"))),
+                        IntLiteral.Create("8")),
+                    Return.Create(NameReference.Create("x"))
+                    )));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("sum"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // let i0 = n.at(0)
+                    VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
+                        FunctionArgument.Create(IntLiteral.Create("0")))),
+                    // let i1 = n.at(1)
+                    VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
+                        FunctionArgument.Create(IntLiteral.Create("1")))),
+                    // return i0+i1
+                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                }))
+                .Parameters(FunctionParameter.Create("n", NameFactory.IntTypeReference(), Variadic.Create(), 
+                    FunctionCall.Create(NameReference.Create("provider")), isNameRequired: false)));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    Return.Create(FunctionCall.Create(NameReference.Create("sum")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter MinMaxLimitVariadicFunction()
         {
             var env = Language.Environment.Create();

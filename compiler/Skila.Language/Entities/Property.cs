@@ -161,15 +161,6 @@ namespace Skila.Language.Entities
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
-        /*public EntityInstance GetTransInstanceOf(EntityInstance entityInstance, IEnumerable<IEntityInstance> arguments, bool overrideMutability)
-        {
-            if (entityInstance.Target != this)
-                throw new InvalidOperationException();
-
-            return entityInstance;
-        }*/
-
-
         public void Validate(ComputationContext ctx)
         {
             IEntityScopeExtension.Validate(this, ctx);

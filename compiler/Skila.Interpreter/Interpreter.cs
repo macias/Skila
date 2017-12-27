@@ -346,6 +346,9 @@ namespace Skila.Interpreter
         }
         public ExecValue TestRun(Language.Environment env, FunctionDefinition main)
         {
+            //if (env.Options.GetEnabledProperties().Except(new[] { nameof(IOptions.DiscardingAnyExpressionDuringTests) }).Any())
+              //  throw new InvalidOperationException();
+
             // this method is for saving time on semantic analysis, so when you run it you know
             // the only thing is going on is execution
 
@@ -714,9 +717,10 @@ namespace Skila.Interpreter
                         ++i;
                     }
 
-                    args[param.Index] = await createChunk(ctx,
+                    ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, false, null),
                         chunk).ConfigureAwait(false);
+                    args[param.Index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
                 }
             }
 

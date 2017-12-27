@@ -38,7 +38,7 @@ namespace Skila.Language
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public bool OverrideMutability { get; }
+        public bool OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
 
         internal TemplateTranslation Translation { get; }
 
@@ -94,6 +94,11 @@ namespace Skila.Language
             this.Translation = translation;
 
             if (this.DebugId.Id == 4835)
+            {
+                ;
+            }
+
+            if (this.OverrideMutability)
             {
                 ;
             }
@@ -226,7 +231,7 @@ namespace Skila.Language
         {
             return target.MatchesInput(ctx, this, allowSlicing);
         }
-        public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
+        public bool IsSame( IEntityInstance other, bool jokerMatchesAll)
         {
             if (!jokerMatchesAll)
                 return this == other;
@@ -242,6 +247,9 @@ namespace Skila.Language
                 return true;
             // note we first compare targets, but then arguments count for instances (not targets)
             else if (this.Target != other_entity.Target || this.TemplateArguments.Count != other_entity.TemplateArguments.Count)
+                return false;
+
+            if (this.OverrideMutability!= other_entity.OverrideMutability)
                 return false;
 
             for (int i = 0; i < this.TemplateArguments.Count; ++i)

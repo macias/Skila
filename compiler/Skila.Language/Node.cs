@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using NaiveLanguageTools.Common;
+﻿using System.Collections.Generic;
 
 namespace Skila.Language
 {

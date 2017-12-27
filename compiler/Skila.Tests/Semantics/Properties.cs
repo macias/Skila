@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToDerive, property.Getter));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, property.Getter));
 
             return resolver;
         }

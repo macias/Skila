@@ -3,6 +3,7 @@ using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
+using Skila.Language.Flow;
 using Skila.Language.Semantics;
 
 namespace Skila.Tests.Semantics
@@ -10,6 +11,32 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Mutability
     {
+        [TestMethod]
+        public IErrorReporter ErrorMutabilityLaunderingOnReturn()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+
+            Return ret = Return.Create(NameReference.Create("coll"));
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("laundering", "T", VarianceMode.None),
+               new[] { FunctionParameter.Create("coll",
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true))) },
+               ExpressionReadMode.ReadRequired,
+               NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
+               Block.CreateStatement(new IExpression[] {
+                       ret
+               })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, ret.Value));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorAssigningMutableToImmutable()
         {
@@ -80,14 +107,17 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.Mutable));
             root_ns.AddBuilder(TypeBuilder.Create("Foo"));
 
+            // we build type Point<T> with enforced "const" on T -- meaning we can pass only trully immutable types
+            // as T
             VariableDeclaration field = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
                 Undef.Create(), modifier: EntityModifier.Public);
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
                .Constraints(ConstraintBuilder.Create("T")
-               .Modifier(EntityModifier.Const))
+                    .Modifier(EntityModifier.Const))
                .With(field));
 
+            // Bar is mutable type, so we cannot construct Point<Bar> since Point requires immutable type
             NameReference wrong_type = NameReference.Create("Point", NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,

@@ -25,9 +25,9 @@ namespace Skila.Language.Semantics
             this.errorTranslations = new HashSet<Tuple<ErrorCode, INode>>();
         }
 
-        public bool HasError(ErrorCode code, INode node)
+        public bool HasError(ErrorCode code, INode node,int count = 1)
         {
-            return this.Errors.Any(it => it.Code == code && it.Node == node);
+            return this.Errors.Count(it => it.Code == code && it.Node == node)==count;
         }
         /*public bool HasCode(ErrorCode code)
         {

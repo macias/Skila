@@ -62,7 +62,6 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-
         private FunctionParameter(ExpressionReadMode readMode, string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue, bool isNameRequired)
         {
@@ -74,7 +73,7 @@ namespace Skila.Language
 
             this.ElementTypeName = typeName;
             if (this.IsVariadic)
-                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference( typeName));
+                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, overrideMutability: true));
             else
                 this.TypeName = typeName;
 
@@ -90,7 +89,7 @@ namespace Skila.Language
             string variadic_str = this.Variadic.ToString();
             if (variadic_str != "")
                 variadic_str = " " + variadic_str;
-            return this.Name + (this.IsNameRequired ? ":" : "") 
+            return this.Name + (this.IsNameRequired ? ":" : "")
                 + $" {this.ElementTypeName}{variadic_str}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
         }
 

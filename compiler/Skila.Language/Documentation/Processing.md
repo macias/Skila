@@ -1,17 +1,19 @@
-﻿Currently we have three stages of processing:
+﻿## Processing
+
+Currently we have three stages of processing:
 
 * surfing ;-)
 * evaluating
 * validating
 
-#### Surfing
+### Surfing
 
 It touches the signatures part of the code -- among other things it computes function derivations.
 
-#### Evaluating
+### Evaluating
 
 It processes the function bodies, so we can tell that in function `f`, variable `x` is of type `Int` when we see `let x = 5`.
 
-#### Validation
+### Validation
 
 Besides trivial checking it inspects the flow of the code detecting if given variable is not used before it is assigned to.

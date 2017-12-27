@@ -76,7 +76,11 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
-            if (targetTypeName.DebugId.Id== 3400)
+            if (@this.DebugId.Id== 3837)
+            {
+                ;
+            }
+            if (targetTypeName.DebugId.Id== 4888)
             {
                 ;
             }
@@ -106,9 +110,10 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
-                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: true);
+                IEntityInstance source_eval = source.Evaluated(ctx);
+                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, allowSlicing: true);
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
-                    throw new Exception("Internal error");
+                    throw new Exception($"Internal error: matching result {m}");
             }
             else if (match == TypeMatch.OutConversion)
             {
