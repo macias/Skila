@@ -17,28 +17,28 @@ namespace Skila.Language.Flow
             return new Return(value);
         }
 
-        private IExpression value;
-        public IExpression Value => this.value;
+        private IExpression expr;
+        public IExpression Expr => this.expr;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Value }.Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
 
         private Return(IExpression value) : base(ExpressionReadMode.CannotBeRead)
         {
-            this.value = value;
+            this.expr = value;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
         public override string ToString()
         {
             string result = "return";
-            if (Value != null)
-                result += " " + Value.ToString();
+            if (Expr != null)
+                result += " " + Expr.ToString();
             return result;
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
         {
-            return node == this.Value;
+            return node == this.Expr;
         }
 
         public override void Evaluate(ComputationContext ctx)
@@ -57,23 +57,23 @@ namespace Skila.Language.Flow
                 {
                     if (func.IsResultTypeNameInfered)
                     {
-                        if (this.Value == null)
+                        if (this.Expr == null)
                             func.AddResultTypeCandidate(ctx.Env.UnitType.InstanceOf.NameOf);
                         else
-                            func.AddResultTypeCandidate(this.Value.Evaluation.Components.NameOf);
+                            func.AddResultTypeCandidate(this.Expr.Evaluation.Components.NameOf);
                     }
                     else
                     {
                         IEntityInstance func_result = func.ResultTypeName.Evaluation.Components;
 
-                        if (this.Value == null)
+                        if (this.Expr == null)
                         {
                             if (!ctx.Env.IsUnitType(func_result))
                                 ctx.ErrorManager.AddError(ErrorCode.EmptyReturn, this);
                         }
                         else
                         {
-                            this.DataTransfer(ctx, ref this.value, func_result);
+                            this.DataTransfer(ctx, ref this.expr, func_result);
                         }
                     }
                 }

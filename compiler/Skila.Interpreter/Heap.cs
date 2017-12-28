@@ -63,7 +63,7 @@ namespace Skila.Interpreter
             if (obj == null)
                 return false;
 
-            if (obj.DebugId.Id == 8758)
+            if (obj.DebugId.Id == 5508)
             {
                 ;
             }

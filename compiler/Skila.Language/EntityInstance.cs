@@ -199,8 +199,12 @@ namespace Skila.Language
             foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
             {
                 self = self.TranslateThrough(arg);
+                if (this!=self)
+                {
+                    ;
+                }
             }
-
+            
             TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTemplate.Translation);
 
             if (self.TemplateArguments.Any())
@@ -243,13 +247,14 @@ namespace Skila.Language
             var other_entity = other as EntityInstance;
             if (other_entity == null)
                 return other.IsSame(this, jokerMatchesAll);
-            else if (this.IsJoker || other_entity.IsJoker)
-                return true;
-            // note we first compare targets, but then arguments count for instances (not targets)
-            else if (this.Target != other_entity.Target || this.TemplateArguments.Count != other_entity.TemplateArguments.Count)
-                return false;
 
-            if (this.OverrideMutability!= other_entity.OverrideMutability)
+            if (this.IsJoker || other_entity.IsJoker)
+                return true;
+
+            if (this.OverrideMutability != other_entity.OverrideMutability)
+                return false;
+            // note we first compare targets, but then arguments count for instances (not targets)
+            if (this.Target != other_entity.Target || this.TemplateArguments.Count != other_entity.TemplateArguments.Count)
                 return false;
 
             for (int i = 0; i < this.TemplateArguments.Count; ++i)

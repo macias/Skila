@@ -299,12 +299,12 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            ExecValue result = ExecValue.Undefined;
+            ExecValue result = ExecValue.UndefinedExpression;
 
             foreach (IExpression expr in block.Instructions)
             {
                 result = await ExecutedAsync(expr, ctx).ConfigureAwait(false);
-                if (result.IsReturn)
+                if (result.Mode != DataMode.Expression)
                     break;
             }
 
@@ -317,7 +317,7 @@ namespace Skila.Interpreter
             if (!ifBranch.IsElse)
             {
                 ExecValue cond = await ExecutedAsync(ifBranch.Condition, ctx).ConfigureAwait(false);
-                if (cond.IsReturn)
+                if (cond.Mode == DataMode.Return)
                     return cond;
 
                 cond_obj = cond.ExprValue.TryDereference(ifBranch, ifBranch.Condition);
@@ -328,7 +328,7 @@ namespace Skila.Interpreter
             else if (ifBranch.Next != null)
                 return await ExecutedAsync(ifBranch.Next, ctx).ConfigureAwait(false);
             else
-                return ExecValue.Undefined;
+                return ExecValue.UndefinedExpression;
         }
 
         public static FunctionDefinition PrepareRun(Language.Environment env)
@@ -347,13 +347,13 @@ namespace Skila.Interpreter
         public ExecValue TestRun(Language.Environment env, FunctionDefinition main)
         {
             //if (env.Options.GetEnabledProperties().Except(new[] { nameof(IOptions.DiscardingAnyExpressionDuringTests) }).Any())
-              //  throw new InvalidOperationException();
+            //  throw new InvalidOperationException();
 
             // this method is for saving time on semantic analysis, so when you run it you know
             // the only thing is going on is execution
 
             ExecutionContext ctx = ExecutionContext.Create(env, this);
-            Task<ExecValue> main_task = this.ExecutedAsync(main, ctx);
+            Task<ExecValue> main_task = this.mainExecutedAsync(main, ctx);
 
             ctx.Routines.CompleteWith(main_task);
 
@@ -363,6 +363,18 @@ namespace Skila.Interpreter
             return main_task.Result;
         }
 
+        private async Task<ExecValue> mainExecutedAsync(IEvaluable node, ExecutionContext ctx)
+        {
+            ExecValue result = await ExecutedAsync(node, ctx).ConfigureAwait(false);
+            if (result.Mode == DataMode.Throw)
+            {
+                // todo: print the stacktrace, dump memory, etc etc etc
+                if (!ctx.Heap.TryDec(ctx, result.ThrowValue, passingOut: false))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                result = ExecValue.CreateThrow(null); // this is to return something for Tests
+            }
+            return result;
+        }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
         {
             if (this.debugMode)
@@ -448,12 +460,17 @@ namespace Skila.Interpreter
             {
                 result = await executeAsync(spread, ctx).ConfigureAwait(false);
             }
+            else if (node is Throw thrower)
+            {
+                result = await executeAsync(thrower, ctx).ConfigureAwait(false);
+            }
             else
                 throw new NotImplementedException($"Instruction {node.GetType().Name} is not implemented {ExceptionCode.SourceInfo()}.");
 
             if (node is IScope && ctx.LocalVariables != null)
             {
-                ObjectData out_obj = result.IsReturn || (node is Block block && !block.IsRead) ? null : result.ExprValue;
+                ObjectData out_obj = result.Mode != DataMode.Expression
+                    || (node is Block block && !block.IsRead) ? null : result.ExprValue;
 
                 foreach (Tuple<ILocalBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
                 {
@@ -494,25 +511,39 @@ namespace Skila.Interpreter
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, literal.Evaluation.Components, literal.Value).ConfigureAwait(false));
         }
 
+        private async Task<ExecValue> executeAsync(Throw thrower, ExecutionContext ctx)
+        {
+            ObjectData obj = (await ExecutedAsync(thrower.Expr, ctx).ConfigureAwait(false)).ExprValue;
+            obj = prepareExitData(ctx, thrower, obj);
+            return ExecValue.CreateThrow(obj);
+        }
+
         private async Task<ExecValue> executeAsync(Return ret, ExecutionContext ctx)
         {
             if (ret.DebugId.Id == 160)
             {
                 ;
             }
-            if (ret.Value == null)
+            if (ret.Expr == null)
                 return ExecValue.CreateReturn(null);
             else
             {
-                ObjectData obj = (await ExecutedAsync(ret.Value, ctx).ConfigureAwait(false)).ExprValue;
-                if (ret.Value.IsDereferenced != ret.IsDereferencing)
-                    throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
-                if (ret.IsDereferencing)
-                    obj = obj.Dereference().Copy();
-                ctx.Heap.TryInc(ctx, obj);
+                ObjectData obj = (await ExecutedAsync(ret.Expr, ctx).ConfigureAwait(false)).ExprValue;
+                obj = prepareExitData(ctx, ret, obj);
                 return ExecValue.CreateReturn(obj);
             }
         }
+
+        private static ObjectData prepareExitData(ExecutionContext ctx, IFunctionExit exit, ObjectData objData)
+        {
+            if (exit.Expr.IsDereferenced != exit.IsDereferencing)
+                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
+            if (exit.IsDereferencing)
+                objData = objData.Dereference().Copy();
+            ctx.Heap.TryInc(ctx, objData);
+            return objData;
+        }
+
         private async Task<ExecValue> executeAsync(AddressOf addr, ExecutionContext ctx)
         {
             ObjectData obj = (await ExecutedAsync(addr.Expr, ctx).ConfigureAwait(false)).ExprValue;
@@ -597,6 +628,8 @@ namespace Skila.Interpreter
 
 
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
+            if (ret.Mode == DataMode.Throw)
+                return ret;
             ObjectData ret_value = ret.RetValue;
 
             if (ret_value == null)

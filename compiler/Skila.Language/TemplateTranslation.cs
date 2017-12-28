@@ -95,7 +95,17 @@ namespace Skila.Language
             if (obj == null)
                 return false;
 
-            return this.table.Count == obj.table.Count && !this.table.Except(obj.table).Any();
+            //return this.table.Count == obj.table.Count && !this.table.Except(obj.table).Any();
+            if (this.table.Count != obj.table.Count)
+                return false;
+
+            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in this.table)
+                if (!obj.table.TryGetValue(entry.Key, out IEntityInstance value))
+                    return false;
+                else if (!Object.Equals(entry.Value, value))
+                    return false;
+
+            return true;
         }
 
         public override int GetHashCode()

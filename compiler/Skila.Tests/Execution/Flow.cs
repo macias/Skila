@@ -14,6 +14,38 @@ namespace Skila.Tests.Execution
     public class Flow
     {
         [TestMethod]
+        public IInterpreter ThrowingException()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("thrower"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    ExpressionFactory.GenericThrow()
+                })));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    FunctionCall.Create(NameReference.Create("thrower")),
+                    Return.Create(IntLiteral.Create("1"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(DataMode.Throw, result.Mode);
+
+            return interpreter;
+        }
+
+
+        [TestMethod]
         public IInterpreter IfBranches()
         {
             var env = Language.Environment.Create();

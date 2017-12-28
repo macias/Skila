@@ -1,5 +1,12 @@
 ﻿## Mutability
 
+### Terms
+
+Immutable data -- data we can guarantee are immutable.
+
+Mutable data -- data we cannot guarantee are immutable, so in fact
+they can be immutable.
+ 
 ### Sharing
 
 Think of two threads. Sharing mutable data in writer+writer 
@@ -68,3 +75,15 @@ means any type for `T` and:
        where T : const
 
 narrows it down to immutable types only.
+
+### Comments
+
+Maybe it would be better to have 3 kinds of data -- immutable, mutable (truly)
+and unknown (mutable or not). `Object` would be for example unknown, because
+by itself it is not mutable but since it is not sealed we cannot guarantee
+what happens next. This could lead to more intuitive code:
+
+    def foo(p *Object)
+
+The above code would mean that `foo` takes any descendant type of 
+`Object` (currently it means it takes only immutable descendant).

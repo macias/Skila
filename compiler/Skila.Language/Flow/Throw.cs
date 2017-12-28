@@ -15,28 +15,28 @@ namespace Skila.Language.Flow
             return new Throw(value);
         }
 
-        private IExpression value;
-        public IExpression Value => this.value;
+        private IExpression expr;
+        public IExpression Expr => this.expr;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Value }.Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
 
         private Throw(IExpression value) : base(ExpressionReadMode.CannotBeRead)
         {
-            this.value = value;
+            this.expr = value;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
         public override string ToString()
         {
             string result = "throw";
-            if (Value != null)
-                result += " " + Value.ToString();
+            if (Expr != null)
+                result += " " + Expr.ToString();
             return result;
         }
 
         public override bool IsReadingValueOfNode( IExpression node)
         {
-            return node == this.Value;
+            return node == this.Expr;
         }
 
         public override void Evaluate(ComputationContext ctx)
@@ -48,7 +48,7 @@ namespace Skila.Language.Flow
                 NameReference req_typename = NameFactory.PointerTypeReference(NameFactory.ExceptionTypeReference());
                 IEntityInstance eval_typename = req_typename.Evaluated(ctx);
 
-                this.DataTransfer(ctx, ref this.value, eval_typename);
+                this.DataTransfer(ctx, ref this.expr, eval_typename);
             }
         }
     }

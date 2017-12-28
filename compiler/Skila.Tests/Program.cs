@@ -39,7 +39,8 @@ namespace Skila.Tests
             //  new Execution.Closures().ResultTypeInference();
             //  new Execution.Collections().ChunkOnHeap();
             //new Execution.Concurrency().SingleMessage();
-             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
+            //new Execution.Flow().ThrowingException();
+            //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Objects().UsingEnums();
@@ -49,7 +50,7 @@ namespace Skila.Tests
 
             {
                 double start = Stopwatch.GetTimestamp();
-               runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
+                runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
                 Console.WriteLine($"Semantics time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
             }
