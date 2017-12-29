@@ -10,6 +10,17 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class PropertyBuilder : IBuilder<Property>
     {
+        internal static PropertyBuilder CreateAutoFull(string name, NameReference typename, out PropertyMembers members, IExpression initValue = null)
+        {
+            PropertyBuilder builder = PropertyBuilder.Create(name, typename)
+                .WithAutoField(initValue, EntityModifier.Reassignable, out VariableDeclaration field)
+                .WithAutoGetter(out FunctionDefinition getter)
+                .WithAutoSetter(out FunctionDefinition setter);
+
+            members = new PropertyMembers() { Field = field, Getter = getter, Setter = setter };
+
+            return builder;
+        }
         public static PropertyBuilder Create(string name, NameReference typename, EntityModifier modifier = null)
         {
             return new PropertyBuilder(name, typename, modifier);
@@ -89,34 +100,62 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier)
+        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier,out VariableDeclaration field)
         {
             if (build != null)
                 throw new Exception();
 
-            this.fields.Add(Property.CreateAutoField(this.ValueTypeName, initValue, modifier));
+            field = Property.CreateAutoField(this.ValueTypeName, initValue, modifier);
+            this.fields.Add(field);
 
             return this;
         }
 
-        public PropertyBuilder WithAutoGetter(EntityModifier modifier = null)
+        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier)
+        {
+            return WithAutoField(initValue, modifier, out VariableDeclaration field);
+        }
+        public PropertyBuilder WithAutoGetter(out FunctionDefinition getter,EntityModifier modifier = null)
         {
             if (build != null)
                 throw new Exception();
 
-            this.getters.Add(Property.CreateAutoGetter(this.ValueTypeName));
+            getter = Property.CreateAutoGetter(this.ValueTypeName);
+            this.getters.Add(getter);
+
+            return this;
+        }
+
+        public PropertyBuilder WithAutoGetter( EntityModifier modifier = null)
+        {
+            return WithAutoGetter(out FunctionDefinition getter, modifier);
+        }
+
+        public PropertyBuilder WithGetter(Block body,out FunctionDefinition getter, EntityModifier modifier = null)
+        {
+            if (build != null)
+                throw new Exception();
+
+            getter = Property.CreateGetter(this.ValueTypeName, body, modifier);
+            this.getters.Add(getter);
+
+            return this;
+        }
+
+        public PropertyBuilder WithAutoSetter(out FunctionDefinition setter)
+        {
+            if (build != null)
+                throw new Exception();
+
+            setter = Property.CreateAutoSetter(this.ValueTypeName);
+            this.setters.Add(setter);
 
             return this;
         }
 
         public PropertyBuilder WithAutoSetter()
         {
-            if (build != null)
-                throw new Exception();
-
-            this.setters.Add(Property.CreateAutoSetter(this.ValueTypeName));
-
-            return this;
+            return WithAutoSetter(out FunctionDefinition setter);
         }
 
         public static implicit operator Property(PropertyBuilder @this)

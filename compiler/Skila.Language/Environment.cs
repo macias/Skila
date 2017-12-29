@@ -52,6 +52,13 @@ namespace Skila.Language
 
         public TypeDefinition IEquatableType { get; }
 
+        public TypeDefinition DateType { get; }
+        public FunctionDefinition DateDayOfWeekGetter { get; }
+        public VariableDeclaration DateYearField { get;  }
+        public VariableDeclaration DateMonthField { get; }
+        public VariableDeclaration DateDayField { get; }
+        public TypeDefinition DayOfWeek { get; }
+
         public FunctionDefinition OptionValueConstructor { get; }
         public FunctionDefinition OptionEmptyConstructor { get; }
 
@@ -117,7 +124,7 @@ namespace Skila.Language
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true))) },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",overrideMutability:true)),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
                    Block.CreateStatement(new IExpression[] {
                        Return.Create(NameReference.Create("coll"))
                    })));
@@ -148,7 +155,7 @@ namespace Skila.Language
                     ExpressionReadMode.ReadRequired,
                     NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
                     Block.CreateStatement(new IExpression[] {
-                        VariableDeclaration.CreateStatement("count",null, 
+                        VariableDeclaration.CreateStatement("count",null,
                             FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount))),
                        IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.Create("count"),
                             NameReference.Create("min")),new[]{ ExpressionFactory.GenericThrow() }),
@@ -220,6 +227,44 @@ namespace Skila.Language
                         .Modifier(EntityModifier.Pinned)
                             .Parameters(FunctionParameter.Create("cmp",
                                 NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName))))));
+
+            this.DayOfWeek = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.DayOfWeekTypeName)
+                .With(EnumCaseBuilder.Create(NameFactory.SundayDayOfWeekTypeName,
+                    NameFactory.MondayDayOfWeekTypeName,
+                    NameFactory.TuesdayDayOfWeekTypeName,
+                    NameFactory.WednesdayDayOfWeekTypeName,
+                    NameFactory.ThursdayDayOfWeekTypeName,
+                    NameFactory.FridayDayOfWeekTypeName,
+                    NameFactory.SaturdayDayOfWeekTypeName
+                    )));
+
+            {
+                this.DateType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.DateTypeName)
+                    .Modifier(EntityModifier.Mutable)
+                    .With(PropertyBuilder.CreateAutoFull("year", NameFactory.IntTypeReference(),out PropertyMembers year))
+                    .With(PropertyBuilder.CreateAutoFull("month", NameFactory.IntTypeReference(), out PropertyMembers month, 
+                        IntLiteral.Create("1")))
+                    .With(PropertyBuilder.CreateAutoFull("day", NameFactory.IntTypeReference(),out PropertyMembers day,
+                        IntLiteral.Create("1")))
+                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, new[] {
+                    FunctionParameter.Create("year",NameFactory.IntTypeReference()),
+                    FunctionParameter.Create("month",NameFactory.IntTypeReference()),
+                    FunctionParameter.Create("day",NameFactory.IntTypeReference())
+                        },
+                        Block.CreateStatement(
+                            Assignment.CreateStatement(NameReference.CreateThised("year"), NameReference.Create("year")),
+                            Assignment.CreateStatement(NameReference.CreateThised("month"), NameReference.Create("month")),
+                            Assignment.CreateStatement(NameReference.CreateThised("day"), NameReference.Create("day"))
+                            )))
+                    .With(PropertyBuilder.Create(NameFactory.DateDayOfWeekProperty, NameFactory.DayOfWeekTypeReference())
+                        .WithGetter(ExpressionFactory.BodyReturnUndef(), out FunctionDefinition day_of_week_getter, EntityModifier.Native))
+                    );
+
+                this.DateDayOfWeekGetter = day_of_week_getter;
+                this.DateYearField = year.Field;
+                this.DateMonthField = month.Field;
+                this.DateDayField = day.Field;
+            }
 
             this.functionTypes = new List<TypeDefinition>();
 
@@ -467,15 +512,15 @@ namespace Skila.Language
             return functionTypes.Any(it => it == instance.Target);
         }
 
-        public bool IsUnitType( IEntityInstance typeInstance)
+        public bool IsUnitType(IEntityInstance typeInstance)
         {
             return typeInstance.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
         }
-        public bool IsIntType( IEntityInstance typeInstance)
+        public bool IsIntType(IEntityInstance typeInstance)
         {
             return typeInstance.IsSame(this.IntType.InstanceOf, jokerMatchesAll: false);
         }
-        public bool IsOfUnitType( INameReference typeName)
+        public bool IsOfUnitType(INameReference typeName)
         {
             return IsUnitType(typeName.Evaluation.Components);
         }

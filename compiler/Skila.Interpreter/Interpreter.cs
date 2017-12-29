@@ -213,6 +213,29 @@ namespace Skila.Interpreter
                     else
                         throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
                 }
+                else if (owner_type == ctx.Env.DateType)//@@@
+                {
+                    if (func == ctx.Env.DateDayOfWeekGetter)
+                    {
+                        ObjectData year_obj = this_value.GetField(ctx.Env.DateYearField);
+                        int year = year_obj.PlainValue.Cast<int>();
+                        ObjectData month_obj = this_value.GetField(ctx.Env.DateMonthField);
+                        int month = month_obj.PlainValue.Cast<int>();
+                        ObjectData day_obj = this_value.GetField(ctx.Env.DateDayField);
+                        int day = day_obj.PlainValue.Cast<int>();
+
+                        int day_of_week = (int)(new DateTime(year, month, day).DayOfWeek);
+
+                        ObjectData ret_obj = await ObjectData.CreateInstanceAsync(ctx,
+                            func.ResultTypeName.Evaluation.Components, day_of_week).ConfigureAwait(false);
+
+                        return ExecValue.CreateReturn(ret_obj);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
+                    }
+                }
                 else if (owner_type == ctx.Env.ChannelType)
                 {
                     if (func.IsDefaultInitConstructor())
@@ -377,6 +400,11 @@ namespace Skila.Interpreter
         }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
         {
+            if (node.DebugId.Id==1206)
+            {
+                ;
+            }
+
             if (this.debugMode)
                 Console.WriteLine($"[{node.DebugId.Id}:{node.GetType().Name}] {node}");
 

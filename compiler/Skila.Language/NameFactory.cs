@@ -34,6 +34,19 @@ namespace Skila.Language
         public const string ChunkTypeName = "Chunk";
         public const string IIterableTypeName = "IIterable";
         public const string IEquatableTypeName = "IEquatable";
+
+        public const string DateTypeName = "Date";
+        public const string DateDayOfWeekProperty = "dayOfWeek";
+
+        public const string DayOfWeekTypeName = "DayOfWeek";
+        public const string SundayDayOfWeekTypeName = "sunday";
+        public const string MondayDayOfWeekTypeName = "monday";
+        public const string TuesdayDayOfWeekTypeName = "tuesday";
+        public const string WednesdayDayOfWeekTypeName = "wednesday";
+        public const string ThursdayDayOfWeekTypeName = "thursday";
+        public const string FridayDayOfWeekTypeName = "friday";
+        public const string SaturdayDayOfWeekTypeName = "saturday";
+
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
         public const string ItTypeName = "It";
@@ -152,6 +165,14 @@ namespace Skila.Language
         public static NameReference IIterableTypeReference(string templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), IIterableTypeName, NameReference.Create(templateParamName));
+        }
+        public static NameReference DayOfWeekTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), DayOfWeekTypeName);
+        }
+        public static NameReference DateTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), DateTypeName);
         }
         public static NameReference EquatableTypeReference()
         {

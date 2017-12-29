@@ -7,6 +7,10 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static Block BodyReturnUndef()
+        {
+            return Block.CreateStatement(Return.Create(Undef.Create()));
+        }
         public static TypeBuilder WithEquatableEquals(this TypeBuilder builder,EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
@@ -107,9 +111,17 @@ namespace Skila.Language.Expressions
 #endif
         }
 
+        public static IExpression StackConstructor(NameReference typeName)
+        {
+            return StackConstructor(typeName, new FunctionArgument[] { });
+        }
         public static IExpression StackConstructor(string typeName, params FunctionArgument[] arguments)
         {
             return StackConstructor(NameReference.Create(typeName), arguments);
+        }
+        public static IExpression StackConstructor(NameReference typeName, params IExpression[] arguments)
+        {
+            return StackConstructor(typeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static IExpression StackConstructor(NameReference typeName, params FunctionArgument[] arguments)
         {

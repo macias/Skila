@@ -2,9 +2,9 @@
 
 ### Terms
 
-Immutable data -- data we can guarantee are immutable.
+Immutable data -- data we can guarantee are immutable (in deep sense).
 
-Mutable data -- data we cannot guarantee are immutable, so in fact
+Not immutable data -- data we cannot guarantee are immutable, so in fact
 they can be immutable.
  
 ### Sharing
@@ -16,15 +16,15 @@ reasonable but it leads to nasty surprises on the reader side:
     if x>0 then
       println(x); // --> -5
 
-True, it is also possible in single thread, but then is at least
+True, it can also happen in single thread, but then it is at least
 reproducible each time while in concurrent environment it depends
 on timing.
 
 So we have 3 options:
 
    * share immutable data
-   * share mutable data by fully replicating it
-   * move data instead of sharing it
+   * share mutable data by fully replicating it (in future)
+   * move data instead of sharing it (in future)
 
 ### Tracking mutability
 

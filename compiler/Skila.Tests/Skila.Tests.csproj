@@ -52,6 +52,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Execution\Concurrency.cs" />
+    <Compile Include="Execution\Library.cs" />
     <Compile Include="Execution\Interfaces.cs" />
     <Compile Include="Execution\Inheritance.cs" />
     <Compile Include="Execution\Collections.cs" />

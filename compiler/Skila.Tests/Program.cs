@@ -43,6 +43,7 @@ namespace Skila.Tests
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
+            new Execution.Library().DateDayOfWeek();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
