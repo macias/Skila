@@ -314,7 +314,7 @@ namespace Skila.Language
 
         public TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, EntityInstance input, VarianceMode variance, bool allowSlicing)
         {
-            switch (inversedVariance ? variance.Inverse() : variance)
+            switch (inversedVariance ? variance.Inversed() : variance)
             {
                 case VarianceMode.None:
                     return this.IsSame(input, jokerMatchesAll: true) ? TypeMatch.Same : TypeMatch.No;

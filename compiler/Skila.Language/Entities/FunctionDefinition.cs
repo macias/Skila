@@ -263,18 +263,25 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
+            TypeDefinition type_owner = this.OwnerType();
+
+            if (this.Name.Name == NameFactory.ConvertFunctionName && type_owner != null)
             {
-                TypeDefinition type_owner = this.OwnerType();
-                if (this.Name.Name == NameFactory.ConvertFunctionName && type_owner != null)
-                {
-                    if (this.Parameters.Any())
-                        ctx.AddError(ErrorCode.ConverterWithParameters, this);
-                    if (!this.Modifier.HasPinned && !type_owner.Modifier.HasEnum && !type_owner.Modifier.IsSealed)
-                        ctx.AddError(ErrorCode.ConverterNotPinned, this);
-                    if (this.CallMode != ExpressionReadMode.ReadRequired)
-                        ctx.AddError(ErrorCode.ConverterDeclaredWithIgnoredOutput, this);
-                }
+                if (this.Parameters.Any())
+                    ctx.AddError(ErrorCode.ConverterWithParameters, this);
+                if (!this.Modifier.HasPinned && !type_owner.Modifier.HasEnum && !type_owner.Modifier.IsSealed)
+                    ctx.AddError(ErrorCode.ConverterNotPinned, this);
+                if (this.CallMode != ExpressionReadMode.ReadRequired)
+                    ctx.AddError(ErrorCode.ConverterDeclaredWithIgnoredOutput, this);
             }
+
+           if (!this.IsAnyConstructor())
+            {
+                foreach (NameReference typename in this.Parameters.Select(it => it.TypeName))
+                    typename.ValidateTypeNameVariance(ctx, VarianceMode.In);
+                this.ResultTypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx, VarianceMode.Out);
+            }
+
 
             if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
             {

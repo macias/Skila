@@ -50,7 +50,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-           this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
 
             this.closures = new List<TypeDefinition>();
 
@@ -273,14 +273,24 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
-            if (!validateStorage(ctx,this.OwnerType()))
-                ctx.AddError(ErrorCode.NestedValueOfItself,this);
+            if (!validateStorage(ctx, this.OwnerType()))
+                ctx.AddError(ErrorCode.NestedValueOfItself, this);
 
             if (!ctx.Env.Options.TypelessVariablesDuringTests && this.Owner is TypeContainerDefinition && this.TypeName == null)
                 ctx.AddError(ErrorCode.MissingTypeName, this);
 
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
+
+            if (this.IsField() && this.Name.Name!=NameFactory.PropertyAutoField)
+            {
+                // consider Foo<T> with field f, type T
+                // can I pass instance of Foo<U> (U extends T) somewhere?
+                // sure, as long the field cannot be reassigned (otherwise the receiver could reset it to T, while callee would expect U)
+                this.TypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx,
+                    this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
+            }
+
         }
 
         public void SetIsMemberUsed()

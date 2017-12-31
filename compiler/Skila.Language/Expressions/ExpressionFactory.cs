@@ -7,6 +7,14 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static FunctionDefinition BasicConstructor(string[] names, INameReference[] typenames)
+        {
+            return FunctionDefinition.CreateInitConstructor(EntityModifier.None,
+                Enumerable.Range(0, names.Length).Select(i => FunctionParameter.Create(names[i], typenames[i])),
+                Block.CreateStatement(
+                    names.Select(s => Assignment.CreateStatement(NameReference.CreateThised(s), NameReference.Create(s)))));
+        }
+
         public static Block BodyReturnUndef()
         {
             return Block.CreateStatement(Return.Create(Undef.Create()));

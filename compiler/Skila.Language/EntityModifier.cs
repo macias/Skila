@@ -141,6 +141,8 @@ namespace Skila.Language
         {
             if (b == null || b == EntityModifier.None)
                 return a;
+            else if (a == null || a == EntityModifier.None)
+                return b;
             else
                 return new EntityModifier(a, b);
         }

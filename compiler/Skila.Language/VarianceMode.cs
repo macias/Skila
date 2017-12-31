@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Skila.Language
 {
@@ -14,7 +11,26 @@ namespace Skila.Language
 
     public static class VarianceModeExtensions
     {
-        public static VarianceMode Inverse(this VarianceMode @this)
+        public static VarianceMode Flipped(this VarianceMode position, VarianceMode paramMode)
+        {
+            switch (paramMode)
+            {
+                case VarianceMode.None: return VarianceMode.None;
+                case VarianceMode.In: return position.Inversed();
+                case VarianceMode.Out: return position;
+                default: throw new NotImplementedException();
+            }
+        }
+
+        public static bool PositionCollides(this VarianceMode position, VarianceMode paramMode)
+        {
+            if (position == VarianceMode.None)
+                return paramMode != VarianceMode.None;
+            else
+                return paramMode != VarianceMode.None && position != paramMode;
+        }
+
+        public static VarianceMode Inversed(this VarianceMode @this)
         {
             switch (@this)
             {

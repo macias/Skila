@@ -12,7 +12,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public abstract class TemplateDefinition : Node, IEntity, IEntityScope,ISurfable
+    public abstract class TemplateDefinition : Node, IEntity, IEntityScope, ISurfable
     {
         private readonly HashSet<INode> ownedNodes;
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -81,8 +81,8 @@ namespace Skila.Language.Entities
                 this.Conditionals = set;
             }
 
-            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf), 
-                overrideMutability: false, translation:null));
+            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
+                overrideMutability: false, translation: null));
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
@@ -108,9 +108,9 @@ namespace Skila.Language.Entities
             return this.ownedNodes.Contains(elem);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments,bool overrideMutability,TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability,translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public override string ToString()
@@ -120,7 +120,6 @@ namespace Skila.Language.Entities
 
         public virtual void Validate(ComputationContext ctx)
         {
-            ;
         }
 
         public virtual void Evaluate(ComputationContext ctx)

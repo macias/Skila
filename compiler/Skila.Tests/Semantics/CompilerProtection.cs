@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Environment()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { ThrowOnError = true });
 
             var resolver = NameResolver.Create(env);
 
@@ -72,13 +72,13 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("foo")
                 .With(FunctionBuilder.Create("a", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "b"))
                 })))
                 .With(FunctionBuilder.Create("b", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "a"))
                 }))));

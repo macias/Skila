@@ -130,11 +130,11 @@ namespace Skila.Language.Expressions
             FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
 
             if (this.Resolution.TargetFunction.Modifier.IsPolymorphic
-                && enclosing_func != null && enclosing_func.IsConstructor()
+                && enclosing_func != null && enclosing_func.IsAnyConstructor()
                 && !enclosing_func.OwnerType().Modifier.IsSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
 
-            if (this.mode != CallMode.Constructor && this.Resolution.TargetFunction.IsConstructor())
+            if (this.mode != CallMode.Constructor && this.Resolution.TargetFunction.IsAnyConstructor())
                 ctx.AddError(ErrorCode.ConstructorCallFromFunctionBody, this);
 
             if (this.Name.Binding.Match.Target is FunctionDefinition binding_func)

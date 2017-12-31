@@ -54,6 +54,12 @@ namespace Skila.Language
         public FunctionDefinition ChunkAtSet { get; }
         public TypeDefinition IIterableType { get; }
 
+        // starting with Tuple'2
+        private readonly List<TypeDefinition> tupleTypes;
+        public IReadOnlyList<TypeDefinition> TupleTypes => this.tupleTypes;
+        private readonly List<TypeDefinition> iTupleTypes;
+        public IReadOnlyList<TypeDefinition> ITupleTypes => this.iTupleTypes;
+
         public TypeDefinition IEquatableType { get; }
 
         public TypeDefinition DateType { get; }
@@ -101,7 +107,8 @@ namespace Skila.Language
                 // todo: take iterables as input and convert them to sequence (all spreads)
 
                 // no limits
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
+                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
+                    NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true))) },
                    ExpressionReadMode.ReadRequired,
                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
@@ -111,7 +118,8 @@ namespace Skila.Language
             }
             {
                 // with min limit
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
+                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
+                        NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
                         FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",overrideMutability:true))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
@@ -126,7 +134,8 @@ namespace Skila.Language
             }
             {
                 // with min+max limit
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
+                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(
+                        NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
                         FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",overrideMutability:true))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
@@ -166,7 +175,7 @@ namespace Skila.Language
                 IMember chunk_count, chunk_at_get, chunk_at_set;
 
                 this.ChunkType = this.CollectionsNamespace.AddBuilder(
-                    TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "CHT", VarianceMode.Out))
+                    TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "CHT", VarianceMode.None))
                         .Modifier(EntityModifier.Mutable)
                         .Parents(NameFactory.ISequenceTypeReference("CHT"))
                         .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
@@ -226,16 +235,8 @@ namespace Skila.Language
                         IntLiteral.Create("1")))
                     .With(PropertyBuilder.CreateAutoFull("day", NameFactory.IntTypeReference(), out PropertyMembers day,
                         IntLiteral.Create("1")))
-                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, new[] {
-                    FunctionParameter.Create("year",NameFactory.IntTypeReference()),
-                    FunctionParameter.Create("month",NameFactory.IntTypeReference()),
-                    FunctionParameter.Create("day",NameFactory.IntTypeReference())
-                        },
-                        Block.CreateStatement(
-                            Assignment.CreateStatement(NameReference.CreateThised("year"), NameReference.Create("year")),
-                            Assignment.CreateStatement(NameReference.CreateThised("month"), NameReference.Create("month")),
-                            Assignment.CreateStatement(NameReference.CreateThised("day"), NameReference.Create("day"))
-                            )))
+                    .With(ExpressionFactory.BasicConstructor(new[] { "year", "month", "day" },
+                        new[] { NameFactory.IntTypeReference(), NameFactory.IntTypeReference(), NameFactory.IntTypeReference() }))
                     .With(PropertyBuilder.Create(NameFactory.DateDayOfWeekProperty, NameFactory.DayOfWeekTypeReference())
                         .WithGetter(ExpressionFactory.BodyReturnUndef(), out FunctionDefinition day_of_week_getter, EntityModifier.Native))
                     );
@@ -245,8 +246,6 @@ namespace Skila.Language
                 this.DateMonthField = month.Field;
                 this.DateDayField = day.Field;
             }
-
-            this.functionTypes = new List<TypeDefinition>();
 
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Modifier(EntityModifier.Native)
@@ -287,11 +286,11 @@ namespace Skila.Language
                 null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
                 Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
 
-            {
-                this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
-                    .Modifier(EntityModifier.HeapOnly | EntityModifier.Native)
-                    .Parents(NameFactory.ObjectTypeReference()));
-            }
+
+            this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
+                .Modifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
+                .Parents(NameFactory.ObjectTypeReference()));
+
 
             this.OrderingType = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.OrderingTypeName)
                 .With(EnumCaseBuilder.Create(NameFactory.OrderingLess, NameFactory.OrderingEqual, NameFactory.OrderingGreater)));
@@ -316,16 +315,27 @@ namespace Skila.Language
                 this.OptionValueConstructor = value;
             }
 
+            this.functionTypes = new List<TypeDefinition>();
             foreach (int param_count in Enumerable.Range(0, 15))
-                this.functionTypes.Add(createFunction(Root, param_count));
-            this.functionTypes.ForEach(it => Root.AddNode(it));
+                this.functionTypes.Add(createFunction(param_count));
+            this.functionTypes.ForEach(it => this.Root.AddNode(it));
+
+            this.tupleTypes = new List<TypeDefinition>();
+            this.iTupleTypes = new List<TypeDefinition>();
+            foreach (int count in Enumerable.Range(2, 15))
+            {
+                this.tupleTypes.Add(createTuple(count));
+                this.iTupleTypes.Add(createITuple(count));
+            }
+            this.tupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
+            this.iTupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
         }
 
         private static TypeDefinition createIntType(out FunctionDefinition parseString)
         {
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.IntTypeReference()),
                     ExpressionFactory.BodyReturnUndef())
-                    .Parameters(FunctionParameter.Create("s",NameFactory.StringTypeReference(),ExpressionReadMode.CannotBeRead))
+                    .Parameters(FunctionParameter.Create("s", NameFactory.StringTypeReference(), ExpressionReadMode.CannotBeRead))
                     .Modifier(EntityModifier.Native | EntityModifier.Static);
 
             return TypeBuilder.Create(NameFactory.IntTypeName)
@@ -499,7 +509,7 @@ namespace Skila.Language
 
         }
 
-        private TypeDefinition createFunction(Namespace root, int paramCount)
+        private static TypeDefinition createFunction(int paramCount)
         {
             var type_parameters = TemplateParametersBuffer.Create();
             var function_parameters = new List<FunctionParameter>();
@@ -520,6 +530,46 @@ namespace Skila.Language
                     .Parameters(function_parameters.ToArray()));
 
             return function_def;
+        }
+
+        private static TypeDefinition createTuple(int count)
+        {
+            var type_parameters = TemplateParametersBuffer.Create();
+            var properties = new List<Property>();
+            foreach (int i in Enumerable.Range(0, count))
+            {
+                var type_name = $"T{i}";
+                type_parameters.Add(type_name, VarianceMode.None);
+                properties.Add(PropertyBuilder.CreateAutoFull($"item{i}", NameReference.Create(type_name), Undef.Create()).Build());
+            }
+
+            TypeBuilder builder = TypeBuilder.Create(
+                NameDefinition.Create(NameFactory.TupleTypeName, type_parameters.Values))
+                .Modifier(EntityModifier.Mutable)
+                .Parents(NameFactory.ITupleTypeReference(type_parameters.Values.Select(it => NameReference.Create(it.Name)).ToArray()))//@@@
+                .With(ExpressionFactory.BasicConstructor(properties.Select(it => it.Name.Name).ToArray(),
+                     type_parameters.Values.Select(it => NameReference.Create(it.Name)).ToArray()))
+                .With(properties);
+
+            return builder;
+        }
+
+        private static TypeDefinition createITuple(int count)
+        {
+            var type_parameters = TemplateParametersBuffer.Create();
+            var properties = new List<Property>();
+            foreach (int i in Enumerable.Range(0, count))
+            {
+                var type_name = $"T{i}";
+                type_parameters.Add(type_name, VarianceMode.Out);
+                properties.Add(PropertyBuilder.Create($"item{i}", NameReference.Create(type_name)).WithGetter(body:null).Build());
+            }
+
+            TypeBuilder builder = TypeBuilder.CreateInterface(
+                NameDefinition.Create(NameFactory.ITupleTypeName, type_parameters.Values))
+                .With(properties);
+
+            return builder;
         }
 
         public bool IsFunctionType(EntityInstance instance)

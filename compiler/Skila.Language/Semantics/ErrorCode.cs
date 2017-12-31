@@ -85,5 +85,6 @@
         NestedValueOfItself = 81,
         ConverterWithParameters = 82,
         ConverterNotPinned = 83,
+        VarianceForbiddenPosition = 84,
     }
 }

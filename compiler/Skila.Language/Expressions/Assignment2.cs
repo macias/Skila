@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,17 +11,21 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Assignment : Expression, ILambdaTransfer
+    public sealed class Assignment2 : Expression, ILambdaTransfer
     {
         public static IExpression CreateStatement(IExpression lhs, IExpression rhsValue)
+        {
+            return create(ExpressionReadMode.CannotBeRead, new[] { lhs }, new[] { rhsValue });
+        }
+        public static IExpression CreateStatement(IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
         {
             return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
         }
         public static IExpression CreateExpression(IExpression lhs, IExpression rhsValue)
         {
-            return create(ExpressionReadMode.ReadRequired, lhs, rhsValue);
+            return create(ExpressionReadMode.ReadRequired, new[] { lhs }, new[] { rhsValue });
         }
-        private static IExpression create(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue)
+        private static IExpression create(ExpressionReadMode readMode, IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
         {
             if (lhs is FunctionCall call && call.IsIndexer)
             {
@@ -31,7 +35,7 @@ namespace Skila.Language.Expressions
                 return call.ConvertIndexerIntoSetter(rhsValue);
             }
             else
-                return new Assignment(readMode, lhs, rhsValue);
+                return new Assignment2(readMode, lhs, rhsValue);
         }
 
         // we don't override IsLValue in Assignment and VariableDeclaration 
@@ -40,19 +44,20 @@ namespace Skila.Language.Expressions
         // it looks more like a bug in code and besides, if anything it should be chain assignment
         // var x = (y = 7);
 
-        public IExpression Lhs { get; }
-        private IExpression rhsValue;
-        public IExpression RhsValue => this.rhsValue;
+        public IReadOnlyList<IExpression> Lhs { get; }
+        private List<IExpression> rhsValue;
+        public IEnumerable<IExpression> RhsValue => this.rhsValue;
 
         private readonly List<TypeDefinition> closures;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { RhsValue, Lhs }.Concat(closures).Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => RhsValue.Select(it => it.Cast<INode>()).Concat(Lhs).Concat(closures)
+            .Where(it => it != null);
 
-        private Assignment(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue)
+        private Assignment2(ExpressionReadMode readMode, IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
             : base(readMode)
         {
-            this.Lhs = lhs;
-            this.rhsValue = rhsValue;
+            this.Lhs = lhs.StoreReadOnlyList();
+            this.rhsValue = rhsValue.ToList();
 
             this.closures = new List<TypeDefinition>();
 
@@ -71,26 +76,21 @@ namespace Skila.Language.Expressions
 
         public override void Validate(ComputationContext ctx)
         {
-            ctx.ValAssignTracker?.Assigned(this.Lhs);
-
-            if (!ctx.Env.Options.DiscardingAnyExpressionDuringTests && this.Lhs.IsSink() && !(this.RhsValue is FunctionCall))
-                ctx.AddError(ErrorCode.DiscardingNonFunctionCall, this);
-
-            RhsValue.ValidateValueExpression(ctx);
-        }
-
-        public override void Evaluate(ComputationContext ctx)
-        {
-            if (this.Evaluation == null)
+            foreach (IExpression lhs_expr in this.Lhs)
             {
-                this.TrapClosure(ctx, ref this.rhsValue);
+                ctx.ValAssignTracker?.Assigned(lhs_expr);
 
-                this.DataTransfer(ctx, ref this.rhsValue, Lhs.Evaluation.Components);
+                if (!lhs_expr.IsLValue(ctx))
+                    ctx.AddError(ErrorCode.AssigningRValue, lhs_expr);               
+            }
 
-                this.Evaluation = this.RhsValue.Evaluation;
+            foreach (Tuple<IExpression, IExpression> lhs_rhs in this.Lhs.SyncZip(this.RhsValue))
+            {
+                if (!ctx.Env.Options.DiscardingAnyExpressionDuringTests && lhs_rhs.Item1.IsSink() && !(lhs_rhs.Item2 is FunctionCall))
+                    ctx.AddError(ErrorCode.DiscardingNonFunctionCall, this);
 
                 {
-                    IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference dummy);
+                    IEntityVariable lhs_var = lhs_rhs.Item1.TryGetTargetEntity<IEntityVariable>(out NameReference dummy);
                     if (lhs_var != null)
                     {
                         FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
@@ -102,18 +102,35 @@ namespace Skila.Language.Expressions
                             ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
                         else
                         {
-                            if (sameTargets(this.Lhs, this.RhsValue))
+                            if (sameTargets(lhs_rhs.Item1, lhs_rhs.Item2))
                                 ctx.AddError(ErrorCode.SelfAssignment, this);
                         }
                     }
                 }
+            }
 
-                if (this.Lhs.DebugId.Id == 1110)
+            foreach (IExpression rhs_expr in this.RhsValue)
+                rhs_expr.ValidateValueExpression(ctx);
+        }
+
+        public override void Evaluate(ComputationContext ctx)
+        {
+            if (this.Evaluation == null)
+            {
+                for (int i = 0; i < this.Lhs.Count; ++i)
                 {
-                    ;
+                    IExpression rhs = this.rhsValue[i];
+
+                    this.TrapClosure(ctx, ref rhs);
+
+                    this.DataTransfer(ctx, ref rhs, this.Lhs[i].Evaluation.Components);
+
+                    this.rhsValue[i] = rhs;
                 }
-                if (!this.Lhs.IsLValue(ctx))
-                    ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
+
+                this.Evaluation = this.RhsValue.Evaluation;
+
+             
             }
         }
 
@@ -141,3 +158,4 @@ namespace Skila.Language.Expressions
         }
     }
 }
+*/

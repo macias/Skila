@@ -8,6 +8,9 @@ namespace Skila.Language
 {
     public sealed class NameFactory
     {
+        // something user cannot use as a symbol
+        private const string magicMarker = "\a";
+
         public const string RootNamespace = ":root:";
         public const string SystemNamespace = "System";
         public const string ConcurrencyNamespace = "Concurrency";
@@ -15,6 +18,8 @@ namespace Skila.Language
 
         public const string JokerTypeName = "[[@@]]";
         public const string FunctionTypeName = "IFunction";
+        public const string TupleTypeName = "Tuple";
+        public const string ITupleTypeName = "ITuple";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -83,7 +88,7 @@ namespace Skila.Language
 
         public const string PropertyGetter = "get";
         public const string PropertySetter = "set";
-        public const string PropertyAutoField = "field";
+        public const string PropertyAutoField = magicMarker + "field";
         public const string PropertySetterValueParameter = "value";
 
         public const string EnumConstructorParameter = "ord";
@@ -207,6 +212,14 @@ namespace Skila.Language
         public static NameReference ChunkTypeReference(INameReference templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
+        }
+        public static NameReference TupleTypeReference(params INameReference[] templateParamNames)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), TupleTypeName, templateParamNames);
+        }
+        public static NameReference ITupleTypeReference(params INameReference[] templateParamNames)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
         public static NameReference ObjectTypeReference(bool overrideMutability = false)

@@ -52,6 +52,12 @@ namespace Skila.Language.Builders
             return new FunctionBuilder(name, null, callMode, result, null);
         }
         public static FunctionBuilder CreateDeclaration(
+                       NameDefinition name,
+                       INameReference result)
+        {
+            return CreateDeclaration(name, ExpressionReadMode.ReadRequired, result);
+        }
+        public static FunctionBuilder CreateDeclaration(
                        string name,
                        ExpressionReadMode callMode,
                        INameReference result)

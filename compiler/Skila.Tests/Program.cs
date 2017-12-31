@@ -33,7 +33,7 @@ namespace Skila.Tests
             //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
-            //new Semantics.Types().ErrorCircularValueNesting();
+            new Semantics.Types().CatVarianceExample();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
@@ -43,7 +43,7 @@ namespace Skila.Tests
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
-            new Execution.Library().StringToInt();
+            //new Execution.Library().StringToInt();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();

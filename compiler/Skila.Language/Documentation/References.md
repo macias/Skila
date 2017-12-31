@@ -17,3 +17,9 @@
 
 * [Why are overloaded operators always static in C#?](https://blogs.msdn.microsoft.com/ericlippert/2007/05/14/why-are-overloaded-operators-always-static-in-c/)
 * [Why overloaded operators cannot be defined as static members of a class [in C++]?](https://stackoverflow.com/questions/11894124/why-overloaded-operators-cannot-be-defined-as-static-members-of-a-class)
+
+### Variance
+
+* [How can compiler compute automatically co- and contravariance?](http://stackoverflow.com/questions/32234737/how-can-compiler-compute-automatically-co-and-contravariance)
+* [Exact rules for variance validity](http://blogs.msdn.com/b/ericlippert/archive/2009/12/03/exact-rules-for-variance-validity.aspx)
+* [Covariance and Contravariance in C#: Why Do We Need A Syntax At All?](http://blogs.msdn.com/b/ericlippert/archive/2007/10/29/covariance-and-contravariance-in-c-part-seven-why-do-we-need-a-syntax-at-all.aspx)

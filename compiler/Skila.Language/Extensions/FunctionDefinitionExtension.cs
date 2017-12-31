@@ -41,7 +41,7 @@ namespace Skila.Language.Extensions
                 && @this.Name.Arity == 0
                 && @this.Parameters.Count == 0;
         }
-        public static bool IsConstructor(this FunctionDefinition @this)
+        public static bool IsAnyConstructor(this FunctionDefinition @this)
         {
             return @this.IsZeroConstructor() || @this.IsNewConstructor() || @this.IsInitConstructor();
         }

@@ -10,7 +10,8 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class PropertyBuilder : IBuilder<Property>
     {
-        internal static PropertyBuilder CreateAutoFull(string name, NameReference typename, out PropertyMembers members, IExpression initValue = null)
+        public static PropertyBuilder CreateAutoFull(string name, NameReference typename,
+            out PropertyMembers members, IExpression initValue = null)
         {
             PropertyBuilder builder = PropertyBuilder.Create(name, typename)
                 .WithAutoField(initValue, EntityModifier.Reassignable, out VariableDeclaration field)
@@ -20,6 +21,10 @@ namespace Skila.Language.Builders
             members = new PropertyMembers() { Field = field, Getter = getter, Setter = setter };
 
             return builder;
+        }
+        public static PropertyBuilder CreateAutoFull(string name, NameReference typename, IExpression initValue = null)
+        {
+            return CreateAutoFull(name, typename, out PropertyMembers dummy, initValue);
         }
         public static PropertyBuilder Create(string name, NameReference typename, EntityModifier modifier = null)
         {
@@ -77,7 +82,7 @@ namespace Skila.Language.Builders
             return With(builder, out IMember member);
         }
 
-        public PropertyBuilder With(PropertyMemberBuilder builder,out IMember member)
+        public PropertyBuilder With(PropertyMemberBuilder builder, out IMember member)
         {
             if (build != null)
                 throw new Exception();
@@ -100,7 +105,7 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier,out VariableDeclaration field)
+        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier, out VariableDeclaration field)
         {
             if (build != null)
                 throw new Exception();
@@ -115,7 +120,7 @@ namespace Skila.Language.Builders
         {
             return WithAutoField(initValue, modifier, out VariableDeclaration field);
         }
-        public PropertyBuilder WithAutoGetter(out FunctionDefinition getter,EntityModifier modifier = null)
+        public PropertyBuilder WithAutoGetter(out FunctionDefinition getter, EntityModifier modifier = null)
         {
             if (build != null)
                 throw new Exception();
@@ -126,12 +131,12 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public PropertyBuilder WithAutoGetter( EntityModifier modifier = null)
+        public PropertyBuilder WithAutoGetter(EntityModifier modifier = null)
         {
             return WithAutoGetter(out FunctionDefinition getter, modifier);
         }
 
-        public PropertyBuilder WithGetter(Block body,out FunctionDefinition getter, EntityModifier modifier = null)
+        public PropertyBuilder WithGetter(Block body, out FunctionDefinition getter, EntityModifier modifier = null)
         {
             if (build != null)
                 throw new Exception();
@@ -142,6 +147,10 @@ namespace Skila.Language.Builders
             return this;
         }
 
+        public PropertyBuilder WithGetter(Block body, EntityModifier modifier = null)
+        {
+            return WithGetter(body, out FunctionDefinition dummy, modifier);
+        }
         public PropertyBuilder WithAutoSetter(out FunctionDefinition setter)
         {
             if (build != null)

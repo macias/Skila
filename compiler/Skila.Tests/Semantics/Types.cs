@@ -14,6 +14,62 @@ namespace Skila.Tests.Semantics
     public class Types
     {
         [TestMethod]
+        public IErrorReporter ErrorInOutVariance()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            NameReference fielda_typename = NameReference.Create("TA");
+            NameReference fieldb_typename = NameReference.Create("TB");
+            NameReference propa_typename = NameReference.Create("TA");
+            NameReference propb_typename = NameReference.Create("TB");
+            root_ns.AddBuilder(TypeBuilder.Create(
+                NameDefinition.Create(NameFactory.TupleTypeName,
+                TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
+                .Modifier(EntityModifier.Mutable)
+                .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
+                    new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
+                .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
+                .With(VariableDeclaration.CreateStatement("fb", fieldb_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
+                .With(PropertyBuilder.CreateAutoFull("adata", propa_typename, Undef.Create()))
+                .With(PropertyBuilder.CreateAutoFull("bdata", propb_typename, Undef.Create())));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fielda_typename));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fieldb_typename));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propa_typename));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propb_typename));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter CatVarianceExample() // Programming in Scala, 2nd ed, p. 399
+        {
+            var env = Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            NameReference result_typename = NameReference.Create("Cat",
+                        NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T")), NameReference.Create("U"));
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("Cat", TemplateParametersBuffer.Create()
+                .Add("T", VarianceMode.In).Add("U", VarianceMode.Out).Values))
+                .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("meow", TemplateParametersBuffer.Create()
+                    .Add("W", VarianceMode.In).Values), result_typename)
+                    .Parameters(FunctionParameter.Create("volume", NameReference.Create("T")),
+                        FunctionParameter.Create("listener",
+                            NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T"))))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter CircularPointerNesting()
         {
             var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -59,7 +115,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself,decl1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl1));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl2));
 
             return resolver;

@@ -2,7 +2,7 @@
 
 namespace Skila.Language.Builders
 {
-   internal struct PropertyMembers
+   public struct PropertyMembers
     {
         public VariableDeclaration Field { get; set; }
         public FunctionDefinition Getter { get; set; }

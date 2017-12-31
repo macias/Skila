@@ -154,7 +154,7 @@ namespace Skila.Language.Entities
             {
                 foreach (EntityInstance entity_instance in (ancestor.TargetType.AvailableEntities ?? Enumerable.Empty<EntityInstance>())
                     .Where(it => it.Target.Modifier.HasPublic || it.Target.Modifier.HasProtected)
-                    .Where(it => !(it.Target is FunctionDefinition func) || !func.IsConstructor()))
+                    .Where(it => !(it.Target is FunctionDefinition func) || !func.IsAnyConstructor()))
                 {
                     if (entity_instance.DebugId.Id == 3895)
                     {

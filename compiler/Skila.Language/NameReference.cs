@@ -75,7 +75,7 @@ namespace Skila.Language
         public bool IsRoot { get; }
         public IExpression Prefix { get; private set; }
         public string Name { get; }
-        public IReadOnlyCollection<INameReference> TemplateArguments { get; }
+        public IReadOnlyList<INameReference> TemplateArguments { get; }
         public Binding Binding { get; }
         public int Arity => this.TemplateArguments.Count;
 
@@ -115,7 +115,7 @@ namespace Skila.Language
             this.IsRoot = isRoot;
             this.Prefix = prefix;
             this.Name = name;
-            this.TemplateArguments = (templateArguments ?? Enumerable.Empty<INameReference>()).StoreReadOnly();
+            this.TemplateArguments = (templateArguments ?? Enumerable.Empty<INameReference>()).StoreReadOnlyList();
             this.Binding = new Binding();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -144,7 +144,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 4841 || this.DebugId.Id ==4829)
+            if (this.DebugId.Id == 4841 || this.DebugId.Id == 4829)
             {
                 ;
             }
@@ -209,7 +209,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id ==  4786)
+            if (this.DebugId.Id == 4786)
             {
                 ;
             }
@@ -312,7 +312,7 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
 
-                    entities = filterTargetEntities(entities,it => it.Target.Modifier.HasStatic);
+                    entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
                     return entities;
                 }
@@ -331,7 +331,7 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    entities = filterTargetEntities(entities,it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Target.Modifier.HasStatic);
+                    entities = filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Target.Modifier.HasStatic);
 
                     if (this.Prefix.DebugId.Id == 2572)
                     {
@@ -359,7 +359,7 @@ namespace Skila.Language
 
             return entities;
         }
-      
+
         private void trySetTargetUsage(EntityInstance entityInstance)
         {
             if ((this.Owner as Assignment)?.Lhs != this)
@@ -405,20 +405,20 @@ namespace Skila.Language
                     throw new Exception("Internal error");
             }
 
-          /*  {
-                // check those names which target type members (fields, methods, properties)
-                foreach (IMember member in this.Binding.Matches.Select(it => it.Target).WhereType<IMember>())
-                {
-                    if (member.OwnerType() == null)
-                        continue;
+            /*  {
+                  // check those names which target type members (fields, methods, properties)
+                  foreach (IMember member in this.Binding.Matches.Select(it => it.Target).WhereType<IMember>())
+                  {
+                      if (member.OwnerType() == null)
+                          continue;
 
-                    TemplateDefinition template = this.EnclosingScope<TemplateDefinition>();
-                    if (!member.Modifier.HasStatic
-                        && ((this.Prefix != null && !this.Prefix.IsValue(ctx.Env.Options))
-                            || (this.Prefix == null && template.Modifier.HasStatic)))
-                        ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
-                }
-            }*/
+                      TemplateDefinition template = this.EnclosingScope<TemplateDefinition>();
+                      if (!member.Modifier.HasStatic
+                          && ((this.Prefix != null && !this.Prefix.IsValue(ctx.Env.Options))
+                              || (this.Prefix == null && template.Modifier.HasStatic)))
+                          ctx.AddError(ErrorCode.InstanceMemberAccessInStaticContext, this);
+                  }
+              }*/
 
             if ((this.Owner as Assignment)?.Lhs != this)
             {
@@ -454,7 +454,7 @@ namespace Skila.Language
                 && (!(this.Binding.Match.Target is global::Skila.Language.Entities.FunctionDefinition target_func)
                 // exclusion for constructors because it might be legal or not, but nevertheless
                 // both cases are handled elsewhere
-                || !target_func.IsConstructor())
+                || !target_func.IsAnyConstructor())
                 && !ctx.Env.Options.ReferencingBase)
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
 
@@ -474,6 +474,36 @@ namespace Skila.Language
 
             if (this.Binding.Match.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
                 ctx.AddError(ErrorCode.CannotReadExpression, this);
+
+        }
+
+        public void ValidateTypeNameVariance(ComputationContext ctx,VarianceMode typeNamePosition)
+        {
+            // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
+
+            TypeDefinition typedef = this.Binding.Match.TargetType;
+
+            if (typedef.IsTemplateParameter)
+            {
+                TemplateParameter param = typedef.TemplateParameter;
+                TemplateDefinition template = param.EnclosingScope<TemplateDefinition>();
+                if (this.EnclosingScopesToRoot().Contains(template))
+                {
+                    bool covariant_in_immutable = param.Variance == VarianceMode.Out
+                        && (template.IsFunction() || template.CastType().InstanceOf.IsImmutableType(ctx));
+
+                    // don't report errors for covariant types which are used in immutable template types
+                    if (!covariant_in_immutable &&
+                        typeNamePosition.PositionCollides(param.Variance))
+                        ctx.AddError(ErrorCode.VarianceForbiddenPosition, this, param);
+                }
+            }
+            else 
+                for (int i=0;i<typedef.Name.Parameters.Count;++i)
+                {
+                    this.TemplateArguments[i].Cast<NameReference>().ValidateTypeNameVariance(ctx,
+                        typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance));
+                }
         }
 
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)

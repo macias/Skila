@@ -58,7 +58,7 @@ namespace Skila.Language
 
                 if (members == null)
                     members = instance.TargetType.NestedFunctions
-                        .Where(f => !f.IsConstructor() && f.Parameters.All(it => !it.IsOptional))
+                        .Where(f => !f.IsAnyConstructor() && f.Parameters.All(it => !it.IsOptional))
                         .ToList();
                 else
                 {
@@ -68,7 +68,7 @@ namespace Skila.Language
                         foreach (FunctionDefinition func in instance.TargetType.NestedFunctions)
                         {
                             // todo: maybe some day handle optionals
-                            if (func.IsConstructor() || func.Parameters.Any(it => it.IsOptional))
+                            if (func.IsAnyConstructor() || func.Parameters.Any(it => it.IsOptional))
                                 continue;
 
                             if (FunctionDefinitionExtension.IsSame(ctx, m, func, instance))

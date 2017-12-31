@@ -66,7 +66,7 @@ namespace Skila.Language
                     foreach (FunctionDefinition m in members)
                     {
                         // todo: maybe some day handle optionals
-                        if (func.IsConstructor() || func.Parameters.Any(it => it.IsOptional))
+                        if (func.IsAnyConstructor() || func.Parameters.Any(it => it.IsOptional))
                             continue;
 
                         if (FunctionDefinitionExtension.IsSame(ctx, m, func, instance))
