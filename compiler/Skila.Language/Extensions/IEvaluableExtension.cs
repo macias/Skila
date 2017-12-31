@@ -10,7 +10,7 @@ namespace Skila.Language.Extensions
     {
         private static void validateReadingValues(IExpression node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 2494)
+            if (node.DebugId.Id == 4439)
             {
                 ;
             }
@@ -28,7 +28,11 @@ namespace Skila.Language.Extensions
 
             if (node.ReadMode == ExpressionReadMode.CannotBeRead)
             {
-                if (parent_reading)
+                // consider such code:
+                // let x = if true then 5 else throw new Exception();
+                // the `else` branch is read (because entire `if` is read) but we don't report an error
+                // despite we cannot read this branch because it is terminated
+                if (parent_reading && !node.Validation.IsTerminated)
                     ctx.AddError(ErrorCode.CannotReadExpression, node);
             }
             else

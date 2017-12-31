@@ -11,7 +11,7 @@ namespace Skila.Language.Expressions
         {
             return Block.CreateStatement(Return.Create(Undef.Create()));
         }
-        public static TypeBuilder WithEquatableEquals(this TypeBuilder builder,EntityModifier modifier = null)
+        public static TypeBuilder WithEquatableEquals(this TypeBuilder builder, EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -84,7 +84,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression HeapConstructor(string innerTypeName, params IExpression[] arguments)
         {
-            return HeapConstructor(NameReference.Create(innerTypeName),arguments);
+            return HeapConstructor(NameReference.Create(innerTypeName), arguments);
         }
         public static IExpression HeapConstructor(NameReference innerTypeName)
         {
@@ -151,7 +151,7 @@ namespace Skila.Language.Expressions
                 // __this__.init(args)
                 init_call,
                 // --> __this__
-                var_ref );
+                var_ref);
         }
 
         public static IExpression Add(IExpression lhs, IExpression rhs)
@@ -203,6 +203,21 @@ namespace Skila.Language.Expressions
         public static IExpression AssertOptionValue(IExpression option)
         {
             return AssertTrue(optionHasValue(option));
+        }
+
+        public static IExpression Ternary(IExpression condition, IExpression then, IExpression otherwise)
+        {
+            return IfBranch.CreateIf(condition, new[] { then }, IfBranch.CreateElse(new[] { otherwise }));
+        }
+
+        public static IExpression TryGetValue(IExpression option)
+        {
+            string temp = AutoName.Instance.CreateNew("try_opt");
+            NameReference temp_ref = NameReference.Create(temp);
+            return Block.CreateExpression(new[] {
+                VariableDeclaration.CreateStatement(temp, null, option),
+                Ternary(optionHasValue(temp_ref), OptionValue(temp_ref), GenericThrow())
+            });
         }
 
         private static NameReference optionHasValue(IExpression option)

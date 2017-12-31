@@ -21,6 +21,7 @@ namespace Skila.Language
         bool DiscardingAnyExpressionDuringTests { get; }
         bool GlobalVariables { get; }
         bool TypelessVariablesDuringTests { get; }
+        bool ThrowOnError { get; } // useful when adding new test
     }
 
     public static class IOptionsExtension

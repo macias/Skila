@@ -7,19 +7,21 @@ namespace Skila.Language.Semantics
 {
     public sealed class ErrorManager
     {
-        public static ErrorManager Create()
+        public static ErrorManager Create(bool throwOnError)
         {
-            return new ErrorManager();
+            return new ErrorManager(throwOnError);
         }
 
         private readonly ErrorPriority errorPriority;
+        private readonly bool throwOnError;
         private List<Error> errors;
         private readonly HashSet<Tuple<ErrorCode, INode>> errorTranslations;
 
         public IReadOnlyList<Error> Errors => this.errors;
 
-        private ErrorManager()
+        private ErrorManager(bool throwOnError)
         {
+            this.throwOnError = throwOnError;
             this.errors = new List<Error>();
             this.errorPriority = new ErrorPriority();
             this.errorTranslations = new HashSet<Tuple<ErrorCode, INode>>();
@@ -56,6 +58,9 @@ namespace Skila.Language.Semantics
         }
         public void AddError(ErrorCode code, INode node, IEnumerable<INode> context)
         {
+            if (this.throwOnError)
+                throw new Exception($"{code} {node}");
+
             // translation should be trigerred only once, in multiple cases investigate what is going on
             if (errorTranslations.Remove(Tuple.Create(code, node)))
                 return;

@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().InvalidNumberForVariadicParameter();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorMixedMemoryClassOverrideWithGenericOutput();
-            //new Semantics.MemoryClasses().ImplicitValueReferenceConversionOnCall();
+           //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorMutabilityLaunderingOnReturn();
             // new Semantics.NameResolution().ResolvingIt();
@@ -43,7 +43,7 @@ namespace Skila.Tests
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
-            new Execution.Library().DateDayOfWeek();
+            new Execution.Library().StringToInt();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
@@ -51,18 +51,20 @@ namespace Skila.Tests
 
             {
                 double start = Stopwatch.GetTimestamp();
-                runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
+                int count = runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
-                Console.WriteLine($"Semantics time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
+                double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
+                Console.WriteLine($"Semantics time: {time.ToString("0.00")}s, average: {(time/count).ToString("0.00")}s");
             }
 
             Console.WriteLine();
 
             {
                 double start = Stopwatch.GetTimestamp();
-                runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
+                int count = runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
 
-                Console.WriteLine($"Interpretation time: {(Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency}s");
+                double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
+                Console.WriteLine($"Interpretation time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
             }
 
             if (AssertX.Fails.Any())
@@ -74,7 +76,7 @@ namespace Skila.Tests
             Console.ReadLine();
         }
 
-        private static void runTest<T>(string @namespace, bool checkErrorCoverage)
+        private static int runTest<T>(string @namespace, bool checkErrorCoverage)
             where T : class
         {
             HashSet<ErrorCode> reported_errors = checkErrorCoverage ? new HashSet<ErrorCode>() : null;
@@ -143,6 +145,8 @@ namespace Skila.Tests
                 }
                 Console.ForegroundColor = fc;
             }
+
+            return total;
         }
 
         private static IEnumerable<string> runTest<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)

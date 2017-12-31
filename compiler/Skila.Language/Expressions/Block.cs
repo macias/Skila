@@ -18,27 +18,27 @@ namespace Skila.Language.Expressions
         }
         public static Block Create(ExpressionReadMode readMode, IEnumerable<IExpression> body)
         {
-            return new Block(Purpose.Regular, readMode, body);
+            return constructor(Purpose.Regular, readMode, body);
         }
         public static Block CreateStatement(params IExpression[] body)
         {
-            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
         }
         public static Block CreateStatement(IEnumerable<IExpression> body)
         {
-            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
         }
         public static Block CreateStatement()
         {
-            return new Block(Purpose.Regular, ExpressionReadMode.CannotBeRead, body: null);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, null);
         }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
-            return new Block(Purpose.Regular, ExpressionReadMode.ReadRequired, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired, body);
         }
         public static Block CreateInitialization(VariableDeclaration decl, FunctionCall init, NameReference outcome)
         {
-            return new Block(Purpose.Initialization, ExpressionReadMode.ReadRequired, new IExpression[] { decl, init, outcome });
+            return constructor(Purpose.Initialization, ExpressionReadMode.ReadRequired, new IExpression[] { decl, init, outcome });
         }
 
         internal FunctionCall constructorChainCall { get; private set; } // used in constructors
@@ -55,9 +55,14 @@ namespace Skila.Language.Expressions
         // applies only for initialization block
         public FunctionCall InitializationStep => this.instructions[1].Cast<FunctionCall>();
 
-        private Block(Purpose purpose, ExpressionReadMode readMode, IEnumerable<IExpression> body) : base(readMode)
+        private static Block constructor(Purpose purpose, ExpressionReadMode readMode, IEnumerable<IExpression> instructions)
         {
-            this.instructions = (body ?? Enumerable.Empty<IExpression>()).ToList();
+            List<IExpression> body = (instructions ?? Enumerable.Empty<IExpression>()).ToList();
+            return new Block(purpose, readMode, body);
+        }
+        private Block(Purpose purpose, ExpressionReadMode readMode, List<IExpression> body) : base(readMode)
+        {
+            this.instructions = body;
             this.Mode = purpose;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -69,9 +74,11 @@ namespace Skila.Language.Expressions
         }
         public override bool IsReadingValueOfNode(IExpression node)
         {
-            return this.Instructions.LastOrDefault() == node
-                && (this.ReadMode == ExpressionReadMode.ReadRequired
-                    || (this.Owner is IExpression owner_expr && owner_expr.IsReadingValueOfNode(this)));
+            if (this.ReadMode == ExpressionReadMode.CannotBeRead || this.Instructions.LastOrDefault() != node)
+                return false;
+
+            return this.ReadMode == ExpressionReadMode.ReadRequired
+                    || (this.Owner is IExpression owner_expr && owner_expr.IsReadingValueOfNode(this));
         }
         public override void Evaluate(ComputationContext ctx)
         {

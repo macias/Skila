@@ -60,7 +60,7 @@ namespace Skila.Interpreter
             else if (func.Modifier.HasNative)
             {
                 // meta-this is always passed as reference or pointer, so we can blindly dereference it
-                ObjectData this_value = ctx.ThisArgument.Dereference();
+                ObjectData this_value = func.Modifier.HasStatic ? null: ctx.ThisArgument.Dereference();
 
                 if (owner_type.Modifier.HasEnum)
                 {
@@ -146,7 +146,23 @@ namespace Skila.Interpreter
                 }
                 else if (owner_type == ctx.Env.IntType)
                 {
-                    if (func.Name.Name == NameFactory.AddOperator)
+                    if (func == ctx.Env.IntParseStringFunction)
+                    {
+                        ObjectData arg_ptr = ctx.FunctionArguments.Single();
+                        ObjectData arg_val = arg_ptr.Dereference();
+
+                        string input_str = arg_val.PlainValue.Cast<string>();
+                        Option<ObjectData> int_obj;
+                        if (int.TryParse(input_str, out int int_val))
+                            int_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.IntType.InstanceOf, int_val)
+                                .ConfigureAwait(false));
+                        else
+                            int_obj = new Option<ObjectData>();
+
+                        ObjectData result = await createOption(ctx, func.ResultTypeName.Evaluation.Components, int_obj).ConfigureAwait(false);
+                        return ExecValue.CreateReturn(result);
+                    }
+                    else if (func.Name.Name == NameFactory.AddOperator)
                     {
                         ObjectData arg = ctx.FunctionArguments.Single();
                         int this_int = this_value.PlainValue.Cast<int>();
@@ -213,7 +229,7 @@ namespace Skila.Interpreter
                     else
                         throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
                 }
-                else if (owner_type == ctx.Env.DateType)//@@@
+                else if (owner_type == ctx.Env.DateType)
                 {
                     if (func == ctx.Env.DateDayOfWeekGetter)
                     {
@@ -259,28 +275,13 @@ namespace Skila.Interpreter
                         Channels.IChannel<ObjectData> channel = this_value.PlainValue.Cast<Channels.IChannel<ObjectData>>();
                         EntityInstance channel_type = this_value.RunTimeTypeInstance;
                         IEntityInstance value_type = channel_type.TemplateArguments.Single();
-                        // we have to compute Skila Option type (not C# one we use for C# channel type)
-                        EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: false, translation: null);
 
                         Option<ObjectData> received = await channel.ReceiveAsync().ConfigureAwait(false);
 
-                        // allocate memory for Skila option (on stack)
-                        ObjectData result = await ObjectData.CreateEmptyAsync(ctx, option_type).ConfigureAwait(false);
-
-                        // we need to call constructor for it, which takes a reference as "this"
-                        ObjectData this_obj = await result.ReferenceAsync(ctx).ConfigureAwait(false);
-                        if (received.HasValue)
-                        {
-                            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, new[] { received.Value });
-
-                            await ExecutedAsync(ctx.Env.OptionValueConstructor, ctx).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, null);
-
-                            await ExecutedAsync(ctx.Env.OptionEmptyConstructor, ctx).ConfigureAwait(false);
-                        }
+                        // we have to compute Skila Option type (not C# one we use for C# channel type)
+                        EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: false,
+                            translation: null);
+                        ObjectData result = await createOption(ctx, option_type, received).ConfigureAwait(false);
 
                         // at this point Skila option is initialized so we can return it
 
@@ -400,7 +401,7 @@ namespace Skila.Interpreter
         }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
         {
-            if (node.DebugId.Id==1206)
+            if (node.DebugId.Id == 1206)
             {
                 ;
             }
@@ -514,14 +515,19 @@ namespace Skila.Interpreter
             return result;
         }
 
-        private async Task<ExecValue> executeAsync(Alloc alloc, ExecutionContext ctx)
+        private Task<ExecValue> executeAsync(Alloc alloc, ExecutionContext ctx)
         {
-            ObjectData obj = await ObjectData.CreateEmptyAsync(ctx, alloc.InnerTypeName.Evaluation.Components).ConfigureAwait(false);
+            return allocObjectAsync(ctx, alloc.InnerTypeName.Evaluation.Components, alloc.Evaluation.Components, null);
+        }
 
-            if (alloc.UseHeap)
+        private async Task<ExecValue> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName, object value)
+        {
+            ObjectData obj = await ObjectData.CreateInstanceAsync(ctx, innerTypeName, value).ConfigureAwait(false);
+
+            if (innerTypeName != typeName)
             {
                 ctx.Heap.Allocate(obj);
-                return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, alloc.Evaluation.Components, obj).ConfigureAwait(false));
+                return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, typeName, obj).ConfigureAwait(false));
             }
             else
             {
@@ -529,14 +535,19 @@ namespace Skila.Interpreter
             }
         }
 
-        private async Task<ExecValue> executeAsync(IntLiteral literal, ExecutionContext ctx)
+        private Task<ExecValue> executeAsync(BoolLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, literal.Evaluation.Components, literal.Value).ConfigureAwait(false));
+            return allocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
         }
 
-        private async Task<ExecValue> executeAsync(StringLiteral literal, ExecutionContext ctx)
+        private Task<ExecValue> executeAsync(IntLiteral literal, ExecutionContext ctx)
         {
-            return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, literal.Evaluation.Components, literal.Value).ConfigureAwait(false));
+            return allocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
+        }
+
+        private Task<ExecValue> executeAsync(StringLiteral literal, ExecutionContext ctx)
+        {
+            return allocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, literal.Evaluation.Components, literal.Value);
         }
 
         private async Task<ExecValue> executeAsync(Throw thrower, ExecutionContext ctx)
@@ -722,7 +733,6 @@ namespace Skila.Interpreter
 
             // if "this" is a value (legal at this point) we have add a reference to it because every function
             // expect to get either reference or pointer to this instance
-            //if (self == self_value)
             if (!ctx.Env.IsPointerLikeOfType(this_obj.RunTimeTypeInstance))
                 this_obj = await this_obj.ReferenceAsync(ctx).ConfigureAwait(false);
 
@@ -904,11 +914,6 @@ namespace Skila.Interpreter
             return targetFunc;
         }
 
-        private async Task<ExecValue> executeAsync(BoolLiteral literal, ExecutionContext ctx)
-        {
-            return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, literal.Evaluation.Components, literal.Value).ConfigureAwait(false));
-        }
-
         private async Task<ExecValue> executeAsync(NameReference name, ExecutionContext ctx)
         {
             if (name.DebugId.Id == 3459)
@@ -1024,6 +1029,29 @@ namespace Skila.Interpreter
             }
 
             return rhs_val;
+        }
+
+        private async Task<ObjectData> createOption(ExecutionContext ctx, IEntityInstance optionType, Option<ObjectData> option)
+        {
+            // allocate memory for Skila option (on stack)
+            ObjectData result = await ObjectData.CreateEmptyAsync(ctx, optionType).ConfigureAwait(false);
+
+            // we need to call constructor for it, which takes a reference as "this"
+            ObjectData this_obj = await result.ReferenceAsync(ctx).ConfigureAwait(false);
+            if (option.HasValue)
+            {
+                SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, new[] { option.Value });
+
+                await ExecutedAsync(ctx.Env.OptionValueConstructor, ctx).ConfigureAwait(false);
+            }
+            else
+            {
+                SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, null);
+
+                await ExecutedAsync(ctx.Env.OptionEmptyConstructor, ctx).ConfigureAwait(false);
+            }
+
+            return result;
         }
 
     }

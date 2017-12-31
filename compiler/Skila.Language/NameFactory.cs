@@ -100,6 +100,8 @@ namespace Skila.Language
         public const string ZeroConstructorName = "zero";
         public const string NewConstructorName = "new";
 
+        public const string ParseFunctionName = "parse";
+
         public static NameReference UnitTypeReference()
         {
             return NameReference.Create(NameReference.Root, UnitTypeName);
@@ -227,7 +229,7 @@ namespace Skila.Language
 
         public static NameReference StringTypeReference()
         {
-            return NameReference.Create(SystemNamespaceReference(), NameFactory.StringTypeName);
+            return NameFactory.PointerTypeReference(NameReference.Create(SystemNamespaceReference(), NameFactory.StringTypeName));
         }
         public static NameReference ComparableTypeReference()
         {

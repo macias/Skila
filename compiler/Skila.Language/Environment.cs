@@ -33,8 +33,12 @@ namespace Skila.Language
         public Namespace CollectionsNamespace { get; }
 
         public TypeDefinition IntType { get; }
+        public FunctionDefinition IntParseStringFunction { get; }
+
         //public TypeDefinition EnumType { get; }
+
         public TypeDefinition StringType { get; }
+
         public TypeDefinition OrderingType { get; }
         public VariableDeclaration OrderingLess { get; }
         public VariableDeclaration OrderingEqual { get; }
@@ -54,7 +58,7 @@ namespace Skila.Language
 
         public TypeDefinition DateType { get; }
         public FunctionDefinition DateDayOfWeekGetter { get; }
-        public VariableDeclaration DateYearField { get;  }
+        public VariableDeclaration DateYearField { get; }
         public VariableDeclaration DateMonthField { get; }
         public VariableDeclaration DateDayField { get; }
         public TypeDefinition DayOfWeek { get; }
@@ -77,34 +81,10 @@ namespace Skila.Language
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
 
-            this.IntType = this.Root.AddBuilder(TypeBuilder.Create(NameFactory.IntTypeName)
-                .Modifier(EntityModifier.Native)
-                .Parents(NameFactory.ObjectTypeReference(), NameFactory.ComparableTypeReference())
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    null, Block.CreateStatement()))
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
-                    Block.CreateStatement()))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
-                    ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                    Block.CreateStatement())
-                    .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
-
-                .WithComparableCompare()
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
-                    ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
-                    Block.CreateStatement())
-                    .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
-
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement())
-                    .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
-
-                );
+            {
+                this.IntType = this.Root.AddNode(createIntType(out FunctionDefinition parse_string));
+                this.IntParseStringFunction = parse_string;
+            }
 
             /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
                             .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference()));
@@ -241,10 +221,10 @@ namespace Skila.Language
             {
                 this.DateType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.DateTypeName)
                     .Modifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.CreateAutoFull("year", NameFactory.IntTypeReference(),out PropertyMembers year))
-                    .With(PropertyBuilder.CreateAutoFull("month", NameFactory.IntTypeReference(), out PropertyMembers month, 
+                    .With(PropertyBuilder.CreateAutoFull("year", NameFactory.IntTypeReference(), out PropertyMembers year))
+                    .With(PropertyBuilder.CreateAutoFull("month", NameFactory.IntTypeReference(), out PropertyMembers month,
                         IntLiteral.Create("1")))
-                    .With(PropertyBuilder.CreateAutoFull("day", NameFactory.IntTypeReference(),out PropertyMembers day,
+                    .With(PropertyBuilder.CreateAutoFull("day", NameFactory.IntTypeReference(), out PropertyMembers day,
                         IntLiteral.Create("1")))
                     .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, new[] {
                     FunctionParameter.Create("year",NameFactory.IntTypeReference()),
@@ -307,10 +287,11 @@ namespace Skila.Language
                 null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
                 Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
 
-            this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
-                .Modifier(EntityModifier.HeapOnly)
-                //.Slicing(true)
-                .Parents(NameFactory.ObjectTypeReference()));
+            {
+                this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
+                    .Modifier(EntityModifier.HeapOnly | EntityModifier.Native)
+                    .Parents(NameFactory.ObjectTypeReference()));
+            }
 
             this.OrderingType = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.OrderingTypeName)
                 .With(EnumCaseBuilder.Create(NameFactory.OrderingLess, NameFactory.OrderingEqual, NameFactory.OrderingGreater)));
@@ -338,6 +319,43 @@ namespace Skila.Language
             foreach (int param_count in Enumerable.Range(0, 15))
                 this.functionTypes.Add(createFunction(Root, param_count));
             this.functionTypes.ForEach(it => Root.AddNode(it));
+        }
+
+        private static TypeDefinition createIntType(out FunctionDefinition parseString)
+        {
+            parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.IntTypeReference()),
+                    ExpressionFactory.BodyReturnUndef())
+                    .Parameters(FunctionParameter.Create("s",NameFactory.StringTypeReference(),ExpressionReadMode.CannotBeRead))
+                    .Modifier(EntityModifier.Native | EntityModifier.Static);
+
+            return TypeBuilder.Create(NameFactory.IntTypeName)
+                .Modifier(EntityModifier.Native)
+                .Parents(NameFactory.ObjectTypeReference(), NameFactory.ComparableTypeReference())
+                .With(parseString)
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                    null, Block.CreateStatement()))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
+                    Block.CreateStatement()))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+
+                .WithComparableCompare()
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
+                    ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+                ;
         }
 
         private static TypeDefinition createChannelType()

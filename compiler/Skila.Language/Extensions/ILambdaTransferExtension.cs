@@ -28,7 +28,7 @@ namespace Skila.Language.Extensions
 
             lambda.SetModifier(EntityModifier.Override | lambda.Modifier);
 
-            TypeDefinition functor = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
+            TypeDefinition functor = TypeBuilder.Create(NameDefinition.Create(AutoName.Instance.CreateNew("Closure")))
                 .With(fields)
                 .With(cons)
                 .With(lambda)
@@ -81,7 +81,7 @@ namespace Skila.Language.Extensions
                     .Parameters(trans_parameters.ToArray());
 
 
-            TypeBuilder closure_builder = TypeBuilder.Create(NameDefinition.Create(ctx.AutoName.CreateNew("Closure")))
+            TypeBuilder closure_builder = TypeBuilder.Create(NameDefinition.Create(AutoName.Instance.CreateNew("Closure")))
                 .With(invoke)
                 .Parents(invoke.CreateFunctionInterface());
 

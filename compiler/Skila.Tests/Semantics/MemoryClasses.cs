@@ -54,10 +54,14 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
-            var decl = VariableDeclaration.CreateStatement("bar", NameFactory.StringTypeReference(),
-                initValue: StringLiteral.Create("hi"));
+            root_ns.AddBuilder(TypeBuilder.Create("Hi")
+                .Modifier(EntityModifier.HeapOnly)
+                .Parents(NameFactory.ObjectTypeReference()));
 
-            var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
+            var decl = VariableDeclaration.CreateStatement("bar", NameReference.Create("Hi"), 
+                Undef.Create());
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),

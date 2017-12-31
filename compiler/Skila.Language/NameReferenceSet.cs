@@ -81,7 +81,7 @@ namespace Skila.Language
             IEnumerable<EntityInstance> dereferencedInstances, IEnumerable<FunctionDefinition> members,
             bool partialVirtualTables)
         {
-            this.aggregate = TypeBuilder.Create(ctx.AutoName.CreateNew("Aggregate"))
+            this.aggregate = TypeBuilder.Create(AutoName.Instance.CreateNew("Aggregate"))
                 .With(members)
                 .Modifier(EntityModifier.Protocol);
             aggregate.AttachTo(this);

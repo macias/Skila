@@ -37,5 +37,32 @@ namespace Skila.Tests.Execution
 
             return interpreter;
         }
-   }
+
+        [TestMethod]
+        public IInterpreter StringToInt()
+        {
+            var env = Environment.Create(new Options() { ThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2")),
+                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(),ExpressionFactory.TryGetValue(
+                        FunctionCall.Create(NameReference.Create( NameFactory.IntTypeReference(),NameFactory.ParseFunctionName),
+                            NameReference.Create("s"))
+                        )),
+                    Return.Create(NameReference.Create("i"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+    }
 }

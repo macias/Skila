@@ -256,7 +256,7 @@ namespace Skila.Language.Entities
 
             if (!this.Modifier.IsAbstract)
             {
-                foreach (FunctionDefinition func in this.AllNestedFunctions)//@@@.NestedFunctions)
+                foreach (FunctionDefinition func in this.AllNestedFunctions)
                     if (func.Modifier.HasAbstract)
                         ctx.AddError(ErrorCode.NonAbstractTypeWithAbstractMethod, func);
                     else if (func.Modifier.HasBase && this.Modifier.IsSealed)

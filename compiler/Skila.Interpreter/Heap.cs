@@ -27,10 +27,7 @@ namespace Skila.Interpreter
         {
             get
             {
-                lock (this.threadLock)
-                {
-                    return !this.refCounts.Any() && this.hostDisposables == 0;
-                }
+                return !this.refCounts.Any() && this.hostDisposables == 0;
             }
         }
 
@@ -94,25 +91,30 @@ namespace Skila.Interpreter
             return true;
         }
 
-        internal void TryInc(ExecutionContext ctx, ObjectData obj)
+        internal void TryInc(ExecutionContext ctx, ObjectData pointerObject)
         {
-            if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
+            if (!ctx.Env.IsPointerOfType(pointerObject.RunTimeTypeInstance))
                 return;
 
-            obj = obj.Dereference();
+            pointerObject = pointerObject.Dereference();
 
-            if (obj == null) // null pointer
+            if (pointerObject == null) // null pointer
                 return;
 
-            if (obj.DebugId.Id == 8758)
+            if (pointerObject.DebugId.Id == 8758)
             {
                 ;
             }
 
             lock (this.threadLock)
             {
-                this.refCounts[obj] = this.refCounts[obj] + 1;
+                this.refCounts[pointerObject] = this.refCounts[pointerObject] + 1;
             }
+        }
+
+        public override string ToString()
+        {
+            return this.refCounts.Select(it => $"{it.Key} #{it.Value}").Join(", ");
         }
 
         internal void TryAddDisposable<T>(T obj)

@@ -52,9 +52,13 @@ namespace Skila.Language.Flow
             this.Next = next;
 
             this.ReadMode = Body.ReadMode;
-            this.ReadMode = branches.Any(it => it.IsElse)
-                                ? (branches.Any(it => it.ReadMode == ExpressionReadMode.ReadRequired) ? ExpressionReadMode.ReadRequired : ExpressionReadMode.OptionalUse)
-                                : ExpressionReadMode.CannotBeRead;
+
+            if (!this.branches.Any(it => it.IsElse))
+                this.ReadMode = ExpressionReadMode.CannotBeRead;
+            else if (branches.Any(it => it.ReadMode == ExpressionReadMode.ReadRequired))
+                this.ReadMode = ExpressionReadMode.ReadRequired;
+            else if (!this.IsElse)
+                this.ReadMode = ExpressionReadMode.OptionalUse;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -73,11 +77,18 @@ namespace Skila.Language.Flow
 
         public void Validate(ComputationContext ctx)
         {
+            if (Next != null && this.IsElse)
+                ctx.ErrorManager.AddError(ErrorCode.MiddleElseBranch, this);
         }
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
+                if (this.DebugId.Id == 4442)
+                {
+                    ;
+                }
+
                 if (ReadMode == ExpressionReadMode.CannotBeRead)
                     this.Evaluation = ctx.Env.UnitEvaluation;
                 else
@@ -85,20 +96,22 @@ namespace Skila.Language.Flow
                     IEntityInstance eval = this.Body.Evaluation.Components;
                     IEntityInstance aggregate = this.Body.Evaluation.Aggregate;
 
-                    if (Next != null && !computeLowestCommonAncestor(ctx, ref eval, ref aggregate))
+                    if (Next != null
+                        // it is legal to have some branch "unreadable", for example: 
+                        // if true then 5 else throw new Exception();
+                        && Next.ReadMode != ExpressionReadMode.CannotBeRead 
+                        && !computeLowestCommonAncestor(ctx, ref eval, ref aggregate))
                     {
                         eval = ctx.Env.UnitType.InstanceOf;
                         aggregate = ctx.Env.UnitType.InstanceOf;
                         ReadMode = ExpressionReadMode.CannotBeRead;
                     }
 
+
                     this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>());
                     this.DataTransfer(ctx, ref this.condition, ctx.Env.BoolType.InstanceOf);
 
                 }
-
-                if (Next != null && this.IsElse)
-                    ctx.ErrorManager.AddError(ErrorCode.MiddleElseBranch, this);
             }
         }
 
