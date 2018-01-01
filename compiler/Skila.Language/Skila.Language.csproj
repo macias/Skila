@@ -69,7 +69,6 @@
     <Compile Include="Entities\EntityInstanceCache.cs" />
     <Compile Include="EntityInstanceIntersection.cs" />
     <Compile Include="EntityInstanceSet.cs" />
-    <Compile Include="Expressions\Assignment2.cs" />
     <Compile Include="Expressions\Dereference.cs" />
     <Compile Include="Expressions\BoolOperator.cs" />
     <Compile Include="Expressions\Spread.cs" />

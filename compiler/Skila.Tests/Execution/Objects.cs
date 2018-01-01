@@ -12,6 +12,33 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter ParallelAssignment()
+        {
+            var env = Language.Environment.Create(new Options() { ThrowOnError = true });
+            var root_ns = env.Root;
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("-5"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("y",null,IntLiteral.Create("2"), EntityModifier.Reassignable),
+                    Assignment.CreateStatement(new[]{ NameReference.Create("x"), NameReference.Create("y") },
+                        new[]{ NameReference.Create("y"),NameReference.Create("x") }),
+                    Return.Create(NameReference.Create("x"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter AccessingObjectFields()
         {
             var env = Language.Environment.Create();

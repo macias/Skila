@@ -17,7 +17,15 @@ namespace Skila.Language.Expressions
         {
             return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
         }
+        public static IExpression CreateStatement(IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
+        {
+            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
+        }
         public static IExpression CreateExpression(IExpression lhs, IExpression rhsValue)
+        {
+            return create(ExpressionReadMode.ReadRequired, lhs, rhsValue);
+        }
+        public static IExpression CreateExpression(IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
         {
             return create(ExpressionReadMode.ReadRequired, lhs, rhsValue);
         }
@@ -33,6 +41,35 @@ namespace Skila.Language.Expressions
             else
                 return new Assignment(readMode, lhs, rhsValue);
         }
+        private static IExpression create(ExpressionReadMode readMode, IEnumerable<IExpression> lhsExpr, IEnumerable<IExpression> rhsValue)
+        {
+            if (lhsExpr.Count() == 1 && rhsValue.Count() == 1)
+            {
+                return create(readMode, lhsExpr.Single(), rhsValue.Single());
+            }
+            else if (lhsExpr.Count() == 1)
+            {
+                return create(readMode, lhsExpr.Single(), ExpressionFactory.Tuple(rhsValue.ToArray()));
+            }
+            else
+            {
+                string rhs_temp = AutoName.Instance.CreateNew("par_ass");
+                var code = new List<IExpression>();
+                code.Add(VariableDeclaration.CreateStatement(rhs_temp, null, ExpressionFactory.Tuple(rhsValue.ToArray())));
+                int i = 0;
+                foreach (IExpression lhs in lhsExpr)
+                {
+                    code.Add(Assignment.CreateStatement(lhs, NameReference.Create(rhs_temp, NameFactory.TupleItemName(i))));
+                    ++i;
+                }
+
+                if (readMode != ExpressionReadMode.CannotBeRead)
+                    code.Add(NameReference.Create(rhs_temp));
+
+                return Block.Create(readMode, code);
+            }
+        }
+
 
         // we don't override IsLValue in Assignment and VariableDeclaration 
         // because while technically it is lvalue, it is ridiculous to see

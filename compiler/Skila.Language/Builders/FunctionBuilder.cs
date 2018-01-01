@@ -79,6 +79,14 @@ namespace Skila.Language.Builders
             return new FunctionBuilder(name, null, callMode, result, body);
         }
 
+        public static FunctionBuilder Create(
+           NameDefinition name,
+           INameReference result,
+           Block body)
+        {
+            return Create(name,ExpressionReadMode.ReadRequired,result,body);
+        }
+
         private readonly NameDefinition name;
         private EntityModifier modifier;
         private IEnumerable<FunctionParameter> parameters;

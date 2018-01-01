@@ -144,7 +144,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 4841 || this.DebugId.Id == 4829)
+            if (this.DebugId.Id ==  44)
             {
                 ;
             }

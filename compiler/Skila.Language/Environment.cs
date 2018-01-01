@@ -320,15 +320,22 @@ namespace Skila.Language
                 this.functionTypes.Add(createFunction(param_count));
             this.functionTypes.ForEach(it => this.Root.AddNode(it));
 
-            this.tupleTypes = new List<TypeDefinition>();
-            this.iTupleTypes = new List<TypeDefinition>();
-            foreach (int count in Enumerable.Range(2, 15))
             {
-                this.tupleTypes.Add(createTuple(count));
-                this.iTupleTypes.Add(createITuple(count));
+                TypeBuilder factory_builder = TypeBuilder.Create(NameFactory.TupleTypeName)
+                    .Modifier(EntityModifier.Static);
+                this.tupleTypes = new List<TypeDefinition>();
+                this.iTupleTypes = new List<TypeDefinition>();
+                foreach (int count in Enumerable.Range(2, 15))
+                {
+                    this.tupleTypes.Add(createTuple(count,out FunctionDefinition factory));
+                    this.iTupleTypes.Add(createITuple(count));
+
+                    factory_builder.With(factory);
+                }
+                this.tupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
+                this.iTupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
+                this.CollectionsNamespace.AddBuilder(factory_builder);
             }
-            this.tupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
-            this.iTupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
         }
 
         private static TypeDefinition createIntType(out FunctionDefinition parseString)
@@ -532,24 +539,33 @@ namespace Skila.Language
             return function_def;
         }
 
-        private static TypeDefinition createTuple(int count)
+        private static TypeDefinition createTuple(int count, out FunctionDefinition factory)
         {
-            var type_parameters = TemplateParametersBuffer.Create();
+            var type_parameters = new List<string>();
             var properties = new List<Property>();
             foreach (int i in Enumerable.Range(0, count))
             {
                 var type_name = $"T{i}";
-                type_parameters.Add(type_name, VarianceMode.None);
-                properties.Add(PropertyBuilder.CreateAutoFull($"item{i}", NameReference.Create(type_name), Undef.Create()).Build());
+                type_parameters.Add(type_name);
+                properties.Add(PropertyBuilder.CreateAutoFull(NameFactory.TupleItemName(i), NameReference.Create(type_name), Undef.Create()).Build());
             }
 
             TypeBuilder builder = TypeBuilder.Create(
-                NameDefinition.Create(NameFactory.TupleTypeName, type_parameters.Values))
+                NameDefinition.Create(NameFactory.TupleTypeName, TemplateParametersBuffer.Create(type_parameters).Values))
                 .Modifier(EntityModifier.Mutable)
-                .Parents(NameFactory.ITupleTypeReference(type_parameters.Values.Select(it => NameReference.Create(it.Name)).ToArray()))//@@@
+                .Parents(NameFactory.ITupleTypeReference(type_parameters.Select(it => NameReference.Create(it)).ToArray()))
                 .With(ExpressionFactory.BasicConstructor(properties.Select(it => it.Name.Name).ToArray(),
-                     type_parameters.Values.Select(it => NameReference.Create(it.Name)).ToArray()))
+                     type_parameters.Select(it => NameReference.Create(it)).ToArray()))
                 .With(properties);
+
+            NameReference func_result_typename = NameFactory.TupleTypeReference(type_parameters.Select(it => NameReference.Create(it)).ToArray());
+            factory = FunctionBuilder.Create(NameDefinition.Create(NameFactory.CreateFunctionName, TemplateParametersBuffer.Create(type_parameters).Values),
+                    func_result_typename,
+                    Block.CreateStatement(Return.Create(
+                        ExpressionFactory.StackConstructor(func_result_typename,
+                            Enumerable.Range(0, count).Select(i => NameReference.Create(NameFactory.TupleItemName(i))).ToArray()))))
+                    .Modifier(EntityModifier.Static)
+                    .Parameters(Enumerable.Range(0, count).Select(i => FunctionParameter.Create(NameFactory.TupleItemName(i), NameReference.Create(type_parameters[i]))).ToArray());
 
             return builder;
         }
@@ -562,7 +578,7 @@ namespace Skila.Language
             {
                 var type_name = $"T{i}";
                 type_parameters.Add(type_name, VarianceMode.Out);
-                properties.Add(PropertyBuilder.Create($"item{i}", NameReference.Create(type_name)).WithGetter(body:null).Build());
+                properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name)).WithGetter(body: null).Build());
             }
 
             TypeBuilder builder = TypeBuilder.CreateInterface(

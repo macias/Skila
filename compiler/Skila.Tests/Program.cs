@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().InvalidNumberForVariadicParameter();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorMixedMemoryClassOverrideWithGenericOutput();
-           //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
+            //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorMutabilityLaunderingOnReturn();
             // new Semantics.NameResolution().ResolvingIt();
@@ -33,7 +33,7 @@ namespace Skila.Tests
             //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().ErrorHasConstraint();
             //new Semantics.TypeMatching().UnionMatching();
-            new Semantics.Types().CatVarianceExample();
+            //new Semantics.Types().CatVarianceExample();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
@@ -44,7 +44,7 @@ namespace Skila.Tests
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Library().StringToInt();
-            //new Execution.Objects().UsingEnums();
+            new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
@@ -54,7 +54,7 @@ namespace Skila.Tests
                 int count = runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
                 double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
-                Console.WriteLine($"Semantics time: {time.ToString("0.00")}s, average: {(time/count).ToString("0.00")}s");
+                Console.WriteLine($"Semantics time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
             }
 
             Console.WriteLine();

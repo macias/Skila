@@ -106,6 +106,7 @@ namespace Skila.Language
         public const string NewConstructorName = "new";
 
         public const string ParseFunctionName = "parse";
+        public const string CreateFunctionName = "create";
 
         public static NameReference UnitTypeReference()
         {
@@ -117,6 +118,10 @@ namespace Skila.Language
             return EntityInstance.Joker.NameOf;
         }*/
 
+        public static string TupleItemName(int index)
+        {
+            return $"item{index}";
+        }
         public static NameReference FunctionTypeReference(IEnumerable<INameReference> arguments, INameReference result)
         {
             return NameReference.Create(NameReference.Root, FunctionTypeName, arguments.Concat(result).ToArray());
@@ -216,6 +221,10 @@ namespace Skila.Language
         public static NameReference TupleTypeReference(params INameReference[] templateParamNames)
         {
             return NameReference.Create(CollectionsNamespaceReference(), TupleTypeName, templateParamNames);
+        }
+        public static NameReference TupleFactoryReference()
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), TupleTypeName);
         }
         public static NameReference ITupleTypeReference(params INameReference[] templateParamNames)
         {

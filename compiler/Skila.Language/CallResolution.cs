@@ -30,10 +30,16 @@ namespace Skila.Language
             if (arg_param_mapping == null)
                 return null;
 
-            return new CallResolution(ctx, templateArguments, argumentsProvider,
+            var result = new CallResolution(ctx, templateArguments, argumentsProvider,
                 callContext,
                 targetFunctionInstance,
-                arg_param_mapping);
+                arg_param_mapping,
+                out bool success);
+
+            if (success)
+                return result;
+            else
+                return null;
         }
 
         private const int noMapping = -1;
@@ -65,8 +71,11 @@ namespace Skila.Language
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
             EntityInstance targetFunctionInstance,
-            List<int> argParamMapping)
+            List<int> argParamMapping,
+            out bool success)
         {
+            success = true;
+
             this.MetaThisArgument = callContext.MetaThisArgument;
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
@@ -84,15 +93,20 @@ namespace Skila.Language
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
-            this.InferredTemplateArguments = inferTemplateArguments(ctx);
-
-            if (this.InferredTemplateArguments != null)
+            if (this.TargetFunctionInstance.MissingTemplateArguments)
             {
-                this.TargetFunctionInstance = EntityInstance.Create(ctx, this.TargetFunctionInstance, this.InferredTemplateArguments,
-                     overrideMutability: false);
-                extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
-                    out this.translatedParamEvaluations,
-                    out this.translatedResultEvaluation);
+                this.InferredTemplateArguments = inferTemplateArguments(ctx);
+
+                if (this.InferredTemplateArguments == null)
+                    success = false;
+                else
+                {
+                    this.TargetFunctionInstance = EntityInstance.Create(ctx, this.TargetFunctionInstance, this.InferredTemplateArguments,
+                         overrideMutability: false);
+                    extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
+                        out this.translatedParamEvaluations,
+                        out this.translatedResultEvaluation);
+                }
             }
         }
 
@@ -304,17 +318,16 @@ namespace Skila.Language
 
         private IReadOnlyCollection<INameReference> inferTemplateArguments(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 11172)
+            if (this.DebugId.Id == 30487)
             {
                 ;
             }
-            if (!this.TargetFunctionInstance.MissingTemplateArguments)
-                return null;
 
-            IReadOnlyList<TemplateParameter> template_parameters
-                = this.TargetFunctionInstance.TargetTemplate.Name.Parameters.StoreReadOnlyList();
+            IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters;
 
-            var template_param_inference = new Dictionary<TemplateParameter, Tuple<IEntityInstance, bool>>();
+            var template_param_inference = new Dictionary<TemplateParameter,
+                // true -- set by user, don't change
+                Tuple<IEntityInstance, bool>>();
             for (int i = 0; i < template_parameters.Count; ++i)
                 if (this.templateArguments.Any())
                     template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments.ElementAt(i).Evaluation.Components, true));
@@ -329,7 +342,7 @@ namespace Skila.Language
                 IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
                     = extractTypeParametersMapping(this.TargetFunction, arg.Evaluation.Components, function_param_type);
 
-                foreach (var pair in type_mapping)
+                foreach (Tuple<TemplateParameter, IEntityInstance> pair in type_mapping)
                 {
                     if (!template_param_inference[pair.Item1].Item2)
                     {
@@ -349,7 +362,10 @@ namespace Skila.Language
             // filling missing types with jokers
             foreach (KeyValuePair<TemplateParameter, Tuple<IEntityInstance, bool>> infer_pair in template_param_inference)
                 if (infer_pair.Value.Item1 == null)
-                    template_param_inference[infer_pair.Key] = new Tuple<IEntityInstance, bool>(EntityInstance.Joker, false);
+                {
+                    return null; // fail this attempt
+                    //template_param_inference[infer_pair.Key] = new Tuple<IEntityInstance, bool>(EntityInstance.Joker, false);
+                }
 
             return template_parameters.Select(it => template_param_inference[it].Item1.NameOf).StoreReadOnly();
         }
