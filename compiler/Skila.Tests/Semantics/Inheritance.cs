@@ -14,6 +14,50 @@ namespace Skila.Tests.Semantics
     public class Inheritance
     {
         [TestMethod]
+        public IErrorReporter MethodNoDominance()
+        {
+            // https://en.wikipedia.org/wiki/Dominance_(C%2B%2B)#Example_without_diamond_inheritance
+
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
+                    .Modifier(EntityModifier.Base)
+                    .With(FunctionBuilder.Create("f",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement())
+                        .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .With(FunctionBuilder.Create("f",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement())
+                        .Parameters(FunctionParameter.Create("a", NameFactory.DoubleTypeReference(), ExpressionReadMode.CannotBeRead),
+                            FunctionParameter.Create("b", NameFactory.DoubleTypeReference(), ExpressionReadMode.CannotBeRead))));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Parent")
+                    .Modifier(EntityModifier.Base)
+                    .Parents("Grandparent")
+                    .With(FunctionBuilder.Create("f",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement())
+                        .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Child")
+                    .Parents("Parent")
+                    .With(FunctionBuilder.Create("g",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(
+                            // unlike C++ this method is seen as regular overload
+                            FunctionCall.Create(NameReference.CreateThised("f"),
+                                DoubleLiteral.Create("2.14"),DoubleLiteral.Create("3.17"))))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorMissingPinnedDefinition()
         {
             var env = Environment.Create();
@@ -571,34 +615,32 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperGenericWithCostraintsMethodOverride()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
-                .Add("T", VarianceMode.None)
-                .Values))
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IBar",
+                TemplateParametersBuffer.Create("TA").Values))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("bar", TemplateParametersBuffer.Create().Add("U", VarianceMode.None).Values),
+                    NameDefinition.Create("barend", TemplateParametersBuffer.Create("FA").Values),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference())
-                    .Constraints(ConstraintBuilder.Create("U").Inherits(NameReference.Create("T")))
-                    .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
-                .Modifier(EntityModifier.Interface));
+                    .Constraints(ConstraintBuilder.Create("FA").Inherits(NameReference.Create("TA")))
+                    .Parameters(FunctionParameter.Create("x", NameReference.Create("TA")))));
 
-            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
-                .Add("V", VarianceMode.None)
-                .Values))
+            TypeDefinition type_impl = root_ns.AddBuilder(
+                TypeBuilder.Create(NameDefinition.Create("Impl", TemplateParametersBuffer.Create("TB").Values))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("bar", TemplateParametersBuffer.Create().Add("W", VarianceMode.None).Values),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), usageMode: ExpressionReadMode.CannotBeRead) },
+                    NameDefinition.Create("barend", TemplateParametersBuffer.Create("FB").Values),
+                    new[] { FunctionParameter.Create("x", NameReference.Create("TB"),
+                        usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(IntLiteral.Create("2"))
                     }))
-                    .Constraints(ConstraintBuilder.Create("W").Inherits(NameReference.Create("V")))
+                    .Constraints(ConstraintBuilder.Create("FB").Inherits(NameReference.Create("TB")))
                     .Modifier(EntityModifier.Override))
-                .Parents(NameReference.Create("IX", NameReference.Create("V"))));
+                .Parents(NameReference.Create("IBar", NameReference.Create("TB"))));
 
             var resolver = NameResolver.Create(env);
 

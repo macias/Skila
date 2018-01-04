@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Comparers;
 
 namespace Skila.Language
 {
@@ -15,18 +16,18 @@ namespace Skila.Language
 #endif
 
         // these are unique (see constructor)
-        public IReadOnlyCollection<IEntityInstance> Instances { get; }
+        public HashSet<IEntityInstance> Instances { get; }
         public bool IsJoker => this.Instances.All(it => it.IsJoker);
 
         public INameReference NameOf { get; }
 
-        public bool DependsOnTypeParameter_UNUSED => this.Instances.Any(it => it.DependsOnTypeParameter_UNUSED);
+        public bool DependsOnTypeParameter => this.Instances.Any(it => it.DependsOnTypeParameter);
 
         protected EntityInstanceSet(IEnumerable<IEntityInstance> instances)
         {
             // we won't match against jokers here so we can use reference comparison
             // since all entity instances are singletons
-            this.Instances = instances.Distinct(ReferenceEqualityComparer<IEntityInstance>.Instance).StoreReadOnly();
+            this.Instances = instances.ToHashSet(EntityInstanceCoreComparer.Instance);
             this.NameOf = NameReferenceUnion.Create(this.Instances.Select(it => it.NameOf));
             if (!this.Instances.Any())
                 throw new ArgumentException();
@@ -118,6 +119,14 @@ namespace Skila.Language
             return true;
         }
 
+        public bool CoreEquals(IEntityInstance other)
+        {
+            if (this.GetType() != other.GetType())
+                return false;
+
+            EntityInstanceSet entity_set = other.Cast<EntityInstanceSet>();
+            return this.Instances.SetEquals(entity_set.Instances);
+        }
 
 
         public IEnumerable<EntityInstance> Enumerate()

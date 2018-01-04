@@ -12,6 +12,25 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class TemplateConstraint : Node, IValidable
     {
+        public static TemplateConstraint Create(
+            NameReference name,
+            EntityModifier constraintModifier,
+            IEnumerable<FunctionDefinition> functions,
+            IEnumerable<NameReference> inherits,
+            IEnumerable<NameReference> baseOf)
+        {
+            return new TemplateConstraint(name, constraintModifier, functions, inherits, baseOf);
+        }
+        public static TemplateConstraint Create(
+            string name,
+            EntityModifier constraintModifier,
+            IEnumerable<FunctionDefinition> functions,
+            IEnumerable<NameReference> inherits,
+            IEnumerable<NameReference> baseOf)
+        {
+            return Create(NameReference.Create(name), constraintModifier, functions, inherits, baseOf);
+        }
+
         public NameReference Name { get; }
         // for example "const" means the type argument has to be immutable
         public EntityModifier Modifier { get; }
@@ -23,7 +42,7 @@ namespace Skila.Language
         // as parent typenames in associated type definition
         public override IEnumerable<INode> OwnedNodes => this.BaseOfNames.Concat(this.Name);
 
-        public TemplateConstraint(
+        private TemplateConstraint(
             NameReference name,
             EntityModifier constraintModifier,
             IEnumerable<FunctionDefinition> functions,

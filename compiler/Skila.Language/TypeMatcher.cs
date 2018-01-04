@@ -37,6 +37,10 @@ namespace Skila.Language
 
             for (int i = 0; i < template.Name.Arity; ++i)
             {
+                if (input.DebugId.Id == 108975)
+                {
+                    ;
+                }
                 TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx, inversedVariance,
                     target.TemplateArguments[i],
                     template.Name.Parameters[i].Variance,
@@ -139,6 +143,10 @@ namespace Skila.Language
             {
                 bool input_immutable = input.IsImmutableType(ctx);
 
+                if (input.DebugId.Id == 108967 && target.DebugId.Id == 108939)
+                {
+                    ;
+                }
                 foreach (TypeAncestor inherited_input in new[] { new TypeAncestor(input, 0) }
                     .Concat(input.Inheritance(ctx).TypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
@@ -169,28 +177,59 @@ namespace Skila.Language
                 // base enum. Adding conversion constructor from base to child type will suffice and allow to get rid
                 // of those enum-inheritance matching
 
-                bool target_immutable = target.IsImmutableType(ctx);
-
-                foreach (TypeAncestor inherited_target in new[] { new TypeAncestor(target, 0) }
+                // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
+                TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
                     .Concat(target.Inheritance(ctx).TypeAncestorsIncludingObject)
-                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum))
-                {
-                    // please note that unlike normal type matching we reversed the types, in enum you can
-                    // pass base type as descendant!
-                    bool match = templateMatches(ctx, inversedVariance, inherited_target.AncestorInstance, input,
-                        // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
-                        allowSlicing: true);
+                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), inversedVariance, allowSlicing: true);
 
-                    if (match)
-                    {
-                        bool input_immutable = input.IsImmutableType(ctx);
-                        if (input_immutable != target_immutable)
-                            return TypeMatch.No;
-                        else if (input == target)
-                            return TypeMatch.Same;
-                        else
-                            return TypeMatch.Substitution(inherited_target.Distance);
-                    }
+                if (m != TypeMatch.No)
+                    return m;
+            }
+
+            if (target.TargetsTemplateParameter)
+            {
+                // template parameter can have reversed inheritance defined via base-of constraints
+
+                // todo: at this it should be already evaluated, so constraints should be surfables
+                IEnumerable<IEntityInstance> base_of 
+                    = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx));
+
+                TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
+                    .Concat(base_of.Select(it => new TypeAncestor(it.Cast<EntityInstance>(), 1))), inversedVariance, allowSlicing);
+
+                if (m != TypeMatch.No)
+                    return m;
+            }
+
+            return TypeMatch.No;
+        }
+
+        public static TypeMatch inversedTypeMatching(ComputationContext ctx, EntityInstance input, IEnumerable<TypeAncestor> targets,
+            bool inversedVariance, bool allowSlicing)
+        {
+            if (!targets.Any())
+                return TypeMatch.No;
+
+            EntityInstance target = targets.First().AncestorInstance;
+
+            bool target_immutable = target.IsImmutableType(ctx);
+
+            foreach (TypeAncestor inherited_target in targets)
+            {
+                // please note that unlike normal type matching we reversed the types, in enum you can
+                // pass base type as descendant!
+                bool match = templateMatches(ctx, inversedVariance, inherited_target.AncestorInstance, input,
+                    allowSlicing);
+
+                if (match)
+                {
+                    bool input_immutable = input.IsImmutableType(ctx);
+                    if (input_immutable != target_immutable)
+                        return TypeMatch.No;
+                    else if (input == target)
+                        return TypeMatch.Same;
+                    else
+                        return TypeMatch.Substitution(inherited_target.Distance);
                 }
             }
 

@@ -1,18 +1,81 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Skila.Language;
-using System.Linq;
 using Skila.Language.Expressions;
 using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
-using System.Collections.Generic;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Templates
     {
+        [TestMethod]
+        public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
+                TemplateParametersBuffer.Create("T", "X").Values),
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement())
+                .Constraints(ConstraintBuilder.Create("X")
+                    .BaseOf(NameReference.Create("T"))));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part",NameFactory.IntTypeReference(),NameReference.Sink()));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("caller"),
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    call
+                })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
+            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter InferredTemplateArgumentsOnConstraints()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
+                TemplateParametersBuffer.Create("T","X").Values),
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement())
+                .Parameters(FunctionParameter.Create("x",NameReference.Create("T"),ExpressionReadMode.CannotBeRead))
+                .Constraints(ConstraintBuilder.Create("X")
+                    .BaseOf(NameReference.Create("T"))));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part"), IntLiteral.Create("5"));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("caller"),
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    call
+                })));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
+            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorConflictingConstConstraint()
         {

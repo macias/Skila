@@ -10,6 +10,31 @@ namespace Skila.Language.Extensions
 {
     public static partial class IEvaluableExtension
     {
+        private static void validateExecutionPath(INode node, IEnumerable<IEvaluable> path,
+            ComputationContext ctx, ref ValidationData result)
+        {
+            if (node.DebugId.Id == 259)
+            {
+                ;
+            }
+            foreach (IEvaluable step in path)
+            {
+                if (!result.UnreachableCodeFound && (result.IsTerminated))
+                {
+                    result.UnreachableCodeFound = true;
+                    ctx.AddError(ErrorCode.UnreachableCode, step);
+                }
+
+                ValidationData val = Validated(step, ctx);
+
+                ctx.ValAssignTracker?.UpdateMode(val.GetMode());
+
+                result.AddStep(val);
+            }
+
+        }
+
+
         public static ValidationData Validated(this INode node, ComputationContext ctx)
         {
             if (node.DebugId.Id == 489)

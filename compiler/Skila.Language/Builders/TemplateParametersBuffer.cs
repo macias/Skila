@@ -7,9 +7,13 @@ namespace Skila.Language.Builders
 {
     public sealed class TemplateParametersBuffer
     {
-        public static TemplateParametersBuffer Create(IEnumerable<string> names = null)
+        public static TemplateParametersBuffer Create(params string[] names)
         {
-            return new TemplateParametersBuffer(names);
+            return new TemplateParametersBuffer(VarianceMode.None, names);
+        }
+        public static TemplateParametersBuffer Create(VarianceMode mode, params string[] names)
+        {
+            return new TemplateParametersBuffer(mode, names);
         }
 
         private readonly List<TemplateParameter> values;
@@ -24,11 +28,11 @@ namespace Skila.Language.Builders
 
         private bool closed;
 
-        private TemplateParametersBuffer(IEnumerable<string> names)
+        private TemplateParametersBuffer(VarianceMode mode, IEnumerable<string> names)
         {
             this.values = new List<TemplateParameter>();
             if (names != null)
-                names.ForEach(s => Add(s));
+                names.ForEach(s => Add(s, mode));
         }
         public TemplateParametersBuffer Add(string name, VarianceMode mode = VarianceMode.None)
         {

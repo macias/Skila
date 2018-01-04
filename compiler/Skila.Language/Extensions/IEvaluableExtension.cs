@@ -49,31 +49,6 @@ namespace Skila.Language.Extensions
             }
         }
 
-        private static void validateExecutionPath(INode node, IEnumerable<IEvaluable> path,
-            ComputationContext ctx, ref ValidationData result)
-        {
-            if (node.DebugId.Id == 259)
-            {
-                ;
-            }
-            foreach (IEvaluable step in path)
-            {
-                if (!result.UnreachableCodeFound && (result.IsTerminated))
-                {
-                    result.UnreachableCodeFound = true;
-                    ctx.AddError(ErrorCode.UnreachableCode, step);
-                }
-
-                ValidationData val = Validated(step, ctx);
-
-                ctx.ValAssignTracker?.UpdateMode(val.GetMode());
-
-                result.AddStep(val);
-            }
-
-        }
-
-
         public static bool DataTransfer(this IEvaluable @this, ComputationContext ctx, ref IExpression source,
             IEntityInstance targetTypeName)
         {
@@ -84,11 +59,12 @@ namespace Skila.Language.Extensions
             {
                 ;
             }
-            if (targetTypeName.DebugId.Id== 4888)
+            IEntityInstance src_type = source.Evaluation.Components;
+            if (src_type.DebugId.Id== 108975 && targetTypeName.DebugId.Id == 108947)
             {
                 ;
             }
-            IEntityInstance src_type = source.Evaluation.Components;
+
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, allowSlicing: false);
 
             if (match == TypeMatch.No)

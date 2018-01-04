@@ -144,11 +144,44 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id ==  44)
+            if (this.DebugId.Id == 44)
             {
                 ;
             }
 
+            handleBinding(ctx);
+
+            IEntityInstance eval;
+            EntityInstance aggregate;
+            computeEval(ctx, out eval, out aggregate);
+
+            if (this.Prefix != null)
+            {
+                eval = eval.TranslateThrough(this.Prefix.Evaluation.Components);
+                aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
+            }
+
+            this.Evaluation = new EvaluationInfo(eval, aggregate);
+        }
+
+        private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
+        {
+            EntityInstance instance = this.Binding.Match;
+
+            if (instance.Target.IsType() || instance.Target.IsNamespace())
+            {
+                eval = instance;
+                aggregate = instance;
+            }
+            else
+            {
+                eval = instance.Evaluated(ctx);
+                aggregate = instance.Aggregate;
+            }
+        }
+
+        private void handleBinding(ComputationContext ctx)
+        {
             if (this.Binding.IsComputed)
             {
                 if (this.Prefix != null)
@@ -181,28 +214,6 @@ namespace Skila.Language
                     ctx.ErrorManager.AddError(errorCode, this);
                 }
             }
-
-            EntityInstance instance = this.Binding.Match;
-            IEntityInstance eval;
-            EntityInstance aggregate;
-            if (instance.Target.IsType() || instance.Target.IsNamespace())
-            {
-                eval = instance;
-                aggregate = instance;
-            }
-            else
-            {
-                eval = instance.Evaluated(ctx);
-                aggregate = instance.Aggregate;
-            }
-
-            if (this.Prefix != null)
-            {
-                eval = eval.TranslateThrough(this.Prefix.Evaluation.Components);
-                aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
-            }
-
-            this.Evaluation = new EvaluationInfo(eval, aggregate);
         }
 
         private IEnumerable<EntityInstance> computeBinding(ComputationContext ctx,

@@ -18,7 +18,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             Property property = PropertyBuilder.Create("getMe", NameFactory.IntTypeReference())
-                    .With(PropertyMemberBuilder.CreateGetter(Return.Create(IntLiteral.Create("2")))
+                    .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("2"))))
                         .Modifier(EntityModifier.Override));
 
             var type = root_ns.AddBuilder(TypeBuilder.Create("Last")

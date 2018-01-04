@@ -30,7 +30,7 @@ namespace Skila.Language
             this.Env = env;
             if (!bare)
             {
-                this.ErrorManager = ErrorManager.Create(env.Options.ThrowOnError);
+                this.ErrorManager = ErrorManager.Create(env.Options.DebugThrowOnError);
                 this.visited = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
             }
         }

@@ -86,7 +86,7 @@ namespace Skila.Language.Entities
         public IReadOnlyList<FunctionParameter> Parameters { get; }
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
-        public ExpressionReadMode CallMode { get; }
+        public ExpressionReadMode CallMode { get; private set; }
         public ExecutionFlow Flow => ExecutionFlow.CreatePath(UserBody);
 
         internal LambdaTrap LambdaTrap { get; set; }
@@ -258,6 +258,8 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
+            base.Evaluate(ctx);
+
             this.IsComputed = true;
         }
 
@@ -316,6 +318,14 @@ namespace Skila.Language.Entities
         public void SetIsMemberUsed()
         {
             this.IsMemberUsed = true;
+        }
+
+        public override void Surf(ComputationContext ctx)
+        {
+            base.Surf(ctx);
+
+            if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))
+                this.CallMode = ExpressionReadMode.OptionalUse;
         }
 
 

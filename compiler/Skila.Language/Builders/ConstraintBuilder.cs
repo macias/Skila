@@ -74,7 +74,7 @@ namespace Skila.Language.Builders
         public TemplateConstraint Build()
         {
             if (build == null)
-                build = new TemplateConstraint(name,modifier,hasConstraints,inherits,baseOf);
+                build = TemplateConstraint.Create(name,modifier,hasConstraints,inherits,baseOf);
             return build;
         }
         public static implicit operator TemplateConstraint(ConstraintBuilder @this)

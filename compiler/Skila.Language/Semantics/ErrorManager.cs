@@ -21,7 +21,7 @@ namespace Skila.Language.Semantics
 
         private ErrorManager(bool throwOnError)
         {
-            this.throwOnError = throwOnError;
+            this.throwOnError = System.Diagnostics.Debugger.IsAttached && throwOnError;
             this.errors = new List<Error>();
             this.errorPriority = new ErrorPriority();
             this.errorTranslations = new HashSet<Tuple<ErrorCode, INode>>();

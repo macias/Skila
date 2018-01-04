@@ -1,4 +1,5 @@
 ﻿using NaiveLanguageTools.Common;
+using Skila.Language.Comparers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Skila.Language.Extensions
 
             {
                 HashSet<IEntityInstance> derived_bases = derivedParam.Constraint.BaseOfNames
-                    .Select(it => it.Evaluation.Components).ToHashSet();
+                    .Select(it => it.Evaluation.Components).ToHashSet(EntityInstanceCoreComparer.Instance);
                 IEnumerable<IEntityInstance> base_bases = baseParam.Constraint.BaseOfNames
                     .Select(it => it.Evaluation.Components.TranslateThrough(baseTemplate)).ToArray();
                 if (!derived_bases.SetEquals(base_bases))
@@ -23,9 +24,10 @@ namespace Skila.Language.Extensions
 
             {
                 HashSet<IEntityInstance> derived_inherits = derivedParam.Constraint.InheritsNames
-                    .Select(it => it.Evaluation.Components).ToHashSet();
+                    .Select(it => it.Evaluation.Components).ToHashSet(EntityInstanceCoreComparer.Instance);
                 IEnumerable<IEntityInstance> base_inherits = baseParam.Constraint.InheritsNames
                     .Select(it => it.Evaluation.Components.TranslateThrough(baseTemplate)).ToArray();
+
                 if (!derived_inherits.SetEquals(base_inherits))
                     return false;
             }

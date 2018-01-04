@@ -12,6 +12,43 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter AccessingTuple()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // let t *ITuple<Int,Int,Int> = (4,-2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.IntTypeReference(),
+                            NameFactory.IntTypeReference(),
+                            // todo: use sink
+                            NameFactory.IntTypeReference())),
+                        ExpressionFactory.HeapConstructor( NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.IntTypeReference(), NameFactory.IntTypeReference(),NameFactory.IntTypeReference()),
+                        IntLiteral.Create("4"),IntLiteral.Create("-2"))),
+                    // let v0 = t.item0
+                    VariableDeclaration.CreateStatement("v0",null,NameReference.Create("t",NameFactory.TupleItemName(0))),
+                    // let v1 = t[1]
+                    VariableDeclaration.CreateStatement("v1",null,FunctionCall.Indexer(NameReference.Create("t"),IntLiteral.Create("1"))),
+                    // return v0+v1
+                    Return.Create(ExpressionFactory.Add(NameReference.Create("v0"),NameReference.Create("v1")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter ChunkOnStack()
         {
             var env = Language.Environment.Create();

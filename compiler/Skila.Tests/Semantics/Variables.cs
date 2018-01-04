@@ -169,10 +169,9 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.MissingTypeAndValue, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(var_z, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeAndValue, var_z));
 
-            Assert.AreEqual(env.DoubleType, var_y.Evaluation.Components.Target());
+            Assert.AreEqual(env.DoubleType.InstanceOf, var_y.Evaluation.Components);
 
             return resolver;
         }

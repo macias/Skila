@@ -50,7 +50,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, false, null));
 
             this.closures = new List<TypeDefinition>();
 

@@ -61,7 +61,7 @@ namespace Skila.Language
 
         public IReadOnlyList<FunctionArgument> Arguments => this.argumentsProvider.Arguments;
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
-        private readonly IReadOnlyCollection<INameReference> templateArguments;
+        private readonly IReadOnlyList<IEntityInstance> templateArguments;
 
         public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
         public EvaluationInfo Evaluation => this.translatedResultEvaluation;
@@ -80,7 +80,9 @@ namespace Skila.Language
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
             this.typeMatches = new TypeMatch?[this.TargetFunction.Parameters.Count];
-            this.templateArguments = templateArguments.StoreReadOnly();
+            this.templateArguments = (templateArguments.Any()
+                ? templateArguments.Select(it => it.Evaluation.Components)
+                : this.TargetFunction.Name.Parameters.Select(it => EntityInstance.Joker)).StoreReadOnlyList();
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
 
@@ -93,16 +95,20 @@ namespace Skila.Language
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
-            if (this.TargetFunctionInstance.MissingTemplateArguments)
+            if (this.templateArguments.Any(it => it.IsJoker))
             {
-                this.InferredTemplateArguments = inferTemplateArguments(ctx);
+                IEnumerable<IEntityInstance> inferred = inferTemplateArgumentsFromExpressions(ctx);
 
-                if (this.InferredTemplateArguments == null)
+                inferred = inferTemplateArgumentsFromConstraints(ctx, inferred);
+
+                if (inferred.Any(it => it.IsJoker))
                     success = false;
                 else
                 {
-                    this.TargetFunctionInstance = EntityInstance.Create(ctx, this.TargetFunctionInstance, this.InferredTemplateArguments,
-                         overrideMutability: false);
+                    this.InferredTemplateArguments = inferred.Select(it => it.NameOf).StoreReadOnly();
+
+                    this.TargetFunctionInstance = EntityInstance.Create(ctx, this.TargetFunctionInstance, inferred,
+                        this.TargetFunctionInstance.OverrideMutability);
                     extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                         out this.translatedParamEvaluations,
                         out this.translatedResultEvaluation);
@@ -316,9 +322,9 @@ namespace Skila.Language
             return result;
         }
 
-        private IReadOnlyCollection<INameReference> inferTemplateArguments(ComputationContext ctx)
+        private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 30487)
+            if (this.DebugId.Id == 71160)
             {
                 ;
             }
@@ -329,10 +335,10 @@ namespace Skila.Language
                 // true -- set by user, don't change
                 Tuple<IEntityInstance, bool>>();
             for (int i = 0; i < template_parameters.Count; ++i)
-                if (this.templateArguments.Any())
-                    template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments.ElementAt(i).Evaluation.Components, true));
-                else
+                if (this.templateArguments[i].IsJoker)
                     template_param_inference.Add(template_parameters[i], Tuple.Create((IEntityInstance)null, false));
+                else
+                    template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments[i], true));
 
 
             foreach (FunctionArgument arg in this.Arguments)
@@ -359,15 +365,57 @@ namespace Skila.Language
                 }
             }
 
-            // filling missing types with jokers
-            foreach (KeyValuePair<TemplateParameter, Tuple<IEntityInstance, bool>> infer_pair in template_param_inference)
-                if (infer_pair.Value.Item1 == null)
+            return template_parameters.Select(it => template_param_inference[it].Item1 ?? EntityInstance.Joker);
+        }
+
+        private IEnumerable<IEntityInstance> inferTemplateArgumentsFromConstraints(ComputationContext ctx,
+            IEnumerable<IEntityInstance> templateArguments)
+        {
+            if (templateArguments.All(it => !it.IsJoker))
+                return templateArguments;
+
+            if (this.DebugId.Id == 71160)
+            {
+                ;
+            }
+
+            EntityInstance closedTemplate = EntityInstance.Create(ctx, this.TargetFunctionInstance, templateArguments, 
+                this.TargetFunctionInstance.OverrideMutability);
+
+            var result = new List<IEntityInstance>();
+            int index = -1;
+            foreach (IEntityInstance arg in templateArguments)
+            {
+                ++index;
+                if (!arg.IsJoker)
                 {
-                    return null; // fail this attempt
-                    //template_param_inference[infer_pair.Key] = new Tuple<IEntityInstance, bool>(EntityInstance.Joker, false);
+                    result.Add(arg);
+                    continue;
                 }
 
-            return template_parameters.Select(it => template_param_inference[it].Item1.NameOf).StoreReadOnly();
+                TemplateParameter param = this.TargetFunctionInstance.TargetTemplate.Name.Parameters[index];
+
+                IEntityInstance computed = null;
+                foreach (EntityInstance base_of in param.Constraint.TranslateBaseOf(closedTemplate))
+                {
+                    if (computed == null)
+                        computed = base_of;
+                    else
+                    {
+                        if (TypeMatcher.LowestCommonAncestor(ctx, computed, base_of, out IEntityInstance lca))
+                            computed = lca;
+                        else
+                        {
+                            computed = null;
+                            break;
+                        }
+                    }
+                }
+
+                result.Add(computed ?? EntityInstance.Joker);
+            }
+
+            return result;
         }
 
         private static IEnumerable<Tuple<TemplateParameter, IEntityInstance>> extractTypeParametersMapping(FunctionDefinition function,

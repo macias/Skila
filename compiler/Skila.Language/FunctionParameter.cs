@@ -79,7 +79,7 @@ namespace Skila.Language
 
             this.defaultValue = defaultValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, false, null));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

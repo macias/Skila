@@ -7,6 +7,9 @@ using Skila.Language.Extensions;
 
 namespace Skila.Language
 {
+    // todo: read and use this
+    // https://en.wikipedia.org/wiki/C3_linearization
+
     public sealed class DerivationTable
     {
         // derived function -> base implementation function

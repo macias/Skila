@@ -47,7 +47,7 @@ namespace Skila.Language
             if (this.Constraint != null)
                 throw new InvalidOperationException();
 
-            this.Constraint = constraint ?? new TemplateConstraint(NameReference.Create(this.Name), null, null, null, null);
+            this.Constraint = constraint ?? TemplateConstraint.Create(NameReference.Create(this.Name), null, null, null, null);
 
             this.AssociatedType = TypeDefinition.CreateTypeParameter(this);
             this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability:false,translation:null);

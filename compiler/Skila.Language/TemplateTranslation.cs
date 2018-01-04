@@ -11,6 +11,11 @@ namespace Skila.Language
     // when we later use type "Foo<Int>" we need to associate translation "T -> Int" to the field
     public sealed class TemplateTranslation
     {
+        internal static TemplateTranslation Create(IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
+        {
+            return Combine(null, parameters, arguments);
+        }
+
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
 
         private TemplateTranslation(Dictionary<TemplateParameter, IEntityInstance> table)
@@ -31,7 +36,7 @@ namespace Skila.Language
         }
 
         internal static TemplateTranslation Combine(TemplateTranslation trans,
-            IReadOnlyList<TemplateParameter> parameters, IEnumerable<INameReference> arguments)
+            IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
         {
             // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
             if (parameters.Any() && arguments.Any() && parameters.Count != arguments.Count())
@@ -46,7 +51,7 @@ namespace Skila.Language
             else
                 dict = new Dictionary<TemplateParameter, IEntityInstance>();
 
-            foreach (Tuple<TemplateParameter, IEntityInstance> entry in parameters.SyncZip(arguments.Select(it => it.Evaluation.Components)))
+            foreach (Tuple<TemplateParameter, IEntityInstance> entry in parameters.SyncZip(arguments.Select(it => it)))
             {
                 if (dict.ContainsKey(entry.Item1))
                     dict[entry.Item1] = entry.Item2;

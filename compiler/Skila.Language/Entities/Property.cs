@@ -18,31 +18,31 @@ namespace Skila.Language.Entities
     public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
     {
         public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
-            IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+            IEnumerable<FunctionParameter> parameters, Block body)
         {
-            return CreateIndexerGetter(propertyTypeName, parameters, EntityModifier.None, instructions);
+            return CreateIndexerGetter(propertyTypeName, parameters, EntityModifier.None, body);
         }
         public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
-            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, params IExpression[] instructions)
+            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, Block body)
         {
             return FunctionBuilder.Create(NameFactory.PropertyGetter,
                 ExpressionReadMode.ReadRequired, propertyTypeName,
-                Block.CreateStatement(instructions))
+                body)
                 .Modifier(modifier)
                 .Parameters(parameters);
         }
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
-            IEnumerable<FunctionParameter> parameters, params IExpression[] instructions)
+            IEnumerable<FunctionParameter> parameters, Block body)
         {
-            return CreateIndexerSetter(propertyTypeName, parameters, EntityModifier.None, instructions);
+            return CreateIndexerSetter(propertyTypeName, parameters, EntityModifier.None, body);
         }
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
-            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, params IExpression[] instructions)
+            IEnumerable<FunctionParameter> parameters, EntityModifier modifier, Block body)
         {
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                Block.CreateStatement(instructions))
+                body)
                 .Modifier(modifier)
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
@@ -146,7 +146,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-            this.instancesCache = new EntityInstanceCache(this, () => EntityInstance.RAW_CreateUnregistered(this, EntityInstanceSignature.None));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, false, null));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

@@ -60,20 +60,14 @@ namespace Skila.Language.Extensions
             {
                 IEntity entity = entity_instance.Target;
 
-                if (name.Arity > 0)
+                if (name.Arity > 0 || entity is TypeContainerDefinition)
                 {
                     if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
-                        result.Add(entity_instance);
-                }
-                // coalesce to true, so if we don't have template at all (like simple variable def) then use bare comparison too
-                else if ((entity as TemplateDefinition)?.IsFunction() ?? true)
-                {
-                    if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
                         result.Add(entity_instance);
                 }
                 else
                 {
-                    if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
+                    if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
                         result.Add(entity_instance);
                 }
             }

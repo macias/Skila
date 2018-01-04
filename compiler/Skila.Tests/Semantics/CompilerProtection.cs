@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Environment()
         {
-            var env = Language.Environment.Create(new Options() { ThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
 
             var resolver = NameResolver.Create(env);
 

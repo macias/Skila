@@ -18,6 +18,10 @@ namespace Skila.Language.Expressions
             Indexer,
             Regular
         }
+        public static FunctionCall Indexer(IExpression expr, params IExpression[] arguments)
+        {
+            return Indexer(expr, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+        }
         public static FunctionCall Indexer(IExpression expr, params FunctionArgument[] arguments)
         {
             // we create indexer-getters for all cases initially, then we have to only check assignments LHS

@@ -131,7 +131,7 @@ namespace Skila.Language.Entities
 
             }
 
-            if (this.DebugId.Id == 213)
+            if (this.DebugId.Id == 4631)
             {
                 ;
             }
@@ -146,13 +146,20 @@ namespace Skila.Language.Entities
                 .Where(it => it.Modifier.HasOverride)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
-            var inherited_instances = new HashSet<EntityInstance>();
+            var inherited_member_instances = new HashSet<EntityInstance>();
 
             var missing_func_implementations = new List<FunctionDefinition>();
 
             foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
             {
-                foreach (EntityInstance entity_instance in (ancestor.TargetType.AvailableEntities ?? Enumerable.Empty<EntityInstance>())
+                // special case are properties -- properties are in fact not inherited, their accessors are
+                // however user sees properties, so we get members here (including properties), but when we compute
+                // what function overrode which, we use really functions, and only having them in hand we check if 
+                // they are property accessors
+                IEnumerable<EntityInstance> members = (ancestor.TargetType.AvailableEntities ?? Enumerable.Empty<EntityInstance>())
+                    .Where(it => it.Target is IMember);
+
+                foreach (EntityInstance entity_instance in members
                     .Where(it => it.Target.Modifier.HasPublic || it.Target.Modifier.HasProtected)
                     .Where(it => !(it.Target is FunctionDefinition func) || !func.IsAnyConstructor()))
                 {
@@ -161,7 +168,7 @@ namespace Skila.Language.Entities
                         ;
                     }
                     EntityInstance translated = entity_instance.TranslateThrough(ancestor);
-                    inherited_instances.Add(translated);
+                    inherited_member_instances.Add(translated);
                 }
 
 
@@ -176,8 +183,13 @@ namespace Skila.Language.Entities
                     else
                     {
                         {
-                            EntityInstance base_instance = deriv_info.Base.InstanceOf.TranslateThrough(ancestor);
-                            inherited_instances.Remove(base_instance);
+                            EntityInstance base_instance;
+                            if (deriv_info.Base.IsPropertyAccessor(out Property base_property))
+                                base_instance = base_property.InstanceOf.TranslateThrough(ancestor);
+                            else
+                                base_instance = deriv_info.Base.InstanceOf.TranslateThrough(ancestor);
+
+                            inherited_member_instances.Remove(base_instance);
                         }
 
                         if (deriv_info.Derived.Modifier.HasOverride)
@@ -231,7 +243,7 @@ namespace Skila.Language.Entities
 
             this.InheritanceVirtualTable = virtual_mapping;
             this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
-            this.availableEntities = inherited_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
+            this.availableEntities = inherited_member_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
 
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
@@ -396,7 +408,7 @@ namespace Skila.Language.Entities
 
         private bool computeAncestors(ComputationContext ctx, HashSet<TypeDefinition> visited)
         {
-            if (this.DebugId.Id == 85)
+            if (this.DebugId.Id == 4631)
             {
                 ;
             }
@@ -428,6 +440,8 @@ namespace Skila.Language.Entities
 
                 if (!parent.TargetType.computeAncestors(ctx, visited))
                     ctx.AddError(ErrorCode.CyclicTypeHierarchy, parent_name);
+                else
+                    parent.TargetType.Surfed(ctx); 
 
                 if (parent.TargetType.IsInheritanceComputed)
                     foreach (TypeAncestor ancestor in parent.TargetType.Inheritance.TypeAncestorsWithoutObject

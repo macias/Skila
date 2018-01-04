@@ -9,6 +9,11 @@ namespace Skila.Language.Extensions
 {
     public static class FunctionDefinitionExtension
     {
+        public static bool IsPropertyAccessor(this FunctionDefinition func, out Property property)
+        {
+            property = func.Owner as Property;
+            return property != null;
+        }
         public static bool NOT_USED_CounterpartParameters(this FunctionDefinition @this, FunctionDefinition other)
         {
             if (@this.Parameters.Count != other.Parameters.Count)
@@ -140,10 +145,18 @@ namespace Skila.Language.Extensions
         public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc,
             FunctionDefinition baseFunc, EntityInstance baseTemplate)
         {
-            // property-getters can override regular methods
-            if ((derivedFunc.Owner is Property derived_prop) && derived_prop.Getter==derivedFunc) 
+            if (derivedFunc.IsPropertyAccessor(out Property derived_prop))
             {
-                if (!EntityNameArityComparer.Instance.Equals(derived_prop.Name, baseFunc.Name))
+                if (baseFunc.IsPropertyAccessor(out Property base_prop))
+                {
+                    // properties have to much and name (kind) of the accessor
+                    if (!EntityNameArityComparer.Instance.Equals(derived_prop.Name, base_prop.Name)
+                        || !EntityNameArityComparer.Instance.Equals(derivedFunc.Name, baseFunc.Name))
+                        return false;
+                }
+                // property-getters can override regular methods
+                else if (derived_prop.Getter != derivedFunc
+                    || !EntityNameArityComparer.Instance.Equals(derived_prop.Name, baseFunc.Name))
                     return false;
             }
             // todo: we have to check constraints as well

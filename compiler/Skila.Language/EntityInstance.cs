@@ -10,13 +10,18 @@ namespace Skila.Language
 {
     // instance of an entity, so it could be variable or closed type like "Tuple<Int,Int>"
     // but not open type like "Array<T>" (it is an entity, not an instance of it)
+    // this type is divided into its Core part -- holding link to entity and given template arguments
+    // and this class (wrapping Core) with context (translation)
+    // the reason for the split is we would like to compare Core fast (!) without its context
+    // it works, but it looks too complex to be correct solution
+    // todo: simplify this
 
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EntityInstance : IEntityInstance
     {
-        public static EntityInstance RAW_CreateUnregistered(IEntity target, EntityInstanceSignature signature)
+        public static EntityInstance RAW_CreateUnregistered(EntityInstanceCore core, TemplateTranslation translation)
         {
-            return new EntityInstance(target, signature.TemplateArguments, signature.OverrideMutability, signature.Translation);
+            return new EntityInstance(core, translation);
         }
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
@@ -25,7 +30,13 @@ namespace Skila.Language
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return targetInstance.Target.GetInstance(arguments.Select(it => it.Evaluated(ctx)), overrideMutability,
+            return Create(ctx, targetInstance, arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
+        }
+
+        internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
+            IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        {
+            return targetInstance.Target.GetInstance(arguments, overrideMutability,
                 TemplateTranslation.Combine(targetInstance.Translation, targetInstance.Target.Name.Parameters, arguments));
         }
 
@@ -38,19 +49,20 @@ namespace Skila.Language
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public bool OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
+        public bool OverrideMutability => this.Core.OverrideMutability;
+
+        public EntityInstanceCore Core { get; }
 
         internal TemplateTranslation Translation { get; }
 
-        public IEntity Target { get; }
+        public IEntity Target => this.Core.Target;
         public TypeDefinition TargetType => this.Target.CastType();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
-        public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
+        public IReadOnlyList<IEntityInstance> TemplateArguments => this.Core.TemplateArguments;
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
         public TemplateParameter TemplateParameterTarget => this.TargetType.TemplateParameter;
         public EntityInstance Aggregate { get; private set; }
         public IEntityInstance Evaluation { get; private set; }
-        public bool MissingTemplateArguments => !this.TemplateArguments.Any() && this.Target.Name.Arity > 0;
 
         private TypeInheritance inheritance;
         public TypeInheritance Inheritance(ComputationContext ctx)
@@ -69,39 +81,24 @@ namespace Skila.Language
         INameReference IEntityInstance.NameOf => this.NameOf;
         public NameReference NameOf { get; }
 
-        public bool DependsOnTypeParameter_UNUSED
+        public bool DependsOnTypeParameter
         {
             get
             {
-                return this.TargetsTemplateParameter || this.TemplateArguments.Any(it => it.DependsOnTypeParameter_UNUSED);
+                return this.TargetsTemplateParameter || this.TemplateArguments.Any(it => it.DependsOnTypeParameter);
             }
         }
 
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
-        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments, bool overrideMutability,
+        private EntityInstance(EntityInstanceCore core,
             TemplateTranslation translation)
         {
-            if (target == null)
-                throw new ArgumentNullException("Instance has to be created for existing entity");
-
-            arguments = arguments ?? Enumerable.Empty<IEntityInstance>();
-            this.NameOf = NameReference.Create(null, target.Name.Name, arguments.Select(it => it.NameOf), target: this);
-            this.Target = target;
-            this.TemplateArguments = arguments.StoreReadOnlyList();
-            this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
-            this.OverrideMutability = overrideMutability;
+            this.Core = core;
             this.Translation = translation;
 
-            if (this.DebugId.Id == 4835)
-            {
-                ;
-            }
-
-            if (this.OverrideMutability)
-            {
-                ;
-            }
+            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf), target: this);
+            this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
 
         internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
@@ -117,18 +114,10 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            if (this.IsJoker)
-                return "<<*>>";
-            else
-            {
-                string args = "";
-                if (this.TemplateArguments.Any())
-                    args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                string result = (this.OverrideMutability ? "mutable " : "") + this.Target.Name.Name + args;
-                if (this.Translation != null)
-                    result += $" [{this.Translation}]";
-                return result;
-            }
+            string result = this.Core.ToString();
+            if (this.Translation != null)
+                result += $" [{this.Translation}]";
+            return result;
         }
 
         public bool IsValueType(ComputationContext ctx)
@@ -151,11 +140,6 @@ namespace Skila.Language
             return this.Evaluation;
         }
 
-        public bool IsTemplateParameterOf(TemplateDefinition template)
-        {
-            return this.TargetsTemplateParameter && template.ContainsElement(this.TargetType);
-        }
-
         public EntityInstance TranslateThrough(EntityInstance closedTemplate)
         {
             return (this as IEntityInstance).TranslateThrough(closedTemplate).Cast<EntityInstance>();
@@ -164,6 +148,11 @@ namespace Skila.Language
         public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated)
         {
             return openTemplate.TranslateThrough(this, ref translated);
+        }
+
+        public bool IsTemplateParameterOf(TemplateDefinition template)
+        {
+            return this.TargetsTemplateParameter && template.ContainsElement(this.TargetType);
         }
 
         public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
@@ -179,18 +168,27 @@ namespace Skila.Language
             // then we have instance Foo<String> (closedTemplate), what T is then? (String)
 
             // case: "this" is "T", and "closedTemplate" is "Array<Int>" of template "Array<T>"
-            if (closedTemplate.TemplateArguments.Any() && this.IsTemplateParameterOf(closedTemplate.TargetTemplate))
+            /*if (closedTemplate.TemplateArguments.Any() && this.IsTemplateParameterOf(closedTemplate.TargetTemplate))
             {
                 translated = true;
                 return closedTemplate.TemplateArguments[this.TemplateParameterTarget.Index];
-            }
+            }*/
+
+            if (this.Target.IsType() && !this.DependsOnTypeParameter)
+                return this;
 
             {
                 if (closedTemplate.Translation != null && this.TargetsTemplateParameter
                                 && closedTemplate.Translation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
                 {
-                    translated = true;
-                    return trans.TranslateThrough(closedTemplate, ref translated);
+                    if (trans == this)
+                        return this;
+                    else
+                    {
+                        translated = true;
+                        IEntityInstance result = trans.TranslateThrough(closedTemplate, ref translated);
+                        return result;
+                    }
                 }
             }
 
@@ -199,12 +197,12 @@ namespace Skila.Language
             foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
             {
                 self = self.TranslateThrough(arg);
-                if (this!=self)
+                if (this != self)
                 {
                     ;
                 }
             }
-            
+
             TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTemplate.Translation);
 
             if (self.TemplateArguments.Any())
@@ -235,7 +233,7 @@ namespace Skila.Language
         {
             return target.MatchesInput(ctx, this, allowSlicing);
         }
-        public bool IsSame( IEntityInstance other, bool jokerMatchesAll)
+        public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
         {
             if (!jokerMatchesAll)
                 return this == other;
@@ -366,5 +364,13 @@ namespace Skila.Language
             yield return this;
         }
 
+        public bool CoreEquals(IEntityInstance other)
+        {
+            if (this.GetType() != other.GetType())
+                return false;
+
+            EntityInstance instance = other.Cast<EntityInstance>();
+            return this.Core == instance.Core;
+        }
     }
 }

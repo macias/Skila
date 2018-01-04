@@ -41,7 +41,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringToInt()
         {
-            var env = Environment.Create(new Options() { ThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

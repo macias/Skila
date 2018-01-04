@@ -125,7 +125,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            getter = Property.CreateAutoGetter(this.ValueTypeName);
+            getter = Property.CreateAutoGetter(this.ValueTypeName,modifier);
             this.getters.Add(getter);
 
             return this;

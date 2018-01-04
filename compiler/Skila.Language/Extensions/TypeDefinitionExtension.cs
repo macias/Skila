@@ -26,14 +26,17 @@ namespace Skila.Language.Extensions
             EntityInstance baseInstance,
             IEnumerable<FunctionDefinition> derivedFunctions)
         {
-            foreach (FunctionDefinition base_func in baseInstance.TargetType.NestedFunctions
+            var result = new List<FunctionDerivation>();
+            foreach (FunctionDefinition base_func in baseInstance.TargetType.AllNestedFunctions
                 .Where(it => !it.IsInitConstructor() && !it.IsZeroConstructor()))
             {
                 FunctionDefinition derived_func = derivedFunctions
                     .FirstOrDefault(f => FunctionDefinitionExtension.IsDerivedOf(ctx, f, base_func, baseInstance));
 
-                yield return new FunctionDerivation(base_func, derived_func);
+               result.Add(new FunctionDerivation(base_func, derived_func));
             }
+
+            return result;
         }
 
     }/*

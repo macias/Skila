@@ -38,8 +38,8 @@ namespace Skila.Language
                 ;
             }
             this.matches = matches.StoreReadOnly();
-            if (this.Matches.Any(it => it.IsJoker))
-                throw new ArgumentException("Cannot pass joker for binding.");
+            //if (this.Matches.Any(it => it.IsJoker))
+             //   throw new ArgumentException("Cannot pass joker for binding.");
             if (this.IsComputed)
                 throw new InvalidOperationException("Matches already set.");
             this.IsComputed = true;

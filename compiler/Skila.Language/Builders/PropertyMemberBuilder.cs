@@ -17,31 +17,31 @@ namespace Skila.Language.Builders
             IndexSetter,
             Getter,
         }
-        public static PropertyMemberBuilder CreateGetter(params IExpression[] instructions)
+        public static PropertyMemberBuilder CreateGetter(Block body)
         {
-            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.Getter, instructions);
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.Getter, body);
             return builder;
         }
-        public static PropertyMemberBuilder CreateIndexerGetter(params IExpression[] instructions)
+        public static PropertyMemberBuilder CreateIndexerGetter(Block body)
         {
-            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexGetter, instructions);
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexGetter, body);
             return builder;
         }
-        public static PropertyMemberBuilder CreateIndexerSetter(params IExpression[] instructions)
+        public static PropertyMemberBuilder CreateIndexerSetter(Block body)
         {
-            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexSetter,instructions);
+            PropertyMemberBuilder builder = new PropertyMemberBuilder(MemberType.IndexSetter,body);
             return builder;
         }
 
         private readonly MemberType memberType;
         private IMember build;
         private EntityModifier modifier;
-        private readonly IEnumerable<IExpression> instructions;
+        private readonly Block body;
 
-        private PropertyMemberBuilder(MemberType memberType,params IExpression[] instructions)
+        private PropertyMemberBuilder(MemberType memberType,Block body)
         {
             this.memberType = memberType;
-            this.instructions = instructions.StoreReadOnly();
+            this.body = body;
         }
 
 
@@ -62,14 +62,14 @@ namespace Skila.Language.Builders
                 {
                     case MemberType.IndexGetter:
                         build = Property.CreateIndexerGetter(propertyBuilder.ValueTypeName, propertyBuilder.Params, modifier, 
-                            instructions?.ToArray());
+                            body);
                         break;
                     case MemberType.IndexSetter:
                         build = Property.CreateIndexerSetter(propertyBuilder.ValueTypeName, propertyBuilder.Params, modifier, 
-                            instructions?.ToArray());
+                            body);
                         break;
                     case MemberType.Getter:
-                        build = Property.CreateGetter(propertyBuilder.ValueTypeName, Block.CreateStatement(instructions), modifier);
+                        build = Property.CreateGetter(propertyBuilder.ValueTypeName, body, modifier);
                         break;
                     default: throw new Exception();
                 }

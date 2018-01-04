@@ -22,29 +22,29 @@ namespace Skila.Tests
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingMixedIf();
-            //new Semantics.FunctionCalls().InvalidNumberForVariadicParameter();
+            //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
-            //new Semantics.Inheritance().ErrorMixedMemoryClassOverrideWithGenericOutput();
+            //new Semantics.Inheritance().ErrorLoopedAncestors();
             //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorMutabilityLaunderingOnReturn();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorGetterOverridesNothing();
-            //new Semantics.Templates().ErrorHasConstraint();
+            //new Semantics.Templates().InferredPartialTemplateArgumentsOnConstraints();
             //new Semantics.TypeMatching().UnionMatching();
             //new Semantics.Types().CatVarianceExample();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
-            //  new Execution.Collections().ChunkOnHeap();
+              new Execution.Collections().AccessingTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Library().StringToInt();
-            new Execution.Objects().ParallelAssignment();
+            //new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().ExplicitDereferencing();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
@@ -73,7 +73,11 @@ namespace Skila.Tests
                 foreach (string s in AssertX.Fails.OrderBy(it => it))
                     Console.WriteLine(s);
             }
-            Console.ReadLine();
+
+            Console.Write("\a"); // beep
+
+            if (System.Diagnostics.Debugger.IsAttached)
+                Console.ReadLine();
         }
 
         private static int runTest<T>(string @namespace, bool checkErrorCoverage)

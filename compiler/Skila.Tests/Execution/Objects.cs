@@ -14,7 +14,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelAssignment()
         {
-            var env = Language.Environment.Create(new Options() { ThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
 

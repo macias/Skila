@@ -35,7 +35,7 @@ namespace Skila.Tests.Execution
                 .Modifier(EntityModifier.Base)
                 .With(PropertyBuilder.CreateIndexer(NameFactory.IntTypeReference())
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))
-                    .With(PropertyMemberBuilder.CreateIndexerGetter(Return.Create(IntLiteral.Create("2")))
+                    .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("2"))))
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -77,7 +77,7 @@ namespace Skila.Tests.Execution
                 .Parents("Middle")
                 .Modifier(EntityModifier.Base)
                 .With(PropertyBuilder.Create("getMe", NameFactory.IntTypeReference())
-                    .With(PropertyMemberBuilder.CreateGetter(Return.Create(IntLiteral.Create("2")))
+                    .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("2"))))
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -113,16 +113,16 @@ namespace Skila.Tests.Execution
                     new[] { VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1"),
                         EntityModifier.Reassignable) },
                     new[] { Property.CreateIndexerGetter(property_typename, property_parameters,
-                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
+                        Block.CreateStatement(IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
                             Return.Create(NameReference.CreateThised("x"))
                             },IfBranch.CreateElse(new[]{
                                 Return.Create(IntLiteral.Create("300"))
-                            }))) },
+                            })))) },
                     new[] { Property.CreateIndexerSetter(property_typename, property_parameters,
-                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
+                        Block.CreateStatement(IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),IntLiteral.Create("17")),new[]{
                             Assignment.CreateStatement(NameReference.CreateThised("x"),
                                 NameReference.Create(NameFactory.PropertySetterValueParameter))
-                            })) }
+                            }))) }
                 )));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

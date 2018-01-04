@@ -13,7 +13,7 @@ namespace Skila.Language
 #endif
 
         INameReference NameOf { get; }
-        bool DependsOnTypeParameter_UNUSED { get; }
+        bool DependsOnTypeParameter { get; }
 
         IEnumerable<EntityInstance> Enumerate();
         bool IsJoker { get; }
@@ -37,63 +37,7 @@ namespace Skila.Language
         bool IsSame(IEntityInstance other, bool jokerMatchesAll);
         // checks if types are distinct from each other for function overloading validation
         bool IsOverloadDistinctFrom(IEntityInstance other);
-    }
 
-    public static class IEntityInstanceExtensions
-    {
-        public static T TranslateThrough<T>(this T @this, IEntityInstance closedTemplate)
-            where T : IEntityInstance
-        {
-            if (closedTemplate == null)
-                return @this;
-
-            bool translated = false;
-            return closedTemplate.TranslationOf(@this, ref translated).Cast<T>();
-        }
-        public static T TranslateThrough<T>(this T @this, IEnumerable<IEntityInstance> closedTemplates)
-            where T : IEntityInstance
-        {
-            foreach (IEntityInstance closed in closedTemplates)
-                @this = @this.TranslateThrough(closed);
-            return @this;
-        }
-
-        public static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx)
-        {
-            // we have to use cache with visited types, because given type A can have a field of type A, 
-            // which would lead to infinite checking
-            return @this.IsImmutableType(ctx, new HashSet<IEntityInstance>());
-        }
-
-        private static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx, HashSet<IEntityInstance> visited)
-        {
-            if (!visited.Add(@this))
-                return true;
-
-            foreach (EntityInstance instance in @this.Enumerate())
-            {
-                Entities.IEntity target = instance.Target;
-                if (!target.IsType())
-                    throw new Exception("Internal error");
-
-                if (target.Modifier.HasMutable || instance.OverrideMutability)
-                    return false;
-
-                foreach (VariableDeclaration field in target.CastType().AllNestedFields)
-                {
-                    IEntityInstance eval = field.Evaluated(ctx);
-                    if (!eval.IsImmutableType(ctx, visited))
-                        return false;
-                }
-
-                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer))
-                {
-                    if (!val_instance.IsImmutableType(ctx, visited))
-                        return false;
-                }
-            }
-
-            return true;
-        }
-    }
+        bool CoreEquals(IEntityInstance instance);
+    }  
 }

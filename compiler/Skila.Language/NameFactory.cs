@@ -1,15 +1,13 @@
 ﻿using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
-using System;
-using Skila.Language.Entities;
 
 namespace Skila.Language
 {
     public sealed class NameFactory
     {
         // something user cannot use as a symbol
-        private const string magicMarker = "\a";
+        private const string magicMarker = "'";
 
         public const string RootNamespace = ":root:";
         public const string SystemNamespace = "System";
@@ -229,6 +227,10 @@ namespace Skila.Language
         public static NameReference ITupleTypeReference(params INameReference[] templateParamNames)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
+        }
+        public static NameReference ITupleMutableTypeReference(params INameReference[] templateParamNames)
+        {
+            return NameReference.Create(true, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
         public static NameReference ObjectTypeReference(bool overrideMutability = false)

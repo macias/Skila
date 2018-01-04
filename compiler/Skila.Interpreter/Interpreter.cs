@@ -60,7 +60,7 @@ namespace Skila.Interpreter
             else if (func.Modifier.HasNative)
             {
                 // meta-this is always passed as reference or pointer, so we can blindly dereference it
-                ObjectData this_value = func.Modifier.HasStatic ? null: ctx.ThisArgument.Dereference();
+                ObjectData this_value = func.Modifier.HasStatic ? null : ctx.ThisArgument.Dereference();
 
                 if (owner_type.Modifier.HasEnum)
                 {
@@ -694,10 +694,12 @@ namespace Skila.Interpreter
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
             ObjectData this_ref = await prepareThisAsync(ctx, this_context).ConfigureAwait(false);
+            ObjectData this_value = this_ref.TryDereference(ctx.Env);
 
             SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, null);
 
-            ExecValue ret = await ExecutedAsync(prop.Getter, ctx).ConfigureAwait(false);
+            FunctionDefinition getter = getTargetFunction(ctx, this_value, this_context.Evaluation, prop.Getter);
+            ExecValue ret = await ExecutedAsync(getter, ctx).ConfigureAwait(false);
 
             if (ret.RetValue != null)
                 ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
@@ -795,7 +797,8 @@ namespace Skila.Interpreter
                 }
             }
 
-            FunctionDefinition target_func = getTargetFunction(ctx, call, this_value, call.Resolution.TargetFunction);
+            FunctionDefinition target_func = getTargetFunction(ctx, this_value, call.Resolution.MetaThisArgument?.Evaluation,
+                call.Resolution.TargetFunction);
 
             if (target_func == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
@@ -817,31 +820,27 @@ namespace Skila.Interpreter
             ctx.FunctionArguments = functionArguments?.ToArray();
         }
 
-        private static FunctionDefinition getTargetFunction(ExecutionContext ctx, FunctionCall call, ObjectData thisValue,
+        private static FunctionDefinition getTargetFunction(ExecutionContext ctx, ObjectData thisValue, EvaluationInfo thisEvaluation,
             FunctionDefinition targetFunc)
         {
-            if (call.DebugId.Id == 3257)
-            {
-                ;
-            }
-            if (call.Resolution.MetaThisArgument == null)
+            if (thisValue == null)
                 return targetFunc;
 
-            EntityInstance this_eval = call.Resolution.MetaThisArgument.Evaluation.Aggregate;
+            EntityInstance this_aggregate = thisEvaluation.Aggregate;
             // first we check if the call is made on the instance of template parameter
-            if (this_eval.TargetType.IsTemplateParameter)
+            if (this_aggregate.TargetType.IsTemplateParameter)
             {
-                TemplateParameter template_param = this_eval.TargetType.TemplateParameter;
+                TemplateParameter template_param = this_aggregate.TargetType.TemplateParameter;
                 // get the argument for given template parameter
                 EntityInstance template_arg = ctx.TemplateArguments[template_param.Index].Cast<EntityInstance>();
                 // and then we get the virtual table from argument to parameter
-                if (!template_arg.TryGetDuckVirtualTable(this_eval, out VirtualTable vtable))
+                if (!template_arg.TryGetDuckVirtualTable(this_aggregate, out VirtualTable vtable))
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
                 // ...and once we have the mapping we get target function
                 else if (!vtable.TryGetDerived(targetFunc, out targetFunc))
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
             }
-            else if (ctx.Env.Dereferenced(this_eval, out IEntityInstance __inner_this, out bool via_pointer))
+            else if (ctx.Env.Dereferenced(this_aggregate, out IEntityInstance __inner_this, out bool via_pointer))
             {
                 EntityInstance inner_type = __inner_this.Cast<EntityInstance>();
 

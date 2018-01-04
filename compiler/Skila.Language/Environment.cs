@@ -5,6 +5,7 @@ using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Language.Extensions;
+using NaiveLanguageTools.Common;
 
 namespace Skila.Language
 {
@@ -185,15 +186,15 @@ namespace Skila.Language
                             Block.CreateStatement()))
 
                          .With(PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
-                            .With(PropertyMemberBuilder.CreateGetter()
+                            .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                                 .Modifier(EntityModifier.Native | EntityModifier.Override), out chunk_count))
 
                          .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("CHT"))
                             .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference(),
                                 ExpressionReadMode.CannotBeRead))
-                            .With(PropertyMemberBuilder.CreateIndexerSetter()
+                            .With(PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement())
                                 .Modifier(EntityModifier.Native), out chunk_at_set)
-                            .With(PropertyMemberBuilder.CreateIndexerGetter()
+                            .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement())
                                 .Modifier(EntityModifier.Native | EntityModifier.Override), out chunk_at_get)));
 
                 this.ChunkAtGet = chunk_at_get.Cast<FunctionDefinition>();
@@ -327,7 +328,7 @@ namespace Skila.Language
                 this.iTupleTypes = new List<TypeDefinition>();
                 foreach (int count in Enumerable.Range(2, 15))
                 {
-                    this.tupleTypes.Add(createTuple(count,out FunctionDefinition factory));
+                    this.tupleTypes.Add(createTuple(count, out FunctionDefinition factory));
                     this.iTupleTypes.Add(createITuple(count));
 
                     factory_builder.With(factory);
@@ -543,47 +544,83 @@ namespace Skila.Language
         {
             var type_parameters = new List<string>();
             var properties = new List<Property>();
-            foreach (int i in Enumerable.Range(0, count))
+            for (int i = 0; i < count; ++i)
             {
                 var type_name = $"T{i}";
                 type_parameters.Add(type_name);
-                properties.Add(PropertyBuilder.CreateAutoFull(NameFactory.TupleItemName(i), NameReference.Create(type_name), Undef.Create()).Build());
+                properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                    .WithAutoField(Undef.Create(),EntityModifier.Reassignable)
+                    .WithAutoSetter()
+                    .WithAutoGetter(EntityModifier.Override));
             }
 
+            IfBranch item_selector = IfBranch.CreateElse(new[] { ExpressionFactory.GenericThrow() });
+
+            for (int i = count-1; i >=0; --i)
+            {
+                item_selector = IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.IndexIndexerParameter),
+                    IntLiteral.Create($"{i}")), new[] { Return.Create(NameReference.CreateThised(NameFactory.TupleItemName(i))) },
+                    item_selector);
+            }
+
+            const string base_type_name = "C";
+
             TypeBuilder builder = TypeBuilder.Create(
-                NameDefinition.Create(NameFactory.TupleTypeName, TemplateParametersBuffer.Create(type_parameters).Values))
+                NameDefinition.Create(NameFactory.TupleTypeName,
+                    TemplateParametersBuffer.Create(type_parameters.ToArray()).Add(base_type_name, VarianceMode.Out).Values))
                 .Modifier(EntityModifier.Mutable)
-                .Parents(NameFactory.ITupleTypeReference(type_parameters.Select(it => NameReference.Create(it)).ToArray()))
+                .Parents(NameFactory.ITupleTypeReference(type_parameters.Concat(base_type_name).Select(it => NameReference.Create(it)).ToArray()))
                 .With(ExpressionFactory.BasicConstructor(properties.Select(it => it.Name.Name).ToArray(),
                      type_parameters.Select(it => NameReference.Create(it)).ToArray()))
-                .With(properties);
+                .With(properties)
 
-            NameReference func_result_typename = NameFactory.TupleTypeReference(type_parameters.Select(it => NameReference.Create(it)).ToArray());
-            factory = FunctionBuilder.Create(NameDefinition.Create(NameFactory.CreateFunctionName, TemplateParametersBuffer.Create(type_parameters).Values),
+                .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(base_type_name))
+                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))
+                    .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(item_selector))
+                        .Modifier(EntityModifier.Override)))
+
+                .Constraints(TemplateConstraint.Create(base_type_name, null, null, null, type_parameters.Select(it => NameReference.Create(it))));
+
+
+            NameReference func_result_typename = NameFactory.TupleTypeReference(type_parameters.Concat(base_type_name)
+                .Select(it => NameReference.Create(it)).ToArray());
+            factory = FunctionBuilder.Create(NameDefinition.Create(NameFactory.CreateFunctionName,
+                TemplateParametersBuffer.Create(type_parameters.Concat(base_type_name).ToArray()).Values),
                     func_result_typename,
                     Block.CreateStatement(Return.Create(
                         ExpressionFactory.StackConstructor(func_result_typename,
                             Enumerable.Range(0, count).Select(i => NameReference.Create(NameFactory.TupleItemName(i))).ToArray()))))
                     .Modifier(EntityModifier.Static)
-                    .Parameters(Enumerable.Range(0, count).Select(i => FunctionParameter.Create(NameFactory.TupleItemName(i), NameReference.Create(type_parameters[i]))).ToArray());
+                    .Parameters(Enumerable.Range(0, count).Select(i => FunctionParameter.Create(NameFactory.TupleItemName(i), NameReference.Create(type_parameters[i]))).ToArray())
+                .Constraints(TemplateConstraint.Create(base_type_name, null, null, null,
+                    type_parameters.Select(it => NameReference.Create(it))));
 
             return builder;
         }
 
         private static TypeDefinition createITuple(int count)
         {
-            var type_parameters = TemplateParametersBuffer.Create();
+            var type_parameters = new List<string>();
             var properties = new List<Property>();
             foreach (int i in Enumerable.Range(0, count))
             {
                 var type_name = $"T{i}";
-                type_parameters.Add(type_name, VarianceMode.Out);
-                properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name)).WithGetter(body: null).Build());
+                type_parameters.Add(type_name);
+                properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                    .WithGetter(body: null).Build());
             }
 
+            const string base_type_name = "C";
+
             TypeBuilder builder = TypeBuilder.CreateInterface(
-                NameDefinition.Create(NameFactory.ITupleTypeName, type_parameters.Values))
-                .With(properties);
+                NameDefinition.Create(NameFactory.ITupleTypeName,
+                    TemplateParametersBuffer.Create(VarianceMode.Out, type_parameters.Concat(base_type_name).ToArray()).Values))
+                .With(properties)
+                .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(base_type_name))
+                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))
+                    .With(PropertyMemberBuilder.CreateIndexerGetter(body:null)))
+                .Constraints(TemplateConstraint.Create(base_type_name, null, null, null,
+                    type_parameters.Select(it => NameReference.Create(it))));
 
             return builder;
         }

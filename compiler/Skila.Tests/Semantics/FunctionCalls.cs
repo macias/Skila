@@ -624,8 +624,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.ArgumentForFunctionAlreadyGiven, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(dup_arg, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ArgumentForFunctionAlreadyGiven, dup_arg));
 
             return resolver;
         }
@@ -691,7 +690,7 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
-            Assert.AreEqual(env.IntType, param_eval.Target());
+            Assert.AreEqual(env.IntType.InstanceOf, param_eval);
 
             return resolver;
         }
@@ -830,7 +829,7 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
-            Assert.AreEqual(env.IntType, param_eval.Target());
+            Assert.AreEqual(env.IntType.InstanceOf, param_eval);
 
             return resolver;
         }
