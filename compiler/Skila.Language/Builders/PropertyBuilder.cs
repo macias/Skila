@@ -147,9 +147,23 @@ namespace Skila.Language.Builders
             return this;
         }
 
+        public PropertyBuilder WithSetter(Block body, out FunctionDefinition setter, EntityModifier modifier = null)
+        {
+            if (build != null)
+                throw new Exception();
+
+            setter = Property.CreateSetter(this.ValueTypeName, body, modifier);
+            this.setters.Add(setter);
+
+            return this;
+        }
         public PropertyBuilder WithGetter(Block body, EntityModifier modifier = null)
         {
             return WithGetter(body, out FunctionDefinition dummy, modifier);
+        }
+        public PropertyBuilder WithSetter(Block body, EntityModifier modifier = null)
+        {
+            return WithSetter(body, out FunctionDefinition dummy, modifier);
         }
         public PropertyBuilder WithAutoSetter(out FunctionDefinition setter)
         {

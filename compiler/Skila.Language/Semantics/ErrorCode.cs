@@ -86,5 +86,8 @@
         ConverterWithParameters = 82,
         ConverterNotPinned = 83,
         VarianceForbiddenPosition = 84,
+        MutableFunctionInImmutableType = 85,
+        PropertySetterInImmutableType = 86,
+        AlteringInstanceInImmutableMethod = 87,
     }
 }

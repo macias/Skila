@@ -12,6 +12,55 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorImmutableMethodAlteringData()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), IntLiteral.Create("5"));
+            root_ns.AddBuilder(TypeBuilder.Create("Elka")
+                .Modifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), null, 
+                    EntityModifier.Public | EntityModifier.Reassignable))
+                .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        assignment
+                        ))));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteringInstanceInImmutableMethod, assignment));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorMutableMethodInImmutableType()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            Property property = PropertyBuilder.Create("bar", NameFactory.IntTypeReference())
+                    .WithSetter(body: null);
+            FunctionDefinition function = FunctionBuilder.CreateDeclaration("getMe", NameFactory.UnitTypeReference())
+                    .Modifier(EntityModifier.Mutable);
+            root_ns.AddBuilder(TypeBuilder.Create("Whatever")
+                .Modifier(EntityModifier.Abstract)
+                .With(property)
+                .With(function));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PropertySetterInImmutableType, property));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MutableFunctionInImmutableType, function));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorMutabilityLaunderingOnReturn()
         {
             var env = Language.Environment.Create();
@@ -40,7 +89,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningMutableToImmutable()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -51,13 +100,13 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
                         mutable_init),
                     ExpressionFactory.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
-                    VariableDeclaration.CreateStatement("y", 
+                    VariableDeclaration.CreateStatement("y",
                         NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
                     ExpressionFactory.Readout("y"),
@@ -100,7 +149,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorViolatingConstConstraint()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -123,7 +172,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameReference.Create("Point",NameReference.Create("Foo")), Undef.Create()),
                     VariableDeclaration.CreateStatement("y", wrong_type, Undef.Create()),

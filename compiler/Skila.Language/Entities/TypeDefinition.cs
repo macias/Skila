@@ -288,6 +288,17 @@ namespace Skila.Language.Entities
                     if (!field.Evaluated(ctx).IsImmutableType(ctx))
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
+                foreach (FunctionDefinition func in this.NestedFunctions
+                    .Where(it => it.Modifier.HasMutable))
+                {
+                    ctx.AddError(ErrorCode.MutableFunctionInImmutableType, func);
+                }
+
+                foreach (Property property in this.NestedProperties
+                    .Where(it => it.Setter!=null))
+                {
+                    ctx.AddError(ErrorCode.PropertySetterInImmutableType, property);
+                }
             }
         }
 
@@ -441,7 +452,7 @@ namespace Skila.Language.Entities
                 if (!parent.TargetType.computeAncestors(ctx, visited))
                     ctx.AddError(ErrorCode.CyclicTypeHierarchy, parent_name);
                 else
-                    parent.TargetType.Surfed(ctx); 
+                    parent.TargetType.Surfed(ctx);
 
                 if (parent.TargetType.IsInheritanceComputed)
                     foreach (TypeAncestor ancestor in parent.TargetType.Inheritance.TypeAncestorsWithoutObject

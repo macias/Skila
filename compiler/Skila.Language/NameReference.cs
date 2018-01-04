@@ -57,7 +57,7 @@ namespace Skila.Language
         public bool IsBaseInitReference => this.hasBasePrefix && this.Name == NameFactory.InitConstructorName;
 
         private bool hasBasePrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.BaseVariableName;
-        private bool hasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
+        public bool HasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
 
 
         public static NameReference Sink()
@@ -470,7 +470,7 @@ namespace Skila.Language
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
 
             {
-                if (this.Prefix == null && !this.hasThisPrefix
+                if (this.Prefix == null && !this.HasThisPrefix
                     && this.Binding.Match.Target is IMember member && !member.Modifier.HasStatic)
                 {
                     FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();

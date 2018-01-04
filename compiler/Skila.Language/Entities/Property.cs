@@ -43,7 +43,7 @@ namespace Skila.Language.Entities
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 body)
-                .Modifier(modifier)
+                .Modifier(modifier | EntityModifier.Mutable)
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first
@@ -70,9 +70,18 @@ namespace Skila.Language.Entities
                 typeName,
                 body);
         }
+        public static FunctionDefinition CreateSetter(INameReference typeName, Block body, EntityModifier modifier = null)
+        {
+            return FunctionDefinition.CreateFunction(modifier | EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
+                null,
+                new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                body);
+        }
         public static FunctionDefinition CreateAutoSetter(INameReference typeName)
         {
-            return FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.PropertySetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,
