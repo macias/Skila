@@ -115,7 +115,7 @@ namespace Skila.Language.Expressions
 
             RhsValue.ValidateValueExpression(ctx);
 
-            IEntityVariable decl = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference lhs_name);
+           /* IEntityVariable decl = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference lhs_name);
             if (decl != null && lhs_name.HasThisPrefix)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
@@ -123,8 +123,17 @@ namespace Skila.Language.Expressions
                 {
                     ctx.AddError(ErrorCode.AlteringInstanceInImmutableMethod, this);
                 }
+            }*/
+
+            if (this.Lhs.TargetsCurrentInstanceMember()!=null)
+            {
+                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                if (!func.Modifier.HasMutable && !func.IsAnyConstructor())
+                {
+                    ctx.AddError(ErrorCode.AlteringInstanceInImmutableMethod, this);
+                }
             }
-        }
+        }    
 
         public override void Evaluate(ComputationContext ctx)
         {

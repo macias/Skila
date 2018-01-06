@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+           //  new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -27,17 +27,17 @@ namespace Skila.Tests
             //new Semantics.Inheritance().ErrorLoopedAncestors();
             //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
             //new Semantics.MethodDefinitions().Basics();
-            new Semantics.Mutability().ErrorImmutableMethodAlteringData();
+            //new Semantics.Mutability().ErrorImmutableMethodCallingMutable();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorGetterOverridesNothing();
             //new Semantics.Templates().InferredPartialTemplateArgumentsOnConstraints();
             //new Semantics.TypeMatching().UnionMatching();
-            //new Semantics.Types().CatVarianceExample();
+            //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //  new Execution.Closures().ResultTypeInference();
-              //new Execution.Collections().AccessingTuple();
+              new Execution.Collections().AccessingTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();

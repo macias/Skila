@@ -154,14 +154,24 @@ namespace Skila.Language.Expressions
                 }
             }
 
-
+            {
+                FunctionDefinition callee = this.Name.TargetsCurrentInstanceMember().Cast<FunctionDefinition>();
+                if (callee != null)
+                {
+                    FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                    if (!func.Modifier.HasMutable && !func.IsAnyConstructor() && callee.Modifier.HasMutable)
+                    {
+                        ctx.AddError(ErrorCode.CallingMutableFromImmutableMethod, this);
+                    }
+                }
+            }
         }
 
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 3688)
+                if (this.DebugId.Id == 25764)
                 {
                     ;
                 }
@@ -191,8 +201,17 @@ namespace Skila.Language.Expressions
                     }
                 }
 
-                IEnumerable<EntityInstance> matches = this.Name.Binding.Matches
-                    .Where(it => it.Target.IsFunction());
+                IEnumerable<EntityInstance> matches = Name.Binding.Matches
+                    .Select(it =>
+                    {
+                        if (it.Target.IsFunction())
+                            return it;
+                        else if (it.Target is Property prop)
+                            return prop.Getter?.InstanceOf?.TranslateThrough(it);
+                        else
+                            return null;
+                    })
+                    .Where(it => it != null);
 
                 if (!matches.Any())
                 {

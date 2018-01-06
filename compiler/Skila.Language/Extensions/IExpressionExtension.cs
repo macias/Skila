@@ -12,11 +12,11 @@ namespace Skila.Language.Extensions
                 ctx.AddError(ErrorCode.NoValueExpression, @this);
         }
 
-        public static T TryGetTargetEntity<T>(this IExpression expr,out NameReference nameReference)
+        public static T TryGetTargetEntity<T>(this IExpression expr, out NameReference nameReference)
             where T : class, IEntity
         {
             nameReference = expr as NameReference;
-            if (nameReference!=null)
+            if (nameReference != null)
             {
                 return nameReference.Binding.Match.Target as T;
             }
@@ -26,7 +26,17 @@ namespace Skila.Language.Extensions
             }
         }
 
-        public static bool IsValue(this IExpression @this,IOptions options)
+        public static IMember TargetsCurrentInstanceMember(this IExpression expr)
+        {
+            IMember member = expr.TryGetTargetEntity<IMember>(out NameReference name_ref);
+            if (member != null && (name_ref.HasThisPrefix || name_ref.HasBasePrefix
+                || (name_ref.Prefix == null && member.Owner == expr.EnclosingScope<TypeDefinition>())))
+                return member;
+            else
+                return null;
+        }
+
+        public static bool IsValue(this IExpression @this, IOptions options)
         {
             NameReference nameReference = (@this as NameReference);
             // todo: make it nice, such exception is ugly

@@ -12,6 +12,30 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorImmutableMethodCallingMutable()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            FunctionCall call = FunctionCall.Create(NameReference.CreateThised("mutator"));
+            root_ns.AddBuilder(TypeBuilder.Create("Elka")
+                .Modifier(EntityModifier.Mutable)
+                .With(FunctionBuilder.Create("innocent", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(call)))
+                .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Mutable)));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CallingMutableFromImmutableMethod, call));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorImmutableMethodAlteringData()
         {
             var env = Language.Environment.Create();
@@ -20,7 +44,7 @@ namespace Skila.Tests.Semantics
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), IntLiteral.Create("5"));
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement(

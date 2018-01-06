@@ -10,7 +10,7 @@ namespace Skila.Language
 
         public DebugId()
         {
-            if (Id ==    31006)
+            if (Id ==     407)
             {
                 ;
             }

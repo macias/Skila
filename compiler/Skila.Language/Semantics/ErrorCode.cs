@@ -89,5 +89,6 @@
         MutableFunctionInImmutableType = 85,
         PropertySetterInImmutableType = 86,
         AlteringInstanceInImmutableMethod = 87,
+        CallingMutableFromImmutableMethod = 88,
     }
 }

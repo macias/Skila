@@ -54,9 +54,9 @@ namespace Skila.Language
             return NameReference.Create(NameFactory.BaseVariableName, NameFactory.InitConstructorName);
         }
 
-        public bool IsBaseInitReference => this.hasBasePrefix && this.Name == NameFactory.InitConstructorName;
+        public bool IsBaseInitReference => this.HasBasePrefix && this.Name == NameFactory.InitConstructorName;
 
-        private bool hasBasePrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.BaseVariableName;
+        public bool HasBasePrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.BaseVariableName;
         public bool HasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
 
 
@@ -144,7 +144,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 44)
+            if (this.DebugId.Id == 25762)
             {
                 ;
             }
@@ -461,7 +461,7 @@ namespace Skila.Language
                 }
             }
 
-            if (this.hasBasePrefix
+            if (this.HasBasePrefix
                 && (!(this.Binding.Match.Target is global::Skila.Language.Entities.FunctionDefinition target_func)
                 // exclusion for constructors because it might be legal or not, but nevertheless
                 // both cases are handled elsewhere

@@ -18,6 +18,7 @@ namespace Skila.Language
         public const string FunctionTypeName = "IFunction";
         public const string TupleTypeName = "Tuple";
         public const string ITupleTypeName = "ITuple";
+        public const string IIndexableTypeName = "IIndexable";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -36,6 +37,7 @@ namespace Skila.Language
         public const string ISequenceTypeName = "ISequence";
         public const string ChunkTypeName = "Chunk";
         public const string IIterableTypeName = "IIterable";
+        public const string IIteratorTypeName = "IIterator";
         public const string IEquatableTypeName = "IEquatable";
 
         public const string DateTypeName = "Date";
@@ -76,6 +78,8 @@ namespace Skila.Language
 
         public const string PropertyIndexerName = "at";
         public const string IterableCount = "count";
+        public const string IteratorGet = "get";
+        public const string IteratorNext = "next";
 
         public const string LambdaInvoke = "invoke";
 
@@ -204,9 +208,17 @@ namespace Skila.Language
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
+        public static NameReference IIndexableTypeReference(string templateParamName, bool overrideMutability = false)
+        {
+            return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
+        }
         public static NameReference ISequenceTypeReference(INameReference templateTypeName, bool overrideMutability = false)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
+        }
+        public static NameReference IIndexableTypeReference(INameReference templateTypeName, bool overrideMutability = false)
+        {
+            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
         public static NameReference ChunkTypeReference(string templateParamName)
         {

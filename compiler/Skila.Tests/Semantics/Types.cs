@@ -13,6 +13,7 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Types
     {
+
         [TestMethod]
         public IErrorReporter ErrorInOutVariance()
         {

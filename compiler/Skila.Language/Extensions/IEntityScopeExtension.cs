@@ -44,13 +44,18 @@ namespace Skila.Language.Extensions
                     // we can write "this.prop_field" and get the internal field for property
                     // while outside this property that field is unreachable
                     Property enclosing_property = name.EnclosingScope<Property>();
-                    if (enclosing_property != null && enclosing_property.EnclosingScopesToRoot().Contains(typedef))
-                        entities = entities.Concat(enclosing_property.AvailableEntities);
+                    if (enclosing_property != null)
+                    {
+                        EntityInstance prop_instance = entities.SingleOrDefault(it => it.Target == enclosing_property);
+                        if (prop_instance != null)
+                            entities = entities.Concat(enclosing_property.AvailableEntities
+                                .Select(it => it.TranslateThrough(prop_instance)));
+                    }
                 }
                 else if (findMode == EntityFindMode.AvailableIndexersOnly)
                 {
-                    entities = entities.Select(it => it.Target).WhereType<Property>(it => it.IsIndexer)
-                        .SelectMany(prop => prop.AvailableEntities);
+                    entities = entities.Where(it => it.Target is Property prop && prop.IsIndexer)
+                        .SelectMany(prop => prop.Target.Cast<Property>().AvailableEntities.Select(it => it.TranslateThrough(prop)));
                 }
             }
 
