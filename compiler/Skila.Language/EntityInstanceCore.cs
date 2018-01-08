@@ -14,8 +14,8 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EntityInstanceCore 
     {
-        public static EntityInstanceCore RAW_CreateUnregistered(IEntity target, IEnumerable<IEntityInstance> arguments, 
-            bool overrideMutability)
+        public static EntityInstanceCore RAW_CreateUnregistered(IEntity target, IEnumerable<IEntityInstance> arguments,
+            MutabilityFlag overrideMutability)
         {
             return new EntityInstanceCore(target, arguments, overrideMutability);
         }
@@ -28,7 +28,7 @@ namespace Skila.Language
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public bool OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
+        public MutabilityFlag OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
 
         public IEntity Target { get; }
         public TypeDefinition TargetType => this.Target.CastType();
@@ -48,7 +48,7 @@ namespace Skila.Language
             }
         }
 
-        private EntityInstanceCore(IEntity target, IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+        private EntityInstanceCore(IEntity target, IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability)
         {
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");
@@ -68,7 +68,8 @@ namespace Skila.Language
                 string args = "";
                 if (this.TemplateArguments.Any())
                     args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                string result = (this.OverrideMutability ? "mutable " : "") + this.Target.Name.Name + args;
+                string mut = this.OverrideMutability == MutabilityFlag.ForceMutable ? "mutable " : this.OverrideMutability == MutabilityFlag.Neutral ? "neutral " : "";
+                string result = $"{mut}{this.Target.Name.Name}{args}";
                 return result;
             }
         }

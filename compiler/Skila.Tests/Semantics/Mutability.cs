@@ -36,6 +36,41 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter ErrorUsingMutablesOnNeutral()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Elka")
+                .Modifier(EntityModifier.Mutable)
+                .With(PropertyBuilder.CreateAutoFull("numi",NameFactory.IntTypeReference(),null))
+                .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Mutable)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("x", "mutator"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.Create("x", "numi"), IntLiteral.Create("5"));
+            root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    // we can assign both mutable and immutable to neutral
+                    VariableDeclaration.CreateStatement("x",
+                        NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral,"Elka")),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Elka"))),
+                    call,
+                    assignment
+            )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteringNonMutableInstance, call));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteringNonMutableInstance, assignment));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorImmutableMethodAlteringData()
         {
             var env = Language.Environment.Create();
@@ -94,7 +129,7 @@ namespace Skila.Tests.Semantics
             Return ret = Return.Create(NameReference.Create("coll"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("laundering", "T", VarianceMode.None),
                new[] { FunctionParameter.Create("coll",
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true))) },
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability:  MutabilityFlag.ForceMutable))) },
                ExpressionReadMode.ReadRequired,
                NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                Block.CreateStatement(new IExpression[] {
@@ -106,6 +141,83 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, ret.Expr));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter AssigningToNeutral()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mutant")
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Untouchable"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(new[] {
+                    // we can assign both mutable and immutable to neutral
+                    VariableDeclaration.CreateStatement("x", 
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference( MutabilityFlag.Neutral)),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
+                    ExpressionFactory.Readout("x"),
+                    VariableDeclaration.CreateStatement("y",
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference( MutabilityFlag.Neutral)),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
+                    ExpressionFactory.Readout("y"),
+            })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorAssigningNeutrals()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mutant")
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Untouchable"));
+
+            NameReference init_value_x = NameReference.Create("x");
+            NameReference init_value_y = NameReference.Create("y");
+            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(new[] {
+                    VariableDeclaration.CreateStatement("x",
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference( MutabilityFlag.Neutral)),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
+                    VariableDeclaration.CreateStatement("xx",
+                        NameFactory.PointerTypeReference(NameReference.Create("Mutant")),init_value_x),
+                    ExpressionFactory.Readout("xx"),
+                    VariableDeclaration.CreateStatement("y",
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference( MutabilityFlag.Neutral)),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
+                    VariableDeclaration.CreateStatement("yy",
+                        NameFactory.PointerTypeReference(NameReference.Create("Untouchable")),init_value_y),
+                    ExpressionFactory.Readout("yy"),
+            })));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value_x));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value_y));
 
             return resolver;
         }
@@ -131,7 +243,7 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
                     VariableDeclaration.CreateStatement("y",
-                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability:true)),
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(overrideMutability: MutabilityFlag.ForceMutable)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
                     ExpressionFactory.Readout("y"),
             })));

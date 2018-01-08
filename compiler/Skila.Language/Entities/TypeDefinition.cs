@@ -199,9 +199,14 @@ namespace Skila.Language.Entities
                             // we add it automatically
                             if (deriv_info.Base.Modifier.HasPinned)
                                 deriv_info.Derived.SetModifier(deriv_info.Derived.Modifier | EntityModifier.Pinned);
+
+                            if (deriv_info.Base.Modifier.HasHeapOnly != deriv_info.Derived.Modifier.HasHeapOnly)
+                                ctx.AddError(ErrorCode.HeapRequirementChangedOnOverride, deriv_info.Derived);
                         }
                         else if (!deriv_info.Base.Modifier.IsSealed)
+                        {
                             ctx.AddError(ErrorCode.MissingOverrideModifier, deriv_info.Derived);
+                        }
 
                         if (!deriv_info.Base.Modifier.IsSealed)
                         {
@@ -278,14 +283,14 @@ namespace Skila.Language.Entities
             if (!this.Modifier.HasMutable)
             {
                 foreach (NameReference parent in this.ParentNames)
-                    if (!parent.Evaluation.Components.IsImmutableType(ctx))
+                    if (parent.Evaluation.Components.MutabilityOfType(ctx)== MutabilityFlag.ForceMutable )
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
 
                 foreach (VariableDeclaration field in this.AllNestedFields)
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (!field.Evaluated(ctx).IsImmutableType(ctx))
+                    if (field.Evaluated(ctx).MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions

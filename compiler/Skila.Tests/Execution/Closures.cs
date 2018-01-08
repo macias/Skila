@@ -50,7 +50,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
@@ -90,7 +90,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
                     ExpressionReadMode.OptionalUse,
@@ -121,7 +121,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter PassingLocalVariables()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
             NameReference escaping_lambda = NameReference.Create("x");

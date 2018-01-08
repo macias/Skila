@@ -50,7 +50,7 @@ namespace Skila.Language
             this.Constraint = constraint ?? TemplateConstraint.Create(NameReference.Create(this.Name), null, null, null, null);
 
             this.AssociatedType = TypeDefinition.CreateTypeParameter(this);
-            this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability:false,translation:null);
+            this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability: MutabilityFlag.ConstAsSource, translation:null);
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

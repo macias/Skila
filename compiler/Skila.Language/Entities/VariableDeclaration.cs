@@ -50,7 +50,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, false, null));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource, null));
 
             this.closures = new List<TypeDefinition>();
 
@@ -80,7 +80,7 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
@@ -228,7 +228,7 @@ namespace Skila.Language.Entities
                 {
                     if (this.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                    if (!this.Evaluation.Components.IsImmutableType(ctx))
+                    if (this.Evaluation.Components.MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
                         ctx.AddError(ErrorCode.GlobalMutableVariable, this);
                 }
 

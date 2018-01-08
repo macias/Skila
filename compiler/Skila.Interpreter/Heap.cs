@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Skila.Language.Entities;
 
 namespace Skila.Interpreter
 {
@@ -49,25 +51,27 @@ namespace Skila.Interpreter
             }
         }
 
-        internal bool TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut)
+        internal bool TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut, string callInfo)
         {
             if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
+            {
                 return false;
+            }
 
             obj = obj.Dereference();
-
             // todo: after adding nulls to Skila remove this condition
             if (obj == null)
                 return false;
 
-            if (obj.DebugId.Id == 5508)
+            if (obj.DebugId.Id == 183100)
             {
                 ;
             }
 
+            int count;
+
             lock (this.threadLock)
             {
-                int count;
                 if (!this.refCounts.TryGetValue(obj, out count))
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
@@ -75,23 +79,34 @@ namespace Skila.Interpreter
                 if (count < 0)
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
+                if (count == 0)
+                {
+                    if (obj.Fields.Any(it => it.Key.Name.Name == "coll"))
+                    {
+                        ;
+                    }
+                }
+
                 if (count == 0 && !passingOut)
                 {
                     this.refCounts.Remove(obj);
-                    foreach (ObjectData field_obj in obj.Fields)
-                        // locks are re-entrant, so recursive call is OK here
-                        TryDec(ctx, field_obj, passingOut: false);
-                    if (obj.Dispose())
+                    if (obj.Free(ctx, callInfo))
                         --this.hostDisposables;
                 }
                 else
                     this.refCounts[obj] = count;
             }
 
+            if (obj.DebugId.Id == 183067)
+            {
+                Console.WriteLine($"DEC{(passingOut ? "/OUT" : "")} {count}  {callInfo}");
+            }
+
             return true;
         }
 
-        internal void TryInc(ExecutionContext ctx, ObjectData pointerObject)
+
+        internal void TryInc(ExecutionContext ctx, ObjectData pointerObject, string callInfo)
         {
             if (!ctx.Env.IsPointerOfType(pointerObject.RunTimeTypeInstance))
                 return;
@@ -101,14 +116,25 @@ namespace Skila.Interpreter
             if (pointerObject == null) // null pointer
                 return;
 
-            if (pointerObject.DebugId.Id == 8758)
+            if (pointerObject.DebugId.Id == 183067)
             {
-                ;
             }
+
+            int count;
 
             lock (this.threadLock)
             {
-                this.refCounts[pointerObject] = this.refCounts[pointerObject] + 1;
+                count = this.refCounts[pointerObject] + 1;
+                this.refCounts[pointerObject] = count;
+            }
+
+            if (pointerObject.DebugId.Id == 183067)
+            {
+                if (count == 4)
+                {
+                    ;
+                }
+                Console.WriteLine($"INC {count} {callInfo}");
             }
         }
 

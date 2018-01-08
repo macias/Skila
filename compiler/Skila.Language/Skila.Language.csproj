@@ -67,6 +67,7 @@
     <Compile Include="Data\LayerDictionary.Flat.cs" />
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
+    <Compile Include="MutabilityFlag.cs" />
     <Compile Include="Entities\IMember.cs" />
     <Compile Include="Entities\EntityInstanceCache.cs" />
     <Compile Include="EntityInstanceCore.cs" />

@@ -73,13 +73,13 @@ namespace Skila.Language
 
             this.ElementTypeName = typeName;
             if (this.IsVariadic)
-                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, overrideMutability: true));
+                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, overrideMutability: MutabilityFlag.ForceMutable));
             else
                 this.TypeName = typeName;
 
             this.defaultValue = defaultValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, false, null));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource, null));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -128,7 +128,7 @@ namespace Skila.Language
         {
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }

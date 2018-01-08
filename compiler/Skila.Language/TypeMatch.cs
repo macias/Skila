@@ -25,7 +25,7 @@ namespace Skila.Language
         public static readonly TypeMatch ImplicitReference = new TypeMatch(MatchFlag.ImplicitReference);
         public static readonly TypeMatch AutoDereference = new TypeMatch(MatchFlag.AutoDereference);
 
-        public static TypeMatch Substitution(int distance)
+        public static TypeMatch Substituted(int distance)
         {
             if (distance==1)
             {
@@ -33,14 +33,21 @@ namespace Skila.Language
             }
             return new TypeMatch(TypeMatch.Substitute.flag, distance);
         }
+        public static TypeMatch Mismatched(bool mutability)
+        {
+            return new TypeMatch(TypeMatch.No.flag, mutability ? 1 : 0);
+        }
 
         private readonly MatchFlag flag;
-        public int Distance { get; } // makes sense for substitution
+        private readonly int data;
 
-        private TypeMatch(MatchFlag flag, int distance = 0)
+        public int Distance => this.data; // makes sense for substitution
+        public bool Mutability => this.data == 1; // make sense for rejection
+
+        private TypeMatch(MatchFlag flag, int data = 0)
         {
             this.flag = flag;
-            this.Distance = distance;
+            this.data = data;
         }
 
         public override string ToString()

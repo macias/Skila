@@ -23,17 +23,18 @@ namespace Skila.Language.Extensions
             return @this;
         }
 
-        public static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx)
+        public static MutabilityFlag MutabilityOfType(this IEntityInstance @this, ComputationContext ctx)
         {
             // we have to use cache with visited types, because given type A can have a field of type A, 
             // which would lead to infinite checking
-            return @this.IsImmutableType(ctx, new HashSet<IEntityInstance>());
+            return @this.mutabilityOfType(ctx, new HashSet<IEntityInstance>());
         }
 
-        private static bool IsImmutableType(this IEntityInstance @this, ComputationContext ctx, HashSet<IEntityInstance> visited)
+        private static MutabilityFlag mutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
+            HashSet<IEntityInstance> visited)
         {
             if (!visited.Add(@this))
-                return true;
+                return MutabilityFlag.ConstAsSource;
 
             foreach (EntityInstance instance in @this.Enumerate())
             {
@@ -41,24 +42,31 @@ namespace Skila.Language.Extensions
                 if (!target.IsType())
                     throw new Exception("Internal error");
 
-                if (target.Modifier.HasMutable || instance.OverrideMutability)
-                    return false;
+                if (instance.OverrideMutability == MutabilityFlag.ForceMutable)
+                    return MutabilityFlag.ForceMutable;
+
+                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer))
+                {
+                    MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
+                    if (mutability != MutabilityFlag.ConstAsSource)
+                        return mutability;
+                }
 
                 foreach (VariableDeclaration field in target.CastType().AllNestedFields)
                 {
                     IEntityInstance eval = field.Evaluated(ctx);
-                    if (!eval.IsImmutableType(ctx, visited))
-                        return false;
+                    if (eval.mutabilityOfType(ctx, visited) == MutabilityFlag.ForceMutable)
+                        return MutabilityFlag.ForceMutable;
                 }
 
-                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer))
-                {
-                    if (!val_instance.IsImmutableType(ctx, visited))
-                        return false;
-                }
+                if (instance.OverrideMutability == MutabilityFlag.Neutral)
+                    return instance.OverrideMutability;
+
+                if (target.Modifier.HasMutable)
+                    return MutabilityFlag.ForceMutable;
             }
 
-            return true;
+            return MutabilityFlag.ConstAsSource;
         }
     }
 }

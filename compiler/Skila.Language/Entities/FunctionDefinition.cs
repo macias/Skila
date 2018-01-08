@@ -203,7 +203,7 @@ namespace Skila.Language.Entities
             {
                 NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
-                    NameFactory.ReferenceTypeReference(type_name),
+                    this.Modifier.HasHeapOnly ? NameFactory.PointerTypeReference(type_name) : NameFactory.ReferenceTypeReference(type_name),
                     Variadic.None, null, isNameRequired: false,
                     usageMode: ExpressionReadMode.OptionalUse);
                 this.MetaThisParameter.AttachTo(this);
@@ -277,7 +277,7 @@ namespace Skila.Language.Entities
                     ctx.AddError(ErrorCode.ConverterDeclaredWithIgnoredOutput, this);
             }
 
-           if (!this.IsAnyConstructor())
+            if (!this.IsAnyConstructor())
             {
                 foreach (NameReference typename in this.Parameters.Select(it => it.TypeName))
                     typename.ValidateTypeNameVariance(ctx, VarianceMode.In);

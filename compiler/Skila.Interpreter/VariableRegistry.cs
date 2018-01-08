@@ -32,6 +32,10 @@ namespace Skila.Interpreter
 
         internal bool Add(ILocalBindable bindable, ObjectData value)
         {
+            if (value.DebugId.Id==183100)
+            {
+                ;
+            }
             if (bindable.DebugId.Id == 2797)
             {
                 ;

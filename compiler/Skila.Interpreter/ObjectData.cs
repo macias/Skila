@@ -80,25 +80,26 @@ namespace Skila.Interpreter
             return CreateInstanceAsync(ctx, typeInstance, null);
         }
 
-        private int isDisposedFlag;
-        private bool isDisposed
+        private int isFreedFlag;
+        private bool isFreed
         {
             get
             {
-                return Interlocked.CompareExchange(ref this.isDisposedFlag, 0, 0) != 0;
+                return Interlocked.CompareExchange(ref this.isFreedFlag, 0, 0) != 0;
             }
             set
             {
-                Interlocked.Exchange(ref this.isDisposedFlag, value ? 1 : 0);
+                Interlocked.Exchange(ref this.isFreedFlag, value ? 1 : 0);
             }
         }
+
         private Data data;
 
-        internal IEnumerable<ObjectData> Fields
+        internal IEnumerable<KeyValuePair<VariableDeclaration, ObjectData>> Fields
         {
             get
             {
-                if (this.isDisposed)
+                if (this.isFreed)
                     throw new ObjectDisposedException($"{this}");
                 return this.data.Fields;
             }
@@ -107,7 +108,7 @@ namespace Skila.Interpreter
         {
             get
             {
-                if (this.isDisposed)
+                if (this.isFreed)
                     throw new ObjectDisposedException($"{this}");
                 return this.data.PlainValue;
             }
@@ -116,7 +117,7 @@ namespace Skila.Interpreter
         {
             get
             {
-                if (this.isDisposed)
+                if (this.isFreed)
                     throw new ObjectDisposedException($"{this}");
                 return this.RunTimeTypeInstance.TargetType.InheritanceVirtualTable;
             }
@@ -128,7 +129,7 @@ namespace Skila.Interpreter
 #if DEBUG
             public DebugId DebugId { get; } = new DebugId();
 #endif
-            internal IEnumerable<ObjectData> Fields => this.fields?.Values ?? Enumerable.Empty<ObjectData>();
+            internal IEnumerable<KeyValuePair<VariableDeclaration, ObjectData>> Fields => this.fields ?? Enumerable.Empty<KeyValuePair<VariableDeclaration, ObjectData>>();
 
             private readonly ObjectData primaryParentType; // set only for types, not instances
             private readonly Dictionary<VariableDeclaration, ObjectData> fields;
@@ -137,7 +138,7 @@ namespace Skila.Interpreter
             internal bool IsNative { get; }
             public EntityInstance RunTimeTypeInstance { get; }
 
-            public Data(ExecutionContext ctx, bool isNative, object value, EntityInstance typeInstance, bool isStatic,
+            public Data(bool isNative, object value, EntityInstance typeInstance,
                 ObjectData primary_parent, Dictionary<VariableDeclaration, ObjectData> fields)
             {
                 this.PlainValue = value;
@@ -147,18 +148,13 @@ namespace Skila.Interpreter
                 this.fields = fields;
             }
 
-            public Data(Data src)
-            {
+            public Data(Data src) : this(src.IsNative,
                 // pointer/references sits here, so on copy simply assign the pointer/reference value
-                if (src.PlainValue is IInstanceValue val)
-                    this.PlainValue = val.Copy();
-                else
-                    this.PlainValue = src.PlainValue;
-
-                this.IsNative = src.IsNative;
-                this.RunTimeTypeInstance = src.RunTimeTypeInstance;
+                (src.PlainValue as IInstanceValue)?.Copy() ?? src.PlainValue,
+                src.RunTimeTypeInstance, src.primaryParentType,
                 // however make copies of the fields
-                this.fields = src.fields?.ToDictionary(it => it.Key, it => new ObjectData(it.Value));
+                src.fields?.ToDictionary(it => it.Key, it => new ObjectData(it.Value)))
+            {
             }
 
             internal ObjectData GetField(IEntity entity)
@@ -187,12 +183,12 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            this.data = new Data(ctx, isNative, value, typeInstance, isStatic, primary_parent, fields);
+            this.data = new Data(isNative, value, typeInstance, primary_parent, fields);
         }
 
         private ObjectData(ObjectData src)
         {
-            if (src.isDisposed)
+            if (src.isFreed)
                 throw new ObjectDisposedException($"{src}");
             this.data = new Data(src.data);
         }
@@ -200,7 +196,7 @@ namespace Skila.Interpreter
 
         internal ObjectData GetField(IEntity entity)
         {
-            if (this.isDisposed)
+            if (this.isFreed)
                 throw new ObjectDisposedException($"{this}");
             return this.data.GetField(entity);
         }
@@ -212,31 +208,46 @@ namespace Skila.Interpreter
 
         public ObjectData Dereference()
         {
-            if (this.isDisposed)
+            if (this.isFreed)
                 throw new ObjectDisposedException($"{this}");
             ObjectData result = this.PlainValue.Cast<ObjectData>();
-            if (result != null && result.isDisposed)
+            if (result != null && result.isFreed)
                 throw new ObjectDisposedException($"{result}");
             return result;
         }
 
-        internal bool Dispose()
+        internal bool Free(ExecutionContext ctx, string callInfo)
         {
-            if (this.isDisposed)
+            if (this.DebugId.Id == 183073)
+            {
+                ;
+            }
+
+            if (this.isFreed)
                 throw new ObjectDisposedException($"{this}");
 
-            bool value_disposed = false;
+            foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
+            {
+                if (field.Key.Name.Name == "coll")
+                {
+                    ;
+                }
+                // locks are re-entrant, so recursive call is OK here
+                ctx.Heap.TryDec(ctx, field.Value, passingOut: false, callInfo: $"field of {callInfo}");
+            }
+
+            bool host_disposed = false;
             if (this.data.IsNative)
             {
                 if (this.PlainValue is IDisposable d)
                 {
                     d.Dispose();
-                    value_disposed = true;
+                    host_disposed = true;
                 }
             }
-            this.isDisposed = true;
+            this.isFreed = true;
 
-            return value_disposed;
+            return host_disposed;
         }
 
         internal ObjectData Copy()
@@ -247,7 +258,7 @@ namespace Skila.Interpreter
         internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance },
-                overrideMutability: false, translation: null), this);
+                overrideMutability: MutabilityFlag.ConstAsSource, translation: null), this);
         }
 
         internal ObjectData TryDereference(Language.Environment env)
@@ -271,9 +282,7 @@ namespace Skila.Interpreter
 
         public void Assign(ObjectData source)
         {
-            if (this.isDisposed)
-                throw new ObjectDisposedException($"{this}");
-            if (source.isDisposed)
+            if (source.isFreed)
                 throw new ObjectDisposedException($"{source}");
 
             if (source.DebugId.Id == 2942 || source.DebugId.Id == 2938)

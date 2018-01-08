@@ -11,6 +11,42 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Collections
     {
+        //[TestMethod]
+        public IInterpreter TODO_IteratingOverTuple()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // let t *ITuple<Int,Int,Int> = (4,-2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.IntTypeReference(),
+                            NameFactory.IntTypeReference(),
+                            // todo: use sink
+                            NameFactory.IntTypeReference())),
+                        ExpressionFactory.HeapConstructor( NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.IntTypeReference(), NameFactory.IntTypeReference(),NameFactory.IntTypeReference()),
+                        IntLiteral.Create("4"),IntLiteral.Create("-2"))),
+                    VariableDeclaration.CreateStatement("acc",null,IntLiteral.Create("0"),EntityModifier.Reassignable),
+                    Loop.CreateForEach("elem",NameFactory.IntTypeReference(),NameReference.Create("t"),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
+                    Return.Create(NameReference.Create("acc"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
         [TestMethod]
         public IInterpreter AccessingTuple()
         {

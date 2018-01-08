@@ -17,27 +17,27 @@ namespace Skila.Tests
 
         public static void Main()
         {
-           //  new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
-            //new Semantics.Inheritance().ErrorLoopedAncestors();
-            //new Semantics.MemoryClasses().ErrorHeapTypeOnStack();
+            //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
+            //new Semantics.MemoryClasses().ErrorCallingHeapMethodOnValue();
             //new Semantics.MethodDefinitions().Basics();
-            //new Semantics.Mutability().ErrorImmutableMethodCallingMutable();
+            //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-            //new Semantics.Properties().ErrorGetterOverridesNothing();
+            //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().InferredPartialTemplateArgumentsOnConstraints();
             //new Semantics.TypeMatching().UnionMatching();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-            //  new Execution.Closures().ResultTypeInference();
-              new Execution.Collections().AccessingTuple();
+             // new Execution.Closures().PassingLocalVariables();
+            // new Execution.Collections().TODO_IteratingOverTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
@@ -67,10 +67,10 @@ namespace Skila.Tests
                 Console.WriteLine($"Interpretation time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
             }
 
-            if (AssertX.Fails.Any())
+            if (AssertReporter.Fails.Any())
             {
                 Console.WriteLine("Fails");
-                foreach (string s in AssertX.Fails.OrderBy(it => it))
+                foreach (string s in AssertReporter.Fails.OrderBy(it => it))
                     Console.WriteLine(s);
             }
 

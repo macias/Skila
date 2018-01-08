@@ -55,12 +55,12 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
-            if (@this.DebugId.Id== 3837)
+            if (@this.DebugId.Id == 3837)
             {
                 ;
             }
             IEntityInstance src_type = source.Evaluation.Components;
-            if (src_type.DebugId.Id== 108975 && targetTypeName.DebugId.Id == 108947)
+            if (src_type.DebugId.Id == 108975 && targetTypeName.DebugId.Id == 108947)
             {
                 ;
             }
@@ -78,7 +78,7 @@ namespace Skila.Language.Extensions
                 source = ExpressionFactory.StackConstructor((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
                 source.AttachTo(@this);
                 TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
-                if (m != TypeMatch.Same && m!= TypeMatch.Substitute)
+                if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
             else if (match.HasFlag(TypeMatch.ImplicitReference))
@@ -110,14 +110,14 @@ namespace Skila.Language.Extensions
                 if (match != TypeMatch.Substitute && match != TypeMatch.Same)
                     throw new NotImplementedException();
 
-                if (source.DebugId.Id==2572)
+                if (source.DebugId.Id == 2572)
                 {
                     ;
                 }
                 source.IsDereferenced = true;
                 @this.Cast<IExpression>().IsDereferencing = true;
             }
-            else if (match != TypeMatch.Same && match!= TypeMatch.Substitute)
+            else if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                 throw new NotImplementedException();
 
             return true;

@@ -141,7 +141,7 @@ namespace Skila.Language
 
             if (allowSlicing)
             {
-                bool input_immutable = input.IsImmutableType(ctx);
+                MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
 
                 if (input.DebugId.Id == 108967 && target.DebugId.Id == 108939)
                 {
@@ -160,13 +160,13 @@ namespace Skila.Language
                         // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
                         // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
-                        bool target_immutable = target.IsImmutableType(ctx);
-                        if (input_immutable != target_immutable)
-                            return TypeMatch.No;
+                        MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
+                        if (!mutabilityMatches(input_mutability, target_mutability))
+                            return TypeMatch.Mismatched(mutability: true);
                         else if (input == target)
                             return TypeMatch.Same;
                         else
-                            return TypeMatch.Substitution(inherited_input.Distance);
+                            return TypeMatch.Substituted(inherited_input.Distance);
                     }
                 }
             }
@@ -191,7 +191,7 @@ namespace Skila.Language
                 // template parameter can have reversed inheritance defined via base-of constraints
 
                 // todo: at this it should be already evaluated, so constraints should be surfables
-                IEnumerable<IEntityInstance> base_of 
+                IEnumerable<IEntityInstance> base_of
                     = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx));
 
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
@@ -204,6 +204,17 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
+        private static bool mutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
+        {
+            switch (inputMutability)
+            {
+                case MutabilityFlag.ConstAsSource: return targetMutability != MutabilityFlag.ForceMutable;
+                case MutabilityFlag.ForceMutable: return targetMutability != MutabilityFlag.ConstAsSource;
+                case MutabilityFlag.Neutral: return targetMutability == MutabilityFlag.Neutral;
+                default: throw new NotImplementedException();
+            }
+        }
+
         public static TypeMatch inversedTypeMatching(ComputationContext ctx, EntityInstance input, IEnumerable<TypeAncestor> targets,
             bool inversedVariance, bool allowSlicing)
         {
@@ -212,7 +223,7 @@ namespace Skila.Language
 
             EntityInstance target = targets.First().AncestorInstance;
 
-            bool target_immutable = target.IsImmutableType(ctx);
+            MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
 
             foreach (TypeAncestor inherited_target in targets)
             {
@@ -223,13 +234,13 @@ namespace Skila.Language
 
                 if (match)
                 {
-                    bool input_immutable = input.IsImmutableType(ctx);
-                    if (input_immutable != target_immutable)
-                        return TypeMatch.No;
+                    MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
+                    if (!mutabilityMatches(target_mutability, input_mutability))
+                        return TypeMatch.Mismatched(mutability: true);
                     else if (input == target)
                         return TypeMatch.Same;
                     else
-                        return TypeMatch.Substitution(inherited_target.Distance);
+                        return TypeMatch.Substituted(inherited_target.Distance);
                 }
             }
 

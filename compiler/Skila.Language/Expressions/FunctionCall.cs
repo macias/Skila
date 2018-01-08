@@ -165,13 +165,38 @@ namespace Skila.Language.Expressions
                     }
                 }
             }
+
+            if (this.Resolution.MetaThisArgument != null)
+            {
+                // we cannot call mutable methods on neutral instance as well, because in such case we could
+                // pass const instance (of mutable type) as neutral instance (aliasing const instance)
+                // and then call mutable method making "const" guarantee invalid
+
+                if (this.DebugId.Id == 26801)
+                {
+                    ;
+                }
+
+                MutabilityFlag this_mutability = this.Resolution.MetaThisArgument.Expression.Evaluation.Components.MutabilityOfType(ctx);
+                if (this_mutability != MutabilityFlag.ForceMutable && this.Resolution.TargetFunction.Modifier.HasMutable)
+                    ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
+            }
+
+
+            if (this.Resolution.TargetFunction.Modifier.HasHeapOnly)
+            {
+                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                if ((this.Name.Prefix != null && !ctx.Env.IsPointerOfType(this.Name.Prefix.Evaluation.Components))
+                    || (this.Name.Prefix == null && !func.Modifier.HasHeapOnly))
+                    ctx.AddError(ErrorCode.CallingHeapFunctionWithValue, this);
+            }
         }
 
         public void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 25764)
+                if (this.DebugId.Id == 653)
                 {
                     ;
                 }
@@ -232,7 +257,7 @@ namespace Skila.Language.Expressions
                     if (this.RequestedOutcomeTypeName != null)
                         targets = targets.Where(it => it.OutcomeMatchesRequest(ctx)).StoreReadOnly();
 
-                    if (this.DebugId.Id == 2023)
+                    if (this.DebugId.Id == 821)
                     {
                         ;
                     }
@@ -340,37 +365,36 @@ namespace Skila.Language.Expressions
             var arguments_matches = new List<Tuple<CallResolution, List<FunctionOverloadWeight>>>();
             foreach (CallResolution call_target in targets)
             {
-                List<FunctionOverloadWeight> matches = call_target.Arguments
-                    .Select(arg =>
+                var weights = new List<FunctionOverloadWeight>();
+                foreach (FunctionArgument arg in call_target.Arguments)
+                {
+                    FunctionParameter param = call_target.GetParamByArgIndex(arg.Index);
+                    var weight = new FunctionOverloadWeight();
+                    // prefer non-variadic parameters
+                    if (param.IsVariadic)
+                        weight.Penalty += 1;
+                    // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
+                    // note we use untranslated param evaluation here to achieve this effect
+                    if (!param.Evaluation.Components.IsSame(arg.Evaluation.Components, jokerMatchesAll: true))
+                        weight.Penalty += 2;
+
+                    // prefer exact match instead more general match (Int->Int is better than Int->Object)
+                    IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArg(arg);
+                    TypeMatch m = call_target.TypeMatches[arg.Index].Value;
+                    if (m.HasFlag(TypeMatch.Substitute))
                     {
-                        FunctionParameter param = call_target.GetParamByArgIndex(arg.Index);
-                        var weight = new FunctionOverloadWeight();
-                        // prefer non-variadic parameters
-                        if (param.IsVariadic)
-                            weight.Penalty += 1;
-                        // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
-                        // note we use untranslated param evaluation here to achieve this effect
-                        if (!param.Evaluation.Components.IsSame(arg.Evaluation.Components, jokerMatchesAll: true))
-                            weight.Penalty += 2;
+                        weight.Penalty += 4;
+                        weight.SubstitutionDistance = m.Distance;
+                    }
+                    else if (!m.HasFlag(TypeMatch.Same)) // conversions
+                        weight.Penalty += 8;
 
-                        // prefer exact match instead more general match (Int->Int is better than Int->Object)
-                        IEntityInstance param_trans_eval = call_target.GetTransParamEvalByArg(arg);
-                        TypeMatch m = call_target.TypeMatches[arg.Index].Value;
-                        if (m.HasFlag(TypeMatch.Substitute))
-                        {
-                            weight.Penalty += 4;
-                            weight.SubstitutionDistance = m.Distance;
-                        }
-                        else if (!m.HasFlag(TypeMatch.Same)) // conversions
-                            weight.Penalty += 8;
-
-                        return weight;
-                    })
-                    .ToList();
+                    weights.Add(weight);
+                }
                 // bonus if optional parameters are explicitly targeted (i.e. default values are not used)
-                matches.Add(new FunctionOverloadWeight(call_target.AllParametersUsed() ? 0 : 1));
+                weights.Add(new FunctionOverloadWeight(call_target.AllParametersUsed() ? 0 : 1));
 
-                arguments_matches.Add(Tuple.Create(call_target, matches));
+                arguments_matches.Add(Tuple.Create(call_target, weights));
             }
 
             Option<Tuple<CallResolution, List<FunctionOverloadWeight>>> best = arguments_matches

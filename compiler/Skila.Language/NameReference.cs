@@ -15,9 +15,9 @@ namespace Skila.Language
     {
         private const string sink = "_";
 
-        public static NameReference CreateThised(string part)
+        public static NameReference CreateThised(params string[] parts)
         {
-            return NameReference.Create(NameFactory.ThisVariableName, part);
+            return NameReference.Create(new[] { NameFactory.ThisVariableName }.Concat(parts).ToArray());
         }
         public static NameReference Create(params string[] parts)
         {
@@ -34,16 +34,20 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            return new NameReference(false, prefix, name, arguments, isRoot: false);
+            return new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
         }
-        public static NameReference Create(bool overrideMutability, IExpression prefix, string name, params INameReference[] arguments)
+        public static NameReference Create(MutabilityFlag overrideMutability, string name, params INameReference[] arguments)
+        {
+            return Create(overrideMutability, null, name, arguments);
+        }
+        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name, params INameReference[] arguments)
         {
             return new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
         }
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target)
         {
-            var result = new NameReference(false, prefix, name, arguments, isRoot: false);
+            var result = new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { target });
             return result;
@@ -71,7 +75,7 @@ namespace Skila.Language
 
         bool INameReference.IsBindingComputed => this.Binding.IsComputed;
 
-        public bool OverrideMutability { get; }
+        public MutabilityFlag OverrideMutability { get; }
         public bool IsRoot { get; }
         public IExpression Prefix { get; private set; }
         public string Name { get; }
@@ -89,7 +93,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(false, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference( MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
         public bool IsDereferencing { get; set; }
@@ -104,7 +108,7 @@ namespace Skila.Language
         private bool isPropertyIndexerCallReference => this.Owner is FunctionCall call && call.Callee == this && call.IsIndexer;
 
         private NameReference(
-            bool overrideMutability,
+            MutabilityFlag overrideMutability,
             IExpression prefix,
             string name,
             IEnumerable<INameReference> templateArguments,
@@ -488,7 +492,7 @@ namespace Skila.Language
 
         }
 
-        public void ValidateTypeNameVariance(ComputationContext ctx,VarianceMode typeNamePosition)
+        public void ValidateTypeNameVariance(ComputationContext ctx, VarianceMode typeNamePosition)
         {
             // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
 
@@ -501,7 +505,7 @@ namespace Skila.Language
                 if (this.EnclosingScopesToRoot().Contains(template))
                 {
                     bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.IsImmutableType(ctx));
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx)== MutabilityFlag.ConstAsSource);
 
                     // don't report errors for covariant types which are used in immutable template types
                     if (!covariant_in_immutable &&
@@ -509,8 +513,8 @@ namespace Skila.Language
                         ctx.AddError(ErrorCode.VarianceForbiddenPosition, this, param);
                 }
             }
-            else 
-                for (int i=0;i<typedef.Name.Parameters.Count;++i)
+            else
+                for (int i = 0; i < typedef.Name.Parameters.Count; ++i)
                 {
                     this.TemplateArguments[i].Cast<NameReference>().ValidateTypeNameVariance(ctx,
                         typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance));

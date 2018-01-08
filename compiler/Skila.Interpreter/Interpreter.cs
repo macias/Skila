@@ -167,7 +167,19 @@ namespace Skila.Interpreter
                         ObjectData arg = ctx.FunctionArguments.Single();
                         int this_int = this_value.PlainValue.Cast<int>();
                         int arg_int = arg.PlainValue.Cast<int>();
-                        ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, this_int + arg_int).ConfigureAwait(false));
+                        ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, this_int + arg_int)
+                            .ConfigureAwait(false);
+                        ExecValue result = ExecValue.CreateReturn(res_value);
+                        return result;
+                    }
+                    else if (func.Name.Name == NameFactory.SubOperator)
+                    {
+                        ObjectData arg = ctx.FunctionArguments.Single();
+                        int this_int = this_value.PlainValue.Cast<int>();
+                        int arg_int = arg.PlainValue.Cast<int>();
+                        ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, this_int - arg_int)
+                            .ConfigureAwait(false);
+                        ExecValue result = ExecValue.CreateReturn(res_value);
                         return result;
                     }
                     else if (func.Name.Name == NameFactory.EqualOperator)
@@ -279,7 +291,7 @@ namespace Skila.Interpreter
                         Option<ObjectData> received = await channel.ReceiveAsync().ConfigureAwait(false);
 
                         // we have to compute Skila Option type (not C# one we use for C# channel type)
-                        EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: false,
+                        EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: MutabilityFlag.ConstAsSource,
                             translation: null);
                         ObjectData result = await createOption(ctx, option_type, received).ConfigureAwait(false);
 
@@ -313,19 +325,21 @@ namespace Skila.Interpreter
                 return ret;
         }
 
-        private async Task<ExecValue> executeAsync(Block block, ExecutionContext ctx)
+        private Task<ExecValue> executeAsync(Block block, ExecutionContext ctx)
         {
             if (block.DebugId.Id == 161)
             {
                 ;
             }
-            if (block.DebugId.Id == 14637)
-            {
-                ;
-            }
+
+            return executeAsync(ctx, block.Instructions);
+        }
+
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, IEnumerable<IExpression> instructions)
+        {
             ExecValue result = ExecValue.UndefinedExpression;
 
-            foreach (IExpression expr in block.Instructions)
+            foreach (IExpression expr in instructions)
             {
                 result = await ExecutedAsync(expr, ctx).ConfigureAwait(false);
                 if (result.Mode != DataMode.Expression)
@@ -333,6 +347,49 @@ namespace Skila.Interpreter
             }
 
             return result;
+        }
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, Loop loop)
+        {
+            if (loop.DebugId.Id == 161)
+            {
+                ;
+            }
+            ExecValue result = await executeAsync(ctx, loop.Init).ConfigureAwait(false);
+            if (result.Mode != DataMode.Expression)
+                return result;
+
+            while (true)
+            {
+                if (loop.PreCheck != null)
+                {
+                    result = await ExecutedAsync(loop.PreCheck, ctx).ConfigureAwait(false);
+                    if (result.Mode != DataMode.Expression)
+                        return result;
+                    bool cond = result.ExprValue.PlainValue.Cast<bool>();
+                    if (!cond)
+                        break;
+                }
+
+                result = await executeAsync(ctx, loop.Body).ConfigureAwait(false);
+                if (result.Mode != DataMode.Expression)
+                    return result;
+
+                result = await executeAsync(ctx, loop.PostStep).ConfigureAwait(false);
+                if (result.Mode != DataMode.Expression)
+                    return result;
+
+                if (loop.PostCheck != null)
+                {
+                    result = await ExecutedAsync(loop.PostCheck, ctx).ConfigureAwait(false);
+                    if (result.Mode != DataMode.Expression)
+                        return result;
+                    bool cond = result.ExprValue.PlainValue.Cast<bool>();
+                    if (!cond)
+                        break;
+                }
+            }
+
+            return ExecValue.UndefinedExpression;
         }
 
         private async Task<ExecValue> executeAsync(IfBranch ifBranch, ExecutionContext ctx)
@@ -393,7 +450,7 @@ namespace Skila.Interpreter
             if (result.Mode == DataMode.Throw)
             {
                 // todo: print the stacktrace, dump memory, etc etc etc
-                if (!ctx.Heap.TryDec(ctx, result.ThrowValue, passingOut: false))
+                if (!ctx.Heap.TryDec(ctx, result.ThrowValue, passingOut: false, callInfo: $"release exception from main"))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 result = ExecValue.CreateThrow(null); // this is to return something for Tests
             }
@@ -447,7 +504,7 @@ namespace Skila.Interpreter
             }
             else if (node is StringLiteral str_lit)
             {
-                result = await executeAsync(str_lit, ctx).ConfigureAwait(false);
+                result = await executeAsync(ctx, str_lit).ConfigureAwait(false);
             }
             else if (node is Return ret)
             {
@@ -491,7 +548,11 @@ namespace Skila.Interpreter
             }
             else if (node is Throw thrower)
             {
-                result = await executeAsync(thrower, ctx).ConfigureAwait(false);
+                result = await executeAsync(ctx, thrower).ConfigureAwait(false);
+            }
+            else if (node is Loop loop)
+            {
+                result = await executeAsync(ctx, loop).ConfigureAwait(false);
             }
             else
                 throw new NotImplementedException($"Instruction {node.GetType().Name} is not implemented {ExceptionCode.SourceInfo()}.");
@@ -503,12 +564,17 @@ namespace Skila.Interpreter
 
                 foreach (Tuple<ILocalBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
                 {
-                    if (bindable_obj.Item1.DebugId.Id == 352)
+                    if (bindable_obj.Item1.DebugId.Id == 26867)
+                    {
+                        ;
+                    }
+                    if (bindable_obj.Item1.DebugId.Id == 5055)
                     {
                         ;
                     }
 
-                    ctx.Heap.TryDec(ctx, bindable_obj.Item2, passingOut: bindable_obj.Item2 == out_obj);
+                    ctx.Heap.TryDec(ctx, bindable_obj.Item2, passingOut: bindable_obj.Item2 == out_obj,
+                        callInfo: $"cleaning stack, {bindable_obj.Item1}");
                 }
             }
 
@@ -545,12 +611,12 @@ namespace Skila.Interpreter
             return allocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
         }
 
-        private Task<ExecValue> executeAsync(StringLiteral literal, ExecutionContext ctx)
+        private Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
         {
             return allocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, literal.Evaluation.Components, literal.Value);
         }
 
-        private async Task<ExecValue> executeAsync(Throw thrower, ExecutionContext ctx)
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, Throw thrower)
         {
             ObjectData obj = (await ExecutedAsync(thrower.Expr, ctx).ConfigureAwait(false)).ExprValue;
             obj = prepareExitData(ctx, thrower, obj);
@@ -579,7 +645,7 @@ namespace Skila.Interpreter
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
             if (exit.IsDereferencing)
                 objData = objData.Dereference().Copy();
-            ctx.Heap.TryInc(ctx, objData);
+            ctx.Heap.TryInc(ctx, objData, $"{nameof(prepareExitData)} {exit}");
             return objData;
         }
 
@@ -674,10 +740,10 @@ namespace Skila.Interpreter
             if (ret_value == null)
             {
                 ObjectData unit_obj = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.UnitType.InstanceOf).ConfigureAwait(false);
-                ret_value = unit_obj.Fields.Single();
+                ret_value = unit_obj.Fields.Single().Value;
             }
             else
-                ctx.Heap.TryDec(ctx, ret_value, passingOut: call.IsRead);
+                ctx.Heap.TryDec(ctx, ret_value, passingOut: call.IsRead, callInfo: $"drop ret {call}");
 
             return ExecValue.CreateExpression(ret_value);
         }
@@ -693,7 +759,7 @@ namespace Skila.Interpreter
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            ObjectData this_ref = await prepareThisAsync(ctx, this_context).ConfigureAwait(false);
+            ObjectData this_ref = await prepareThisAsync(ctx, this_context, $"{name}").ConfigureAwait(false);
             ObjectData this_value = this_ref.TryDereference(ctx.Env);
 
             SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, null);
@@ -702,7 +768,7 @@ namespace Skila.Interpreter
             ExecValue ret = await ExecutedAsync(getter, ctx).ConfigureAwait(false);
 
             if (ret.RetValue != null)
-                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead);
+                ctx.Heap.TryDec(ctx, ret.RetValue, passingOut: name.IsRead, callInfo: $"drop ret {name}");
 
             return ExecValue.CreateExpression(ret.RetValue);
         }
@@ -714,7 +780,7 @@ namespace Skila.Interpreter
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            ObjectData this_ref = await prepareThisAsync(ctx, this_context).ConfigureAwait(false);
+            ObjectData this_ref = await prepareThisAsync(ctx, this_context, $"{name}").ConfigureAwait(false);
 
             SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, new ObjectData[] { valueData });
 
@@ -727,11 +793,11 @@ namespace Skila.Interpreter
             // return ExecValue.CreateExpression(ret.RetValue);
         }
 
-        private async Task<ObjectData> prepareThisAsync(ExecutionContext ctx, IExpression thisExpr)
+        private async Task<ObjectData> prepareThisAsync(ExecutionContext ctx, IExpression thisExpr, string callName)
         {
             ExecValue this_exec = await ExecutedAsync(thisExpr, ctx).ConfigureAwait(false);
             ObjectData this_obj = this_exec.ExprValue;
-            ctx.Heap.TryInc(ctx, this_obj);
+            ctx.Heap.TryInc(ctx, this_obj, $"{nameof(prepareThisAsync)} {thisExpr} -> {callName}");
 
             // if "this" is a value (legal at this point) we have add a reference to it because every function
             // expect to get either reference or pointer to this instance
@@ -750,7 +816,7 @@ namespace Skila.Interpreter
             ObjectData this_value;
             if (call.Resolution.MetaThisArgument != null)
             {
-                this_ref = await prepareThisAsync(ctx, call.Resolution.MetaThisArgument.Expression).ConfigureAwait(false);
+                this_ref = await prepareThisAsync(ctx, call.Resolution.MetaThisArgument.Expression, $"{call}").ConfigureAwait(false);
                 this_value = this_ref.TryDereference(ctx.Env);
             }
             else
@@ -771,7 +837,7 @@ namespace Skila.Interpreter
                     FunctionArgument arg = arguments.Single();
                     ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
                     ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
-                    ctx.Heap.TryInc(ctx, arg_obj);
+                    ctx.Heap.TryInc(ctx, arg_obj, $"{nameof(prepareFunctionCallAsync)} non-variadic {arg}");
 
                     args[param.Index] = arg_obj;
                 }
@@ -784,14 +850,14 @@ namespace Skila.Interpreter
                     {
                         ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
                         ObjectData arg_obj = arg_exec.ExprValue.TryDereference(arg, arg);
-                        ctx.Heap.TryInc(ctx, arg_obj);
+                        ctx.Heap.TryInc(ctx, arg_obj, $"{nameof(prepareFunctionCallAsync)} variadic {i} {arg}");
 
                         chunk[i] = arg_obj;
                         ++i;
                     }
 
                     ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, false, null),
+                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.ConstAsSource, null),
                         chunk).ConfigureAwait(false);
                     args[param.Index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
                 }
@@ -981,7 +1047,7 @@ namespace Skila.Interpreter
                 }
                 ExecValue lhs;
                 ObjectData rhs_obj = rhs_val.ExprValue.TryDereference(assign, assign.RhsValue);
-                ctx.Heap.TryInc(ctx, rhs_obj);
+                ctx.Heap.TryInc(ctx, rhs_obj, $"rhs-assignment {assign}");
 
                 if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property)
                 {
@@ -991,10 +1057,7 @@ namespace Skila.Interpreter
                 {
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
 
-                    if (ctx.Heap.TryDec(ctx, lhs.ExprValue, passingOut: false))
-                    {
-                        ;
-                    }
+                    ctx.Heap.TryDec(ctx, lhs.ExprValue, passingOut: false, callInfo: $"drop lhs, assignment {assign}");
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -1020,7 +1083,7 @@ namespace Skila.Interpreter
 
             ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
-            ctx.Heap.TryInc(ctx, lhs_obj);
+            ctx.Heap.TryInc(ctx, lhs_obj, $"lhs-decl {decl}");
 
             if (decl.DebugId.Id == 352)
             {

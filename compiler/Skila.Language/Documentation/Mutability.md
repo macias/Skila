@@ -4,8 +4,11 @@
 
 Immutable data -- data we can guarantee are immutable (in deep sense).
 
-Not immutable data -- data we cannot guarantee are immutable, so in fact
-they can be immutable.
+Mutable data -- data that can be mutated (can have mutable methods).
+
+Neutral -- data we cannot guarantee are immutable, so in fact
+they can be immutable. Can have mutable methods but cannot be 
+used though.
  
 ### Sharing
 
@@ -29,7 +32,8 @@ So we have 3 options:
 ### Tracking mutability
 
 We decided to have immutable data by default and mark explicitly
-mutable ones (except for type constraints). You can pass mutable data only when mutable data
+mutable and neutral ones (except for type constraints). 
+You can pass mutable data only when mutable data
 is expected. This prevents user from aliasing mutability:
 
     var p *Object; // in theory pointer to immutable data
@@ -49,6 +53,12 @@ Marking all mutable data seems like a lot of work just in order to
 in C++ and it does not work well -- the moment you realize you need
 `const` somewhere it might be the same moment you also note you have 
 to rewrite half of your program just to add `const`.
+
+As for neutral -- we can pass any kind of data to neutral, but we
+can pass neutral to another neutral only. Neutral is thought off 
+"I don't care" kind of mutability, first example is `IndexIterator`
+which takes neutral `IIndexable`. If the parameter was mutable
+we couldn't pass const, if it was const we couldn't pass mutable.
 
 #### Type constraints
 
@@ -78,8 +88,8 @@ narrows it down to immutable types only.
 
 ### Comments
 
-Maybe it would be better to have 3 kinds of data -- immutable, mutable (truly)
-and unknown (mutable or not). `Object` would be for example unknown, because
+Maybe it would be better to have neutral as default when users does not 
+give any mutability modifier? `Object` would be for example neutral, because
 by itself it is not mutable but since it is not sealed we cannot guarantee
 what happens next. This could lead to more intuitive code:
 

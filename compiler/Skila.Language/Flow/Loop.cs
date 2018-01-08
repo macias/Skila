@@ -6,6 +6,7 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using System;
 using Skila.Language.Semantics;
+using Skila.Language.Expressions;
 
 namespace Skila.Language.Flow
 {
@@ -17,14 +18,27 @@ namespace Skila.Language.Flow
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(label, init, preCheck, step, body, postCheck: null);
+            return new Loop(label, init, preCheck, body, postStep: step, postCheck: null);
         }
         public static Loop CreateFor(IEnumerable<IExpression> init,
             IExpression preCheck,
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(null, init, preCheck, step, body, postCheck: null);
+            return new Loop(null, init, preCheck, body, postStep: step, postCheck: null);
+        }
+
+        public static Loop CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
+            IEnumerable<IExpression> body)
+        {
+            string iter = AutoName.Instance.CreateNew("iter");
+            VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter, null,
+                FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
+            return new Loop(null, new[] { iter_decl },
+                preCheck: FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorNext)),
+                body: VariableDeclaration.CreateStatement(varName, varTypeName,
+                    FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorGet)))
+                    .Concat(body), postStep: null, postCheck: null);
         }
 
         private bool? isRead;
@@ -36,13 +50,13 @@ namespace Skila.Language.Flow
         public IEnumerable<IExpression> Init { get; }
         private IExpression preCheck;
         public IExpression PreCheck => this.preCheck;
-        public IEnumerable<IExpression> Step { get; }
+        public IEnumerable<IExpression> PostStep { get; }
         public IEnumerable<IExpression> Body { get; }
         private IExpression postCheck;
         public IExpression PostCheck => this.postCheck;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Name, PreCheck, PostCheck }.Concat(Init).Concat(Step).Concat(Body).Where(it => it != null);
-        public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCheck), maybePath: Body, postMaybes: Step.Concat(PostCheck));
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Name }.Concat(Init).Concat(PreCheck).Concat(Body).Concat(PostStep).Concat(PostCheck).Where(it => it != null);
+        public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCheck), maybePath: Body, postMaybes: PostStep.Concat(PostCheck));
 
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
@@ -53,14 +67,20 @@ namespace Skila.Language.Flow
         private Loop(NameDefinition label,
             IEnumerable<IExpression> init,
             IExpression preCheck,
-            IEnumerable<IExpression> step,
             IEnumerable<IExpression> body,
+            IEnumerable<IExpression> postStep,
             IExpression postCheck)
         {
+            // execute init expression, then iterate, each iteration is
+            // pre-check
+            // body
+            // step
+            // post-check
+
             this.Name = label;
             this.Init = (init ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.preCheck = preCheck;
-            this.Step = (step ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
+            this.PostStep = (postStep ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.Body = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.postCheck = postCheck;
 

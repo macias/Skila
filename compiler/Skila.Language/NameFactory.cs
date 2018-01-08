@@ -19,6 +19,7 @@ namespace Skila.Language
         public const string TupleTypeName = "Tuple";
         public const string ITupleTypeName = "ITuple";
         public const string IIndexableTypeName = "IIndexable";
+        public const string IndexIteratorTypeName = "IndexIterator";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -68,6 +69,7 @@ namespace Skila.Language
         public const string ComparableCompare = "compare";
 
         public const string AddOperator = "+";
+        public const string SubOperator = "-";
         public const string EqualOperator = "==";
         public const string NotEqualOperator = "!=";
         public const string GreaterOperator = ">";
@@ -80,6 +82,8 @@ namespace Skila.Language
         public const string IterableCount = "count";
         public const string IteratorGet = "get";
         public const string IteratorNext = "next";
+
+        public const string IterableGetIterator = "getIterator";
 
         public const string LambdaInvoke = "invoke";
 
@@ -204,19 +208,35 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, bool overrideMutability = false)
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability =  MutabilityFlag.ConstAsSource)
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIndexableTypeReference(string templateParamName, bool overrideMutability = false)
+        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability =  MutabilityFlag.ConstAsSource)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, bool overrideMutability = false)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability =  MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
-        public static NameReference IIndexableTypeReference(INameReference templateTypeName, bool overrideMutability = false)
+        public static NameReference IIteratorTypeReference(INameReference templateTypeName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), IIteratorTypeName, templateTypeName);
+        }
+        public static NameReference IIteratorTypeReference(string templateTypeName)
+        {
+            return IIteratorTypeReference(NameReference.Create(templateTypeName));
+        }
+        public static NameReference IndexIteratorTypeReference(INameReference templateTypeName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), IndexIteratorTypeName, templateTypeName);
+        }
+        public static NameReference IndexIteratorTypeReference(string templateTypeName)
+        {
+            return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
+        }
+        public static NameReference IIndexableTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability =  MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
@@ -242,10 +262,10 @@ namespace Skila.Language
         }
         public static NameReference ITupleMutableTypeReference(params INameReference[] templateParamNames)
         {
-            return NameReference.Create(true, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
+            return NameReference.Create(MutabilityFlag.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference ObjectTypeReference(bool overrideMutability = false)
+        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability =  MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, ObjectTypeName);
         }

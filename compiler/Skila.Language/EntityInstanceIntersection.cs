@@ -59,7 +59,7 @@ namespace Skila.Language
             {
                 TypeMatch m = target.TemplateMatchesInput(ctx, inversedVariance, input, variance, allowSlicing);
                 if (m == TypeMatch.No)
-                    return TypeMatch.No;
+                    return m;
                 else if (match == TypeMatch.No)
                     match = m;
                 else if (match != m)
@@ -76,7 +76,7 @@ namespace Skila.Language
             {
                 TypeMatch m = target.MatchesInput(ctx, input, allowSlicing);
                 if (m == TypeMatch.No)
-                    return TypeMatch.No;
+                    return m; 
                 else if (match == TypeMatch.No)
                     match = m;
                 else if (match != m)

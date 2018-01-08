@@ -82,7 +82,7 @@ namespace Skila.Language.Entities
             }
 
             this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
-                overrideMutability: false, translation: null));
+                overrideMutability: MutabilityFlag.ConstAsSource, translation: null));
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
@@ -108,7 +108,8 @@ namespace Skila.Language.Entities
             return this.ownedNodes.Contains(elem);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, bool overrideMutability, TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, 
+            TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }

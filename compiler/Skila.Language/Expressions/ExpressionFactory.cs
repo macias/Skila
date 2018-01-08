@@ -175,6 +175,10 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression Sub(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.SubOperator), FunctionArgument.Create(rhs));
+        }
         public static IExpression Add(string lhs, string rhs)
         {
             return Add(NameReference.Create(lhs), NameReference.Create(rhs));

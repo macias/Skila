@@ -36,5 +36,10 @@ namespace Skila.Language
         {
             return compare(w1, w2) > 0;
         }
+
+        public override string ToString()
+        {
+            return $"{this.Penalty} ; {this.SubstitutionDistance}";
+        }
     }
 }

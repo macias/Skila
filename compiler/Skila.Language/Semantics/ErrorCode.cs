@@ -90,5 +90,8 @@
         PropertySetterInImmutableType = 86,
         AlteringInstanceInImmutableMethod = 87,
         CallingMutableFromImmutableMethod = 88,
+        HeapRequirementChangedOnOverride = 89,
+        CallingHeapFunctionWithValue = 90,
+        AlteringNonMutableInstance = 91,
     }
 }

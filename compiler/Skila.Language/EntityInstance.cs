@@ -25,7 +25,7 @@ namespace Skila.Language
         }
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
-            IEnumerable<INameReference> arguments, bool overrideMutability)
+            IEnumerable<INameReference> arguments, MutabilityFlag overrideMutability)
         {
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
@@ -34,7 +34,7 @@ namespace Skila.Language
         }
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
-            IEnumerable<IEntityInstance> arguments, bool overrideMutability)
+            IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability)
         {
             return targetInstance.Target.GetInstance(arguments, overrideMutability,
                 TemplateTranslation.Combine(targetInstance.Translation, targetInstance.Target.Name.Parameters, arguments));
@@ -43,13 +43,13 @@ namespace Skila.Language
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId();
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null, overrideMutability: false, translation: null);
+        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null, overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public bool OverrideMutability => this.Core.OverrideMutability;
+        public MutabilityFlag OverrideMutability => this.Core.OverrideMutability;
 
         public EntityInstanceCore Core { get; }
 
@@ -271,7 +271,7 @@ namespace Skila.Language
             {
                 ;
             }
-            if (param.Constraint.Modifier.HasConst && !this.IsImmutableType(ctx))
+            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
                 return ConstraintMatch.ConstViolation;
 
 

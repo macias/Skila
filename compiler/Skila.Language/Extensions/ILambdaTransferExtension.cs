@@ -93,8 +93,11 @@ namespace Skila.Language.Extensions
                     .With(cons)
                     .With(this_field);
 
-                if (!thisObject.Evaluation.Components.IsImmutableType(ctx))
+                MutabilityFlag mutability = thisObject.Evaluation.Components.MutabilityOfType(ctx);
+                if (mutability == MutabilityFlag.ForceMutable)
                     closure_builder.Modifier(EntityModifier.Mutable);
+                else if (mutability != MutabilityFlag.ConstAsSource)
+                    throw new NotImplementedException();
             }
 
             return closure_builder;

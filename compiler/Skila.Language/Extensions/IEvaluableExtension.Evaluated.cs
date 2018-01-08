@@ -1,8 +1,6 @@
 ﻿using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
-using Skila.Language.Expressions;
 using Skila.Language.Semantics;
-using System;
 using System.Linq;
 
 namespace Skila.Language.Extensions

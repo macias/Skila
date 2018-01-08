@@ -20,6 +20,16 @@ namespace Skila.Language.Builders
             return builder;
         }
 
+        public static FunctionBuilder CreateInitConstructor(Block body, FunctionCall constructorChainCall = null)
+        {
+            FunctionBuilder builder = Create(NameFactory.InitConstructorNameDefinition(),
+                                NameFactory.UnitTypeReference(),
+                                body);
+
+            builder.ChainCall(constructorChainCall);
+            return builder;
+        }
+
         public static FunctionBuilder Create(
                    NameDefinition name,
                    IEnumerable<FunctionParameter> parameters,
@@ -30,12 +40,12 @@ namespace Skila.Language.Builders
             return new FunctionBuilder(name, parameters, callMode, result, body);
         }
         public static FunctionBuilder Create(
-                   string name,                   
+                   string name,
                    ExpressionReadMode callMode,
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(NameDefinition.Create( name), null, callMode, result, body);
+            return new FunctionBuilder(NameDefinition.Create(name), null, callMode, result, body);
         }
         public static FunctionBuilder Create(
                    string name,
@@ -62,7 +72,7 @@ namespace Skila.Language.Builders
                        ExpressionReadMode callMode,
                        INameReference result)
         {
-            return CreateDeclaration(NameDefinition.Create(name),callMode,result);
+            return CreateDeclaration(NameDefinition.Create(name), callMode, result);
         }
         public static FunctionBuilder CreateDeclaration(
                        string name,
@@ -84,7 +94,7 @@ namespace Skila.Language.Builders
            INameReference result,
            Block body)
         {
-            return Create(name,ExpressionReadMode.ReadRequired,result,body);
+            return Create(name, ExpressionReadMode.ReadRequired, result, body);
         }
 
         private readonly NameDefinition name;
@@ -142,12 +152,12 @@ namespace Skila.Language.Builders
         }
         public FunctionBuilder Constraints(params TemplateConstraint[] constraints)
         {
-            if (this.constraints!=null || this.build!=null)
+            if (this.constraints != null || this.build != null)
                 throw new InvalidOperationException();
 
             this.constraints = constraints;
             return this;
-        }        
+        }
 
         public FunctionDefinition Build()
         {
@@ -156,7 +166,7 @@ namespace Skila.Language.Builders
                     this.modifier ?? EntityModifier.None,
                     this.name,
                     constraints,
-                    parameters?? Enumerable.Empty<FunctionParameter>(), callMode, result,
+                    parameters ?? Enumerable.Empty<FunctionParameter>(), callMode, result,
                     chainCall,
                     body);
             return build;

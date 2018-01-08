@@ -115,17 +115,8 @@ namespace Skila.Language.Expressions
 
             RhsValue.ValidateValueExpression(ctx);
 
-           /* IEntityVariable decl = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference lhs_name);
-            if (decl != null && lhs_name.HasThisPrefix)
-            {
-                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                if (!func.Modifier.HasMutable && !func.IsAnyConstructor())
-                {
-                    ctx.AddError(ErrorCode.AlteringInstanceInImmutableMethod, this);
-                }
-            }*/
-
-            if (this.Lhs.TargetsCurrentInstanceMember()!=null)
+            bool targets_this_instance = this.Lhs.TargetsCurrentInstanceMember() != null;
+            if (targets_this_instance)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                 if (!func.Modifier.HasMutable && !func.IsAnyConstructor())
@@ -133,7 +124,42 @@ namespace Skila.Language.Expressions
                     ctx.AddError(ErrorCode.AlteringInstanceInImmutableMethod, this);
                 }
             }
-        }    
+
+            {
+                IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
+                if (lhs_var != null)
+                {
+                    FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
+                    bool can_reassign = lhs_var.Modifier.HasReassignable ||
+                        (current_func != null && current_func.OwnerType() == lhs_var.OwnerType()
+                        && (current_func.IsInitConstructor() || current_func.IsZeroConstructor()));
+
+                    if (!can_reassign)
+                        ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
+                    else
+                    {
+                        if (sameTargets(this.Lhs, this.RhsValue))
+                            ctx.AddError(ErrorCode.SelfAssignment, this);
+                        // for controling mutating "this/base" instance we have other checks
+                        else if (name_ref.Prefix != null && !targets_this_instance)
+                        {
+                            // we cannot call mutable methods on neutral instance as well, because in such case we could
+                            // pass const instance (of mutable type) as neutral instance (aliasing const instance)
+                            // and then call mutable method making "const" guarantee invalid
+
+                            MutabilityFlag this_mutability = name_ref.Prefix.Evaluation.Components.MutabilityOfType(ctx);
+                            if (this_mutability != MutabilityFlag.ForceMutable)
+                                ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
+                        }
+                    }
+                }
+            }
+
+
+            if (!this.Lhs.IsLValue(ctx))
+                ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
+
+        }
 
         public override void Evaluate(ComputationContext ctx)
         {
@@ -144,32 +170,6 @@ namespace Skila.Language.Expressions
                 this.DataTransfer(ctx, ref this.rhsValue, Lhs.Evaluation.Components);
 
                 this.Evaluation = this.RhsValue.Evaluation;
-
-                {
-                    IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference dummy);
-                    if (lhs_var != null)
-                    {
-                        FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
-                        bool can_reassign = lhs_var.Modifier.HasReassignable ||
-                            (current_func != null && current_func.OwnerType() == lhs_var.OwnerType()
-                            && (current_func.IsInitConstructor() || current_func.IsZeroConstructor()));
-
-                        if (!can_reassign)
-                            ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
-                        else
-                        {
-                            if (sameTargets(this.Lhs, this.RhsValue))
-                                ctx.AddError(ErrorCode.SelfAssignment, this);
-                        }
-                    }
-                }
-
-                if (this.Lhs.DebugId.Id == 1110)
-                {
-                    ;
-                }
-                if (!this.Lhs.IsLValue(ctx))
-                    ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
             }
         }
 

@@ -14,6 +14,39 @@ namespace Skila.Tests.Semantics
     public class Inheritance
     {
         [TestMethod]
+        public IErrorReporter ErrorHeapModifierOnOverride()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
+                    .Modifier(EntityModifier.Base)
+                    .With(FunctionBuilder.Create("f",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement())
+                        .Modifier(EntityModifier.Base)
+                        .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead))));
+
+            FunctionDefinition func = FunctionBuilder.Create("f",
+                     NameFactory.UnitTypeReference(),
+                        Block.CreateStatement())
+                        .Modifier(EntityModifier.Override | EntityModifier.UnchainBase | EntityModifier.HeapOnly)
+                        .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead));
+            root_ns.AddBuilder(TypeBuilder.Create("Parent")
+                    .Modifier(EntityModifier.Base)
+                    .Parents("Grandparent")
+                    .With(func));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapRequirementChangedOnOverride, func));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter MethodNoDominance()
         {
             // https://en.wikipedia.org/wiki/Dominance_(C%2B%2B)#Example_without_diamond_inheritance

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Skila.Tests
 {
-    public static class AssertX
+    public static class AssertReporter
     {
         private static readonly HashSet<string> fails = new HashSet<string>();
         public static IEnumerable<string> Fails => fails;

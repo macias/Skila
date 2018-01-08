@@ -56,6 +56,7 @@ namespace Skila.Language
         public TypeDefinition ISequenceType { get; }
         public TypeDefinition IIterableType { get; }
         public TypeDefinition IIteratorType { get; }
+        public TypeDefinition IndexIteratorType { get; }
         public TypeDefinition IIndexableType { get; }
 
         // starting with Tuple'2
@@ -113,9 +114,9 @@ namespace Skila.Language
                 // no limits
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true))) },
+                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable))) },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
                    Block.CreateStatement(new IExpression[] {
                        Return.Create(NameReference.Create("coll"))
                    })));
@@ -125,11 +126,11 @@ namespace Skila.Language
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
                         NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",overrideMutability:true))),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",overrideMutability:MutabilityFlag.ForceMutable))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
                    },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
                    Block.CreateStatement(new IExpression[] {
                        IfBranch.CreateIf(ExpressionFactory.IsLess(FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount)),
                             NameReference.Create("min")),new[]{ ExpressionFactory.GenericThrow() }),
@@ -141,12 +142,12 @@ namespace Skila.Language
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(
                         NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",overrideMutability:true))),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",overrideMutability:MutabilityFlag.ForceMutable))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
                         FunctionParameter.Create("max", NameFactory.IntTypeReference()),
                     },
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: true)),
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
                     Block.CreateStatement(new IExpression[] {
                         VariableDeclaration.CreateStatement("count",null,
                             FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount))),
@@ -158,26 +159,11 @@ namespace Skila.Language
                     })));
             }
 
-            this.IIterableType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, "ITT", VarianceMode.Out))
-                    .Parents(NameFactory.ObjectTypeReference())
-                    .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("ITT")))
-                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference())))
+            this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
 
-                    .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
-                        NameFactory.IntTypeReference())));
+            this.IIteratorType = this.CollectionsNamespace.AddNode(createIterator());
 
-            this.IIteratorType = this.CollectionsNamespace.AddBuilder(
-                TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIteratorTypeName, "IRT", VarianceMode.Out))
-                .Modifier(EntityModifier.Mutable)
-
-                .With(FunctionBuilder.CreateDeclaration(NameFactory.IteratorNext, ExpressionReadMode.ReadRequired,
-                        NameFactory.BoolTypeReference())
-                        .Modifier(EntityModifier.Mutable))
-
-                .With(FunctionBuilder.CreateDeclaration(NameFactory.IteratorGet, ExpressionReadMode.ReadRequired,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("IRT")))));
+            this.IndexIteratorType = this.CollectionsNamespace.AddNode(createIndexIterator());
 
             this.ISequenceType = this.CollectionsNamespace.AddBuilder(
                 TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "SQT", VarianceMode.Out))
@@ -188,33 +174,9 @@ namespace Skila.Language
 
             this.IIndexableType = this.CollectionsNamespace.AddNode(createIIndexable());
 
-            // todo: in this form this type is broken, size is runtime info, yet we allow the assignment on the stack
-            // however it is not yet decided what we will do, maybe this type will be used only internally, 
-            // maybe we will introduce two kinds of it, etc.
             {
-                IMember chunk_count, chunk_at_get, chunk_at_set;
-
-                this.ChunkType = this.CollectionsNamespace.AddBuilder(
-                    TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, "CHT", VarianceMode.None))
-                        .Modifier(EntityModifier.Mutable)
-                        .Parents(NameFactory.IIndexableTypeReference("CHT")) 
-                        .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
-                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(),
-                                ExpressionReadMode.CannotBeRead)
-                            },
-                            Block.CreateStatement()))
-
-                         .With(PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
-                            .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
-                                .Modifier(EntityModifier.Native | EntityModifier.Override), out chunk_count))
-
-                         .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference("CHT"))
-                            .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference(),
-                                ExpressionReadMode.CannotBeRead))
-                            .With(PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement())
-                                .Modifier(EntityModifier.Native), out chunk_at_set)
-                            .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement())
-                                .Modifier(EntityModifier.Native | EntityModifier.Override), out chunk_at_get)));
+                this.ChunkType = this.CollectionsNamespace.AddNode(createChunk(out IMember chunk_count,
+                    out IMember chunk_at_get, out IMember chunk_at_set));
 
                 this.ChunkAtGet = chunk_at_get.Cast<FunctionDefinition>();
                 this.ChunkAtSet = chunk_at_set.Cast<FunctionDefinition>();
@@ -359,6 +321,54 @@ namespace Skila.Language
             }
         }
 
+        private static TypeDefinition createIIterable()
+        {
+            const string elem_type = "ITT";
+
+            return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, elem_type, VarianceMode.Out))
+                                .Parents(NameFactory.ObjectTypeReference())
+                                .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired,
+                                    NameFactory.ReferenceTypeReference(NameReference.Create(elem_type)))
+                                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference())))
+
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableGetIterator,
+                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type)))
+                    .Modifier(EntityModifier.HeapOnly))   
+
+                                .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
+                                    NameFactory.IntTypeReference()));
+        }
+
+        private static TypeDefinition createChunk(out IMember countGetter, out IMember atGetter, out IMember atSetter)
+        {
+            // todo: in this form this type is broken, size is runtime info, yet we allow the assignment on the stack
+            // however it is not yet decided what we will do, maybe this type will be used only internally, 
+            // maybe we will introduce two kinds of it, etc.
+
+            const string elem_type = "CHT";
+
+            return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, elem_type, VarianceMode.None))
+                    .Modifier(EntityModifier.Mutable)
+                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
+                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(),
+                                ExpressionReadMode.CannotBeRead)
+                        },
+                        Block.CreateStatement()))
+
+                .With(PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
+                        .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
+                            .Modifier(EntityModifier.Native | EntityModifier.Override), out countGetter))
+
+                     .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type))
+                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference(),
+                            ExpressionReadMode.CannotBeRead))
+                        .With(PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement())
+                            .Modifier(EntityModifier.Native), out atSetter)
+                        .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement())
+                            .Modifier(EntityModifier.Native | EntityModifier.Override), out atGetter));
+        }
+
         private static TypeDefinition createIntType(out FunctionDefinition parseString)
         {
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.IntTypeReference()),
@@ -376,6 +386,11 @@ namespace Skila.Language
                     new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.SubOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
@@ -592,6 +607,7 @@ namespace Skila.Language
                 .Parents(NameFactory.ITupleTypeReference(type_parameters.Concat(base_type_name).Select(it => NameReference.Create(it)).ToArray()))
                 .With(ExpressionFactory.BasicConstructor(properties.Select(it => it.Name.Name).ToArray(),
                      type_parameters.Select(it => NameReference.Create(it)).ToArray()))
+
                 .With(properties)
 
                 .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(base_type_name))
@@ -601,6 +617,7 @@ namespace Skila.Language
 
                 .Constraints(TemplateConstraint.Create(base_type_name, null, null, null, type_parameters.Select(it => NameReference.Create(it))));
 
+            // creating static factory method for the above tuple
 
             NameReference func_result_typename = NameFactory.TupleTypeReference(type_parameters.Concat(base_type_name)
                 .Select(it => NameReference.Create(it)).ToArray());
@@ -618,17 +635,96 @@ namespace Skila.Language
             return builder;
         }
 
+        private static TypeDefinition createIterator()
+        {
+            const string elem_type = "IRT";
+            return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIteratorTypeName, elem_type, VarianceMode.Out))
+                            .Modifier(EntityModifier.Mutable)
+
+                            .With(FunctionBuilder.CreateDeclaration(NameFactory.IteratorNext, ExpressionReadMode.ReadRequired,
+                                    NameFactory.BoolTypeReference())
+                                    .Modifier(EntityModifier.Mutable))
+
+                            .With(FunctionBuilder.CreateDeclaration(NameFactory.IteratorGet, ExpressionReadMode.ReadRequired,
+                                    NameFactory.ReferenceTypeReference(NameReference.Create(elem_type))));
+        }
+
+        private static TypeDefinition createIndexIterator()
+        {
+            const string elem_type_name = "XIT";
+            const string coll_name = "coll";
+            const string index_name = "index";
+            const string invalid = "invalid";
+
+            TypeBuilder builder = TypeBuilder.Create(
+                NameDefinition.Create(NameFactory.IndexIteratorTypeName,
+                    TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
+
+                .Modifier(EntityModifier.Mutable)
+                .Parents(NameFactory.IIteratorTypeReference(elem_type_name))
+
+                .With(VariableDeclaration.CreateStatement(index_name,
+                    NameFactory.IntTypeReference(), IntLiteral.Create("-1"), EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement(coll_name,
+                    NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name, 
+                        overrideMutability: MutabilityFlag.Neutral)),
+                    Undef.Create()))
+
+                .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
+                    new[] { NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name, 
+                        overrideMutability: MutabilityFlag.Neutral)) }))
+
+                 .With(FunctionBuilder.Create(invalid, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.CreateThised(index_name),
+                            ExpressionFactory.Sub(NameReference.CreateThised(coll_name, NameFactory.IterableCount),
+                                IntLiteral.Create("1"))),
+                            new[] { Return.Create(BoolLiteral.CreateFalse()) }),
+                        Return.Create(BoolLiteral.CreateTrue())
+                        ))
+                      .Modifier(EntityModifier.Private))
+
+                 .With(FunctionBuilder.Create(NameFactory.IteratorNext, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        IfBranch.CreateIf(FunctionCall.Create(NameReference.CreateThised(invalid)),
+                            new[] { Return.Create(BoolLiteral.CreateFalse()) }),
+                        Assignment.CreateStatement(NameReference.CreateThised(index_name),
+                            ExpressionFactory.Add(NameReference.CreateThised(index_name), IntLiteral.Create("1"))),
+                        Return.Create(BoolLiteral.CreateTrue())
+                        ))
+                      .Modifier(EntityModifier.Mutable | EntityModifier.Override))
+
+                  .With(FunctionBuilder.Create(NameFactory.IteratorGet,
+                          NameFactory.ReferenceTypeReference(NameReference.Create(elem_type_name)),
+                          Block.CreateStatement(
+                        IfBranch.CreateIf(FunctionCall.Create(NameReference.CreateThised(invalid)),
+                            new[] { ExpressionFactory.GenericThrow() }),
+                        Return.Create(FunctionCall.Indexer(NameReference.CreateThised(coll_name), NameReference.CreateThised(index_name)))
+                              ))
+                      .Modifier(EntityModifier.Override))
+            ;
+
+            return builder;
+
+        }
         private static TypeDefinition createIIndexable()
         {
-            const string base_type_name = "IXT";
+            const string elem_type_name = "IXT";
 
             TypeBuilder builder = TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.IIndexableTypeName,
-                    TemplateParametersBuffer.Create(VarianceMode.Out, base_type_name).Values))
+                    TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .Parents(NameFactory.ISequenceTypeReference(NameReference.Create(base_type_name)))
+                .Parents(NameFactory.ISequenceTypeReference(NameReference.Create(elem_type_name)))
 
-                .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(base_type_name))
+                .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
+                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.StackConstructor(NameFactory.IndexIteratorTypeReference(elem_type_name),
+                            NameFactory.ThisReference()))))
+                    .Modifier(EntityModifier.HeapOnly | EntityModifier.Override))
+
+                .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type_name))
                     .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(body: null)
                         .Modifier(EntityModifier.Override)));

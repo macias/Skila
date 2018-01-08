@@ -79,7 +79,7 @@
     <Compile Include="Semantics\Exceptions.cs" />
     <Compile Include="Semantics\Properties.cs" />
     <Compile Include="Semantics\Types.cs" />
-    <Compile Include="Assert.cs" />
+    <Compile Include="AssertReporter.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Semantics\Variables.cs" />
     <Compile Include="Semantics\TypeMatching.cs" />

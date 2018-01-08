@@ -12,6 +12,35 @@ namespace Skila.Tests.Semantics
     public class MemoryClasses
     {
         [TestMethod]
+        public IErrorReporter ErrorCallingHeapMethodOnValue()
+        {
+            var env = Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Hi")
+                .With(FunctionBuilder.Create("give",NameFactory.UnitTypeReference(),Block.CreateStatement())
+                    .Modifier(EntityModifier.HeapOnly)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("v", "give"));
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("notimportant"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("v",null, ExpressionFactory.StackConstructor("Hi")),
+                    call
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CallingHeapFunctionWithValue, call));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorPersistentReferenceType()
         {
             var env = Language.Environment.Create(new Options()
