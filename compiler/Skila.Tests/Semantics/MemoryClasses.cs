@@ -5,6 +5,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Semantics;
+using Skila.Language.Flow;
 
 namespace Skila.Tests.Semantics
 {
@@ -12,13 +13,39 @@ namespace Skila.Tests.Semantics
     public class MemoryClasses
     {
         [TestMethod]
+        public IErrorReporter ErrorEscapingReference()
+        {
+            var env = Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Hi")
+                .With(FunctionBuilder.Create("give", NameFactory.UnitTypeReference(), Block.CreateStatement())));
+
+            Return ret = Return.Create(ExpressionFactory.StackConstructor("Hi"));
+            root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.ReferenceTypeReference("Hi"),
+
+                Block.CreateStatement(
+                    ret
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference,ret.Expr));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorCallingHeapMethodOnValue()
         {
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Hi")
-                .With(FunctionBuilder.Create("give",NameFactory.UnitTypeReference(),Block.CreateStatement())
+                .With(FunctionBuilder.Create("give", NameFactory.UnitTypeReference(), Block.CreateStatement())
                     .Modifier(EntityModifier.HeapOnly)));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("v", "give"));
@@ -28,7 +55,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
 
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("v",null, ExpressionFactory.StackConstructor("Hi")),
+                    VariableDeclaration.CreateStatement("v", null, ExpressionFactory.StackConstructor("Hi")),
                     call
                 )));
 
@@ -62,7 +89,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     decl2,
                     ExpressionFactory.Readout("bar")
@@ -87,14 +114,14 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.HeapOnly)
                 .Parents(NameFactory.ObjectTypeReference()));
 
-            var decl = VariableDeclaration.CreateStatement("bar", NameReference.Create("Hi"), 
+            var decl = VariableDeclaration.CreateStatement("bar", NameReference.Create("Hi"),
                 Undef.Create());
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     decl,
                     ExpressionFactory.Readout("bar")
@@ -122,7 +149,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
@@ -152,7 +179,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
@@ -176,7 +203,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("main"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create( IntLiteral.Create("5")))
                 })));
@@ -184,7 +211,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement())
                 .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
                     usageMode: ExpressionReadMode.CannotBeRead)));

@@ -12,5 +12,10 @@ namespace Skila.Language
             this.Base = @base;
             this.Derived = derived;
         }
+
+        public override string ToString()
+        {
+            return $"{this.Base}  -->  {this.Derived}";
+        }
     }
 }

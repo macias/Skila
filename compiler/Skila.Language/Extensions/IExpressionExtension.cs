@@ -26,14 +26,14 @@ namespace Skila.Language.Extensions
             }
         }
 
-        public static IMember TargetsCurrentInstanceMember(this IExpression expr)
+        public static bool TargetsCurrentInstanceMember(this IExpression expr,out IMember member)
         {
-            IMember member = expr.TryGetTargetEntity<IMember>(out NameReference name_ref);
+            member = expr.TryGetTargetEntity<IMember>(out NameReference name_ref);
             if (member != null && (name_ref.HasThisPrefix || name_ref.HasBasePrefix
                 || (name_ref.Prefix == null && member.Owner == expr.EnclosingScope<TypeDefinition>())))
-                return member;
+                return true;
             else
-                return null;
+                return false;
         }
 
         public static bool IsValue(this IExpression @this, IOptions options)

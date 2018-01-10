@@ -148,7 +148,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 25762)
+            if (this.DebugId.Id ==  26148)
             {
                 ;
             }
@@ -224,7 +224,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 4786)
+            if (this.DebugId.Id ==  26148)
             {
                 ;
             }
@@ -307,7 +307,7 @@ namespace Skila.Language
             }
             else
             {
-                if (this.DebugId.Id == 1734)
+                if (this.DebugId.Id == 26148)
                 {
                     ;
                 }
@@ -333,7 +333,7 @@ namespace Skila.Language
                 }
                 else
                 {
-                    if (this.DebugId.Id == 3114)
+                    if (this.DebugId.Id ==  26148)
                     {
                         ;
                     }

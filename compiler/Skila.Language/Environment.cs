@@ -332,8 +332,8 @@ namespace Skila.Language
                                     .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference())))
 
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type)))
-                    .Modifier(EntityModifier.HeapOnly))   
+                    NameFactory.PointerTypeReference(NameFactory.IIteratorTypeReference(elem_type)))
+                    .Modifier(EntityModifier.HeapOnly))
 
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
                                     NameFactory.IntTypeReference()));
@@ -654,7 +654,6 @@ namespace Skila.Language
             const string elem_type_name = "XIT";
             const string coll_name = "coll";
             const string index_name = "index";
-            const string invalid = "invalid";
 
             TypeBuilder builder = TypeBuilder.Create(
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
@@ -666,38 +665,28 @@ namespace Skila.Language
                 .With(VariableDeclaration.CreateStatement(index_name,
                     NameFactory.IntTypeReference(), IntLiteral.Create("-1"), EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement(coll_name,
-                    NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name, 
+                    NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
                         overrideMutability: MutabilityFlag.Neutral)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name, 
+                    new[] { NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
                         overrideMutability: MutabilityFlag.Neutral)) }))
-
-                 .With(FunctionBuilder.Create(invalid, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement(
-                        IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.CreateThised(index_name),
-                            ExpressionFactory.Sub(NameReference.CreateThised(coll_name, NameFactory.IterableCount),
-                                IntLiteral.Create("1"))),
-                            new[] { Return.Create(BoolLiteral.CreateFalse()) }),
-                        Return.Create(BoolLiteral.CreateTrue())
-                        ))
-                      .Modifier(EntityModifier.Private))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(
-                        IfBranch.CreateIf(FunctionCall.Create(NameReference.CreateThised(invalid)),
-                            new[] { Return.Create(BoolLiteral.CreateFalse()) }),
                         Assignment.CreateStatement(NameReference.CreateThised(index_name),
                             ExpressionFactory.Add(NameReference.CreateThised(index_name), IntLiteral.Create("1"))),
-                        Return.Create(BoolLiteral.CreateTrue())
+                        Return.Create(ExpressionFactory.IsLess(NameReference.CreateThised(index_name),
+                            NameReference.CreateThised(coll_name, NameFactory.IterableCount)))
                         ))
                       .Modifier(EntityModifier.Mutable | EntityModifier.Override))
 
                   .With(FunctionBuilder.Create(NameFactory.IteratorGet,
                           NameFactory.ReferenceTypeReference(NameReference.Create(elem_type_name)),
                           Block.CreateStatement(
-                        IfBranch.CreateIf(FunctionCall.Create(NameReference.CreateThised(invalid)),
+                        IfBranch.CreateIf(ExpressionFactory.IsGreaterEqual(NameReference.CreateThised(index_name),
+                            NameReference.CreateThised(coll_name, NameFactory.IterableCount)),
                             new[] { ExpressionFactory.GenericThrow() }),
                         Return.Create(FunctionCall.Indexer(NameReference.CreateThised(coll_name), NameReference.CreateThised(index_name)))
                               ))
@@ -718,9 +707,9 @@ namespace Skila.Language
                 .Parents(NameFactory.ISequenceTypeReference(NameReference.Create(elem_type_name)))
 
                 .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
+                    NameFactory.PointerTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.StackConstructor(NameFactory.IndexIteratorTypeReference(elem_type_name),
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IndexIteratorTypeReference(elem_type_name),
                             NameFactory.ThisReference()))))
                     .Modifier(EntityModifier.HeapOnly | EntityModifier.Override))
 

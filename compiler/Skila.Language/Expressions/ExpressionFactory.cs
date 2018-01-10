@@ -191,6 +191,10 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.EqualOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression IsGreaterEqual(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.GreaterEqualOperator), FunctionArgument.Create(rhs));
+        }
         public static IExpression IsLess(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.LessOperator), FunctionArgument.Create(rhs));

@@ -79,14 +79,6 @@ namespace Skila.Interpreter
                 if (count < 0)
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-                if (count == 0)
-                {
-                    if (obj.Fields.Any(it => it.Key.Name.Name == "coll"))
-                    {
-                        ;
-                    }
-                }
-
                 if (count == 0 && !passingOut)
                 {
                     this.refCounts.Remove(obj);

@@ -131,7 +131,7 @@ namespace Skila.Language.Entities
 
             }
 
-            if (this.DebugId.Id == 4631)
+            if (this.DebugId.Id == 5252)
             {
                 ;
             }
@@ -171,6 +171,10 @@ namespace Skila.Language.Entities
                     inherited_member_instances.Add(translated);
                 }
 
+                if (this.DebugId.Id == 5252)
+                {
+                    ;
+                }
 
                 foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.AllNestedFunctions))
                 {
@@ -229,21 +233,22 @@ namespace Skila.Language.Entities
 
             foreach (FunctionDefinition missing_impl in missing_func_implementations)
             {
-                bool found = false;
-                foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
-                {
-
-                    if (ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(missing_impl, out FunctionDefinition dummy))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
+                if (!isDerivedByAncestors(missing_impl))
                 {
                     ctx.AddError(ErrorCode.VirtualFunctionMissingImplementation, this, missing_impl);
                 }
+            }
+
+            // here we eliminate "duplicate" entries -- if we have some method in ancestor A
+            // and this method is overridden in ancestor B, then we would like to have
+            // only method B listed, not both
+            foreach (EntityInstance inherited in inherited_member_instances.ToArray())
+            {
+                IEntity target = inherited.Target;
+                if (target is Property prop)
+                    target = prop.Getter;
+                if (target is FunctionDefinition func && isDerivedByAncestors(func))
+                    inherited_member_instances.Remove(inherited);
             }
 
             this.InheritanceVirtualTable = virtual_mapping;
@@ -255,6 +260,19 @@ namespace Skila.Language.Entities
                 ctx.AddError(ErrorCode.NothingToOverride, func);
 
             this.isEvaluated = true;
+        }
+
+        private bool isDerivedByAncestors(FunctionDefinition baseFunction)
+        {
+            foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+            {
+                if (ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(baseFunction, out FunctionDefinition dummy))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void Validate(ComputationContext ctx)
@@ -283,14 +301,14 @@ namespace Skila.Language.Entities
             if (!this.Modifier.HasMutable)
             {
                 foreach (NameReference parent in this.ParentNames)
-                    if (parent.Evaluation.Components.MutabilityOfType(ctx)== MutabilityFlag.ForceMutable )
+                    if (parent.Evaluation.Components.MutabilityOfType(ctx) == MutabilityFlag.ForceMutable)
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
 
                 foreach (VariableDeclaration field in this.AllNestedFields)
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (field.Evaluated(ctx).MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
+                    if (field.Evaluated(ctx).MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions
@@ -300,7 +318,7 @@ namespace Skila.Language.Entities
                 }
 
                 foreach (Property property in this.NestedProperties
-                    .Where(it => it.Setter!=null))
+                    .Where(it => it.Setter != null))
                 {
                     ctx.AddError(ErrorCode.PropertySetterInImmutableType, property);
                 }

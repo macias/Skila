@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
-            //new Semantics.MemoryClasses().ErrorCallingHeapMethodOnValue();
+            //new Semantics.MemoryClasses().ErrorEscapingReference();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
             // new Semantics.NameResolution().ResolvingIt();
@@ -37,7 +37,7 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
              // new Execution.Closures().PassingLocalVariables();
-            // new Execution.Collections().TODO_IteratingOverTuple();
+             new Execution.Collections().IteratingOverTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
@@ -49,6 +49,7 @@ namespace Skila.Tests
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
 
+            //if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
@@ -59,6 +60,7 @@ namespace Skila.Tests
 
             Console.WriteLine();
 
+            //if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);

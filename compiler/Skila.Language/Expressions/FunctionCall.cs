@@ -155,9 +155,9 @@ namespace Skila.Language.Expressions
             }
 
             {
-                FunctionDefinition callee = this.Name.TargetsCurrentInstanceMember().Cast<FunctionDefinition>();
-                if (callee != null)
+                if (this.Name.TargetsCurrentInstanceMember(out IMember member))
                 {
+                    FunctionDefinition callee = member.CastFunction();
                     FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                     if (!func.Modifier.HasMutable && !func.IsAnyConstructor() && callee.Modifier.HasMutable)
                     {
@@ -226,7 +226,7 @@ namespace Skila.Language.Expressions
                     }
                 }
 
-                IEnumerable<EntityInstance> matches = Name.Binding.Matches
+                IEnumerable<EntityInstance> matches = this.Name.Binding.Matches
                     .Select(it =>
                     {
                         if (it.Target.IsFunction())

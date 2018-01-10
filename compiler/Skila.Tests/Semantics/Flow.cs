@@ -95,7 +95,7 @@ namespace Skila.Tests.Semantics
                 // we interrupt this loop with "continue", so step is reachable
                 var inner_loop = Loop.CreateFor(
                         init: null,
-                        preCheck: null,
+                        condition: null,
                         step: new IExpression[] { Assignment.CreateStatement(NameReference.Create("s"), IntLiteral.Create("5")) },
                         body: new IExpression[] {
                         if_double_jump,
@@ -106,7 +106,7 @@ namespace Skila.Tests.Semantics
                 // since step is executed after the body is executed, from its POV the variable can be read
                 var outer_loop = Loop.CreateFor(NameDefinition.Create("outer"),
                         init: null,
-                        preCheck: null,
+                        condition: null,
                         step: new IExpression[] { VariableDeclaration.CreateStatement("m3", null, NameReference.Create("s")),
                                                   Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m3")) },
                         body: new IExpression[] {
@@ -258,7 +258,7 @@ namespace Skila.Tests.Semantics
             var dead_step = ExpressionFactory.Readout("i");
             var loop = Loop.CreateFor(NameDefinition.Create("pool"),
                 init: new[] { VariableDeclaration.CreateStatement("i", null, IntLiteral.Create("5")) },
-                preCheck: BoolLiteral.CreateTrue(),
+                condition: BoolLiteral.CreateTrue(),
                 step: new[] { dead_step },
                 body: new IExpression[] { LoopInterrupt.CreateBreak("pool") });
 
@@ -292,7 +292,7 @@ namespace Skila.Tests.Semantics
             var dead_step = ExpressionFactory.Readout("i");
             var loop = Loop.CreateFor(NameDefinition.Create("pool"),
                 init: new[] { VariableDeclaration.CreateStatement("i", null, IntLiteral.Create("5")) },
-                preCheck: BoolLiteral.CreateTrue(),
+                condition: BoolLiteral.CreateTrue(),
                 step: new[] { dead_step },
                 body: new IExpression[] { LoopInterrupt.CreateBreak("pool"), dead_return });
 
@@ -434,7 +434,7 @@ namespace Skila.Tests.Semantics
             var str_literal = DoubleLiteral.Create("3.3");
 
             var loop = Loop.CreateFor(init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
-                preCheck: str_literal,
+                condition: str_literal,
                 step: new[] { ExpressionFactory.Readout("x") },
                 body: new IExpression[] { });
 
@@ -456,7 +456,7 @@ namespace Skila.Tests.Semantics
 
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
                 init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
-                preCheck: BoolLiteral.CreateTrue(),
+                condition: BoolLiteral.CreateTrue(),
                 step: null,
                 body: new[] {
                     ExpressionFactory.Readout("x"),
@@ -480,7 +480,7 @@ namespace Skila.Tests.Semantics
             var step = ExpressionFactory.Readout("x");
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
                 init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
-                preCheck: BoolLiteral.CreateTrue(),
+                condition: BoolLiteral.CreateTrue(),
                 step: new[] { step },
                 body: new[] { LoopInterrupt.CreateBreak("foo") });
 
@@ -503,7 +503,7 @@ namespace Skila.Tests.Semantics
             var step = ExpressionFactory.Readout("x");
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
                 init: new[] { VariableDeclaration.CreateStatement("x", null, IntLiteral.Create("5")) },
-                preCheck: BoolLiteral.CreateTrue(),
+                condition: BoolLiteral.CreateTrue(),
                 step: new[] { step },
                 body: new[] { LoopInterrupt.CreateContinue("foo") });
 

@@ -229,7 +229,7 @@ namespace Skila.Tests.Semantics
             var decl2 = VariableDeclaration.CreateStatement("t", NameFactory.IntTypeReference(), null);
             var loop = Loop.CreateFor(NameDefinition.Create("here"),
               init: null,
-              preCheck: null,
+              condition: null,
               step: null,
               body: new IExpression[] { decl1, decl2 });
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(

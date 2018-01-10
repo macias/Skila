@@ -93,5 +93,6 @@
         HeapRequirementChangedOnOverride = 89,
         CallingHeapFunctionWithValue = 90,
         AlteringNonMutableInstance = 91,
+        EscapingReference = 92,
     }
 }

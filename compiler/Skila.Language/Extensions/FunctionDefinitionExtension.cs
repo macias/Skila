@@ -145,6 +145,10 @@ namespace Skila.Language.Extensions
         public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc,
             FunctionDefinition baseFunc, EntityInstance baseTemplate)
         {
+            if (baseFunc.DebugId.Id==1104)
+            {
+                ;
+            }
             if (derivedFunc.IsPropertyAccessor(out Property derived_prop))
             {
                 if (baseFunc.IsPropertyAccessor(out Property base_prop))

@@ -115,7 +115,7 @@ namespace Skila.Language.Expressions
 
             RhsValue.ValidateValueExpression(ctx);
 
-            bool targets_this_instance = this.Lhs.TargetsCurrentInstanceMember() != null;
+            bool targets_this_instance = this.Lhs.TargetsCurrentInstanceMember(out IMember dummy);
             if (targets_this_instance)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();

@@ -14,18 +14,18 @@ namespace Skila.Language.Flow
     public sealed class Loop : Node, IExpression, IExecutableScope, IAnchor
     {
         public static Loop CreateFor(NameDefinition label, IEnumerable<IExpression> init,
-            IExpression preCheck,
+            IExpression condition,
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(label, init, preCheck, body, postStep: step, postCheck: null);
+            return new Loop(label, init, condition, body, postStep: step, postCondition: null);
         }
         public static Loop CreateFor(IEnumerable<IExpression> init,
-            IExpression preCheck,
+            IExpression condition,
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(null, init, preCheck, body, postStep: step, postCheck: null);
+            return new Loop(null, init, condition, body, postStep: step, postCondition: null);
         }
 
         public static Loop CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
@@ -35,10 +35,11 @@ namespace Skila.Language.Flow
             VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter, null,
                 FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
             return new Loop(null, new[] { iter_decl },
-                preCheck: FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorNext)),
+                preCondition: FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorNext)),
                 body: VariableDeclaration.CreateStatement(varName, varTypeName,
                     FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorGet)))
-                    .Concat(body), postStep: null, postCheck: null);
+                    .Concat(body), 
+                postStep: null, postCondition: null);
         }
 
         private bool? isRead;
@@ -48,15 +49,16 @@ namespace Skila.Language.Flow
 
         public NameDefinition Name { get; }
         public IEnumerable<IExpression> Init { get; }
-        private IExpression preCheck;
-        public IExpression PreCheck => this.preCheck;
+        private IExpression preCondition;
+        public IExpression PreCondition => this.preCondition;
         public IEnumerable<IExpression> PostStep { get; }
         public IEnumerable<IExpression> Body { get; }
-        private IExpression postCheck;
-        public IExpression PostCheck => this.postCheck;
+        // same meaning as pre- version, when it fails, loop ends
+        private IExpression postCondition;
+        public IExpression PostCondition => this.postCondition;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Name }.Concat(Init).Concat(PreCheck).Concat(Body).Concat(PostStep).Concat(PostCheck).Where(it => it != null);
-        public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCheck), maybePath: Body, postMaybes: PostStep.Concat(PostCheck));
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Name }.Concat(Init).Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
+        public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCondition), maybePath: Body, postMaybes: PostStep.Concat(PostCondition));
 
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
@@ -66,23 +68,23 @@ namespace Skila.Language.Flow
 
         private Loop(NameDefinition label,
             IEnumerable<IExpression> init,
-            IExpression preCheck,
+            IExpression preCondition,
             IEnumerable<IExpression> body,
             IEnumerable<IExpression> postStep,
-            IExpression postCheck)
+            IExpression postCondition)
         {
             // execute init expression, then iterate, each iteration is
-            // pre-check
+            // pre-condition
             // body
             // step
-            // post-check
+            // post-condition
 
             this.Name = label;
             this.Init = (init ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
-            this.preCheck = preCheck;
+            this.preCondition = preCondition;
             this.PostStep = (postStep ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.Body = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
-            this.postCheck = postCheck;
+            this.postCondition = postCondition;
 
             this.ReadMode = ExpressionReadMode.CannotBeRead; // todo: temporary state
 
@@ -97,7 +99,7 @@ namespace Skila.Language.Flow
 
         public bool IsReadingValueOfNode(IExpression node)
         {
-            return this.PreCheck == node || this.PostCheck == node;
+            return this.PreCondition == node || this.PostCondition == node;
         }
 
         public void Validate(ComputationContext ctx)
@@ -109,8 +111,8 @@ namespace Skila.Language.Flow
             {
                 this.Evaluation = ctx.Env.UnitEvaluation;
 
-                this.DataTransfer(ctx, ref this.preCheck, ctx.Env.BoolType.InstanceOf);
-                this.DataTransfer(ctx, ref this.postCheck, ctx.Env.BoolType.InstanceOf);
+                this.DataTransfer(ctx, ref this.preCondition, ctx.Env.BoolType.InstanceOf);
+                this.DataTransfer(ctx, ref this.postCondition, ctx.Env.BoolType.InstanceOf);
             }
         }
         public bool IsLValue(ComputationContext ctx)

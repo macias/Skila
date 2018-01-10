@@ -11,8 +11,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Collections
     {
-        //[TestMethod]
-        public IInterpreter TODO_IteratingOverTuple()
+        [TestMethod]
+        public IInterpreter IteratingOverTuple()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;

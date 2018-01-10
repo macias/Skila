@@ -282,7 +282,7 @@ namespace Skila.Interpreter
 
         public void Assign(ObjectData source)
         {
-            if (source.isFreed)
+            if (this.isFreed || source.isFreed)
                 throw new ObjectDisposedException($"{source}");
 
             if (source.DebugId.Id == 2942 || source.DebugId.Id == 2938)

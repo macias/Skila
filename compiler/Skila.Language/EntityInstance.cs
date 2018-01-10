@@ -57,6 +57,7 @@ namespace Skila.Language
 
         public IEntity Target => this.Core.Target;
         public TypeDefinition TargetType => this.Target.CastType();
+        public FunctionDefinition TargetFunction => this.Target.CastFunction();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
         public IReadOnlyList<IEntityInstance> TemplateArguments => this.Core.TemplateArguments;
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
