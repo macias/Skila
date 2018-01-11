@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
-            //new Semantics.MemoryClasses().ErrorEscapingReference();
+            //new Semantics.MemoryClasses().ErrorViolatingRefereeLifetime();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
             // new Semantics.NameResolution().ResolvingIt();
@@ -36,8 +36,8 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-             // new Execution.Closures().PassingLocalVariables();
-             new Execution.Collections().IteratingOverTuple();
+            //new Execution.Closures().PassingLocalVariables();
+            new Execution.Collections().IteratingOverTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();

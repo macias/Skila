@@ -279,6 +279,45 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
+            if (this.Modifier.HasRefereeLifetime)
+            {
+                if (!this.Modifier.IsSealed)
+                    ctx.AddError(ErrorCode.RefereeLifetimeRequiresSealedType, this.Modifier);
+
+                {
+                    IEnumerable<FunctionDefinition> constructors = this.NestedFunctions.Where(it => it.IsInitConstructor());
+
+                    foreach (FunctionDefinition cons in constructors.Skip(1))
+                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleConstructor, cons);
+
+                    FunctionDefinition primary_cons = constructors.First();
+                    if (primary_cons.Parameters.Count != 1)
+                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleParameter, primary_cons);
+                    else
+                    {
+                        FunctionParameter cons_param = primary_cons.Parameters.Single();
+                        if (!ctx.Env.IsReferenceOfType(cons_param.TypeName.Evaluation.Components))
+                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresReferenceParameter, cons_param.TypeName);
+                        else if (cons_param.IsVariadic)
+                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresNonVariadicParameter, cons_param);
+                        else if (cons_param.IsOptional)
+                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresNonOptionalParameter, cons_param);
+                    }
+                }
+
+                {
+                    IEnumerable<VariableDeclaration> ref_fields = this.NestedFields
+                        .Where(it => ctx.Env.IsReferenceOfType(it.Evaluation.Components));
+
+                    foreach (VariableDeclaration decl in ref_fields.Skip(1))
+                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleReferenceField,decl);
+
+                    VariableDeclaration primary = ref_fields.FirstOrDefault();
+                    if (primary != null && primary.Modifier.HasReassignable)
+                        ctx.AddError(ErrorCode.ReferenceFieldCannotBeReassignable, primary);
+                }
+            }
+
             foreach (NameReference parent in this.ParentNames.Skip(1))
                 if (parent.Evaluation.Components.Cast<EntityInstance>().TargetType.IsTypeImplementation)
                     ctx.AddError(ErrorCode.TypeImplementationAsSecondaryParent, parent);

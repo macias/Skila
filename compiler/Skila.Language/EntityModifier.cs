@@ -31,7 +31,8 @@ namespace Skila.Language
             Native, // info for compiler whether to call real function or use low-evel instruction
             Enum,
             Pinned,
-            Final
+            Final,
+            RefereeLifetime,
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -54,6 +55,7 @@ namespace Skila.Language
         public static readonly EntityModifier Enum = new EntityModifier(ModifierIndex.Enum);
         public static readonly EntityModifier Pinned = new EntityModifier(ModifierIndex.Pinned);
         public static readonly EntityModifier Final = new EntityModifier(ModifierIndex.Final);
+        public static readonly EntityModifier RefereeLifetime = new EntityModifier(ModifierIndex.RefereeLifetime);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -77,6 +79,7 @@ namespace Skila.Language
         public bool HasEnum => this.flags[(int)ModifierIndex.Enum] > 0;
         public bool HasPinned => this.flags[(int)ModifierIndex.Pinned] > 0;
         public bool HasFinal => this.flags[(int)ModifierIndex.Final] > 0;
+        public bool HasRefereeLifetime => this.flags[(int)ModifierIndex.RefereeLifetime] > 0;
 
         public bool IsSealed => (!this.HasInterface // makes sense only for types
                                  && !this.IsPolymorphic)

@@ -18,7 +18,7 @@ namespace Skila.Language
 
         public void DetachFrom(INode owner)
         {
-            if (this.DebugId.Id== 3183)
+            if (this.DebugId.Id == 123498)
             {
                 ;
             }

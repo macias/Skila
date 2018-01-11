@@ -94,5 +94,13 @@
         CallingHeapFunctionWithValue = 90,
         AlteringNonMutableInstance = 91,
         EscapingReference = 92,
+        RefereeLifetimeRequiresSealedType = 93,
+        RefereeLifetimeRequiresSingleConstructor = 94,
+        RefereeLifetimeRequiresSingleParameter = 95,
+        RefereeLifetimeRequiresSingleReferenceField = 96,
+        ReferenceFieldCannotBeReassignable = 97,
+        RefereeLifetimeRequiresReferenceParameter = 98,
+        RefereeLifetimeRequiresNonVariadicParameter = 99,
+        RefereeLifetimeRequiresNonOptionalParameter = 100,
     }
 }

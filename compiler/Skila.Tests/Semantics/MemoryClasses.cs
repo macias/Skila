@@ -13,6 +13,78 @@ namespace Skila.Tests.Semantics
     public class MemoryClasses
     {
         [TestMethod]
+        public IErrorReporter ErrorViolatingRefereeLifetime()
+        {
+            var env = Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            FunctionDefinition first_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.UnchainBase)
+                    .Parameters(FunctionParameter.Create("y", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead));
+
+            FunctionDefinition second_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.UnchainBase)
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead));
+
+            VariableDeclaration first_field = VariableDeclaration.CreateStatement("a", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                    Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public);
+
+            VariableDeclaration second_field = VariableDeclaration.CreateStatement("b", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                    Undef.Create(), EntityModifier.Public);
+
+            TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create("Hi")
+                .Modifier(EntityModifier.Base | EntityModifier.RefereeLifetime | EntityModifier.Mutable)
+                .With(first_field)
+                .With(second_field)
+                .With(first_constructor)
+                .With(second_constructor));
+
+            NameReference parameter_typename = NameFactory.IntTypeReference();
+            root_ns.AddBuilder(TypeBuilder.Create("HelloValue")
+                .Modifier(EntityModifier.RefereeLifetime | EntityModifier.Mutable)
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.UnchainBase)
+                    .Parameters(FunctionParameter.Create("x", parameter_typename, ExpressionReadMode.CannotBeRead))));
+
+            FunctionParameter variadic_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                        Variadic.Create(2, 5), null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
+            root_ns.AddBuilder(TypeBuilder.Create("HelloVariadic")
+                .Modifier(EntityModifier.RefereeLifetime | EntityModifier.Mutable)
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.UnchainBase)
+                    .Parameters(variadic_param)));
+
+            FunctionParameter optional_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                        Variadic.None, IntLiteral.Create("0"), isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
+            root_ns.AddBuilder(TypeBuilder.Create("HelloOptional")
+                .Modifier(EntityModifier.RefereeLifetime | EntityModifier.Mutable)
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.UnchainBase)
+                    .Parameters(optional_param)));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(8, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresSealedType, type.Modifier));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresSingleParameter, first_constructor));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresSingleConstructor, second_constructor));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceFieldCannotBeReassignable, first_field));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresSingleReferenceField, second_field));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresReferenceParameter, parameter_typename));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresNonVariadicParameter, variadic_param));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.RefereeLifetimeRequiresNonOptionalParameter, optional_param));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorEscapingReference()
         {
             var env = Language.Environment.Create(new Options() { });
@@ -33,7 +105,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference,ret.Expr));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, ret.Expr));
 
             return resolver;
         }

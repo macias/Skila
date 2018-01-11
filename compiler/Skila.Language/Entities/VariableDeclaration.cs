@@ -66,6 +66,10 @@ namespace Skila.Language.Entities
 
         public override bool AttachTo(INode owner)
         {
+            if (this.DebugId.Id == 123498)
+            {
+                ;
+            }
             if (!base.AttachTo(owner))
                 return false;
 
@@ -168,81 +172,73 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.Evaluation == null)
+            if (this.Evaluation != null)
+                return;
+
+            if (this.DebugId.Id == 25765)
             {
-                if (this.DebugId.Id == 25765)
+                ;
+            }
+
+            this.TrapClosure(ctx, ref this.initValue);
+
+            IEntityInstance init_eval = InitValue?.Evaluation?.Components;
+
+            IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
+            if (tn_eval != null
+                && ((InitValue == null && this.isGlobalVariable())
+                    || (this.IsField() && this.autoFieldDefaultInit != null)))
+            {
+                if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
                 {
-                    ;
-                }
-
-                this.TrapClosure(ctx, ref this.initValue);
-
-                IEntityInstance init_eval = InitValue?.Evaluation?.Components;
-
-                IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
-                if (tn_eval != null
-                    && ((InitValue == null && this.isGlobalVariable())
-                        || (this.IsField() && this.autoFieldDefaultInit != null)))
-                {
-                    if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
+                    TypeDefinition type_def = type_instance.TargetType;
+                    if (!type_def.HasDefaultConstructor())
                     {
-                        TypeDefinition type_def = type_instance.TargetType;
-                        if (!type_def.HasDefaultConstructor())
-                        {
-                            ctx.ErrorManager.AddErrorTranslation(ErrorCode.TargetFunctionNotFound, this.autoFieldDefaultInit,
-                            ErrorCode.NoDefaultConstructor, this);
-                        }
+                        ctx.ErrorManager.AddErrorTranslation(ErrorCode.TargetFunctionNotFound, this.autoFieldDefaultInit,
+                        ErrorCode.NoDefaultConstructor, this);
                     }
-                    else
-                    {
-                        ctx.AddError(ErrorCode.CannotAutoInitializeCompoundType, this);
-                    }
-                }
-
-                IEntityInstance this_eval = null;
-                EntityInstance this_aggregate = null;
-
-                if (tn_eval != null)
-                {
-                    this_eval = tn_eval;
-                    this_aggregate = this.TypeName.Evaluation.Aggregate;
-                }
-                else if (init_eval != null)
-                {
-                    this_eval = init_eval;
-                    this_aggregate = this.InitValue.Evaluation.Aggregate;
                 }
                 else
-                    ctx.AddError(ErrorCode.MissingTypeAndValue, this);
-
-                if (this_eval == null)
                 {
-                    this_eval = EntityInstance.Joker;
-                    this_aggregate = EntityInstance.Joker;
+                    ctx.AddError(ErrorCode.CannotAutoInitializeCompoundType, this);
                 }
-
-                this.DataTransfer(ctx, ref initValue, this_eval);
-                this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
-
-                if ((this.IsField() && this.Modifier.HasStatic) || this.isGlobalVariable())
-                {
-                    if (this.Modifier.HasReassignable)
-                        ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                    if (this.Evaluation.Components.MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
-                        ctx.AddError(ErrorCode.GlobalMutableVariable, this);
-                }
-
-                InitValue?.ValidateValueExpression(ctx);
-
-                if ((!this.EnclosingScope<TemplateDefinition>().IsFunction() || this.Modifier.HasStatic)
-                    && this.Evaluation.Components.Enumerate().Any(it => ctx.Env.IsReferenceOfType(it)))
-                    ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
-
-                if (this.Evaluation.Components.Enumerate()
-                    .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
-                    .Any(it => it.TargetType.Modifier.HasHeapOnly))
-                    ctx.AddError(ErrorCode.HeapTypeOnStack, this);
             }
+
+            IEntityInstance this_eval = null;
+            EntityInstance this_aggregate = null;
+
+            if (tn_eval != null)
+            {
+                this_eval = tn_eval;
+                this_aggregate = this.TypeName.Evaluation.Aggregate;
+            }
+            else if (init_eval != null)
+            {
+                this_eval = init_eval;
+                this_aggregate = this.InitValue.Evaluation.Aggregate;
+            }
+            else
+                ctx.AddError(ErrorCode.MissingTypeAndValue, this);
+
+            if (this_eval == null)
+            {
+                this_eval = EntityInstance.Joker;
+                this_aggregate = EntityInstance.Joker;
+            }
+
+            this.DataTransfer(ctx, ref initValue, this_eval);
+            this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
+
+            if ((this.IsField() && this.Modifier.HasStatic) || this.isGlobalVariable())
+            {
+                if (this.Modifier.HasReassignable)
+                    ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
+                if (this.Evaluation.Components.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+                    ctx.AddError(ErrorCode.GlobalMutableVariable, this);
+            }
+
+            InitValue?.ValidateValueExpression(ctx);
+
         }
 
         public void AddClosure(TypeDefinition closure)
@@ -282,7 +278,7 @@ namespace Skila.Language.Entities
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
 
-            if (this.IsField() && this.Name.Name!=NameFactory.PropertyAutoField)
+            if (this.IsField() && this.Name.Name != NameFactory.PropertyAutoField)
             {
                 // consider Foo<T> with field f, type T
                 // can I pass instance of Foo<U> (U extends T) somewhere?
@@ -290,6 +286,24 @@ namespace Skila.Language.Entities
                 this.TypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx,
                     this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
             }
+
+            {
+                TemplateDefinition enclosing_template = this.EnclosingScope<TemplateDefinition>();
+                if ((!enclosing_template.IsFunction() || this.Modifier.HasStatic)
+                    && !enclosing_template.Modifier.HasRefereeLifetime
+                    && ctx.Env.IsReferenceOfType(Evaluation.Components))
+                {
+                    ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
+                }
+            }
+
+            if (this.Evaluation.Components.Enumerate()
+                .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
+                .Any(it => it.TargetType.Modifier.HasHeapOnly))
+            {
+                ctx.AddError(ErrorCode.HeapTypeOnStack, this);
+            }
+
 
         }
 

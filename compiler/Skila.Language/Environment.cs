@@ -332,8 +332,7 @@ namespace Skila.Language
                                     .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference())))
 
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableGetIterator,
-                    NameFactory.PointerTypeReference(NameFactory.IIteratorTypeReference(elem_type)))
-                    .Modifier(EntityModifier.HeapOnly))
+                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type))))
 
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
                                     NameFactory.IntTypeReference()));
@@ -659,18 +658,18 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .Modifier(EntityModifier.Mutable)
+                .Modifier(EntityModifier.Mutable | EntityModifier.RefereeLifetime)
                 .Parents(NameFactory.IIteratorTypeReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
                     NameFactory.IntTypeReference(), IntLiteral.Create("-1"), EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement(coll_name,
-                    NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
+                    NameFactory.ReferenceTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
                         overrideMutability: MutabilityFlag.Neutral)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.PointerTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
+                    new[] { NameFactory.ReferenceTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
                         overrideMutability: MutabilityFlag.Neutral)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext, NameFactory.BoolTypeReference(),
@@ -707,11 +706,11 @@ namespace Skila.Language
                 .Parents(NameFactory.ISequenceTypeReference(NameReference.Create(elem_type_name)))
 
                 .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
-                    NameFactory.PointerTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
+                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IndexIteratorTypeReference(elem_type_name),
                             NameFactory.ThisReference()))))
-                    .Modifier(EntityModifier.HeapOnly | EntityModifier.Override))
+                    .Modifier(EntityModifier.Override))
 
                 .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type_name))
                     .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))
