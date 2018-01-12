@@ -7,7 +7,6 @@ using Skila.Language.Entities;
 using Skila.Language.Comparers;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
-using Skila.Language.Expressions;
 
 namespace Skila.Language
 {
@@ -126,6 +125,7 @@ namespace Skila.Language
 
         public void Validate(ComputationContext ctx)
         {
+            this.ValidateReferenceAssociatedReference(ctx);
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, TemplateTranslation translation)

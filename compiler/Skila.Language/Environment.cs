@@ -658,7 +658,7 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .Modifier(EntityModifier.Mutable | EntityModifier.RefereeLifetime)
+                .Modifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
                 .Parents(NameFactory.IIteratorTypeReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
@@ -772,11 +772,11 @@ namespace Skila.Language
         }
         public bool IsReferenceOfType(IEntityInstance instance)
         {
-            return instance.Enumerate().All(it => it.IsOfType(ReferenceType));
+            return instance.EnumerateAll().All(it => it.IsOfType(ReferenceType));
         }
         public bool IsPointerOfType(IEntityInstance instance)
         {
-            return instance.Enumerate().All(it => it.IsOfType(PointerType));
+            return instance.EnumerateAll().All(it => it.IsOfType(PointerType));
         }
 
         public bool Dereferenced(IEntityInstance instance, out IEntityInstance result, out bool viaPointer)
@@ -784,13 +784,13 @@ namespace Skila.Language
             if (IsPointerOfType(instance))
             {
                 viaPointer = true;
-                result = instance.Cast<EntityInstance>().TemplateArguments.Single();
+                result = instance.Map(it => it.TemplateArguments.Single());
                 return true;
             }
             else if (IsReferenceOfType(instance))
             {
                 viaPointer = false;
-                result = instance.Cast<EntityInstance>().TemplateArguments.Single();
+                result = instance.Map(it => it.TemplateArguments.Single());
                 return true;
             }
             else
@@ -822,7 +822,7 @@ namespace Skila.Language
             }*/
         public bool IsPointerLikeOfType(IEntityInstance instance)
         {
-            return instance.Enumerate().All(it => it.IsOfType(PointerType) || it.IsOfType(ReferenceType));
+            return instance.EnumerateAll().All(it => it.IsOfType(PointerType) || it.IsOfType(ReferenceType));
         }
     }
 }

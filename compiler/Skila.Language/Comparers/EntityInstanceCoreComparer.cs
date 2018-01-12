@@ -19,7 +19,7 @@ namespace Skila.Language.Comparers
 
         public int GetHashCode(IEntityInstance obj)
         {
-            return obj.Enumerate().Select(it => it.Core).Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a));
+            return obj.EnumerateAll().Select(it => it.Core).Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a));
         }
     }
 }

@@ -63,7 +63,7 @@ namespace Skila.Language.Expressions
                             // we cannot check if x (of Int) is String because it is illegal
                             ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
                         else
-                            foreach (EntityInstance instance in this.Lhs.Evaluation.Components.Enumerate())
+                            foreach (EntityInstance instance in this.Lhs.Evaluation.Components.EnumerateAll())
                             {
                                 if (!instance.Target.IsType())
                                     continue;

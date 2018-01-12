@@ -70,7 +70,7 @@ namespace Skila.Language
         public abstract TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);
         public abstract TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing);
         public abstract bool IsOverloadDistinctFrom(IEntityInstance other);
-
+        public abstract IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
 
         public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
         {
@@ -129,9 +129,9 @@ namespace Skila.Language
         }
 
 
-        public IEnumerable<EntityInstance> Enumerate()
+        public IEnumerable<EntityInstance> EnumerateAll()
         {
-            return this.Instances.SelectMany(it => it.Enumerate());
+            return this.Instances.SelectMany(it => it.EnumerateAll());
         }
     }
 

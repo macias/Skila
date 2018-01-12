@@ -127,6 +127,14 @@ namespace Skila.Language.Expressions
         {
             return StackConstructor(NameReference.Create(typeName), arguments);
         }
+        public static IExpression StackConstructor(string typeName)
+        {
+            return StackConstructor(NameReference.Create(typeName));
+        }
+        public static IExpression StackConstructor(string typeName, params IExpression[] arguments)
+        {
+            return StackConstructor(NameReference.Create(typeName), arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+        }
         public static IExpression Tuple(params IExpression[] arguments)
         {
             if (arguments.Length == 0)

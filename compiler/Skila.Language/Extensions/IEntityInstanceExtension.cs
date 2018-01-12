@@ -1,11 +1,21 @@
 ﻿using Skila.Language.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Skila.Language.Extensions
 {
     public static class IEntityInstanceExtension
     {
+        public static IEntity Target(this IEntityInstance instance)
+        {
+            if (instance is EntityInstance)
+                return (instance as EntityInstance).Target;
+            else if (instance is EntityInstanceUnion)
+                return (instance as EntityInstanceUnion).Instances.Single().Target();
+            else
+                throw new NotImplementedException();
+        }
         public static T TranslateThrough<T>(this T @this, IEntityInstance closedTemplate)
             where T : IEntityInstance
         {
@@ -36,7 +46,7 @@ namespace Skila.Language.Extensions
             if (!visited.Add(@this))
                 return MutabilityFlag.ConstAsSource;
 
-            foreach (EntityInstance instance in @this.Enumerate())
+            foreach (EntityInstance instance in @this.EnumerateAll())
             {
                 Entities.IEntity target = instance.Target;
                 if (!target.IsType())

@@ -7,15 +7,7 @@ namespace Skila.Language.Extensions
 {
     public static class EntityInstanceExtension
     {
-        public static IEntity Target(this IEntityInstance instance)
-        {
-            if (instance is EntityInstance)
-                return (instance as EntityInstance).Target;
-            else if (instance is EntityInstanceUnion)
-                return (instance as EntityInstanceUnion).Instances.Single().Target();
-            else
-                throw new NotImplementedException();
-        }
+    
         public static IEnumerable<EntityInstance> PrimaryAncestors(this EntityInstance instance, ComputationContext ctx)
         {
             EntityInstance primary_parent = instance.Inheritance(ctx).MinimalParentsWithObject.FirstOrDefault();

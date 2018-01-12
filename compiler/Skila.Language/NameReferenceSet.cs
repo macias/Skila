@@ -53,7 +53,7 @@ namespace Skila.Language
             bool found_slicing_type = false;
             int found_non_slicing_type = 0;
 
-            foreach (EntityInstance instance in this.Evaluation.Components.Enumerate())
+            foreach (EntityInstance instance in this.Evaluation.Components.EnumerateAll())
             {
                 if (!instance.Target.IsType())
                     continue;

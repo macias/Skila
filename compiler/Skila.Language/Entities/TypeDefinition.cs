@@ -279,29 +279,29 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
-            if (this.Modifier.HasRefereeLifetime)
+            if (this.Modifier.HasAssociatedReference)
             {
                 if (!this.Modifier.IsSealed)
-                    ctx.AddError(ErrorCode.RefereeLifetimeRequiresSealedType, this.Modifier);
+                    ctx.AddError(ErrorCode.AssociatedReferenceRequiresSealedType, this.Modifier);
 
                 {
                     IEnumerable<FunctionDefinition> constructors = this.NestedFunctions.Where(it => it.IsInitConstructor());
 
                     foreach (FunctionDefinition cons in constructors.Skip(1))
-                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleConstructor, cons);
+                        ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleConstructor, cons);
 
                     FunctionDefinition primary_cons = constructors.First();
                     if (primary_cons.Parameters.Count != 1)
-                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleParameter, primary_cons);
+                        ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleParameter, primary_cons);
                     else
                     {
                         FunctionParameter cons_param = primary_cons.Parameters.Single();
                         if (!ctx.Env.IsReferenceOfType(cons_param.TypeName.Evaluation.Components))
-                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresReferenceParameter, cons_param.TypeName);
+                            ctx.AddError(ErrorCode.AssociatedReferenceRequiresReferenceParameter, cons_param.TypeName);
                         else if (cons_param.IsVariadic)
-                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresNonVariadicParameter, cons_param);
+                            ctx.AddError(ErrorCode.AssociatedReferenceRequiresNonVariadicParameter, cons_param);
                         else if (cons_param.IsOptional)
-                            ctx.AddError(ErrorCode.RefereeLifetimeRequiresNonOptionalParameter, cons_param);
+                            ctx.AddError(ErrorCode.AssociatedReferenceRequiresNonOptionalParameter, cons_param);
                     }
                 }
 
@@ -310,7 +310,7 @@ namespace Skila.Language.Entities
                         .Where(it => ctx.Env.IsReferenceOfType(it.Evaluation.Components));
 
                     foreach (VariableDeclaration decl in ref_fields.Skip(1))
-                        ctx.AddError(ErrorCode.RefereeLifetimeRequiresSingleReferenceField,decl);
+                        ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleReferenceField,decl);
 
                     VariableDeclaration primary = ref_fields.FirstOrDefault();
                     if (primary != null && primary.Modifier.HasReassignable)

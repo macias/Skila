@@ -191,7 +191,7 @@ namespace Skila.Language
                 if (this.Prefix != null)
                 {
                     bool dereferenced = false;
-                    this.Prefix.Evaluation.Components.Enumerate().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                    this.Prefix.Evaluation.Components.EnumerateAll().ForEach(it => tryDereference(ctx, it, ref dereferenced));
                     if (this.Prefix.DebugId.Id == 2572)
                     {
                         ;

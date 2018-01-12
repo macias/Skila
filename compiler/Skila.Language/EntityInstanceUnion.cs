@@ -130,6 +130,10 @@ namespace Skila.Language
             return this.Instances.All(it => it.IsOverloadDistinctFrom(other));
         }
 
+        public override IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
+        {
+            return new EntityInstanceUnion(this.Instances.Select(it => it.Map(func)));
+        }
     }
 
 }

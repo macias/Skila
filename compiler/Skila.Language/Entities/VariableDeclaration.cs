@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
@@ -236,9 +235,6 @@ namespace Skila.Language.Entities
                 if (this.Evaluation.Components.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
             }
-
-            InitValue?.ValidateValueExpression(ctx);
-
         }
 
         public void AddClosure(TypeDefinition closure)
@@ -269,6 +265,12 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
+            InitValue?.ValidateValueExpression(ctx);
+
+            // only for constructor call allow to have non-reference
+            if (!(this.InitValue is Alloc))
+                this.ValidateReferenceAssociatedReference(ctx);
+
             if (!validateStorage(ctx, this.OwnerType()))
                 ctx.AddError(ErrorCode.NestedValueOfItself, this);
 
@@ -290,14 +292,14 @@ namespace Skila.Language.Entities
             {
                 TemplateDefinition enclosing_template = this.EnclosingScope<TemplateDefinition>();
                 if ((!enclosing_template.IsFunction() || this.Modifier.HasStatic)
-                    && !enclosing_template.Modifier.HasRefereeLifetime
+                    && !enclosing_template.Modifier.HasAssociatedReference
                     && ctx.Env.IsReferenceOfType(Evaluation.Components))
                 {
                     ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
                 }
             }
 
-            if (this.Evaluation.Components.Enumerate()
+            if (this.Evaluation.Components.EnumerateAll()
                 .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
                 .Any(it => it.TargetType.Modifier.HasHeapOnly))
             {

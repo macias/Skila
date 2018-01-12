@@ -15,7 +15,7 @@ namespace Skila.Language
         INameReference NameOf { get; }
         bool DependsOnTypeParameter { get; }
 
-        IEnumerable<EntityInstance> Enumerate();
+        IEnumerable<EntityInstance> EnumerateAll();
         bool IsJoker { get; }
 
         bool IsValueType(ComputationContext ctx);
@@ -39,5 +39,6 @@ namespace Skila.Language
         bool IsOverloadDistinctFrom(IEntityInstance other);
 
         bool CoreEquals(IEntityInstance instance);
-    }  
+        IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
+    }
 }

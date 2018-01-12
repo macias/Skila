@@ -123,6 +123,10 @@ namespace Skila.Language
             return this.Instances.Any(it => it.IsOverloadDistinctFrom(other));
         }
 
+        public override IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
+        {
+            return new EntityInstanceIntersection(this.Instances.Select(it => it.Map(func)));
+        }
     }
 
 }

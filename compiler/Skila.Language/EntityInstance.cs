@@ -360,7 +360,12 @@ namespace Skila.Language
 
         }
 
-        public IEnumerable<EntityInstance> Enumerate()
+        public IEntityInstance Map(Func<EntityInstance,IEntityInstance> func)
+        {
+            return func(this);
+        }
+
+        public IEnumerable<EntityInstance> EnumerateAll()
         {
             yield return this;
         }
