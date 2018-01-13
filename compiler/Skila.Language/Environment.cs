@@ -49,9 +49,13 @@ namespace Skila.Language
         public TypeDefinition ObjectType { get; }
 
         public TypeDefinition ChunkType { get; }
+        public FunctionDefinition ChunkSizeConstructor { get; }
+        public FunctionDefinition ChunkResizeConstructor { get; }
         public FunctionDefinition ChunkCount { get; }
         public FunctionDefinition ChunkAtGet { get; }
         public FunctionDefinition ChunkAtSet { get; }
+
+        public TypeDefinition ArrayType { get; }
 
         public TypeDefinition ISequenceType { get; }
         public TypeDefinition IIterableType { get; }
@@ -175,13 +179,21 @@ namespace Skila.Language
             this.IIndexableType = this.CollectionsNamespace.AddNode(createIIndexable());
 
             {
-                this.ChunkType = this.CollectionsNamespace.AddNode(createChunk(out IMember chunk_count,
-                    out IMember chunk_at_get, out IMember chunk_at_set));
+                this.ChunkType = this.CollectionsNamespace.AddNode(createChunk(
+                    sizeConstructor: out FunctionDefinition size_cons,
+                    resizeConstructor: out FunctionDefinition resize_cons,
+                    countGetter: out IMember chunk_count,
+                    atGetter: out IMember chunk_at_get,
+                    atSetter: out IMember chunk_at_set));
 
+                this.ChunkSizeConstructor = size_cons;
+                this.ChunkResizeConstructor = resize_cons;
                 this.ChunkAtGet = chunk_at_get.Cast<FunctionDefinition>();
                 this.ChunkAtSet = chunk_at_set.Cast<FunctionDefinition>();
                 this.ChunkCount = chunk_count.Cast<FunctionDefinition>();
             }
+
+            this.ArrayType = this.CollectionsNamespace.AddNode(createArray());
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
@@ -338,7 +350,80 @@ namespace Skila.Language
                                     NameFactory.IntTypeReference()));
         }
 
-        private static TypeDefinition createChunk(out IMember countGetter, out IMember atGetter, out IMember atSetter)
+        private static TypeDefinition createArray()
+        {
+            const string elem_type = "ART";
+            const string data_field = "data";
+
+            Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
+                        .WithAutoField(IntLiteral.Create("0"), EntityModifier.Reassignable)
+                        .WithAutoSetter(EntityModifier.Private)
+                        .WithAutoGetter(EntityModifier.Override);
+
+            PropertyMemberBuilder indexer_getter = PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(
+                            ExpressionFactory.AssertTrue(ExpressionFactory.IsGreaterEqual(NameFactory.IndexIndexerReference(),
+                                IntLiteral.Create("0"))),
+                            ExpressionFactory.AssertTrue(ExpressionFactory.IsLess(NameFactory.IndexIndexerReference(),
+                                NameReference.CreateThised(NameFactory.IterableCount))),
+                            Return.Create(FunctionCall.Indexer(NameReference.CreateThised(data_field),
+                                NameFactory.IndexIndexerReference()))
+                            ))
+                            .Modifier(EntityModifier.Override);
+
+            PropertyMemberBuilder indexer_setter = PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement(
+                            // assert index>=0;
+                            ExpressionFactory.AssertTrue(ExpressionFactory.IsGreaterEqual(NameFactory.IndexIndexerReference(),
+                                IntLiteral.Create("0"))),
+                            // assert index<=this.count;
+                            ExpressionFactory.AssertTrue(ExpressionFactory.IsLessEqual(NameFactory.IndexIndexerReference(),
+                                NameReference.CreateThised(NameFactory.IterableCount))),
+                            // if index==this.count then
+                            IfBranch.CreateIf(ExpressionFactory.IsEqual(NameFactory.IndexIndexerReference(),
+                                NameReference.CreateThised(NameFactory.IterableCount)), new IExpression[] {
+                                    // ++this.count;
+                                    ExpressionFactory.IncStatement(() => NameReference.CreateThised(NameFactory.IterableCount)),
+                                    // if this.count>this.data.count then
+                                    IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.CreateThised(NameFactory.IterableCount),
+                                        NameReference.CreateThised(data_field,NameFactory.IterableCount)),new[]{
+                                            // this.data = new Chunk<ART>(this.count,this.data);
+                                            Assignment.CreateStatement(NameReference.CreateThised(data_field),
+                                                ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                                NameReference.CreateThised(NameFactory.IterableCount),
+                                                NameReference.CreateThised(data_field)))
+                                        })
+                                }),
+                            // this.data[index] = value;
+                            Assignment.CreateStatement(FunctionCall.Indexer(NameReference.CreateThised(data_field),
+                                NameFactory.IndexIndexerReference()), NameFactory.PropertySetterValueReference())
+                            ));
+
+            return TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
+                    .Modifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
+                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
+
+                    .With(VariableDeclaration.CreateStatement(data_field,
+                        NameFactory.PointerTypeReference(NameFactory.ChunkTypeReference(elem_type)), Undef.Create(),
+                        EntityModifier.Reassignable))
+
+                    .With(count_property)
+
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        // this.data = new Chunk<ART>(1);
+                        Assignment.CreateStatement(NameReference.CreateThised(data_field),
+                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                IntLiteral.Create("1")))
+                        )))
+
+
+                     .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type))
+                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))
+                        .With(indexer_setter)
+                        .With(indexer_getter));
+        }
+
+        private static TypeDefinition createChunk(out FunctionDefinition sizeConstructor,
+            out FunctionDefinition resizeConstructor,
+            out IMember countGetter, out IMember atGetter, out IMember atSetter)
         {
             // todo: in this form this type is broken, size is runtime info, yet we allow the assignment on the stack
             // however it is not yet decided what we will do, maybe this type will be used only internally, 
@@ -346,16 +431,29 @@ namespace Skila.Language
 
             const string elem_type = "CHT";
 
-            return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, elem_type, VarianceMode.None))
-                    .Modifier(EntityModifier.Mutable)
-                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
-                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
+            sizeConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
                             FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(),
                                 ExpressionReadMode.CannotBeRead)
                         },
-                        Block.CreateStatement()))
+                        Block.CreateStatement());
 
-                .With(PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
+            resizeConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.IntTypeReference(),
+                                ExpressionReadMode.CannotBeRead),
+                            FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter,
+                                NameFactory.ReferenceTypeReference( NameFactory.ChunkTypeReference(elem_type)),
+                                ExpressionReadMode.CannotBeRead)
+                        },
+                        Block.CreateStatement());
+            return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, elem_type, VarianceMode.None))
+                    .Modifier(EntityModifier.Mutable)
+                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
+
+                    .With(sizeConstructor)
+
+                    .With(resizeConstructor)
+
+                     .With(PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out countGetter))
 
@@ -381,9 +479,11 @@ namespace Skila.Language
                 .With(parseString)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
+
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
+
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.AddOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
                     Block.CreateStatement())
@@ -592,7 +692,7 @@ namespace Skila.Language
 
             for (int i = count - 1; i >= 0; --i)
             {
-                item_selector = IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.IndexIndexerParameter),
+                item_selector = IfBranch.CreateIf(ExpressionFactory.IsEqual(NameFactory.IndexIndexerReference(),
                     IntLiteral.Create($"{i}")), new[] { Return.Create(NameReference.CreateThised(NameFactory.TupleItemName(i))) },
                     item_selector);
             }

@@ -12,6 +12,42 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter IteratingOverAutoResizedArray()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("array",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.IntTypeReference()))),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("0")),
+                        IntLiteral.Create("3")),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("1")),
+                        IntLiteral.Create("8")),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("2")),
+                        IntLiteral.Create("-4")),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("3")),
+                        IntLiteral.Create("-5")),
+                    VariableDeclaration.CreateStatement("acc",null,IntLiteral.Create("0"),EntityModifier.Reassignable),
+                    Loop.CreateForEach("elem",NameFactory.IntTypeReference(),NameReference.Create("array"),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
+                    Return.Create(NameReference.Create("acc"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter IteratingOverTuple()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });

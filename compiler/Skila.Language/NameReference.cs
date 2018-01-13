@@ -261,7 +261,10 @@ namespace Skila.Language
                     FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
                     FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
 
-                    if (local_function != entity_function)
+                    if (local_function != entity_function
+                        // we often share nodes, like parameters in setter/getter, so this check is needed to exclude
+                        // such "legal" cases
+                        && local_function.EnclosingScopesToRoot().Contains(entity_function))
                     {
                         entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
                     }

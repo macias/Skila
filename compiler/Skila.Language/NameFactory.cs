@@ -37,6 +37,7 @@ namespace Skila.Language
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
         public const string ChunkTypeName = "Chunk";
+        public const string ArrayTypeName = "Array";
         public const string IIterableTypeName = "IIterable";
         public const string IIteratorTypeName = "IIterator";
         public const string IEquatableTypeName = "IEquatable";
@@ -204,6 +205,14 @@ namespace Skila.Language
         {
             return NameReference.Create(ConcurrencyNamespaceReference(), ChannelTypeName, templateParamName);
         }
+        public static NameReference IndexIndexerReference()
+        {
+            return NameReference.Create(NameFactory.IndexIndexerParameter);
+        }
+        public static NameReference PropertySetterValueReference()
+        {
+            return NameReference.Create(NameFactory.PropertySetterValueParameter);
+        }
         public static NameReference SpreadFunctionReference()
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
@@ -247,6 +256,14 @@ namespace Skila.Language
         public static NameReference ChunkTypeReference(INameReference templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
+        }
+        public static NameReference ArrayTypeReference(string templateParamName)
+        {
+            return ArrayTypeReference(NameReference.Create(templateParamName));
+        }
+        public static NameReference ArrayTypeReference(INameReference templateParamName)
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), ArrayTypeName, templateParamName);
         }
         public static NameReference TupleTypeReference(params INameReference[] templateParamNames)
         {

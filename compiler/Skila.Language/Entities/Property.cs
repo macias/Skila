@@ -39,11 +39,13 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, EntityModifier modifier, Block body)
         {
+            modifier |= EntityModifier.Mutable;
+
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 body)
-                .Modifier(modifier | EntityModifier.Mutable)
+                .Modifier(modifier)
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first
@@ -79,9 +81,9 @@ namespace Skila.Language.Entities
                 NameFactory.UnitTypeReference(),
                 body);
         }
-        public static FunctionDefinition CreateAutoSetter(INameReference typeName)
+        public static FunctionDefinition CreateAutoSetter(INameReference typeName,EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Mutable | modifier, NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,

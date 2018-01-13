@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+             //new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -25,7 +25,7 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
-            new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
+            //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
             // new Semantics.NameResolution().ResolvingIt();
@@ -37,7 +37,7 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().PassingLocalVariables();
-            //new Execution.Collections().IteratingOverTuple();
+            new Execution.Collections().IteratingOverAutoResizedArray();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();

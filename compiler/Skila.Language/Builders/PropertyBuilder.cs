@@ -165,20 +165,20 @@ namespace Skila.Language.Builders
         {
             return WithSetter(body, out FunctionDefinition dummy, modifier);
         }
-        public PropertyBuilder WithAutoSetter(out FunctionDefinition setter)
+        public PropertyBuilder WithAutoSetter(out FunctionDefinition setter,EntityModifier modifier = null)
         {
             if (build != null)
                 throw new Exception();
 
-            setter = Property.CreateAutoSetter(this.ValueTypeName);
+            setter = Property.CreateAutoSetter(this.ValueTypeName,modifier);
             this.setters.Add(setter);
 
             return this;
         }
 
-        public PropertyBuilder WithAutoSetter()
+        public PropertyBuilder WithAutoSetter(EntityModifier modifier = null)
         {
-            return WithAutoSetter(out FunctionDefinition setter);
+            return WithAutoSetter( out FunctionDefinition setter,modifier);
         }
 
         public static implicit operator Property(PropertyBuilder @this)

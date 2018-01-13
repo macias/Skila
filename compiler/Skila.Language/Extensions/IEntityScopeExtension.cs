@@ -16,7 +16,13 @@ namespace Skila.Language.Extensions
                     && member.Modifier.HasPrivate
                     && !member.Modifier.IsPolymorphic  // in NVI pattern private is used externally
                     && !member.IsMemberUsed)
-                    ctx.AddError(ErrorCode.BindableNotUsed, member);
+                {
+                    // at this level property accessors are not used, only property itself is used
+                    if (member is FunctionDefinition func && func.IsPropertyAccessor(out Property prop) && !prop.IsIndexer)
+                        continue;
+                    else
+                        ctx.AddError(ErrorCode.BindableNotUsed, member);
+                }
         }
         public static IEnumerable<IEntity> NestedEntities(this IEntityScope scope)
         {

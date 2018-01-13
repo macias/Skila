@@ -103,13 +103,34 @@ namespace Skila.Interpreter
                 }
                 else if (owner_type == ctx.Env.ChunkType)
                 {
-                    if (func.IsInitConstructor()
-                        && func.Parameters.Count == 1 && func.Parameters.Single().Name.Name == NameFactory.ChunkSizeConstructorParameter)
+                    if (func == ctx.Env.ChunkSizeConstructor)
                     {
                         IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
                         ObjectData size_obj = ctx.FunctionArguments.Single();
                         int size = size_obj.PlainValue.Cast<int>();
                         ObjectData[] chunk = (await Task.WhenAll(Enumerable.Range(0, size).Select(_ => ObjectData.CreateEmptyAsync(ctx, elem_type))).ConfigureAwait(false)).ToArray();
+                        this_value.Assign(await createChunk(ctx, this_value.RunTimeTypeInstance, chunk).ConfigureAwait(false));
+                        return ExecValue.CreateReturn(null);
+                    }
+                    else if (func == ctx.Env.ChunkResizeConstructor)
+                    {
+                        IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
+                        ObjectData size_obj = ctx.FunctionArguments[0];
+                        int size = size_obj.PlainValue.Cast<int>();
+                        ObjectData source_obj = ctx.FunctionArguments[1];
+                        Chunk source = source_obj.TryDereference(ctx.Env).PlainValue.Cast<Chunk>();
+
+                        ObjectData[] chunk = new ObjectData[size];
+                        int copy_size = Math.Min(size, source.Count);
+                        for (int i = 0; i < copy_size; ++i)
+                        {
+                            chunk[i] = source[i];
+                            ctx.Heap.TryInc(ctx, source[i], "copying chunk");
+                        }
+                        for (int i = copy_size; i < size; ++i)
+                        {
+                            chunk[i] = await ObjectData.CreateEmptyAsync(ctx, elem_type).ConfigureAwait(false);
+                        }
                         this_value.Assign(await createChunk(ctx, this_value.RunTimeTypeInstance, chunk).ConfigureAwait(false));
                         return ExecValue.CreateReturn(null);
                     }
@@ -367,7 +388,7 @@ namespace Skila.Interpreter
                 result = await iterateLoopAsync(ctx, loop).ConfigureAwait(false);
                 exitScope(ctx, loop, result);
 
-                if (result.Mode != DataMode.Expression 
+                if (result.Mode != DataMode.Expression
                     // if iteration was stopped due to failed condition we would have here the outcome of the condition
                     || result.ExprValue != null)
                     break;

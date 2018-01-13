@@ -2,6 +2,7 @@
 using Skila.Language.Entities;
 using Skila.Language.Flow;
 using System.Linq;
+using System;
 
 namespace Skila.Language.Expressions
 {
@@ -207,6 +208,10 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.LessOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression IsLessEqual(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.LessEqualOperator), FunctionArgument.Create(rhs));
+        }
         public static IExpression IsGreater(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.GreaterOperator), FunctionArgument.Create(rhs));
@@ -266,6 +271,11 @@ namespace Skila.Language.Expressions
         public static NameReference OptionValue(IExpression option)
         {
             return NameReference.Create(option, NameFactory.OptionValue);
+        }
+
+        internal static IExpression IncStatement(Func<IExpression> expr)
+        {
+            return Assignment.CreateStatement(expr(), Add(expr(), IntLiteral.Create("1")));
         }
     }
 }
