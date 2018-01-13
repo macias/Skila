@@ -241,6 +241,11 @@ namespace Skila.Language
                 this.DateDayField = day.Field;
             }
 
+            {
+                FunctionDefinition concat1;
+                createConcat(out concat1);
+                this.CollectionsNamespace.AddNode(concat1);
+            }
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
@@ -333,6 +338,30 @@ namespace Skila.Language
             }
         }
 
+        private static void createConcat(out FunctionDefinition concat1)
+        {
+            // todo: after adding parser rewrite it as creating Concat type holding fragments and iterating over their elements
+            // this (below) has too many allocations
+
+            const string elem_type = "CCT";
+            const string buffer_name = "buffer";
+            const string coll1_name = "coll1";
+            const string coll2_name = "coll2";
+            concat1 = FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName, elem_type, VarianceMode.None),
+                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement(buffer_name, null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type), NameReference.Create(coll1_name))),
+                    Loop.CreateForEach("elem", NameReference.Create(elem_type), NameReference.Create(coll2_name), new[] {
+                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                    }),
+                    Return.Create(NameReference.Create(buffer_name))
+                    ))
+                    .Parameters(FunctionParameter.Create(coll1_name,
+                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral))),
+                        FunctionParameter.Create(coll2_name,
+                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral))));
+        }
         private static TypeDefinition createIIterable()
         {
             const string elem_type = "ITT";
@@ -370,6 +399,26 @@ namespace Skila.Language
                             ))
                             .Modifier(EntityModifier.Override);
 
+            FunctionDefinition append = FunctionBuilder.Create(NameFactory.AppendFunctionName, NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("pos", null, NameReference.CreateThised(NameFactory.IterableCount)),
+                                    // ++this.count;
+                                    ExpressionFactory.IncStatement(() => NameReference.CreateThised(NameFactory.IterableCount)),
+                                    // if this.count>this.data.count then
+                                    IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.CreateThised(NameFactory.IterableCount),
+                                        NameReference.CreateThised(data_field, NameFactory.IterableCount)), new[]{
+                                            // this.data = new Chunk<ART>(this.count,this.data);
+                                            Assignment.CreateStatement(NameReference.CreateThised(data_field),
+                                                ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                                NameReference.CreateThised(NameFactory.IterableCount),
+                                                NameReference.CreateThised(data_field)))
+                                        }),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.CreateThised(data_field),
+                                NameReference.Create("pos")), NameFactory.PropertySetterValueReference())))
+                .Parameters(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
+                    NameFactory.ReferenceTypeReference(elem_type)))
+                .Modifier(EntityModifier.Mutable);
+
             PropertyMemberBuilder indexer_setter = PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement(
                             // assert index>=0;
                             ExpressionFactory.AssertTrue(ExpressionFactory.IsGreaterEqual(NameFactory.IndexIndexerReference(),
@@ -380,21 +429,13 @@ namespace Skila.Language
                             // if index==this.count then
                             IfBranch.CreateIf(ExpressionFactory.IsEqual(NameFactory.IndexIndexerReference(),
                                 NameReference.CreateThised(NameFactory.IterableCount)), new IExpression[] {
-                                    // ++this.count;
-                                    ExpressionFactory.IncStatement(() => NameReference.CreateThised(NameFactory.IterableCount)),
-                                    // if this.count>this.data.count then
-                                    IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.CreateThised(NameFactory.IterableCount),
-                                        NameReference.CreateThised(data_field,NameFactory.IterableCount)),new[]{
-                                            // this.data = new Chunk<ART>(this.count,this.data);
-                                            Assignment.CreateStatement(NameReference.CreateThised(data_field),
-                                                ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
-                                                NameReference.CreateThised(NameFactory.IterableCount),
-                                                NameReference.CreateThised(data_field)))
-                                        })
-                                }),
-                            // this.data[index] = value;
-                            Assignment.CreateStatement(FunctionCall.Indexer(NameReference.CreateThised(data_field),
-                                NameFactory.IndexIndexerReference()), NameFactory.PropertySetterValueReference())
+                                    FunctionCall.Create(NameReference.CreateThised(NameFactory.AppendFunctionName),
+                                        NameFactory.PropertySetterValueReference())
+                                }, IfBranch.CreateElse(new[] {
+                                    // this.data[index] = value;
+                                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.CreateThised(data_field),
+                                        NameFactory.IndexIndexerReference()), NameFactory.PropertySetterValueReference())
+                                }))
                             ));
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
@@ -407,6 +448,7 @@ namespace Skila.Language
 
                     .With(count_property)
 
+                    // default constructor
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         // this.data = new Chunk<ART>(1);
                         Assignment.CreateStatement(NameReference.CreateThised(data_field),
@@ -414,6 +456,17 @@ namespace Skila.Language
                                 IntLiteral.Create("1")))
                         )))
 
+                    // copy constructor
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        Loop.CreateForEach("elem", NameReference.Create(elem_type),
+                            NameReference.Create(NameFactory.SourceCopyConstructorParameter),
+                            new[] {
+                            FunctionCall.Create(NameReference.CreateThised(NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                        })), FunctionCall.Constructor(NameReference.CreateThised(NameFactory.InitConstructorName)))
+                        .Parameters(FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter,
+                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)))))
+
+                     .With(append)
 
                      .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type))
                         .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.IntTypeReference()))

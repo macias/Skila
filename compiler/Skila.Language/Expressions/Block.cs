@@ -18,27 +18,31 @@ namespace Skila.Language.Expressions
         }
         public static Block Create(ExpressionReadMode readMode, IEnumerable<IExpression> body)
         {
-            return constructor(Purpose.Regular, readMode, body);
+            return constructor(Purpose.Regular, readMode,null, body);
+        }
+        public static Block Create(Func<Block, ExpressionReadMode> readModeCalc, IEnumerable<IExpression> body)
+        {
+            return constructor(Purpose.Regular, ExpressionReadMode.OptionalUse, readModeCalc,body);
         }
         public static Block CreateStatement(params IExpression[] body)
         {
-            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead,null, body);
         }
         public static Block CreateStatement(IEnumerable<IExpression> body)
         {
-            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead,null, body);
         }
         public static Block CreateStatement()
         {
-            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead, null);
+            return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead,null, null);
         }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
-            return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired, body);
+            return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired,null, body);
         }
         public static Block CreateInitialization(VariableDeclaration decl, FunctionCall init, NameReference outcome)
         {
-            return constructor(Purpose.Initialization, ExpressionReadMode.ReadRequired, new IExpression[] { decl, init, outcome });
+            return constructor(Purpose.Initialization, ExpressionReadMode.ReadRequired, null,new IExpression[] { decl, init, outcome });
         }
 
         internal FunctionCall constructorChainCall { get; private set; } // used in constructors
@@ -52,18 +56,25 @@ namespace Skila.Language.Expressions
         public override IEnumerable<INode> OwnedNodes => Instructions.Select(it => it.Cast<INode>());
 
         public Purpose Mode { get; }
+
+        private readonly Func<Block, ExpressionReadMode> readModeCalc;
+
         // applies only for initialization block
         public FunctionCall InitializationStep => this.instructions[1].Cast<FunctionCall>();
 
-        private static Block constructor(Purpose purpose, ExpressionReadMode readMode, IEnumerable<IExpression> instructions)
+        private static Block constructor(Purpose purpose, ExpressionReadMode readMode, Func<Block, ExpressionReadMode> readModeCalc,
+            IEnumerable<IExpression> instructions)
         {
             List<IExpression> body = (instructions ?? Enumerable.Empty<IExpression>()).ToList();
-            return new Block(purpose, readMode, body);
+            return new Block(purpose, readMode,readModeCalc, body);
         }
-        private Block(Purpose purpose, ExpressionReadMode readMode, List<IExpression> body) : base(readMode)
+
+        private Block(Purpose purpose, ExpressionReadMode readMode, Func<Block, ExpressionReadMode> readModeCalc, List<IExpression> body)
+            : base(readModeCalc == null ? new Option<ExpressionReadMode>(readMode) : new Option<ExpressionReadMode>())
         {
             this.instructions = body;
             this.Mode = purpose;
+            this.readModeCalc = readModeCalc;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -85,6 +96,8 @@ namespace Skila.Language.Expressions
             if (this.Evaluation == null)
             {
                 IExpression last = this.Instructions.LastOrDefault();
+                if (!this.isReadModeSet)
+                    this.setReadMode(readModeCalc(this));
                 this.Evaluation = last?.Evaluation ?? ctx.Env.UnitEvaluation;
             }
         }

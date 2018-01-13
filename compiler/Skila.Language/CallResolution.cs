@@ -448,8 +448,8 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return "(" + this.Arguments.Select(it => it.ToString()).Join(",") + ") -> "
-                + this.TargetFunctionInstance.ToString() + "(" + this.TargetFunction.Parameters.Select(it => it.ToString()).Join(",") + ")";
+            return "(" + this.Arguments.Select(it => $"{it}").Join(",") + ") -> "
+                + $"{this.TargetFunctionInstance}(" + this.TargetFunction.Parameters.Select(it => $"{it}").Join(",") + ")";
         }
 
     }

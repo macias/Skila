@@ -27,7 +27,8 @@ namespace Skila.Language.Flow
         private bool? isRead;
         public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value; } }
 
-        public ExpressionReadMode ReadMode { get; private set; }
+        private Option<ExpressionReadMode> readMode;
+        public ExpressionReadMode ReadMode => this.readMode.Value;
         public bool IsElse => this.Condition == null;
         private IExpression condition;
         public IExpression Condition => this.condition;
@@ -48,17 +49,10 @@ namespace Skila.Language.Flow
         private IfBranch(IExpression condition, IEnumerable<IExpression> body, IfBranch next)
         {
             this.condition = condition;
-            this.Body = Block.Create(body.Last().ReadMode, body);
+            // we have to postpone calculating read-mode because the last instruction can be function call
+            // and it is resolved only after finding its target
+            this.Body = Block.Create((block) => block.Instructions.Last().ReadMode, body);
             this.Next = next;
-
-            this.ReadMode = Body.ReadMode;
-
-            if (!this.branches.Any(it => it.IsElse))
-                this.ReadMode = ExpressionReadMode.CannotBeRead;
-            else if (branches.Any(it => it.ReadMode == ExpressionReadMode.ReadRequired))
-                this.ReadMode = ExpressionReadMode.ReadRequired;
-            else if (!this.IsElse)
-                this.ReadMode = ExpressionReadMode.OptionalUse;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -89,6 +83,16 @@ namespace Skila.Language.Flow
                     ;
                 }
 
+                this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
+
+                if (!this.branches.Any(it => it.IsElse))
+                    this.readMode = new Option<ExpressionReadMode>(ExpressionReadMode.CannotBeRead);
+                else if (branches.Any(it => it.ReadMode == ExpressionReadMode.ReadRequired))
+                    this.readMode = new Option<ExpressionReadMode>(ExpressionReadMode.ReadRequired);
+                else if (!this.IsElse)
+                    this.readMode = new Option<ExpressionReadMode>(ExpressionReadMode.OptionalUse);
+
+
                 if (ReadMode == ExpressionReadMode.CannotBeRead)
                     this.Evaluation = ctx.Env.UnitEvaluation;
                 else
@@ -99,12 +103,12 @@ namespace Skila.Language.Flow
                     if (Next != null
                         // it is legal to have some branch "unreadable", for example: 
                         // if true then 5 else throw new Exception();
-                        && Next.ReadMode != ExpressionReadMode.CannotBeRead 
+                        && Next.ReadMode != ExpressionReadMode.CannotBeRead
                         && !computeLowestCommonAncestor(ctx, ref eval, ref aggregate))
                     {
                         eval = ctx.Env.UnitType.InstanceOf;
                         aggregate = ctx.Env.UnitType.InstanceOf;
-                        ReadMode = ExpressionReadMode.CannotBeRead;
+                        readMode = new Option<ExpressionReadMode>(ExpressionReadMode.CannotBeRead);
                     }
 
 

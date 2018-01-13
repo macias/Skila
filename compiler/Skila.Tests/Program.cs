@@ -37,7 +37,7 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().PassingLocalVariables();
-            new Execution.Collections().IteratingOverAutoResizedArray();
+            new Execution.Collections().IteratingOverConcatenatedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();

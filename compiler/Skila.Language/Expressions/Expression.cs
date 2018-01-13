@@ -15,18 +15,23 @@ namespace Skila.Language.Expressions
         public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
 
-        public ExpressionReadMode ReadMode { get; }
+        private Option<ExpressionReadMode> readMode;
+        protected bool isReadModeSet => this.readMode.HasValue;
+        public ExpressionReadMode ReadMode => this.readMode.Value;
         public virtual ExecutionFlow Flow => ExecutionFlow.CreatePath(OwnedNodes.WhereType<IExpression>());
 
         private bool? isRead;
-        public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue && this.isRead!=value) throw new Exception("Internal error"); this.isRead = value; } }
+        public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue && this.isRead != value) throw new Exception("Internal error"); this.isRead = value; } }
 
-        protected Expression(ExpressionReadMode readMode)
+        protected Expression(Option<ExpressionReadMode> readMode)
         {
-            this.ReadMode = readMode;
+            this.readMode = readMode;
+        }
+        protected Expression(ExpressionReadMode readMode) : this(new Option<ExpressionReadMode>(readMode))
+        { 
         }
 
-        public abstract bool IsReadingValueOfNode( IExpression node);
+        public abstract bool IsReadingValueOfNode(IExpression node);
         public abstract void Evaluate(ComputationContext ctx);
 
         public virtual bool IsLValue(ComputationContext ctx)
@@ -38,5 +43,12 @@ namespace Skila.Language.Expressions
 
         }
 
+        protected void setReadMode(ExpressionReadMode readMode)
+        {
+            if (this.isReadModeSet)
+                throw new Exception();
+
+            this.readMode = new Option<ExpressionReadMode>(readMode);
+        }
     }
 }
