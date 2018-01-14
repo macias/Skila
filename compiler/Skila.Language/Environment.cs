@@ -118,9 +118,11 @@ namespace Skila.Language
                 // no limits
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable))) },
+                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral))) },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral)),
                    Block.CreateStatement(new IExpression[] {
                        Return.Create(NameReference.Create("coll"))
                    })));
@@ -130,11 +132,13 @@ namespace Skila.Language
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
                         NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",overrideMutability:MutabilityFlag.ForceMutable))),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                            overrideMutability:MutabilityFlag.Neutral))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
                    },
                    ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral)),
                    Block.CreateStatement(new IExpression[] {
                        IfBranch.CreateIf(ExpressionFactory.IsLess(FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount)),
                             NameReference.Create("min")),new[]{ ExpressionFactory.GenericThrow() }),
@@ -146,12 +150,14 @@ namespace Skila.Language
                 this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(
                         NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",overrideMutability:MutabilityFlag.ForceMutable))),
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",
+                            overrideMutability:MutabilityFlag.Neutral))),
                         FunctionParameter.Create("min", NameFactory.IntTypeReference()),
                         FunctionParameter.Create("max", NameFactory.IntTypeReference()),
                     },
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability: MutabilityFlag.ForceMutable)),
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral)),
                     Block.CreateStatement(new IExpression[] {
                         VariableDeclaration.CreateStatement("count",null,
                             FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount))),
@@ -241,11 +247,9 @@ namespace Skila.Language
                 this.DateDayField = day.Field;
             }
 
-            {
-                FunctionDefinition concat1;
-                createConcat(out concat1);
-                this.CollectionsNamespace.AddNode(concat1);
-            }
+            this.CollectionsNamespace.AddNode(createConcat1());
+            this.CollectionsNamespace.AddNode(createConcat3());
+
             this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
                 .Modifier(EntityModifier.Native)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
@@ -338,7 +342,7 @@ namespace Skila.Language
             }
         }
 
-        private static void createConcat(out FunctionDefinition concat1)
+        private static FunctionDefinition createConcat1()
         {
             // todo: after adding parser rewrite it as creating Concat type holding fragments and iterating over their elements
             // this (below) has too many allocations
@@ -347,7 +351,7 @@ namespace Skila.Language
             const string buffer_name = "buffer";
             const string coll1_name = "coll1";
             const string coll2_name = "coll2";
-            concat1 = FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName, elem_type, VarianceMode.None),
+            return FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName, elem_type, VarianceMode.None),
                 NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement(buffer_name, null,
@@ -362,6 +366,41 @@ namespace Skila.Language
                         FunctionParameter.Create(coll2_name,
                             NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral))));
         }
+        private static FunctionDefinition createConcat3()
+        {
+            // todo: after adding parser rewrite it as creating Concat type holding fragments and iterating over their elements
+            // this (below) has too many allocations
+
+            const string elem1_type = "CCA";
+            const string elem2_type = "CCB";
+            const string elem3_type = "CCC";
+            const string buffer_name = "buffer";
+            const string coll1_name = "coll1";
+            const string coll2_name = "coll2";
+            return FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName,
+                    TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
+                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem3_type),
+                    MutabilityFlag.Neutral)),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement(buffer_name, null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference(elem3_type)),
+                            NameReference.Create(coll1_name))),
+                    Loop.CreateForEach("elem", null, NameReference.Create(coll2_name), new[] {
+                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                    }),
+                    Return.Create(NameReference.Create(buffer_name))
+                    ))
+                .Constraints(ConstraintBuilder.Create(elem1_type).Modifier(EntityModifier.HeapOnly),
+                    ConstraintBuilder.Create(elem2_type).Modifier(EntityModifier.HeapOnly),
+                    ConstraintBuilder.Create(elem3_type).BaseOf(elem1_type, elem2_type).Modifier(EntityModifier.HeapOnly))
+                .Parameters(FunctionParameter.Create(coll1_name,
+                    NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem1_type),
+                        MutabilityFlag.Neutral))),
+                    FunctionParameter.Create(coll2_name,
+                        NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem2_type),
+                            MutabilityFlag.Neutral))));
+        }
+
         private static TypeDefinition createIIterable()
         {
             const string elem_type = "ITT";

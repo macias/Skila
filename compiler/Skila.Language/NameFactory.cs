@@ -251,8 +251,13 @@ namespace Skila.Language
         public static NameReference IIterableTypeReference(string templateParamName,
             MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName, 
-                NameReference.Create(templateParamName));
+            return IIterableTypeReference(NameReference.Create(templateParamName), mutability);
+        }
+        public static NameReference IIterableTypeReference(NameReference templateParamName,
+            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        {
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
+                templateParamName);
         }
 
         public static NameReference ChunkTypeReference(string templateParamName)

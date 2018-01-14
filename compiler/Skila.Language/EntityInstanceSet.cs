@@ -63,10 +63,10 @@ namespace Skila.Language
 
         protected abstract IEntityInstance createNew(IEnumerable<IEntityInstance> instances);
 
-        public abstract TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, EntityInstance input,
-            VarianceMode variance, bool allowSlicing);
-        public abstract TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target,
-                VarianceMode variance, bool allowSlicing);
+        public abstract TypeMatch TemplateMatchesInput(ComputationContext ctx,  EntityInstance input,
+            VarianceMode variance, TypeMatching matching);
+        public abstract TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target,
+                VarianceMode variance, TypeMatching matching);
         public abstract TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);
         public abstract TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing);
         public abstract bool IsOverloadDistinctFrom(IEntityInstance other);

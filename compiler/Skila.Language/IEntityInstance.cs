@@ -24,8 +24,8 @@ namespace Skila.Language
         IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated);
         ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance verifiedInstance, TemplateParameter param);
 
-        TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target, VarianceMode variance, bool allowSlicing);
-        TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, EntityInstance input, VarianceMode variance, bool allowSlicing);
+        TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target, VarianceMode variance, TypeMatching matching);
+        TypeMatch TemplateMatchesInput(ComputationContext ctx,  EntityInstance input, VarianceMode variance, TypeMatching matching);
 
         // are types can be assigned or passed
         TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);

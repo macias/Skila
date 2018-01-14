@@ -9,13 +9,13 @@ namespace Skila.Language
 {
     public sealed class TypeMatcher
     {
-        private static bool templateMatches(ComputationContext ctx, bool inversedVariance, EntityInstance input,
-            EntityInstance target, bool allowSlicing)
+        private static bool templateMatches(ComputationContext ctx, EntityInstance input,
+            EntityInstance target, TypeMatching matching)
         {
             if (input.IsJoker || target.IsJoker)
                 return true;
 
-            bool matches = strictTemplateMatches(ctx, inversedVariance, input, target, allowSlicing);
+            bool matches = strictTemplateMatches(ctx, input, target, matching);
 
             TypeDefinition target_type = target.TargetType;
 
@@ -27,8 +27,7 @@ namespace Skila.Language
             return vtable != null;
         }
 
-        private static bool strictTemplateMatches(ComputationContext ctx, bool inversedVariance,
-            EntityInstance input, EntityInstance target, bool allowSlicing)
+        private static bool strictTemplateMatches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
             if (input.Target != target.Target)
                 return false;
@@ -41,10 +40,10 @@ namespace Skila.Language
                 {
                     ;
                 }
-                TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx, inversedVariance,
+                TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx,
                     target.TemplateArguments[i],
                     template.Name.Parameters[i].Variance,
-                    allowSlicing);
+                    matching);
 
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute && m != TypeMatch.AutoDereference)
                 {
@@ -55,8 +54,7 @@ namespace Skila.Language
             return true;
         }
 
-        public static TypeMatch Matches(ComputationContext ctx, bool inversedVariance, EntityInstance input, EntityInstance target,
-            bool allowSlicing)
+        public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
             if (input.IsJoker || target.IsJoker)
                 return TypeMatch.Same;
@@ -88,16 +86,15 @@ namespace Skila.Language
 
             if (ctx.Env.IsReferenceOfType(target))
             {
-                if (ctx.Env.IsPointerOfType(input))
+                if (ctx.Env.IsPointerLikeOfType(input))
                 {
                     IEntityInstance inner_target_type = target.TemplateArguments.Single();
                     IEntityInstance inner_input_type = input.TemplateArguments.Single();
 
                     TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
-                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
-                        return m;
+                    return m;
                 }
-                else if (!ctx.Env.IsReferenceOfType(input))
+                else
                 {
                     IEntityInstance inner_target_type = target.TemplateArguments.Single();
 
@@ -136,23 +133,24 @@ namespace Skila.Language
             }
 
             if (target.TargetType.AllowSlicedSubstitution)
-                allowSlicing = true;
+                matching.AllowSlicing = true;
 
 
-            if (allowSlicing)
+            if (input.DebugId.Id == 2707 && target.DebugId.Id == 2691)
+            {
+                ;
+            }
+
+            if (matching.AllowSlicing)
             {
                 MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
 
-                if (input.DebugId.Id == 108967 && target.DebugId.Id == 108939)
-                {
-                    ;
-                }
                 foreach (TypeAncestor inherited_input in new[] { new TypeAncestor(input, 0) }
                     .Concat(input.Inheritance(ctx).TypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
                     .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum)))
                 {
-                    bool match = templateMatches(ctx, inversedVariance, inherited_input.AncestorInstance, target, allowSlicing);
+                    bool match = templateMatches(ctx, inherited_input.AncestorInstance, target, matching);
                     if (match)
                     {
                         // we cannot shove mutable type in disguise as immutable one, consider such scenario
@@ -180,7 +178,7 @@ namespace Skila.Language
                 // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
                     .Concat(target.Inheritance(ctx).TypeAncestorsIncludingObject)
-                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), inversedVariance, allowSlicing: true);
+                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), matching.EnabledSlicing());
 
                 if (m != TypeMatch.No)
                     return m;
@@ -195,7 +193,7 @@ namespace Skila.Language
                     = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx));
 
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
-                    .Concat(base_of.Select(it => new TypeAncestor(it.Cast<EntityInstance>(), 1))), inversedVariance, allowSlicing);
+                    .Concat(base_of.Select(it => new TypeAncestor(it.Cast<EntityInstance>(), 1))), matching);
 
                 if (m != TypeMatch.No)
                     return m;
@@ -216,7 +214,7 @@ namespace Skila.Language
         }
 
         public static TypeMatch inversedTypeMatching(ComputationContext ctx, EntityInstance input, IEnumerable<TypeAncestor> targets,
-            bool inversedVariance, bool allowSlicing)
+            TypeMatching matching)
         {
             if (!targets.Any())
                 return TypeMatch.No;
@@ -229,8 +227,7 @@ namespace Skila.Language
             {
                 // please note that unlike normal type matching we reversed the types, in enum you can
                 // pass base type as descendant!
-                bool match = templateMatches(ctx, inversedVariance, inherited_target.AncestorInstance, input,
-                    allowSlicing);
+                bool match = templateMatches(ctx, inherited_target.AncestorInstance, input, matching);
 
                 if (match)
                 {

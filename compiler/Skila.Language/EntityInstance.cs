@@ -227,7 +227,7 @@ namespace Skila.Language
 
         public TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing)
         {
-            return TypeMatcher.Matches(ctx, false, input, this, allowSlicing);
+            return TypeMatcher.Matches(ctx, input, this, TypeMatching.Create(allowSlicing));
         }
 
         public TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
@@ -272,14 +272,14 @@ namespace Skila.Language
             {
                 ;
             }
-            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx)!= MutabilityFlag.ConstAsSource)
+            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
                 return ConstraintMatch.ConstViolation;
 
 
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
-                if (TypeMatch.No == TypeMatcher.Matches(ctx, false, this, constraint_inherits, allowSlicing: true))
+                if (TypeMatch.No == TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(allowSlicing: true)))
                     return ConstraintMatch.InheritsViolation;
             }
 
@@ -306,21 +306,23 @@ namespace Skila.Language
 
             return ConstraintMatch.Yes;
         }
-        public TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance, IEntityInstance target, VarianceMode variance, bool allowSlicing)
+        public TypeMatch TemplateMatchesTarget(ComputationContext ctx, IEntityInstance target, VarianceMode variance, TypeMatching matching)
         {
-            return target.TemplateMatchesInput(ctx, inversedVariance, this, variance, allowSlicing);
+            return target.TemplateMatchesInput(ctx, this, variance, matching);
         }
 
-        public TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance, EntityInstance input, VarianceMode variance, bool allowSlicing)
+        public TypeMatch TemplateMatchesInput(ComputationContext ctx, EntityInstance input,
+            VarianceMode variance, TypeMatching matching)
         {
-            switch (inversedVariance ? variance.Inversed() : variance)
+            matching.Position = matching.Position.Flipped(variance);
+            switch (matching.Position)
             {
                 case VarianceMode.None:
                     return this.IsSame(input, jokerMatchesAll: true) ? TypeMatch.Same : TypeMatch.No;
                 case VarianceMode.In:
-                    return TypeMatcher.Matches(ctx, !inversedVariance, this, input, allowSlicing);
+                    return TypeMatcher.Matches(ctx, this, input, matching);
                 case VarianceMode.Out:
-                    return TypeMatcher.Matches(ctx, !inversedVariance, input, this, allowSlicing);
+                    return TypeMatcher.Matches(ctx, input, this, matching);
             }
 
             throw new NotImplementedException();
@@ -360,7 +362,7 @@ namespace Skila.Language
 
         }
 
-        public IEntityInstance Map(Func<EntityInstance,IEntityInstance> func)
+        public IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
         {
             return func(this);
         }

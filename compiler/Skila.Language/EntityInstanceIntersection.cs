@@ -51,13 +51,13 @@ namespace Skila.Language
         }
 
 
-        public override TypeMatch TemplateMatchesInput(ComputationContext ctx, bool inversedVariance,
-            EntityInstance input, VarianceMode variance, bool allowSlicing)
+        public override TypeMatch TemplateMatchesInput(ComputationContext ctx, 
+            EntityInstance input, VarianceMode variance, TypeMatching matching)
         {
             TypeMatch match = TypeMatch.No;
             foreach (IEntityInstance target in this.Instances)
             {
-                TypeMatch m = target.TemplateMatchesInput(ctx, inversedVariance, input, variance, allowSlicing);
+                TypeMatch m = target.TemplateMatchesInput(ctx, input, variance, matching);
                 if (m == TypeMatch.No)
                     return m;
                 else if (match == TypeMatch.No)
@@ -101,10 +101,10 @@ namespace Skila.Language
                 return TypeMatch.No;
         }
 
-        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, bool inversedVariance,
-            IEntityInstance target, VarianceMode variance, bool allowSlicing)
+        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, 
+            IEntityInstance target, VarianceMode variance, TypeMatching matching)
         {
-            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, inversedVariance, target, variance, allowSlicing));
+            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.TemplateMatchesTarget(ctx, target, variance, matching));
             if (matches.Any(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
 

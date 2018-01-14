@@ -62,7 +62,11 @@ namespace Skila.Language.Entities
         protected TemplateDefinition(EntityModifier modifier, NameDefinition name,
             IEnumerable<TemplateConstraint> constraints) : base()
         {
-            this.Modifier = modifier ?? EntityModifier.None;
+            modifier = modifier ?? EntityModifier.None;
+            if (modifier.HasEnum)
+                modifier |= EntityModifier.Const;
+
+            this.Modifier = modifier;
             this.Constraints = (constraints ?? Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
             this.ownedNodes = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);
             this.Name = name;

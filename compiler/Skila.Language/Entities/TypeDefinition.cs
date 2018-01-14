@@ -310,7 +310,7 @@ namespace Skila.Language.Entities
                         .Where(it => ctx.Env.IsReferenceOfType(it.Evaluation.Components));
 
                     foreach (VariableDeclaration decl in ref_fields.Skip(1))
-                        ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleReferenceField,decl);
+                        ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleReferenceField, decl);
 
                     VariableDeclaration primary = ref_fields.FirstOrDefault();
                     if (primary != null && primary.Modifier.HasReassignable)
@@ -347,7 +347,8 @@ namespace Skila.Language.Entities
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (field.Evaluated(ctx).MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+                    MutabilityFlag field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
+                    if (field_eval_mutability != MutabilityFlag.ConstAsSource)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions
