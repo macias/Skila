@@ -55,7 +55,7 @@ namespace Skila.Language.Extensions
                 if (instance.OverrideMutability == MutabilityFlag.ForceMutable)
                     return MutabilityFlag.ForceMutable;
 
-                if (ctx.Env.Dereferenced(instance, out IEntityInstance val_instance, out bool via_pointer))
+                if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
                 {
                     MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
                     if (mutability != MutabilityFlag.ConstAsSource)

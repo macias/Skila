@@ -12,6 +12,36 @@ namespace Skila.Tests.Execution
     public class Pointers
     {
         [TestMethod]
+        public IInterpreter StackChunkWithBasicPointers()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("chicken",null,
+                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.PointerTypeReference( NameFactory.IntTypeReference())),
+                            FunctionArgument.Create(IntLiteral.Create("2")))),
+                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("0")),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("-6"))),
+                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("1")),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("8"))),
+                    Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("0")),
+                        FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("1"))))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter PointerArgumentAutoDereference()
         {
             var env = Language.Environment.Create();
@@ -162,24 +192,24 @@ namespace Skila.Tests.Execution
 
 
             var interpreter = new Interpreter.Interpreter();
-        ExecValue result = interpreter.TestRun(env);
+            ExecValue result = interpreter.TestRun(env);
 
-        Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2, result.RetValue.PlainValue);
 
             return interpreter;
         }
 
-    [TestMethod]
-    public IInterpreter DereferenceOnAssignment()
-    {
-        var env = Language.Environment.Create();
-        var root_ns = env.Root;
+        [TestMethod]
+        public IInterpreter DereferenceOnAssignment()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
 
-        var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-            NameDefinition.Create("main"),
-            ExpressionReadMode.OptionalUse,
-            NameFactory.IntTypeReference(),
-            Block.CreateStatement(new IExpression[] {
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
                     // p_int *Int = new Int(1)
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
@@ -197,86 +227,86 @@ namespace Skila.Tests.Execution
                     // return v_int + z_int 
                     Return.Create( FunctionCall.Create(NameReference.Create( NameReference.Create("v_int"),NameFactory.AddOperator),
                         FunctionArgument.Create(NameReference.Create("z_int"))))
-            })));
+                })));
 
 
-        var interpreter = new Interpreter.Interpreter();
-        ExecValue result = interpreter.TestRun(env);
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
 
-        Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2, result.RetValue.PlainValue);
 
-        return interpreter;
-    }
+            return interpreter;
+        }
 
-    [TestMethod]
-    public IInterpreter DirectRefCountings()
-    {
-        var env = Language.Environment.Create();
-        var root_ns = env.Root;
+        [TestMethod]
+        public IInterpreter DirectRefCountings()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
 
-        var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
-            NameDefinition.Create("inc"),
-            ExpressionReadMode.ReadRequired,
-            NameFactory.IntTypeReference(),
-            Block.CreateStatement(new IExpression[] {
+            var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("inc"),
+                ExpressionReadMode.ReadRequired,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("temp",NameFactory.PointerTypeReference( NameFactory.IntTypeReference()),
                         NameReference.Create("n")),
                     Return.Create(FunctionCall.Create(NameReference.Create( NameReference.Create("temp"),NameFactory.AddOperator),
                     FunctionArgument.Create(IntLiteral.Create("1"))))
-            }))
-            .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()))));
-        var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-            NameDefinition.Create("main"),
-            ExpressionReadMode.OptionalUse,
-            NameFactory.IntTypeReference(),
-            Block.CreateStatement(new IExpression[] {
+                }))
+                .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()))));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
                     VariableDeclaration.CreateStatement("proxy",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),NameReference.Create("p_int")),
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("proxy")))),
-            })));
+                })));
 
 
-        var interpreter = new Interpreter.Interpreter();
-        ExecValue result = interpreter.TestRun(env);
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
 
-        Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2, result.RetValue.PlainValue);
 
-        return interpreter;
-    }
+            return interpreter;
+        }
 
-    [TestMethod]
-    public IInterpreter NestedRefCountings()
-    {
-        var env = Language.Environment.Create();
-        var root_ns = env.Root;
+        [TestMethod]
+        public IInterpreter NestedRefCountings()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
 
-        var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
-            .Modifier(EntityModifier.Mutable)
-            .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null,
-                EntityModifier.Public | EntityModifier.Reassignable))
-            .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
-                Undef.Create(), EntityModifier.Public | EntityModifier.Reassignable)));
-        var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-            NameDefinition.Create("main"),
-            ExpressionReadMode.OptionalUse,
-            NameFactory.IntTypeReference(),
-            Block.CreateStatement(new IExpression[] {
+            var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
+                .Modifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null,
+                    EntityModifier.Public | EntityModifier.Reassignable))
+                .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
+                    Undef.Create(), EntityModifier.Public | EntityModifier.Reassignable)));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference(NameReference.Create("Chain")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
                     Assignment.CreateStatement(NameReference.Create("p","n"),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
                     Assignment.CreateStatement(NameReference.Create("p","n","v"),IntLiteral.Create("2")),
                     Return.Create(NameReference.Create("p","n","v")),
-            })));
+                })));
 
 
-        var interpreter = new Interpreter.Interpreter();
-        ExecValue result = interpreter.TestRun(env);
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
 
-        Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2, result.RetValue.PlainValue);
 
-        return interpreter;
+            return interpreter;
+        }
     }
-}
 }

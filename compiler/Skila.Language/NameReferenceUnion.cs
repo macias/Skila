@@ -44,7 +44,7 @@ namespace Skila.Language
             List<FunctionDefinition> members = null;
             foreach (EntityInstance ____instance in this.Names.Select(it => it.Evaluation.Aggregate))
             {
-                if (ctx.Env.Dereferenced(____instance, out IEntityInstance __instance, out bool via_pointer))
+                if (ctx.Env.DereferencedOnce(____instance, out IEntityInstance __instance, out bool via_pointer))
                 {
                     if (via_pointer)
                         has_pointer = true;

@@ -12,10 +12,84 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
-        public IInterpreter IteratingOverConcatenatedIterables()
+        public IInterpreter IteratingOverConcatenatedMixedIterables()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
+                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
+                    EntityModifier.Public | EntityModifier.Reassignable))
+                .With(ExpressionFactory.BasicConstructor(new[] { "x" }, 
+                    new[] { NameFactory.IntTypeReference() })));
+
+            root_ns.AddBuilder(TypeBuilder.Create("PointA")
+                .Modifier(EntityModifier.Mutable)
+                .Parents("BasePoint")
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
+                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(),NameReference.Create("a")))
+                    .Parameters(FunctionParameter.Create("a",NameFactory.IntTypeReference()))));
+
+            root_ns.AddBuilder(TypeBuilder.Create("PointB")
+                .Modifier(EntityModifier.Mutable)
+                .Parents("BasePoint")
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
+                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("b")))
+                    .Parameters(FunctionParameter.Create("b", NameFactory.IntTypeReference()))));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // let t *ITuple<Int,Int,Int> = (6,-2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.PointerTypeReference("PointA"),
+                            NameFactory.PointerTypeReference("PointA"),
+                            // todo: use sink
+                            NameFactory.PointerTypeReference("PointA")),
+                        ExpressionFactory.StackConstructor( NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.PointerTypeReference("PointA"),
+                            NameFactory.PointerTypeReference("PointA"),
+                            NameFactory.PointerTypeReference("PointA")),
+                        ExpressionFactory.HeapConstructor("PointA",IntLiteral.Create("6")),
+                        ExpressionFactory.HeapConstructor("PointA",IntLiteral.Create("-2")))),
+
+                    VariableDeclaration.CreateStatement("array",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference("PointB")))),
+
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("0")),
+                        ExpressionFactory.HeapConstructor("PointB",IntLiteral.Create("3"))),
+                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),IntLiteral.Create("1")),
+                        ExpressionFactory.HeapConstructor("PointB",IntLiteral.Create("-5"))),
+
+                    VariableDeclaration.CreateStatement("c",null,
+                        FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
+
+                    VariableDeclaration.CreateStatement("acc",null,IntLiteral.Create("0"),EntityModifier.Reassignable),
+                    Loop.CreateForEach("elem",null,NameReference.Create("c"),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem","x"))) }),
+                    Return.Create(NameReference.Create("acc"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter IteratingOverConcatenatedUniformIterables()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            const string elem_name = "my_elem";
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -45,9 +119,9 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
 
                     VariableDeclaration.CreateStatement("acc",null,IntLiteral.Create("0"),EntityModifier.Reassignable),
-                    Loop.CreateForEach("elem",NameFactory.IntTypeReference(),NameReference.Create("c"),
+                    Loop.CreateForEach(elem_name,NameFactory.IntTypeReference(),NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
                 })));
 

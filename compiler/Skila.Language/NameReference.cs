@@ -93,7 +93,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference( MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference(MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
         public bool IsDereferencing { get; set; }
@@ -148,7 +148,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id ==  26148)
+            if (this.DebugId.Id == 26148)
             {
                 ;
             }
@@ -224,7 +224,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id ==  26148)
+            if (this.DebugId.Id == 26148)
             {
                 ;
             }
@@ -336,7 +336,7 @@ namespace Skila.Language
                 }
                 else
                 {
-                    if (this.DebugId.Id ==  26148)
+                    if (this.DebugId.Id == 26148)
                     {
                         ;
                     }
@@ -508,7 +508,7 @@ namespace Skila.Language
                 if (this.EnclosingScopesToRoot().Contains(template))
                 {
                     bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx)== MutabilityFlag.ConstAsSource);
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.ConstAsSource);
 
                     // don't report errors for covariant types which are used in immutable template types
                     if (!covariant_in_immutable &&
@@ -526,7 +526,7 @@ namespace Skila.Language
 
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
         {
-            if (!ctx.Env.Dereferenced(entityInstance, out IEntityInstance __eval, out bool via_pointer))
+            if (!ctx.Env.Dereferenced(entityInstance, out IEntityInstance __eval))
                 return entityInstance;
 
             dereferenced = true;

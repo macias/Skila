@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Skila.Language.Entities;
 
 namespace Skila.Interpreter
 {
@@ -21,6 +19,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
+        private const int debugTraceId = -1;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
         private int hostDisposables;
@@ -45,20 +44,30 @@ namespace Skila.Interpreter
                 ;
             }
 
+            if (obj.DebugId.Id == debugTraceId)
+                Console.WriteLine($"Allocating object");
+
             lock (this.threadLock)
             {
                 this.refCounts.Add(obj, 0);
             }
         }
 
-        internal bool TryDec(ExecutionContext ctx, ObjectData obj, bool passingOut, string callInfo)
+        internal bool TryRelease(ExecutionContext ctx, ObjectData obj, bool passingOut, string callInfo)
         {
             if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
             {
+                if (!ctx.Env.IsReferenceOfType(obj.RunTimeTypeInstance) && !passingOut)
+                {
+                    if (obj.DebugId.Id == debugTraceId)
+                        Console.WriteLine($"VAL-DEL{(passingOut ? "/OUT" : "")} {callInfo}");
+                    // removing valued-objects
+                    freeObjectData(ctx, obj, false, $"as value {callInfo}");
+                }
                 return false;
             }
 
-            obj = obj.Dereference();
+            obj = obj.DereferencedOnce();
             // todo: after adding nulls to Skila remove this condition
             if (obj == null)
                 return false;
@@ -82,31 +91,36 @@ namespace Skila.Interpreter
                 if (count == 0 && !passingOut)
                 {
                     this.refCounts.Remove(obj);
-                    if (obj.Free(ctx, callInfo))
-                        --this.hostDisposables;
+                    freeObjectData(ctx, obj, true, callInfo);
                 }
                 else
                     this.refCounts[obj] = count;
             }
 
-            if (obj.DebugId.Id == 183067)
-            {
+            if (obj.DebugId.Id == debugTraceId)
                 Console.WriteLine($"DEC{(passingOut ? "/OUT" : "")} {count}  {callInfo}");
-            }
 
             return true;
         }
 
+        private void freeObjectData(ExecutionContext ctx, ObjectData obj, bool destroy, string callInfo)
+        {
+            lock (this.threadLock)
+            {
+                if (obj.Free(ctx, destroy, callInfo))
+                    --this.hostDisposables;
+            }
+        }
 
-        internal void TryInc(ExecutionContext ctx, ObjectData pointerObject, string callInfo)
+        internal bool TryInc(ExecutionContext ctx, ObjectData pointerObject, string callInfo)
         {
             if (!ctx.Env.IsPointerOfType(pointerObject.RunTimeTypeInstance))
-                return;
+                return false;
 
-            pointerObject = pointerObject.Dereference();
+            pointerObject = pointerObject.DereferencedOnce();
 
             if (pointerObject == null) // null pointer
-                return;
+                return false;
 
             if (pointerObject.DebugId.Id == 183067)
             {
@@ -120,7 +134,7 @@ namespace Skila.Interpreter
                 this.refCounts[pointerObject] = count;
             }
 
-            if (pointerObject.DebugId.Id == 183067)
+            if (pointerObject.DebugId.Id == debugTraceId)
             {
                 if (count == 4)
                 {
@@ -128,6 +142,8 @@ namespace Skila.Interpreter
                 }
                 Console.WriteLine($"INC {count} {callInfo}");
             }
+
+            return true;
         }
 
         public override string ToString()

@@ -50,9 +50,17 @@ namespace Skila.Language.Expressions
         {
             return new FunctionCall(CallMode.Regular, name, arguments, requestedOutcomeType: null);
         }
+        public static FunctionCall Constructor(IExpression name)
+        {
+            return Constructor(name, new FunctionArgument[] { });
+        }
         public static FunctionCall Constructor(IExpression name, params FunctionArgument[] arguments)
         {
             return new FunctionCall(CallMode.Constructor, name, arguments, requestedOutcomeType: null);
+        }
+        public static FunctionCall Constructor(IExpression name, params IExpression[] arguments)
+        {
+            return Constructor(name,arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static FunctionCall Constructor(string name, params FunctionArgument[] arguments)
         {
@@ -196,7 +204,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 2596)
+                if (this.DebugId.Id == 26990)
                 {
                     ;
                 }
@@ -212,7 +220,7 @@ namespace Skila.Language.Expressions
                 {
                     EntityInstance eval = this.Callee.Evaluation.Components.Cast<EntityInstance>();
 
-                    this.Callee.IsDereferenced = ctx.Env.Dereferenced(eval, out IEntityInstance __eval, out bool via_pointer);
+                    this.Callee.IsDereferenced = ctx.Env.DereferencedOnce(eval, out IEntityInstance __eval, out bool via_pointer);
                     this.IsDereferencing = this.Callee.IsDereferenced;
                     if (this.Callee.IsDereferenced)
                         eval = __eval.Cast<EntityInstance>();

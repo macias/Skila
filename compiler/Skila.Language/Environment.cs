@@ -351,13 +351,14 @@ namespace Skila.Language
             const string buffer_name = "buffer";
             const string coll1_name = "coll1";
             const string coll2_name = "coll2";
+            const string elem_name = "cat1_elem";
             return FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName, elem_type, VarianceMode.None),
                 NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement(buffer_name, null,
                         ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type), NameReference.Create(coll1_name))),
-                    Loop.CreateForEach("elem", NameReference.Create(elem_type), NameReference.Create(coll2_name), new[] {
-                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                    Loop.CreateForEach(elem_name, NameReference.Create(elem_type), NameReference.Create(coll2_name), new[] {
+                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                     }),
                     Return.Create(NameReference.Create(buffer_name))
                     ))
@@ -377,16 +378,17 @@ namespace Skila.Language
             const string buffer_name = "buffer";
             const string coll1_name = "coll1";
             const string coll2_name = "coll2";
+            const string elem_name = "cat3_elem";
             return FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName,
-                    TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
+TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                 NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem3_type),
                     MutabilityFlag.Neutral)),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement(buffer_name, null,
                         ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference(elem3_type)),
                             NameReference.Create(coll1_name))),
-                    Loop.CreateForEach("elem", null, NameReference.Create(coll2_name), new[] {
-                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                    Loop.CreateForEach(elem_name, null, NameReference.Create(coll2_name), new[] {
+                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                     }),
                     Return.Create(NameReference.Create(buffer_name))
                     ))
@@ -477,6 +479,7 @@ namespace Skila.Language
                                 }))
                             ));
 
+            const string elem_name = "arr_cc_elem";
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .Modifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
                     .Parents(NameFactory.IIndexableTypeReference(elem_type))
@@ -497,10 +500,10 @@ namespace Skila.Language
 
                     // copy constructor
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
-                        Loop.CreateForEach("elem", NameReference.Create(elem_type),
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type),
                             NameReference.Create(NameFactory.SourceCopyConstructorParameter),
                             new[] {
-                            FunctionCall.Create(NameReference.CreateThised(NameFactory.AppendFunctionName),NameReference.Create("elem"))
+                            FunctionCall.Create(NameReference.CreateThised(NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                         })), FunctionCall.Constructor(NameReference.CreateThised(NameFactory.InitConstructorName)))
                         .Parameters(FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter,
                             NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)))))
@@ -970,8 +973,26 @@ namespace Skila.Language
         {
             return instance.EnumerateAll().All(it => it.IsOfType(PointerType));
         }
+        public int Dereference(IEntityInstance instance, out IEntityInstance result)
+        {
+            int count = 0;
 
-        public bool Dereferenced(IEntityInstance instance, out IEntityInstance result, out bool viaPointer)
+            while (true)
+            {
+                if (!DereferencedOnce(instance, out result, out bool dummy))
+                    break;
+
+                instance = result;
+                ++count;
+            }
+            return count;
+        }
+        public bool Dereferenced(IEntityInstance instance, out IEntityInstance result)
+        {
+            return Dereference(instance, out result)>0;
+        }
+
+        public bool DereferencedOnce(IEntityInstance instance, out IEntityInstance result, out bool viaPointer)
         {
             if (IsPointerOfType(instance))
             {

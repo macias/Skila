@@ -17,7 +17,7 @@ namespace Skila.Language.Expressions
 
         public IExpression Expr { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr,typename }.Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr, typename }.Where(it => it != null);
 
         private INameReference typename;
 
@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
             return result;
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
         }
@@ -44,7 +44,7 @@ namespace Skila.Language.Expressions
             if (this.Evaluation == null)
             {
                 IEntityInstance inner;
-                if (!ctx.Env.Dereferenced(Expr.Evaluation.Components, out inner,out bool dummy))
+                if (!ctx.Env.Dereferenced(Expr.Evaluation.Components, out inner))
                     ctx.AddError(ErrorCode.DereferencingValue, this.Expr);
 
                 this.typename = inner.NameOf;

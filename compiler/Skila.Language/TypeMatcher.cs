@@ -56,6 +56,11 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
+            if (input.DebugId.Id == 127603 && target.DebugId.Id == 127723)
+            {
+                ;
+            }
+
             if (input.IsJoker || target.IsJoker)
                 return TypeMatch.Same;
 
@@ -88,15 +93,19 @@ namespace Skila.Language
             {
                 if (ctx.Env.IsPointerLikeOfType(input))
                 {
-                    IEntityInstance inner_target_type = target.TemplateArguments.Single();
-                    IEntityInstance inner_input_type = input.TemplateArguments.Single();
+                    // note, that we could have reference to pointer in case of the target, we have to unpack both
+                    // to the level of the value types
+                    int target_dereferences = ctx.Env.Dereference(target, out IEntityInstance inner_target_type);
+                    int input_dereferences = ctx.Env.Dereference(input, out IEntityInstance inner_input_type);
 
                     TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
+                    if (target_dereferences > input_dereferences && m != TypeMatch.No)
+                        m |= TypeMatch.ImplicitReference;
                     return m;
                 }
                 else
                 {
-                    IEntityInstance inner_target_type = target.TemplateArguments.Single();
+                    ctx.Env.Dereferenced(target, out IEntityInstance inner_target_type);
 
                     TypeMatch m = input.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
@@ -106,7 +115,7 @@ namespace Skila.Language
             // automatic dereferencing pointers
             else if (ctx.Env.IsPointerLikeOfType(input))
             {
-                IEntityInstance inner_input_type = input.TemplateArguments.Single();
+                ctx.Env.Dereferenced(input, out IEntityInstance inner_input_type);
 
                 TypeMatch m = inner_input_type.MatchesTarget(ctx, target, allowSlicing: true);
                 if (m == TypeMatch.Same || m == TypeMatch.Substitute)

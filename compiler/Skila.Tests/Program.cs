@@ -36,16 +36,16 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-            //new Execution.Closures().PassingLocalVariables();
-            new Execution.Collections().IteratingOverConcatenatedIterables();
+            //new Execution.Closures().ImplicitClosureWithValue();
+            new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            //new Execution.FunctionCalls().OptionalNoLimitsVariadicFunction();
+            //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Library().StringToInt();
             //new Execution.Objects().ParallelAssignment();
-            //new Execution.Pointers().ExplicitDereferencing();
+            //new Execution.Pointers().StackChunkWithBasicPointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
 

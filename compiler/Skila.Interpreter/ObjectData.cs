@@ -22,6 +22,11 @@ namespace Skila.Interpreter
         public DebugId DebugId { get; } = new DebugId();
 #endif
 
+        internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
+        {
+            return CreateInstanceAsync(ctx, typeInstance, null);
+        }
+
         internal static Task<ObjectData> CreateInstanceAsync(ExecutionContext ctx, IEntityInstance typeInstance, object value)
         {
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
@@ -37,7 +42,15 @@ namespace Skila.Interpreter
             return constructorAsync(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
         }
 
-        private static async Task<ObjectData> constructorAsync(ExecutionContext ctx, bool isNative, object value, IEntityInstance typeInstance, bool isStatic)
+        private static async Task<ObjectData> constructorAsync(ExecutionContext ctx, bool isNative, object value,
+            IEntityInstance typeInstance, bool isStatic)
+        {
+            Data data = await buildInternalData(ctx, isNative, value, typeInstance, isStatic).ConfigureAwait(false);
+            return new ObjectData(data);
+        }
+
+        private static async Task<Data> buildInternalData(ExecutionContext ctx, bool isNative, object value,
+            IEntityInstance typeInstance, bool isStatic)
         {
             EntityInstance runtime_instance = typeInstance.Cast<EntityInstance>();
 
@@ -72,12 +85,8 @@ namespace Skila.Interpreter
                 }
             }
 
-            return new ObjectData(ctx, isNative, value, runtime_instance, isStatic, primary_parent, fields);
-        }
-
-        internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
-        {
-            return CreateInstanceAsync(ctx, typeInstance, null);
+            Data data1 = new Data(isNative, value, runtime_instance, primary_parent, fields);
+            return data1;
         }
 
         private int isFreedFlag;
@@ -176,14 +185,13 @@ namespace Skila.Interpreter
             }
         }
 
-        private ObjectData(ExecutionContext ctx, bool isNative, object value, EntityInstance typeInstance, bool isStatic,
-            ObjectData primary_parent, Dictionary<VariableDeclaration, ObjectData> fields)
+        private ObjectData(Data data)
         {
             if (this.DebugId.Id == 9167)
             {
                 ;
             }
-            this.data = new Data(isNative, value, typeInstance, primary_parent, fields);
+            this.data = data;
         }
 
         private ObjectData(ObjectData src)
@@ -206,7 +214,7 @@ namespace Skila.Interpreter
             return $"{this.RunTimeTypeInstance}";
         }
 
-        public ObjectData Dereference()
+        public ObjectData DereferencedOnce()
         {
             if (this.isFreed)
                 throw new ObjectDisposedException($"{this}");
@@ -216,9 +224,9 @@ namespace Skila.Interpreter
             return result;
         }
 
-        internal bool Free(ExecutionContext ctx, string callInfo)
+        internal bool Free(ExecutionContext ctx, bool destroy, string callInfo)
         {
-            if (this.DebugId.Id == 183073)
+            if (this.DebugId.Id == 182254)
             {
                 ;
             }
@@ -228,12 +236,8 @@ namespace Skila.Interpreter
 
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
-                if (field.Key.Name.Name == "coll")
-                {
-                    ;
-                }
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryDec(ctx, field.Value, passingOut: false, callInfo: $"field of {callInfo}");
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut: false, callInfo: $"field of {callInfo}");
             }
 
             bool host_disposed = false;
@@ -244,8 +248,19 @@ namespace Skila.Interpreter
                     d.Dispose();
                     host_disposed = true;
                 }
+
             }
-            this.isFreed = true;
+
+            if (this.PlainValue is Chunk chunk)
+            {
+                for (int i = 0; i < chunk.Count; ++i)
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut: false, callInfo: $"chunk elem of {callInfo}");
+            }
+
+            this.data = null;
+
+            if (destroy)
+                this.isFreed = true;
 
             return host_disposed;
         }
@@ -261,23 +276,66 @@ namespace Skila.Interpreter
                 overrideMutability: MutabilityFlag.ConstAsSource, translation: null), this);
         }
 
-        internal ObjectData TryDereference(Language.Environment env)
+        internal bool TryDereferenceAnyOnce(Language.Environment env, out ObjectData dereferenced)
         {
             if (env.IsPointerLikeOfType(this.RunTimeTypeInstance))
-                return this.Dereference();
+            {
+                dereferenced = this.DereferencedOnce();
+                return true;
+            }
+            else
+            {
+                dereferenced = null;
+                return false;
+            }
+        }
+        internal ObjectData TryDereferenceAnyOnce(Language.Environment env)
+        {
+            if (TryDereferenceAnyOnce(env, out ObjectData dereferenced))
+                return dereferenced;
             else
                 return this;
         }
-        internal ObjectData TryDereference(IExpression parentExpr, IExpression childExpr)
+        internal ObjectData TryDereferenceAnyMany(Language.Environment env)
+        {
+            ObjectData result = this;
+            while (env.IsPointerLikeOfType(result.RunTimeTypeInstance))
+                result = result.DereferencedOnce();
+            return result;
+        }
+        internal bool TryDereferenceMany(Language.Environment env, IExpression parentExpr, IExpression childExpr,
+            out ObjectData dereferenced)
+        {
+            if (isDereferenced(parentExpr, childExpr))
+            {
+                dereferenced = this.TryDereferenceAnyMany(env);
+                return true;
+            }
+            else
+            {
+                dereferenced = null;
+                return false;
+            }
+        }
+        internal ObjectData TryDereferenceOnce(IExpression parentExpr, IExpression childExpr)
+        {
+            if (isDereferenced(parentExpr, childExpr))
+            {
+                return this.DereferencedOnce();
+            }
+            else
+            {
+                return this;
+            }
+        }
+
+        private bool isDereferenced(IExpression parentExpr, IExpression childExpr)
         {
             bool dereferencing = childExpr != null && childExpr.IsDereferenced;
             if (dereferencing != parentExpr.IsDereferencing)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            if (parentExpr.IsDereferencing)
-                return this.Dereference();
-            else
-                return this;
+            return parentExpr.IsDereferencing;
         }
 
         public void Assign(ObjectData source)

@@ -164,7 +164,7 @@ namespace Skila.Language.Expressions
             out NameReference constructorReference,
             bool useHeap, params FunctionArgument[] arguments)
         {
-            const string local_this = "__this__";
+            string local_this = AutoName.Instance.CreateNew("cons_obj");
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
 

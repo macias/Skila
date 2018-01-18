@@ -17,7 +17,13 @@ namespace Skila.Language
             AutoDereference = 1 << 6,
         }
 
-        public static readonly TypeMatch No = new TypeMatch(MatchFlag.No);
+        public static TypeMatch No
+        {
+            get
+            {
+                return new TypeMatch(MatchFlag.No);
+            }
+        }
         public static readonly TypeMatch Same = new TypeMatch(MatchFlag.Same);
         public static readonly TypeMatch Substitute = new TypeMatch(MatchFlag.Substitute);
         public static readonly TypeMatch InConversion = new TypeMatch(MatchFlag.InConversion);
@@ -27,7 +33,7 @@ namespace Skila.Language
 
         public static TypeMatch Substituted(int distance)
         {
-            if (distance==1)
+            if (distance == 1)
             {
                 ;
             }

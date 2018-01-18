@@ -74,6 +74,11 @@ namespace Skila.Language
             List<int> argParamMapping,
             out bool success)
         {
+            if (argumentsProvider.DebugId.Id == 27281 && targetFunctionInstance.DebugId.Id == 128265)
+            {
+                ;
+            }
+
             success = true;
 
             this.MetaThisArgument = callContext.MetaThisArgument;
@@ -220,6 +225,11 @@ namespace Skila.Language
 
                 if (match == TypeMatch.No)
                     return false;
+
+                if (match==TypeMatch.ImplicitReference)
+                {
+                    ;
+                }
             }
 
             return true;
@@ -324,7 +334,7 @@ namespace Skila.Language
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 71160)
+            if (this.DebugId.Id == 128447)
             {
                 ;
             }
@@ -346,7 +356,7 @@ namespace Skila.Language
                 IEntityInstance function_param_type = this.GetTransParamEvalByArg(arg);
 
                 IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
-                    = extractTypeParametersMapping(this.TargetFunction, arg.Evaluation.Components, function_param_type);
+                    = extractTypeParametersMapping(ctx, this.TargetFunction, arg.Evaluation.Components, function_param_type);
 
                 foreach (Tuple<TemplateParameter, IEntityInstance> pair in type_mapping)
                 {
@@ -379,7 +389,7 @@ namespace Skila.Language
                 ;
             }
 
-            EntityInstance closedTemplate = EntityInstance.Create(ctx, this.TargetFunctionInstance, templateArguments, 
+            EntityInstance closedTemplate = EntityInstance.Create(ctx, this.TargetFunctionInstance, templateArguments,
                 this.TargetFunctionInstance.OverrideMutability);
 
             var result = new List<IEntityInstance>();
@@ -418,9 +428,32 @@ namespace Skila.Language
             return result;
         }
 
-        private static IEnumerable<Tuple<TemplateParameter, IEntityInstance>> extractTypeParametersMapping(FunctionDefinition function,
+        private static IEnumerable<Tuple<TemplateParameter, IEntityInstance>> extractTypeParametersMapping(ComputationContext ctx,
+            TemplateDefinition template,
             IEntityInstance argType, IEntityInstance paramType)
         {
+            // three steps logic of dereferencing here
+            // (1) we cannot pass references as template arguments, so we dereference the type right away
+            bool dereferencing_arg = ctx.Env.IsReferenceOfType(argType);
+            if (dereferencing_arg)
+                ctx.Env.DereferencedOnce(argType, out argType, out bool dummy);
+
+            // (2) we need to drop reference from param type as well (scenario: passing values to function taking references of them)
+            if (ctx.Env.IsReferenceOfType(paramType))
+            {
+                ctx.Env.DereferencedOnce(paramType, out paramType, out bool dummy1);
+
+                // (3) at this point it could happen that we didn't dereferenced pointer argument, so we do it, 
+                // but only if the argument was not dereferenced already
+                if (!dereferencing_arg && ctx.Env.IsPointerOfType(argType))
+                    ctx.Env.DereferencedOnce(argType, out argType, out bool dummy2);
+            }
+            // done, we covered:
+            // value -> ref
+            // ref -> ref
+            // ptr -> ref
+
+
             // let's say we pass Tuple<Int,String> into function which expects there Tuple<K,V>
             // we try to extract those type to return mapping K -> Int, V -> String
             // please note that those mappings can repeat, like T -> Int, T -> String 
@@ -430,17 +463,27 @@ namespace Skila.Language
             if (param_type_instance == null)
                 return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
-            if (param_type_instance.IsTemplateParameterOf(function))
+            // case when we have direct hit, function: def foo<T>(x T)
+            // and we have argument (for example) Int against parameter "x T", thus we simply match them: T=Int
+            if (param_type_instance.IsTemplateParameterOf(template))
                 return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter, argType) };
             else
             {
                 var arg_type_instance = argType as EntityInstance;
-                if (arg_type_instance == null || arg_type_instance.TemplateArguments.Count != param_type_instance.TemplateArguments.Count)
+                if (arg_type_instance == null)
+                    return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
+
+                IEnumerable<EntityInstance> arg_family = arg_type_instance.Inheritance(ctx).AncestorsWithoutObject
+                    .Concat(arg_type_instance);
+                arg_type_instance = arg_family
+                    .SingleOrDefault(it => it.TargetType == param_type_instance.TargetType);
+
+                if (arg_type_instance == null)
                     return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
                 var zipped = arg_type_instance.TemplateArguments.SyncZip(param_type_instance.TemplateArguments);
                 return zipped
-                    .Select(it => extractTypeParametersMapping(function, it.Item1, it.Item2))
+                    .Select(it => extractTypeParametersMapping(ctx, template, it.Item1, it.Item2))
                     .Flatten()
                     .ToArray();
             }

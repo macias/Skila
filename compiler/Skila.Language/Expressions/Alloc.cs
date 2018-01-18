@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
 
         public override string ToString()
         {
-            string result = $"alloc<{this.InnerTypeName}>";
+            string result = $"alloc<{(UseHeap?"*":"")}{this.InnerTypeName}>";
             return result;
         }
 

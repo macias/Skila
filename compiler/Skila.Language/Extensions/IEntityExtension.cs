@@ -12,7 +12,7 @@ namespace Skila.Language.Extensions
             if (ctx.Env.IsReferenceOfType(eval))
                 return;
 
-            ctx.Env.Dereferenced(eval, out eval, out bool dummy);
+            ctx.Env.Dereferenced(eval,out eval);
 
             if (eval.EnumerateAll().Any(it => it.TargetType.Modifier.HasAssociatedReference))
                 ctx.AddError(ErrorCode.AssociatedReferenceRequiresPassingByReference, entity);
