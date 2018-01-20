@@ -30,14 +30,24 @@ namespace Skila.Language
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return Create(ctx, targetInstance, arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
+            return Create(targetInstance, arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
         }
 
-        internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
-            IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability)
+        internal static EntityInstance Create(EntityInstance targetInstance,
+            IEnumerable<IEntityInstance> templateArguments, MutabilityFlag overrideMutability)
         {
-            return targetInstance.Target.GetInstance(arguments, overrideMutability,
-                TemplateTranslation.Combine(targetInstance.Translation, targetInstance.Target.Name.Parameters, arguments));
+            TemplateTranslation trans_arg = TemplateTranslation.Create(targetInstance.Target.Name.Parameters, templateArguments);
+
+            return targetInstance.Target.GetInstance(templateArguments, overrideMutability,
+                TemplateTranslation.Combine(targetInstance.Translation, trans_arg));
+        }
+
+        internal static EntityInstance CreateUpdated(EntityInstance targetInstance, TemplateTranslation translation)
+        {
+            if (Object.Equals(targetInstance.Translation, translation))
+                return targetInstance;
+            else
+                return targetInstance.Target.GetInstance(targetInstance.TemplateArguments, targetInstance.OverrideMutability, translation);
         }
 
 #if DEBUG
@@ -146,9 +156,9 @@ namespace Skila.Language
             return (this as IEntityInstance).TranslateThrough(closedTemplate).Cast<EntityInstance>();
         }
 
-        public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated)
+        public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
-            return openTemplate.TranslateThrough(this, ref translated);
+            return openTemplate.TranslateThrough(this, ref translated, closedTranslation);
         }
 
         public bool IsTemplateParameterOf(TemplateDefinition template)
@@ -156,9 +166,9 @@ namespace Skila.Language
             return this.TargetsTemplateParameter && template.ContainsElement(this.TargetType);
         }
 
-        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
+        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
-            if (closedTemplate.DebugId.Id == 3386 && this.DebugId.Id == 486)
+            if (closedTemplate.DebugId.Id == 130075 && this.DebugId.Id == 130120)
             {
                 ;
             }
@@ -168,26 +178,21 @@ namespace Skila.Language
             // or let's say we have type Foo<T> and one of its methods returns T
             // then we have instance Foo<String> (closedTemplate), what T is then? (String)
 
-            // case: "this" is "T", and "closedTemplate" is "Array<Int>" of template "Array<T>"
-            /*if (closedTemplate.TemplateArguments.Any() && this.IsTemplateParameterOf(closedTemplate.TargetTemplate))
-            {
-                translated = true;
-                return closedTemplate.TemplateArguments[this.TemplateParameterTarget.Index];
-            }*/
-
             if (this.Target.IsType() && !this.DependsOnTypeParameter)
                 return this;
 
+            closedTranslation = closedTranslation ?? closedTemplate.Translation;
+
+            if (closedTranslation != null && this.TargetsTemplateParameter)
             {
-                if (closedTemplate.Translation != null && this.TargetsTemplateParameter
-                                && closedTemplate.Translation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
+                if (closedTranslation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
                 {
                     if (trans == this)
                         return this;
                     else
                     {
                         translated = true;
-                        IEntityInstance result = trans.TranslateThrough(closedTemplate, ref translated);
+                        IEntityInstance result = trans.TranslateThrough(closedTemplate, ref translated, closedTranslation);
                         return result;
                     }
                 }
@@ -204,7 +209,7 @@ namespace Skila.Language
                 }
             }
 
-            TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTemplate.Translation);
+            TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTranslation);
 
             if (self.TemplateArguments.Any())
             {
@@ -212,7 +217,10 @@ namespace Skila.Language
 
                 var trans_arguments = new List<IEntityInstance>();
                 foreach (IEntityInstance arg in self.TemplateArguments)
-                    trans_arguments.Add(arg.TranslateThrough(closedTemplate, ref trans));
+                {
+                    IEntityInstance trans_arg = arg.TranslateThrough(closedTemplate, ref trans, translation);
+                    trans_arguments.Add(trans_arg);
+                }
 
                 if (trans)
                 {

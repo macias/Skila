@@ -13,7 +13,14 @@ namespace Skila.Language
     {
         internal static TemplateTranslation Create(IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
         {
-            return Combine(null, parameters, arguments);
+            // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
+            if (parameters.Any() && arguments.Any() && parameters.Count != arguments.Count())
+                throw new NotImplementedException();
+
+            if (!arguments.Any())
+                return null;
+
+            return new TemplateTranslation(parameters.SyncZip(arguments.Select(it => it)).ToDictionary());
         }
 
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
@@ -35,43 +42,29 @@ namespace Skila.Language
             return s;
         }
 
-        internal static TemplateTranslation Combine(TemplateTranslation trans,
-            IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
+        internal static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
         {
-            // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
-            if (parameters.Any() && arguments.Any() && parameters.Count != arguments.Count())
-                throw new NotImplementedException();
+            if (basic == null)
+                return overlay;
+            else if (overlay == null)
+                return basic;
 
-            if (!arguments.Any())
-                return trans;
-
-            Dictionary<TemplateParameter, IEntityInstance> dict;
-            if (trans != null)
-                dict = trans.table.ToDictionary(it => it.Key, it => it.Value);
-            else
-                dict = new Dictionary<TemplateParameter, IEntityInstance>();
-
-            foreach (Tuple<TemplateParameter, IEntityInstance> entry in parameters.SyncZip(arguments.Select(it => it)))
+            Dictionary<TemplateParameter, IEntityInstance> dict = new Dictionary<TemplateParameter, IEntityInstance>();
+            // adding basic entries such as they won't make cycles with overlay entries
+            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in basic.table)
             {
-                if (dict.ContainsKey(entry.Item1))
-                    dict[entry.Item1] = entry.Item2;
-                else
-                    dict.Add(entry.Item1, entry.Item2);
+                if (entry.Value is EntityInstance basic_instance && basic_instance.TargetsTemplateParameter
+                    && overlay.table.TryGetValue(basic_instance.TemplateParameterTarget, out IEntityInstance overlay_value)
+                    && overlay_value is EntityInstance overlay_instance && overlay_instance.TargetsTemplateParameter
+                    && basic.table.ContainsKey(overlay_instance.TemplateParameterTarget))
+                {
+                    continue;
+                }
+
+                dict.Add(entry.Key, entry.Value);
             }
 
-            return new TemplateTranslation(dict);
-        }
-
-        internal static TemplateTranslation Combine(TemplateTranslation trans1, TemplateTranslation trans2)
-        {
-            if (trans1 == null)
-                return trans2;
-            else if (trans2 == null)
-                return trans1;
-
-            Dictionary<TemplateParameter, IEntityInstance> dict = trans1.table.ToDictionary(it => it.Key, it => it.Value);
-
-            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in trans2.table)
+            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in overlay.table)
             {
                 if (dict.ContainsKey(entry.Key))
                     dict[entry.Key] = entry.Value;
@@ -81,8 +74,6 @@ namespace Skila.Language
 
             return new TemplateTranslation(dict);
         }
-
-
 
         public override bool Equals(object obj)
         {

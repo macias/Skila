@@ -12,6 +12,56 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter MapFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            const string elem_name = "my_elem";
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("pow"),
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Mul("x", "x"))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,-2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.IntTypeReference(),
+                            NameFactory.IntTypeReference(),
+                            // todo: use sink
+                            NameFactory.IntTypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.IntTypeReference(), NameFactory.IntTypeReference(), NameFactory.IntTypeReference()),
+                        IntLiteral.Create("6"), IntLiteral.Create("-2"))),
+
+                    VariableDeclaration.CreateStatement("m", null,
+                        FunctionCall.Create(NameReference.Create("t", NameFactory.MapFunctionName), NameReference.Create("pow"))),
+
+                    VariableDeclaration.CreateStatement("acc", null, IntLiteral.Create("0"), EntityModifier.Reassignable),
+                    Loop.CreateForEach(elem_name, NameFactory.IntTypeReference(), NameReference.Create("m"),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                    Return.Create(NameReference.Create("acc"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(40, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter IteratingOverConcatenatedMixedIterables()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -21,15 +71,15 @@ namespace Skila.Tests.Execution
                 .Modifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
-                .With(ExpressionFactory.BasicConstructor(new[] { "x" }, 
+                .With(ExpressionFactory.BasicConstructor(new[] { "x" },
                     new[] { NameFactory.IntTypeReference() })));
 
             root_ns.AddBuilder(TypeBuilder.Create("PointA")
                 .Modifier(EntityModifier.Mutable)
                 .Parents("BasePoint")
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
-                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(),NameReference.Create("a")))
-                    .Parameters(FunctionParameter.Create("a",NameFactory.IntTypeReference()))));
+                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("a")))
+                    .Parameters(FunctionParameter.Create("a", NameFactory.IntTypeReference()))));
 
             root_ns.AddBuilder(TypeBuilder.Create("PointB")
                 .Modifier(EntityModifier.Mutable)

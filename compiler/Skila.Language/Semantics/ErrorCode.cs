@@ -103,5 +103,6 @@
         AssociatedReferenceRequiresNonVariadicParameter = 99,
         AssociatedReferenceRequiresNonOptionalParameter = 100,
         AssociatedReferenceRequiresPassingByReference = 101,
+        ReferenceAsTypeArgument = 102,
     }
 }

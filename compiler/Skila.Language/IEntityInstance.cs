@@ -20,8 +20,8 @@ namespace Skila.Language
 
         bool IsValueType(ComputationContext ctx);
 
-        IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated);
-        IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated);
+        IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated,TemplateTranslation closedTranslation);
+        IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation);
         ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance verifiedInstance, TemplateParameter param);
 
         TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target, VarianceMode variance, TypeMatching matching);

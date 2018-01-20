@@ -184,6 +184,10 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression Mul(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.MulOperator), FunctionArgument.Create(rhs));
+        }
         public static IExpression Sub(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.SubOperator), FunctionArgument.Create(rhs));
@@ -191,6 +195,10 @@ namespace Skila.Language.Expressions
         public static IExpression Add(string lhs, string rhs)
         {
             return Add(NameReference.Create(lhs), NameReference.Create(rhs));
+        }
+        public static IExpression Mul(string lhs, string rhs)
+        {
+            return Mul(NameReference.Create(lhs), NameReference.Create(rhs));
         }
         public static IExpression And(IExpression lhs, IExpression rhs)
         {

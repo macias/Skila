@@ -206,6 +206,18 @@ namespace Skila.Interpreter
                         ExecValue result = ExecValue.CreateReturn(res_value);
                         return result;
                     }
+                    else if (func.Name.Name == NameFactory.MulOperator)
+                    {
+                        int this_int = this_value.PlainValue.Cast<int>();
+
+                        ObjectData arg = ctx.FunctionArguments.Single();
+                        int arg_int = arg.PlainValue.Cast<int>();
+
+                        ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, this_int * arg_int)
+                            .ConfigureAwait(false);
+                        ExecValue result = ExecValue.CreateReturn(res_value);
+                        return result;
+                    }
                     else if (func.Name.Name == NameFactory.SubOperator)
                     {
                         ObjectData arg = ctx.FunctionArguments.Single();

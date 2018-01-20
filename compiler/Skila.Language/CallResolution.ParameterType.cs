@@ -9,16 +9,20 @@ namespace Skila.Language
         [DebuggerDisplay("{GetType().Name} {ToString()}")]
         private sealed class ParameterType
         {
-            internal static ParameterType Create(FunctionParameter param, 
-                IEntityInstance objectInstance, 
+            internal static ParameterType Create(FunctionParameter param,
+                IEntityInstance objectInstance,
                 EntityInstance targetFunctionInstance)
             {
-                IEntityInstance elem_instance = param.ElementTypeName.Evaluation.Components
-                    .TranslateThrough(objectInstance)
-                    .TranslateThrough(targetFunctionInstance);
-                IEntityInstance type_instance = param.TypeName.Evaluation.Components
-                    .TranslateThrough(objectInstance)
-                    .TranslateThrough(targetFunctionInstance);
+                if (param.DebugId.Id == 711)
+                {
+                    ;
+                }
+                IEntityInstance elem_instance = orderedTranslatation(param.ElementTypeName.Evaluation.Components,
+                    objectInstance, targetFunctionInstance);
+
+                IEntityInstance type_instance = orderedTranslatation(param.TypeName.Evaluation.Components,
+                    objectInstance, targetFunctionInstance);
+
                 return new ParameterType(elementTypeInstance: elem_instance, typeInstance: type_instance);
             }
 

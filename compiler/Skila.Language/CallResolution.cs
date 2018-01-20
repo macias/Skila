@@ -91,7 +91,12 @@ namespace Skila.Language
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
 
-            if (this.DebugId.Id == 5691)
+            if (this.DebugId.Id == 130076)
+            {
+                ;
+            }
+
+            if (this.DebugId.Id == 130363)
             {
                 ;
             }
@@ -112,13 +117,39 @@ namespace Skila.Language
                 {
                     this.InferredTemplateArguments = inferred.Select(it => it.NameOf).StoreReadOnly();
 
-                    this.TargetFunctionInstance = EntityInstance.Create(ctx, this.TargetFunctionInstance, inferred,
+                    this.TargetFunctionInstance = EntityInstance.Create(this.TargetFunctionInstance, inferred,
                         this.TargetFunctionInstance.OverrideMutability);
+
+                    // accumulate all the knowledge about mappings from the parameters and result
+                    // and put it as one back to function instance
+                    {
+                        TemplateTranslation combined_translation = combineTranslations(this.TargetFunctionInstance.Translation,
+                            this.translatedParamEvaluations, this.translatedResultEvaluation);
+                        this.TargetFunctionInstance = EntityInstance.CreateUpdated(this.TargetFunctionInstance, combined_translation);
+                    }
+
                     extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
                         out this.translatedParamEvaluations,
                         out this.translatedResultEvaluation);
+
                 }
             }
+        }
+
+        private static TemplateTranslation combineTranslations(TemplateTranslation translation, IReadOnlyList<ParameterType>
+            translatedParamEvaluations,
+            EvaluationInfo translatedResultEvaluation)
+        {
+            foreach (TemplateTranslation trans in translatedParamEvaluations
+                .Select(it => it.ElementTypeInstance)
+                .Concat(translatedResultEvaluation.Components)
+                .SelectMany(it => it.EnumerateAll())
+                .Select(it => it.Translation))
+            {
+                translation = TemplateTranslation.Combine(translation, trans);
+            }
+
+            return translation;
         }
 
         private static List<int> createArgParamMapping(EntityInstance targetFunctionInstance,
@@ -180,7 +211,7 @@ namespace Skila.Language
         }
 
         private static void extractParameters(ComputationContext ctx,
-            IEntityInstance objectType,
+            IEntityInstance objectInstance,
             EntityInstance targetFunctionInstance,
             out IReadOnlyList<ParameterType> translatedParamEvaluations,
             out EvaluationInfo translatedResultEvaluation)
@@ -188,27 +219,34 @@ namespace Skila.Language
             FunctionDefinition target_function = targetFunctionInstance.TargetTemplate.CastFunction();
 
             translatedParamEvaluations = target_function.Parameters
-                .Select(it => ParameterType.Create(it, objectType, targetFunctionInstance))
+                .Select(it => ParameterType.Create(it, objectInstance, targetFunctionInstance))
                 .StoreReadOnlyList();
 
             target_function.ResultTypeName.Evaluated(ctx);
 
-            IEntityInstance components = target_function.ResultTypeName.Evaluation.Components;
-            components = components.TranslateThrough(targetFunctionInstance);
-            components = components.TranslateThrough(objectType);
+            IEntityInstance components = orderedTranslatation(target_function.ResultTypeName.Evaluation.Components,
+                objectInstance, targetFunctionInstance);
 
-            EntityInstance aggregate = target_function.ResultTypeName.Evaluation.Aggregate;
-            aggregate = aggregate.TranslateThrough(targetFunctionInstance);
-            aggregate = aggregate.TranslateThrough(objectType);
+            EntityInstance aggregate = orderedTranslatation(target_function.ResultTypeName.Evaluation.Aggregate,
+                objectInstance, targetFunctionInstance);
 
             translatedResultEvaluation = new EvaluationInfo(components, aggregate);
+        }
+
+        private static T orderedTranslatation<T>(T instance, IEntityInstance objectInstance,
+            EntityInstance targetFunctionInstance)
+            where T : IEntityInstance
+        {
+            instance = instance.TranslateThrough(targetFunctionInstance);
+            instance = instance.TranslateThrough(objectInstance);
+            return instance;
         }
 
         internal bool ArgumentTypesMatchParameters(ComputationContext ctx)
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
-                if (arg.DebugId.Id == 2584)
+                if (arg.DebugId.Id == 27142)
                 {
                     ;
                 }
@@ -226,7 +264,7 @@ namespace Skila.Language
                 if (match == TypeMatch.No)
                     return false;
 
-                if (match==TypeMatch.ImplicitReference)
+                if (match == TypeMatch.ImplicitReference)
                 {
                     ;
                 }
@@ -334,7 +372,7 @@ namespace Skila.Language
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 128447)
+            if (this.DebugId.Id == 130076)
             {
                 ;
             }
@@ -389,7 +427,7 @@ namespace Skila.Language
                 ;
             }
 
-            EntityInstance closedTemplate = EntityInstance.Create(ctx, this.TargetFunctionInstance, templateArguments,
+            EntityInstance closedTemplate = EntityInstance.Create(this.TargetFunctionInstance, templateArguments,
                 this.TargetFunctionInstance.OverrideMutability);
 
             var result = new List<IEntityInstance>();

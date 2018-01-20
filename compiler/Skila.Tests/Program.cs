@@ -31,13 +31,13 @@ namespace Skila.Tests
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().InferredPartialTemplateArgumentsOnConstraints();
+            //new Semantics.Templates().TODO_ErrorPassingReferenceAsTypeArgument();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ImplicitClosureWithValue();
-            new Execution.Collections().IteratingOverConcatenatedMixedIterables();
+            new Execution.Collections().MapFunction();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();

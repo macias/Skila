@@ -194,12 +194,12 @@ namespace Skila.Tests.Semantics
 
             // x *IFunction<Int,Double> = foo
             root_ns.AddNode(VariableDeclaration.CreateStatement("x",
-                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.FunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference())),
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.IntTypeReference(), NameFactory.DoubleTypeReference())),
                 initValue: NameReference.Create("foo"), modifier: EntityModifier.Public));
             var foo_ref = NameReference.Create("foo");
             // y *IFunction<Double,Int> = foo
             VariableDeclaration decl = VariableDeclaration.CreateStatement("y",
-                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.FunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference())),
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.IntTypeReference())),
                 initValue: foo_ref, modifier: EntityModifier.Public);
             root_ns.AddNode(decl);
 

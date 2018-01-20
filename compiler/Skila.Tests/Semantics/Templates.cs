@@ -5,12 +5,46 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using System.Linq;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Templates
     {
+      //  [TestMethod]
+        public IErrorReporter TODO_ErrorPassingReferenceAsTypeArgument()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+                TemplateParametersBuffer.Create().Add("T").Values),
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement()));
+
+            NameReference function_name = NameReference.Create("proxy", 
+                NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("tester",
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(
+                    FunctionCall.Create(function_name)
+                    )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceAsTypeArgument,function_name.TemplateArguments.Single()));
+
+            return resolver;
+        }
+
+
         [TestMethod]
         public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
         {
@@ -25,7 +59,7 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("X")
                     .BaseOf(NameReference.Create("T"))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("part",NameFactory.IntTypeReference(),NameReference.Sink()));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part", NameFactory.IntTypeReference(), NameReference.Sink()));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("caller"),
                 NameFactory.UnitTypeReference(),
@@ -50,11 +84,11 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
-                TemplateParametersBuffer.Create("T","X").Values),
+                TemplateParametersBuffer.Create("T", "X").Values),
                 NameFactory.UnitTypeReference(),
 
                 Block.CreateStatement())
-                .Parameters(FunctionParameter.Create("x",NameReference.Create("T"),ExpressionReadMode.CannotBeRead))
+                .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), ExpressionReadMode.CannotBeRead))
                 .Constraints(ConstraintBuilder.Create("X")
                     .BaseOf(NameReference.Create("T"))));
 
@@ -89,7 +123,7 @@ namespace Skila.Tests.Semantics
                 TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)
@@ -120,7 +154,7 @@ namespace Skila.Tests.Semantics
                 TemplateParametersBuffer.Create().Add("T").Values),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
                     .BaseOf(baseof_name)

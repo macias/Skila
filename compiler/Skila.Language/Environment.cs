@@ -405,7 +405,29 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
 
         private static TypeDefinition createIIterable()
         {
-            const string elem_type = "ITT";
+            const string elem_type = "ITBT";
+
+            FunctionDefinition map_func;
+            {
+                const string map_type = "MPT";
+                const string buffer_name = "buffer";
+                const string mapper_name = "mapper";
+                const string elem_name = "map_elem";
+                map_func = FunctionBuilder.Create(NameDefinition.Create(NameFactory.MapFunctionName, map_type, VarianceMode.None),
+                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(map_type, MutabilityFlag.Neutral)),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement(buffer_name, null,
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(map_type))),
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), NameFactory.ThisReference(), new[] {
+                        FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
+                            FunctionCall.Create(NameReference.Create(mapper_name), NameReference.Create(elem_name)))
+                        }),
+                        Return.Create(NameReference.Create(buffer_name))
+                        ))
+                        .Parameters(FunctionParameter.Create(mapper_name,
+                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
+                                     NameReference.Create(elem_type), NameReference.Create(map_type)))));
+            }
 
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, elem_type, VarianceMode.Out))
                                 .Parents(NameFactory.ObjectTypeReference())
@@ -417,7 +439,9 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                     NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type))))
 
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
-                                    NameFactory.IntTypeReference()));
+                                    NameFactory.IntTypeReference()))
+
+                 .With(map_func);
         }
 
         private static TypeDefinition createArray()
@@ -589,6 +613,11 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.MulOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead)))
 
                 .WithComparableCompare()
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
@@ -638,9 +667,10 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
         {
             const string value_field = "value";
             const string has_value_field = "hasValue";
+            const string elem_type = "OPT";
 
             value_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                                new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                                new[] { FunctionParameter.Create("value", NameReference.Create(elem_type), Variadic.None, null, isNameRequired: false) },
                                     Block.CreateStatement(new[] {
                                         Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"value"),
                                             NameReference.Create("value")),
@@ -656,7 +686,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                                     }));
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
-                                TemplateParametersBuffer.Create().Add("T", VarianceMode.Out).Values))
+                                TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
                             .Modifier(EntityModifier.Mutable)
                             .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 null,
@@ -665,10 +695,10 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                                     NameReference.Create(NameFactory.ThisVariableName, has_value_field)))) },
                                 null
                             ))
-                            .With(Property.Create(NameFactory.OptionValue, NameReference.Create("T"),
+                            .With(Property.Create(NameFactory.OptionValue, NameReference.Create(elem_type),
                                 null,
                                 new[] { FunctionBuilder.Create(NameDefinition.Create(NameFactory.PropertyGetter),
-                                null, ExpressionReadMode.CannotBeRead, NameReference.Create("T"),
+                                null, ExpressionReadMode.CannotBeRead, NameReference.Create(elem_type),
                                 Block.CreateStatement(new IExpression[] {
                                     IfBranch.CreateIf(ExpressionFactory.Not( NameReference.Create(NameFactory.ThisVariableName, has_value_field)),
                                         new[]{ Throw.Create(ExpressionFactory.HeapConstructor(NameFactory.ExceptionTypeReference())) }),
@@ -676,7 +706,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                                 })).Build() },
                                 null
                             ))
-                            .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create("T"), Undef.Create()))
+                            .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create(elem_type), Undef.Create()))
                             .With(VariableDeclaration.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
                             .With(empty_constructor)
                             .With(value_constructor)
@@ -752,16 +782,16 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
             var function_parameters = new List<FunctionParameter>();
             foreach (int i in Enumerable.Range(0, paramCount))
             {
-                var type_name = $"T{i}";
+                var type_name = $"FNCT{i}";
                 type_parameters.Add(type_name, VarianceMode.In);
                 function_parameters.Add(FunctionParameter.Create($"item{i}", NameReference.Create(type_name)));
             }
 
-            const string result_type = "R";
+            const string result_type = "FNCR";
             type_parameters.Add(result_type, VarianceMode.Out);
 
             TypeDefinition function_def = TypeBuilder.CreateInterface(
-                NameDefinition.Create(NameFactory.FunctionTypeName, type_parameters.Values))
+                NameDefinition.Create(NameFactory.IFunctionTypeName, type_parameters.Values))
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
                     NameReference.Create(result_type))
                     .Parameters(function_parameters.ToArray()));
@@ -775,7 +805,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
             var properties = new List<Property>();
             for (int i = 0; i < count; ++i)
             {
-                var type_name = $"T{i}";
+                var type_name = $"TPT{i}";
                 type_parameters.Add(type_name);
                 properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name))
                     .WithAutoField(Undef.Create(), EntityModifier.Reassignable)
@@ -792,7 +822,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                     item_selector);
             }
 
-            const string base_type_name = "C";
+            const string base_type_name = "TPC";
 
             TypeBuilder builder = TypeBuilder.Create(
                 NameDefinition.Create(NameFactory.TupleTypeName,
@@ -831,7 +861,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
 
         private static TypeDefinition createIterator()
         {
-            const string elem_type = "IRT";
+            const string elem_type = "ITRT";
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIteratorTypeName, elem_type, VarianceMode.Out))
                             .Modifier(EntityModifier.Mutable)
 
@@ -845,7 +875,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
 
         private static TypeDefinition createIndexIterator()
         {
-            const string elem_type_name = "XIT";
+            const string elem_type_name = "XIRT";
             const string coll_name = "coll";
             const string index_name = "index";
 
@@ -892,7 +922,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
         }
         private static TypeDefinition createIIndexable()
         {
-            const string elem_type_name = "IXT";
+            const string elem_type_name = "IXBT";
 
             TypeBuilder builder = TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.IIndexableTypeName,
@@ -921,13 +951,13 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
             var properties = new List<Property>();
             foreach (int i in Enumerable.Range(0, count))
             {
-                var type_name = $"T{i}";
+                var type_name = $"TIPT{i}";
                 type_parameters.Add(type_name);
                 properties.Add(PropertyBuilder.Create(NameFactory.TupleItemName(i), NameReference.Create(type_name))
                     .WithGetter(body: null).Build());
             }
 
-            const string base_type_name = "C";
+            const string base_type_name = "TIPC";
 
             TypeBuilder builder = TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ITupleTypeName,
@@ -989,7 +1019,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
         }
         public bool Dereferenced(IEntityInstance instance, out IEntityInstance result)
         {
-            return Dereference(instance, out result)>0;
+            return Dereference(instance, out result) > 0;
         }
 
         public bool DereferencedOnce(IEntityInstance instance, out IEntityInstance result, out bool viaPointer)

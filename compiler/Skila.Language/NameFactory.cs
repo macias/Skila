@@ -15,7 +15,7 @@ namespace Skila.Language
         public const string CollectionsNamespace = "Collections";
 
         public const string JokerTypeName = "[[@@]]";
-        public const string FunctionTypeName = "IFunction";
+        public const string IFunctionTypeName = "IFunction";
         public const string TupleTypeName = "Tuple";
         public const string ITupleTypeName = "ITuple";
         public const string IIndexableTypeName = "IIndexable";
@@ -70,6 +70,7 @@ namespace Skila.Language
         public const string ComparableCompare = "compare";
 
         public const string AddOperator = "+";
+        public const string MulOperator = "*";
         public const string SubOperator = "-";
         public const string EqualOperator = "==";
         public const string NotEqualOperator = "!=";
@@ -115,6 +116,7 @@ namespace Skila.Language
         public const string ParseFunctionName = "parse";
         public const string CreateFunctionName = "create";
         public const string ConcatFunctionName = "concat";
+        public const string MapFunctionName = "map";
         public const string AppendFunctionName = "append";
 
         public static NameReference UnitTypeReference()
@@ -131,9 +133,9 @@ namespace Skila.Language
         {
             return $"item{index}";
         }
-        public static NameReference FunctionTypeReference(IEnumerable<INameReference> arguments, INameReference result)
+        public static NameReference IFunctionTypeReference(params INameReference[] types)
         {
-            return NameReference.Create(NameReference.Root, FunctionTypeName, arguments.Concat(result).ToArray());
+            return NameReference.Create(NameReference.Root, IFunctionTypeName, types);
         }
 
         public static NameReference IntTypeReference()

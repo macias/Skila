@@ -493,6 +493,10 @@ namespace Skila.Language
             if (this.Binding.Match.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
                 ctx.AddError(ErrorCode.CannotReadExpression, this);
 
+            if (false)
+                foreach (INameReference arg in this.TemplateArguments)
+                    if (ctx.Env.IsReferenceOfType(arg.Evaluation.Components))
+                        ctx.AddError(ErrorCode.ReferenceAsTypeArgument, arg);
         }
 
         public void ValidateTypeNameVariance(ComputationContext ctx, VarianceMode typeNamePosition)
@@ -522,6 +526,7 @@ namespace Skila.Language
                     this.TemplateArguments[i].Cast<NameReference>().ValidateTypeNameVariance(ctx,
                         typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance));
                 }
+
         }
 
         private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
@@ -535,10 +540,14 @@ namespace Skila.Language
             return __eval.Cast<EntityInstance>();
         }
 
-        public NameReference Recreate(IEnumerable<INameReference> arguments)
+        public NameReference Recreate(IEnumerable<INameReference> arguments, EntityInstance target)
         {
-            var result = new NameReference(this.OverrideMutability, this.Prefix, this.Name, arguments, this.IsRoot);
-            result.AttachTo(this);
+            IExpression this_prefix = this.Prefix;
+            this_prefix?.DetachFrom(this);
+            this.TemplateArguments.ForEach(it => it.DetachFrom(this));
+
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments, this.IsRoot);
+            result.Binding.Set(new[] { target });
             return result;
         }
 

@@ -23,7 +23,7 @@ namespace Skila.Language.Extensions
                 return @this;
 
             bool translated = false;
-            return closedTemplate.TranslationOf(@this, ref translated).Cast<T>();
+            return closedTemplate.TranslationOf(@this, ref translated, closedTranslation:null).Cast<T>();
         }
         public static T TranslateThrough<T>(this T @this, IEnumerable<IEntityInstance> closedTemplates)
             where T : IEntityInstance

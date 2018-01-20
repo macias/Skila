@@ -142,7 +142,8 @@ namespace Skila.Language.Entities
 
         public NameReference CreateFunctionInterface()
         {
-            return NameFactory.FunctionTypeReference(this.Parameters.Select(it => it.ElementTypeName), this.ResultTypeName);
+            return NameFactory.IFunctionTypeReference(this.Parameters.Select(it => it.ElementTypeName)
+                .Concat(this.ResultTypeName).ToArray());
         }
 
         internal void AddResultTypeCandidate(INameReference typenameCandidate)

@@ -43,12 +43,12 @@ namespace Skila.Language
 
             return hasSymmetricRelation(other, (a, b) => a.IsSame(b, jokerMatchesAll));
         }
-        public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated)
+        public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
             bool trans = false;
 
             foreach (IEntityInstance closed in Instances)
-                openTemplate = closed.TranslationOf(openTemplate, ref trans);
+                openTemplate = closed.TranslationOf(openTemplate, ref trans,closedTranslation);
 
             if (trans)
                 translated = true;
@@ -72,13 +72,13 @@ namespace Skila.Language
         public abstract bool IsOverloadDistinctFrom(IEntityInstance other);
         public abstract IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
 
-        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated)
+        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
             var result = new List<IEntityInstance>();
             bool trans = false;
 
             foreach (IEntityInstance open in Instances)
-                result.Add(open.TranslateThrough(closedTemplate, ref trans));
+                result.Add(open.TranslateThrough(closedTemplate, ref trans,closedTranslation));
 
             if (trans)
             {

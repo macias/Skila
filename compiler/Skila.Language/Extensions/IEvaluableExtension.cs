@@ -60,7 +60,7 @@ namespace Skila.Language.Extensions
                 ;
             }
             IEntityInstance src_type = source.Evaluation.Components;
-            if (src_type.DebugId.Id == 108975 && targetTypeName.DebugId.Id == 108947)
+            if (src_type.DebugId.Id == 87380 && targetTypeName.DebugId.Id == 702)
             {
                 ;
             }

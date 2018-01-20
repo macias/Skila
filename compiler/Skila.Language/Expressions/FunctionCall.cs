@@ -204,7 +204,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 26990)
+                if (this.DebugId.Id ==  27143)
                 {
                     ;
                 }
@@ -312,11 +312,12 @@ namespace Skila.Language.Expressions
                         }
                         else
                         {
-                            this.callee = this.Name.Recreate(this.Resolution.InferredTemplateArguments);
+                            NameReference this_name = this.Name;
+                            this_name.DetachFrom(this);
+                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments, this.Resolution.TargetFunctionInstance);
+                            this.callee.AttachTo(this);
 
                             this.Callee.Evaluated(ctx);
-
-                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
 
                             if (!this.Name.Binding.HasMatch)
                                 throw new Exception("We've just lost our binding, probably something wrong with template translations");
