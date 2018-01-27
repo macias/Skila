@@ -14,7 +14,8 @@ namespace Skila.Language
         public bool GlobalVariables { get; set; }
         // todo: limit usage of this option and eventually remove it completely
         public bool TypelessVariablesDuringTests { get; set; }
-        public bool DebugThrowOnError { get; set; } 
+        public bool DebugThrowOnError { get; set; }
+        public bool MiniEnvironment { get; set; }
 
         public override string ToString()
         {

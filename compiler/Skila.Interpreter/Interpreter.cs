@@ -50,7 +50,7 @@ namespace Skila.Interpreter
                 }
             }
 
-            TypeDefinition owner_type = func.OwnerType();
+            TypeDefinition owner_type = func.ContainingType();
 
             if (func.IsNewConstructor())
             {
@@ -1009,7 +1009,7 @@ namespace Skila.Interpreter
 
                 // if the runtime type is exactly as the type we are hitting with function
                 // then there is no need to check virtual table, because we already have desired function
-                TypeDefinition target_func_owner = targetFunc.OwnerType();
+                TypeDefinition target_func_owner = targetFunc.ContainingType();
                 if (thisValue.RunTimeTypeInstance.TargetType == target_func_owner)
                     return targetFunc;
 
@@ -1109,7 +1109,7 @@ namespace Skila.Interpreter
                 return ExecValue.CreateExpression(ctx.ThisArgument);
             else if (ctx.LocalVariables.TryGet(target as ILocalBindable, out ObjectData info))
                 return ExecValue.CreateExpression(info);
-            else if (target is VariableDeclaration decl && decl.IsField())
+            else if (target is VariableDeclaration decl && decl.IsTypeContained())
             {
                 var current_func = name.EnclosingScope<FunctionDefinition>();
                 if (!ctx.LocalVariables.TryGet(current_func.MetaThisParameter, out ObjectData this_ref_data))

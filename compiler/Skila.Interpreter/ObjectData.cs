@@ -19,7 +19,7 @@ namespace Skila.Interpreter
     public sealed class ObjectData
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; } = new DebugId(typeof(ObjectData));
 #endif
 
         internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
@@ -136,7 +136,7 @@ namespace Skila.Interpreter
         private sealed class Data
         {
 #if DEBUG
-            public DebugId DebugId { get; } = new DebugId();
+            public DebugId DebugId { get; } = new DebugId(typeof(Data));
 #endif
             internal IEnumerable<KeyValuePair<VariableDeclaration, ObjectData>> Fields => this.fields ?? Enumerable.Empty<KeyValuePair<VariableDeclaration, ObjectData>>();
 

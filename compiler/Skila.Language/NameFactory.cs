@@ -117,6 +117,7 @@ namespace Skila.Language
         public const string CreateFunctionName = "create";
         public const string ConcatFunctionName = "concat";
         public const string MapFunctionName = "map";
+        public const string FilterFunctionName = "filter";
         public const string AppendFunctionName = "append";
 
         public static NameReference UnitTypeReference()

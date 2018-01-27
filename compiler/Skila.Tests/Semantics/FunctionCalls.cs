@@ -373,7 +373,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, super_function_reference));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveFunctionReference, super_function_reference));
 
             return resolver;
         }
@@ -394,7 +394,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveReference, self_function_reference));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NamedRecursiveFunctionReference, self_function_reference));
 
             return resolver;
         }

@@ -13,19 +13,18 @@ namespace Skila.Language
 #endif
 
         INameReference NameOf { get; }
-        bool DependsOnTypeParameter { get; }
 
         IEnumerable<EntityInstance> EnumerateAll();
         bool IsJoker { get; }
 
         bool IsValueType(ComputationContext ctx);
 
-        IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated,TemplateTranslation closedTranslation);
+        IEntityInstance TranslateThrough(ref bool translated, TemplateTranslation closedTranslation);
         IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation);
         ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance verifiedInstance, TemplateParameter param);
 
-        TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target, VarianceMode variance, TypeMatching matching);
-        TypeMatch TemplateMatchesInput(ComputationContext ctx,  EntityInstance input, VarianceMode variance, TypeMatching matching);
+        TypeMatch TemplateMatchesTarget(ComputationContext ctx, IEntityInstance target, VarianceMode variance, TypeMatching matching);
+        TypeMatch TemplateMatchesInput(ComputationContext ctx, EntityInstance input, VarianceMode variance, TypeMatching matching);
 
         // are types can be assigned or passed
         TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);

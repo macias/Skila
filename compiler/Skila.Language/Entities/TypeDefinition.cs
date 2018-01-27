@@ -171,7 +171,7 @@ namespace Skila.Language.Entities
                     inherited_member_instances.Add(translated);
                 }
 
-                if (this.DebugId.Id == 5252)
+                if (this.DebugId.Id == 1327)
                 {
                     ;
                 }

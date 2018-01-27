@@ -27,8 +27,9 @@ namespace Skila.Language.Entities
             EntityInstanceCore core = EntityInstanceCore.RAW_CreateUnregistered(entity, arguments, overrideMutability);
 
             Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>> family;
-                if (!this.instancesCache.TryGetValue(core, out family))
+            if (!this.instancesCache.TryGetValue(core, out family))
             {
+                // this is the base (core) entity instance, by "definition" always without translation
                 EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null);
                 family = Tuple.Create(base_instance, new Dictionary<TemplateTranslation, EntityInstance>());
                 this.instancesCache.Add(core, family);

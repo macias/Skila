@@ -36,7 +36,7 @@ namespace Skila.Language
         internal static EntityInstance Create(EntityInstance targetInstance,
             IEnumerable<IEntityInstance> templateArguments, MutabilityFlag overrideMutability)
         {
-            TemplateTranslation trans_arg = TemplateTranslation.Create(targetInstance.Target.Name.Parameters, templateArguments);
+            TemplateTranslation trans_arg = TemplateTranslation.Create(targetInstance.Target, templateArguments);
 
             return targetInstance.Target.GetInstance(templateArguments, overrideMutability,
                 TemplateTranslation.Combine(targetInstance.Translation, trans_arg));
@@ -51,9 +51,10 @@ namespace Skila.Language
         }
 
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null, overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
+        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
+            overrideMutability: MutabilityFlag.ConstAsSource, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -92,14 +93,6 @@ namespace Skila.Language
         INameReference IEntityInstance.NameOf => this.NameOf;
         public NameReference NameOf { get; }
 
-        public bool DependsOnTypeParameter
-        {
-            get
-            {
-                return this.TargetsTemplateParameter || this.TemplateArguments.Any(it => it.DependsOnTypeParameter);
-            }
-        }
-
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
         private EntityInstance(EntityInstanceCore core,
@@ -127,7 +120,7 @@ namespace Skila.Language
         {
             string result = this.Core.ToString();
             if (this.Translation != null)
-                result += $" [{this.Translation}]";
+                result += $" {this.Translation}";
             return result;
         }
 
@@ -153,12 +146,13 @@ namespace Skila.Language
 
         public EntityInstance TranslateThrough(EntityInstance closedTemplate)
         {
-            return (this as IEntityInstance).TranslateThrough(closedTemplate).Cast<EntityInstance>();
+            bool dummy = false;
+            return (this as IEntityInstance).TranslateThrough(ref dummy, closedTemplate.Translation).Cast<EntityInstance>();
         }
 
         public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
-            return openTemplate.TranslateThrough(this, ref translated, closedTranslation);
+            return openTemplate.TranslateThrough(ref translated, closedTranslation ?? this.Translation);
         }
 
         public bool IsTemplateParameterOf(TemplateDefinition template)
@@ -166,71 +160,51 @@ namespace Skila.Language
             return this.TargetsTemplateParameter && template.ContainsElement(this.TargetType);
         }
 
-        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated, TemplateTranslation closedTranslation)
+        public IEntityInstance TranslateThrough(ref bool translated, TemplateTranslation translation)
         {
-            if (closedTemplate.DebugId.Id == 130075 && this.DebugId.Id == 130120)
-            {
-                ;
-            }
-            // if to Coll<T,A> there is IColl<A> (this, dependent instance)
-            // then what is to Coll<Int,String> (closedTemplate)? answer: IColl<String>
+            // consider:
+            // Coll<T,A> implements IColl<A>
+            // and then you have Coll<Int,String> (closedTemplate) -- so how does IColl looks now?
+            // IColl<String> (since A maps to String)
             // and we compute it here
             // or let's say we have type Foo<T> and one of its methods returns T
             // then we have instance Foo<String> (closedTemplate), what T is then? (String)
 
-            if (this.Target.IsType() && !this.DependsOnTypeParameter)
+            if (translation == null)
                 return this;
 
-            closedTranslation = closedTranslation ?? closedTemplate.Translation;
-
-            if (closedTranslation != null && this.TargetsTemplateParameter)
+            if (translation.DebugId.Id == 104)
             {
-                if (closedTranslation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
+                ;
+            }
+
+
+            if (this.TargetsTemplateParameter)
+            {
+                if (translation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
                 {
-                    if (trans == this)
-                        return this;
-                    else
-                    {
+                    if (trans != this)
                         translated = true;
-                        IEntityInstance result = trans.TranslateThrough(closedTemplate, ref translated, closedTranslation);
-                        return result;
-                    }
+
+                    return trans;
                 }
+
+                return this;
             }
-
-            EntityInstance self = this;
-
-            foreach (IEntityInstance arg in closedTemplate.TemplateArguments)
+            else
             {
-                self = self.TranslateThrough(arg);
-                if (this != self)
-                {
-                    ;
-                }
-            }
-
-            TemplateTranslation translation = TemplateTranslation.Combine(self.Translation, closedTranslation);
-
-            if (self.TemplateArguments.Any())
-            {
-                bool trans = false;
-
                 var trans_arguments = new List<IEntityInstance>();
-                foreach (IEntityInstance arg in self.TemplateArguments)
+                foreach (IEntityInstance arg in this.TemplateArguments)
                 {
-                    IEntityInstance trans_arg = arg.TranslateThrough(closedTemplate, ref trans, translation);
+                    IEntityInstance trans_arg = arg.TranslateThrough(ref translated, translation);
                     trans_arguments.Add(trans_arg);
                 }
 
-                if (trans)
-                {
-                    translated = true;
-                    return self.Target.GetInstance(trans_arguments, this.OverrideMutability, translation);
-                }
-            }
+                TemplateTranslation combo_translation = TemplateTranslation.Combine(this.Translation, translation);
+                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation);
 
-            self = self.Target.GetInstance(self.TemplateArguments, self.OverrideMutability, translation);
-            return self;
+                return result;
+            }
         }
 
         public TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing)

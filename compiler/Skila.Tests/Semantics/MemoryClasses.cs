@@ -13,6 +13,35 @@ namespace Skila.Tests.Semantics
     public class MemoryClasses
     {
         [TestMethod]
+        public IErrorReporter ErrorReferenceEscapesFromScope()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            IExpression assignment = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("3"));
+            root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),null,
+                        EntityModifier.Reassignable),
+                    Block.CreateStatement(
+                        // escaping assignment, once we exit the scope we lose the source of the reference --> error
+                        assignment
+                        ),
+                    ExpressionFactory.Readout("x")
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, assignment));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorViolatingAssociatedReference()
         {
             var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -91,7 +120,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorEscapingReference()
+        public IErrorReporter ErrorReferenceEscapesFromFunction()
         {
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;

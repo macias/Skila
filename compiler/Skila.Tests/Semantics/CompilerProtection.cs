@@ -27,6 +27,18 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
+        public IErrorReporter MiniEnvironment()
+        {
+            var env = Language.Environment.Create(new Options() { MiniEnvironment = true, DebugThrowOnError = true });
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter Internals()
         {
             var env = Language.Environment.Create();
@@ -66,7 +78,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CrossRecursiveCalls()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("foo")

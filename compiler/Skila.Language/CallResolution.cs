@@ -13,7 +13,7 @@ namespace Skila.Language
     public sealed partial class CallResolution
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; } = new DebugId(typeof(CallResolution));
 #endif
 
         internal static CallResolution Create(ComputationContext ctx,
@@ -91,17 +91,17 @@ namespace Skila.Language
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
 
-            if (this.DebugId.Id == 130076)
+            if (this.DebugId.Id == 670)
             {
                 ;
             }
 
-            if (this.DebugId.Id == 130363)
-            {
-                ;
-            }
+            IEntityInstance call_ctx_eval = callContext.Evaluation;
+            if (call_ctx_eval != null)
+                // we need to have evaluation of the value, not ref/ptr, so the correct template translation table could kick in
+                ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval); 
 
-            extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
+            extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
@@ -128,7 +128,7 @@ namespace Skila.Language
                         this.TargetFunctionInstance = EntityInstance.CreateUpdated(this.TargetFunctionInstance, combined_translation);
                     }
 
-                    extractParameters(ctx, callContext.Evaluation, this.TargetFunctionInstance,
+                    extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
                         out this.translatedParamEvaluations,
                         out this.translatedResultEvaluation);
 
@@ -140,6 +140,10 @@ namespace Skila.Language
             translatedParamEvaluations,
             EvaluationInfo translatedResultEvaluation)
         {
+            // todo: this is incorrect, we should compute LCA for translations coming from multiple functions parameters
+            // consider foo<T>(a T, b T)
+            // and call: foo(5,'a')
+            // T for "5" is Int, for 'a' is "Char", so T for foo is Object
             foreach (TemplateTranslation trans in translatedParamEvaluations
                 .Select(it => it.ElementTypeInstance)
                 .Concat(translatedResultEvaluation.Components)

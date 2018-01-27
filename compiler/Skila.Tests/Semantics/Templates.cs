@@ -6,14 +6,120 @@ using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
 using System.Linq;
+using Skila.Language.Extensions;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Templates
     {
-      //  [TestMethod]
-        public IErrorReporter TODO_ErrorPassingReferenceAsTypeArgument()
+        [TestMethod]
+        public IErrorReporter InternalDirectTranslationTables()
+        {
+            var env = Environment.Create(new Options() { MiniEnvironment = true });
+            var root_ns = env.Root;
+
+            const string parent_typename = "Oldman";
+            const string parent_elemtype = "PT";
+
+            FunctionDefinition base_func = FunctionBuilder.CreateDeclaration("getMe",
+                ExpressionReadMode.CannotBeRead,
+                NameFactory.ReferenceTypeReference(parent_elemtype));
+            TypeDefinition parent = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(parent_typename,
+                TemplateParametersBuffer.Create(parent_elemtype).Values))
+                .Modifier(EntityModifier.Abstract)
+                .With(base_func));
+
+            const string child_typename = "Kid";
+            const string child_elemtype = "CT";
+
+            FunctionDefinition deriv_func = FunctionBuilder.Create("getMe",
+                    ExpressionReadMode.CannotBeRead,
+                    NameFactory.ReferenceTypeReference(child_elemtype),
+                    Block.CreateStatement(Return.Create(Undef.Create())))
+                    .Modifier(EntityModifier.Override);
+            TypeDefinition child = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(child_typename,
+                    TemplateParametersBuffer.Create(child_elemtype).Values))
+                .Parents(NameReference.Create(parent_typename, NameReference.Create(child_elemtype)))
+                .With(deriv_func));
+
+            var resolver = NameResolver.Create(env);
+
+            // testing here template translation
+            EntityInstance child_ancestor = child.Inheritance.AncestorsWithoutObject.Single();
+            IEntityInstance translated = base_func.ResultTypeName.Evaluation.Components.TranslateThrough(child_ancestor);
+
+            // we have single function overriden, so it is easy to debug and spot if something goes wrong
+            bool result = FunctionDefinitionExtension.IsDerivedOf(resolver.Context, deriv_func, base_func, child_ancestor);
+
+            Assert.IsTrue(result);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter InternalIndirectTranslationTables()
+        {
+            var env = Environment.Create(new Options() { MiniEnvironment = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            const string proxy_typename = "Proxy";
+            const string proxy_elemtype = "X";
+
+            FunctionDefinition get_func = FunctionBuilder.Create("getMe",
+                ExpressionReadMode.OptionalUse,
+                NameReference.Create(proxy_elemtype),
+                Block.CreateStatement(Return.Create(Undef.Create())));
+            TypeDefinition proxy = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(proxy_typename,
+                TemplateParametersBuffer.Create(proxy_elemtype).Values))
+                .With(get_func));
+
+            const string parent_typename = "Oldman";
+            const string parent_elemtype = "PT";
+
+            FunctionDefinition access_func = FunctionBuilder.Create("provide",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.ReferenceTypeReference(NameReference.Create(proxy_typename, NameReference.Create(parent_elemtype))),
+                Block.CreateStatement(Return.Create(Undef.Create())));
+            TypeDefinition parent = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(parent_typename,
+                TemplateParametersBuffer.Create(parent_elemtype).Values))
+                .Modifier(EntityModifier.Base)
+                .With(access_func)
+                );
+
+            const string child_typename = "Kid";
+            const string child_elemtype = "CT";
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("i", "getMe"));
+            // with buggy template translation table we would have here a type mismatch error
+            // if this error happens check first if prefix of the call is evaluated correctly
+            VariableDeclaration assignment = VariableDeclaration.CreateStatement("e", NameReference.Create(child_elemtype), call);
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(child_typename,
+                    TemplateParametersBuffer.Create(child_elemtype).Values))
+                .Parents(NameReference.Create(parent_typename, NameReference.Create(child_elemtype)))
+                .With(FunctionBuilder.Create("process",
+                    ExpressionReadMode.CannotBeRead,
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("i",
+                            NameFactory.ReferenceTypeReference(NameReference.Create(proxy_typename, NameReference.Create(child_elemtype))),
+                            FunctionCall.Create(NameReference.CreateThised("provide"))),
+                        ExpressionFactory.Readout("i"),
+
+                        assignment,
+                        ExpressionFactory.Readout("e")
+                        ))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorPassingReferenceAsTypeArgument()
         {
             var env = Environment.Create();
             var root_ns = env.Root;
@@ -25,7 +131,7 @@ namespace Skila.Tests.Semantics
 
                 Block.CreateStatement()));
 
-            NameReference function_name = NameReference.Create("proxy", 
+            NameReference function_name = NameReference.Create("proxy",
                 NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()));
 
             root_ns.AddBuilder(FunctionBuilder.Create("tester",
@@ -39,7 +145,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceAsTypeArgument,function_name.TemplateArguments.Single()));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceAsTypeArgument, function_name.TemplateArguments.Single()));
 
             return resolver;
         }

@@ -125,13 +125,26 @@ namespace Skila.Language.Expressions
                 }
             }
 
+            if (this.DebugId.Id == 1653)
+            {
+                ;
+            }
+
             {
                 IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
                 if (lhs_var != null)
                 {
+                    // this is a bit rough, because the source of the assigment could be at the same scope as the target
+                    // and only assigment could be nested, but for the start it will suffice, so basically we check
+                    // if assignment to referential type is not done in nested scope, if yes, we assume it is escaping
+                    // reference and report an error
+                    if (lhs_var.IsFunctionContained() && lhs_var.Scope != this.Scope
+                        && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components))
+                        ctx.AddError(ErrorCode.EscapingReference, this);
+
                     FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
                     bool can_reassign = lhs_var.Modifier.HasReassignable ||
-                        (current_func != null && current_func.OwnerType() == lhs_var.OwnerType()
+                        (current_func != null && current_func.ContainingType() == lhs_var.ContainingType()
                         && (current_func.IsInitConstructor() || current_func.IsZeroConstructor()));
 
                     if (!can_reassign)

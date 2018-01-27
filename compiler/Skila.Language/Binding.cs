@@ -10,7 +10,7 @@ namespace Skila.Language
     public sealed class Binding
     {
 #if DEBUG
-        private readonly DebugId debugId = new DebugId();
+        private readonly DebugId debugId = new DebugId(typeof(Binding));
 #endif
 
         public bool IsComputed { get; private set; }
@@ -33,13 +33,13 @@ namespace Skila.Language
         }
         public void Set(IEnumerable<EntityInstance> matches)
         {
-            if (this.debugId.Id ==        4842)
+            if (this.debugId.Id == 4842)
             {
                 ;
             }
             this.matches = matches.StoreReadOnly();
             //if (this.Matches.Any(it => it.IsJoker))
-             //   throw new ArgumentException("Cannot pass joker for binding.");
+            //   throw new ArgumentException("Cannot pass joker for binding.");
             if (this.IsComputed)
                 throw new InvalidOperationException("Matches already set.");
             this.IsComputed = true;

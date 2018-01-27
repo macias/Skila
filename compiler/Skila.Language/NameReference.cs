@@ -148,7 +148,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 26148)
+            if (this.DebugId.Id ==  7636)
             {
                 ;
             }
@@ -224,7 +224,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 26148)
+            if (this.DebugId.Id == 27425)
             {
                 ;
             }
@@ -310,7 +310,7 @@ namespace Skila.Language
             }
             else
             {
-                if (this.DebugId.Id == 26148)
+                if (this.DebugId.Id == 27425)
                 {
                     ;
                 }
@@ -336,7 +336,7 @@ namespace Skila.Language
                 }
                 else
                 {
-                    if (this.DebugId.Id == 26148)
+                    if (this.DebugId.Id == 27425)
                     {
                         ;
                     }
@@ -345,6 +345,12 @@ namespace Skila.Language
                     TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
                         .TargetTemplate;
                     IEnumerable<EntityInstance> entities = prefix_target.FindEntities(this, find_mode);
+                    {
+                        IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
+                        // we need to get value evaluation to perform translation
+                        ctx.Env.Dereference(prefix_eval, out prefix_eval);
+                        entities = entities.Select(it => it.TranslateThrough(prefix_eval));
+                    }
 
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
@@ -493,7 +499,8 @@ namespace Skila.Language
             if (this.Binding.Match.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
                 ctx.AddError(ErrorCode.CannotReadExpression, this);
 
-            if (false)
+            // todo: after reshaping escape analysis and associated reference types extend this to types as well
+            if (this.Binding.Match.Target is FunctionDefinition)
                 foreach (INameReference arg in this.TemplateArguments)
                     if (ctx.Env.IsReferenceOfType(arg.Evaluation.Components))
                         ctx.AddError(ErrorCode.ReferenceAsTypeArgument, arg);
@@ -567,9 +574,9 @@ namespace Skila.Language
             if (!callTarget.IsFunction())
                 throw new Exception("Internal error (if it is callable why is not wrapped into closure already)");
 
-            TypeDefinition target_type = callTarget.CastFunction().OwnerType();
+            TypeDefinition target_type = callTarget.CastFunction().ContainingType();
             FunctionDefinition current_function = this.EnclosingScope<FunctionDefinition>();
-            if (target_type != null && target_type == current_function.OwnerType())
+            if (target_type != null && target_type == current_function.ContainingType())
             {
                 NameReference implicit_this = current_function.GetThisNameReference();
                 return implicit_this;

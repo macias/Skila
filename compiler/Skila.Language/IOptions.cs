@@ -22,6 +22,7 @@ namespace Skila.Language
         bool GlobalVariables { get; }
         bool TypelessVariablesDuringTests { get; }
         bool DebugThrowOnError { get; } // useful when adding new test
+        bool MiniEnvironment { get; }
     }
 
     public static class IOptionsExtension

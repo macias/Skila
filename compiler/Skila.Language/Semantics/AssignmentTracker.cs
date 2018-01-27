@@ -14,7 +14,7 @@ namespace Skila.Language.Semantics
     public sealed partial class AssignmentTracker : INameRegistry
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; } = new DebugId(typeof(AssignmentTracker));
 #endif
 
         private int operationIdCounter;

@@ -56,7 +56,7 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
-            if (input.DebugId.Id == 127603 && target.DebugId.Id == 127723)
+            if (input.DebugId.Id == 88480 && target.DebugId.Id == 27504)
             {
                 ;
             }
@@ -115,11 +115,14 @@ namespace Skila.Language
             // automatic dereferencing pointers
             else if (ctx.Env.IsPointerLikeOfType(input))
             {
-                ctx.Env.Dereferenced(input, out IEntityInstance inner_input_type);
+                if (!ctx.Env.IsPointerOfType(target))
+                {
+                    ctx.Env.Dereferenced(input, out IEntityInstance inner_input_type);
 
-                TypeMatch m = inner_input_type.MatchesTarget(ctx, target, allowSlicing: true);
-                if (m == TypeMatch.Same || m == TypeMatch.Substitute)
-                    return m | TypeMatch.AutoDereference;
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, target, allowSlicing: true);
+                    if (m == TypeMatch.Same || m == TypeMatch.Substitute)
+                        return m | TypeMatch.AutoDereference;
+                }
             }
 
             {
@@ -145,7 +148,7 @@ namespace Skila.Language
                 matching.AllowSlicing = true;
 
 
-            if (input.DebugId.Id == 2707 && target.DebugId.Id == 2691)
+            if (input.DebugId.Id == 88465 && target.DebugId.Id == 27494)
             {
                 ;
             }
@@ -154,10 +157,11 @@ namespace Skila.Language
             {
                 MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
 
-                foreach (TypeAncestor inherited_input in new[] { new TypeAncestor(input, 0) }
+                IEnumerable<TypeAncestor> input_family = new[] { new TypeAncestor(input, 0) }
                     .Concat(input.Inheritance(ctx).TypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
-                    .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum)))
+                    .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum));
+                foreach (TypeAncestor inherited_input in input_family)
                 {
                     bool match = templateMatches(ctx, inherited_input.AncestorInstance, target, matching);
                     if (match)

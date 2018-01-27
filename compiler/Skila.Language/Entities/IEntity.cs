@@ -11,13 +11,4 @@ namespace Skila.Language.Entities
         EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability,TemplateTranslation translation);
     }
 
-    public static class EntityExtensions
-    {
-        /// <returns>null for non-methods and alike</returns>
-        public static TypeDefinition OwnerType(this IEntity @this)
-        {
-            TemplateDefinition scope = @this.EnclosingScope<TemplateDefinition>();
-            return scope.IsType() ? scope.CastType() : null;
-        }
-    }
 }

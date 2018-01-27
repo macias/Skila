@@ -31,7 +31,7 @@ namespace Skila.Language.Extensions
                 .Where(it => !it.IsInitConstructor() && !it.IsZeroConstructor()))
             {
                 FunctionDefinition derived_func = derivedFunctions
-                    .FirstOrDefault(f => FunctionDefinitionExtension.IsDerivedOf(ctx, f, base_func, baseInstance));
+                    .FirstOrDefault(dfunc => FunctionDefinitionExtension.IsDerivedOf(ctx, dfunc, base_func, baseInstance));
 
                result.Add(new FunctionDerivation(base_func, derived_func));
             }

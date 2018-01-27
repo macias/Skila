@@ -96,6 +96,38 @@ namespace Skila.Language
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
 
+            this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
+    .Modifier(EntityModifier.Native)
+    .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
+        EntityModifier.Static | EntityModifier.Native))
+    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
+    .Parents(NameFactory.ObjectTypeReference()));
+
+            this.UnitEvaluation = new EvaluationInfo(this.UnitType.InstanceOf);
+
+            // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
+            this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "RFT", VarianceMode.Out))
+                .Modifier(EntityModifier.Native)
+                .Slicing(true));
+            /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
+                  new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
+                  Block.CreateStatement(new IExpression[] { })));
+              this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
+                  new[] { FunctionParameter.Create("value", NameFactory.PointerTypeReference(NameReference.Create("T")), Variadic.None, null, isNameRequired: false) },
+                  Block.CreateStatement(new IExpression[] { })));*/
+            this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "PTT", VarianceMode.Out))
+                .Modifier(EntityModifier.Native)
+                .Slicing(true));
+
+            /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
+                null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
+                Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
+
+
+
+            if (this.Options.MiniEnvironment)
+                return;
+
             {
                 this.IntType = this.Root.AddNode(createIntType(out FunctionDefinition parse_string));
                 this.IntParseStringFunction = parse_string;
@@ -262,34 +294,6 @@ namespace Skila.Language
                     .Modifier(EntityModifier.Native))
                 .Parents(NameFactory.ObjectTypeReference()));
 
-            this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
-                .Modifier(EntityModifier.Native)
-                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
-                    EntityModifier.Static | EntityModifier.Native))
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
-                .Parents(NameFactory.ObjectTypeReference()));
-
-            this.UnitEvaluation = new EvaluationInfo(this.UnitType.InstanceOf);
-
-            // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
-            this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "RFT", VarianceMode.Out))
-                .Modifier(EntityModifier.Native)
-                .Slicing(true));
-            /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
-                  new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
-                  Block.CreateStatement(new IExpression[] { })));
-              this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
-                  new[] { FunctionParameter.Create("value", NameFactory.PointerTypeReference(NameReference.Create("T")), Variadic.None, null, isNameRequired: false) },
-                  Block.CreateStatement(new IExpression[] { })));*/
-            this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "PTT", VarianceMode.Out))
-                .Modifier(EntityModifier.Native)
-                .Slicing(true));
-
-            /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
-                null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
-                Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
-
-
             this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
                 .Parents(NameFactory.ObjectTypeReference()));
@@ -429,6 +433,29 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                                      NameReference.Create(elem_type), NameReference.Create(map_type)))));
             }
 
+            FunctionDefinition filter_func;
+            {
+                const string buffer_name = "buffer";
+                const string pred_name = "pred";
+                const string elem_name = "filtered_elem";
+                filter_func = FunctionBuilder.Create(NameFactory.FilterFunctionName,
+                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityFlag.Neutral)),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement(buffer_name, null,
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type))),
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), NameFactory.ThisReference(), new[] {
+                            IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
+                                FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName), 
+                                    NameReference.Create(elem_name))
+                            })
+                        }),
+                        Return.Create(NameReference.Create(buffer_name))
+                        ))
+                        .Parameters(FunctionParameter.Create(pred_name,
+                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+            }
+
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, elem_type, VarianceMode.Out))
                                 .Parents(NameFactory.ObjectTypeReference())
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired,
@@ -441,6 +468,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableCount, ExpressionReadMode.ReadRequired,
                                     NameFactory.IntTypeReference()))
 
+                 .With(filter_func)
                  .With(map_func);
         }
 
@@ -663,55 +691,45 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                 .Build();
         }
 
-        private TypeDefinition createOptionType(out FunctionDefinition empty_constructor, out FunctionDefinition value_constructor)
+        private TypeDefinition createOptionType(out FunctionDefinition emptyConstructor, out FunctionDefinition valueConstructor)
         {
             const string value_field = "value";
             const string has_value_field = "hasValue";
             const string elem_type = "OPT";
 
-            value_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
-                                new[] { FunctionParameter.Create("value", NameReference.Create(elem_type), Variadic.None, null, isNameRequired: false) },
+            valueConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
+                                new[] { FunctionParameter.Create("value", NameReference.Create(elem_type)) },
                                     Block.CreateStatement(new[] {
-                                        Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"value"),
-                                            NameReference.Create("value")),
-                                        Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,
-                                            has_value_field), BoolLiteral.CreateTrue())
+                                        Assignment.CreateStatement(NameReference.CreateThised(value_field), NameReference.Create("value")),
+                                        Assignment.CreateStatement(NameReference.CreateThised(has_value_field), BoolLiteral.CreateTrue())
                                     }));
 
-            empty_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
+            emptyConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                                 null,
-                                    Block.CreateStatement(new[] {
-                                        Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,has_value_field),
-                                            BoolLiteral.CreateFalse())
-                                    }));
+                                    Block.CreateStatement(
+                                        Assignment.CreateStatement(NameReference.CreateThised(has_value_field), BoolLiteral.CreateFalse())
+                                    ));
+
+            Property has_value_getter = PropertyBuilder.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference())
+                                .With(PropertyMemberBuilder.CreateGetter(
+                                    Block.CreateStatement(Return.Create(NameReference.CreateThised(has_value_field)))));
+
+            Property value_getter = PropertyBuilder.Create(NameFactory.OptionValue, NameReference.Create(elem_type))
+                .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(
+                                    ExpressionFactory.AssertTrue(NameReference.CreateThised(has_value_field)),
+                                    Return.Create(NameReference.Create(NameFactory.ThisVariableName, value_field))
+                                )));
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
-                                TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
+              TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
+                            // mutable because we cannot set const-constraint on Option template type argument
                             .Modifier(EntityModifier.Mutable)
-                            .With(Property.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
-                                null,
-                                new[] { Property.CreateGetter(NameFactory.BoolTypeReference(),
-                                Block.CreateStatement(Return.Create(
-                                    NameReference.Create(NameFactory.ThisVariableName, has_value_field)))) },
-                                null
-                            ))
-                            .With(Property.Create(NameFactory.OptionValue, NameReference.Create(elem_type),
-                                null,
-                                new[] { FunctionBuilder.Create(NameDefinition.Create(NameFactory.PropertyGetter),
-                                null, ExpressionReadMode.CannotBeRead, NameReference.Create(elem_type),
-                                Block.CreateStatement(new IExpression[] {
-                                    IfBranch.CreateIf(ExpressionFactory.Not( NameReference.Create(NameFactory.ThisVariableName, has_value_field)),
-                                        new[]{ Throw.Create(ExpressionFactory.HeapConstructor(NameFactory.ExceptionTypeReference())) }),
-                                    Return.Create(NameReference.Create(NameFactory.ThisVariableName, value_field))
-                                })).Build() },
-                                null
-                            ))
+                            .With(has_value_getter)
+                            .With(value_getter)
                             .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create(elem_type), Undef.Create()))
                             .With(VariableDeclaration.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
-                            .With(empty_constructor)
-                            .With(value_constructor)
-                            .Parents(NameFactory.ObjectTypeReference())
-                            .Build();
+                            .With(emptyConstructor)
+                            .With(valueConstructor);
         }
 
         private static TypeDefinition createComparableType()

@@ -115,6 +115,7 @@ namespace Skila.Language
 
             this.flags = flags;
         }
+
         private EntityModifier(params EntityModifier[] modifiers)
         {
             var flags = new int[EnumExtensions.GetValues<ModifierIndex>().Count()];

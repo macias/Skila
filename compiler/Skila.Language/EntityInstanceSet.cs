@@ -12,7 +12,7 @@ namespace Skila.Language
     public abstract class EntityInstanceSet : IEntityInstance
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; }
 #endif
 
         // these are unique (see constructor)
@@ -21,10 +21,12 @@ namespace Skila.Language
 
         public INameReference NameOf { get; }
 
-        public bool DependsOnTypeParameter => this.Instances.Any(it => it.DependsOnTypeParameter);
-
         protected EntityInstanceSet(IEnumerable<IEntityInstance> instances)
         {
+#if DEBUG
+            DebugId = new DebugId(this.GetType());
+#endif
+
             // we won't match against jokers here so we can use reference comparison
             // since all entity instances are singletons
             this.Instances = instances.ToHashSet(EntityInstanceCoreComparer.Instance);
@@ -48,7 +50,7 @@ namespace Skila.Language
             bool trans = false;
 
             foreach (IEntityInstance closed in Instances)
-                openTemplate = closed.TranslationOf(openTemplate, ref trans,closedTranslation);
+                openTemplate = closed.TranslationOf(openTemplate, ref trans, closedTranslation);
 
             if (trans)
                 translated = true;
@@ -63,22 +65,22 @@ namespace Skila.Language
 
         protected abstract IEntityInstance createNew(IEnumerable<IEntityInstance> instances);
 
-        public abstract TypeMatch TemplateMatchesInput(ComputationContext ctx,  EntityInstance input,
+        public abstract TypeMatch TemplateMatchesInput(ComputationContext ctx, EntityInstance input,
             VarianceMode variance, TypeMatching matching);
-        public abstract TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target,
+        public abstract TypeMatch TemplateMatchesTarget(ComputationContext ctx, IEntityInstance target,
                 VarianceMode variance, TypeMatching matching);
         public abstract TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);
         public abstract TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing);
         public abstract bool IsOverloadDistinctFrom(IEntityInstance other);
         public abstract IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
 
-        public IEntityInstance TranslateThrough(EntityInstance closedTemplate, ref bool translated, TemplateTranslation closedTranslation)
+        public IEntityInstance TranslateThrough(ref bool translated, TemplateTranslation closedTranslation)
         {
             var result = new List<IEntityInstance>();
             bool trans = false;
 
             foreach (IEntityInstance open in Instances)
-                result.Add(open.TranslateThrough(closedTemplate, ref trans,closedTranslation));
+                result.Add(open.TranslateThrough(ref trans, closedTranslation));
 
             if (trans)
             {

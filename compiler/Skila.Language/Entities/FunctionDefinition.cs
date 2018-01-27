@@ -198,7 +198,7 @@ namespace Skila.Language.Entities
             bool result = base.AttachTo(parent);
 
             // property accessors will see owner type in second attach, when property is attached to type
-            TypeDefinition owner_type = this.OwnerType();
+            TypeDefinition owner_type = this.ContainingType();
             if (this.MetaThisParameter == null && owner_type != null // method
                 && !this.Modifier.HasStatic && !owner_type.Modifier.HasStatic)
             {
@@ -237,7 +237,7 @@ namespace Skila.Language.Entities
         public override string ToString()
         {
             string s = "";
-            TypeDefinition type_owner = this.OwnerType();
+            TypeDefinition type_owner = this.ContainingType();
             if (type_owner != null)
                 s += $"{type_owner}::";
             s += $"{(base.ToString())}(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
@@ -266,7 +266,7 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
-            TypeDefinition type_owner = this.OwnerType();
+            TypeDefinition type_owner = this.ContainingType();
 
             if (this.Name.Name == NameFactory.ConvertFunctionName && type_owner != null)
             {
@@ -289,7 +289,7 @@ namespace Skila.Language.Entities
             if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
             {
                 if (!this.IsDeclaration
-                    && this.OwnerType().DerivationTable.TryGetSuper(this, out FunctionDefinition dummy)
+                    && this.ContainingType().DerivationTable.TryGetSuper(this, out FunctionDefinition dummy)
                     && !this.DescendantNodes().WhereType<FunctionCall>().Any(it => it.Name.IsSuperReference))
                 {
                     ctx.AddError(ErrorCode.DerivationWithoutSuperCall, this);
@@ -323,6 +323,10 @@ namespace Skila.Language.Entities
 
         public override void Surf(ComputationContext ctx)
         {
+            if (this.DebugId.Id==1888)
+            {
+                ;
+            }
             base.Surf(ctx);
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))

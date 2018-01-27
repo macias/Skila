@@ -60,7 +60,7 @@ namespace Skila.Language.Expressions
         }
         public static FunctionCall Constructor(IExpression name, params IExpression[] arguments)
         {
-            return Constructor(name,arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return Constructor(name, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static FunctionCall Constructor(string name, params FunctionArgument[] arguments)
         {
@@ -143,7 +143,7 @@ namespace Skila.Language.Expressions
 
             if (this.Resolution.TargetFunction.Modifier.IsPolymorphic
                 && enclosing_func != null && enclosing_func.IsAnyConstructor()
-                && !enclosing_func.OwnerType().Modifier.IsSealed)
+                && !enclosing_func.ContainingType().Modifier.IsSealed)
                 ctx.AddError(ErrorCode.VirtualCallFromConstructor, this);
 
             if (this.mode != CallMode.Constructor && this.Resolution.TargetFunction.IsAnyConstructor())
@@ -153,12 +153,12 @@ namespace Skila.Language.Expressions
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                 if (this.Name.Name != NameFactory.SelfFunctionName && binding_func == func)
-                    ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this.Name);
+                    ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveFunctionReference, this.Name);
                 else if (!this.Name.IsSuperReference && func != null)
                 {
                     func = func.TryGetSuperFunction(ctx);
                     if (func == binding_func)
-                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveReference, this.Name);
+                        ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveFunctionReference, this.Name);
                 }
             }
 
@@ -204,7 +204,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id ==  27143)
+                if (this.DebugId.Id == 226)
                 {
                     ;
                 }

@@ -34,7 +34,7 @@ namespace Skila.Language
 
             var derived_base_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
 
-            TypeDefinition current_type = mapping.First().Key.OwnerType();
+            TypeDefinition current_type = mapping.First().Key.ContainingType();
             List<TypeDefinition> parents = current_type.Inheritance.MinimalParentsWithObject
                 // primary parent will be present in primary ancestors sequence
                 .Skip(1)
@@ -48,7 +48,7 @@ namespace Skila.Language
             {
                 Dictionary<TypeDefinition, FunctionDefinition> base_impls = entry.Value
                     .Where(it => !it.IsDeclaration)
-                    .ToDictionary(it => it.OwnerType(), it => it);
+                    .ToDictionary(it => it.ContainingType(), it => it);
 
                 if (!base_impls.Any())
                     continue;

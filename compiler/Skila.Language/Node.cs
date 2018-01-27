@@ -5,7 +5,7 @@ namespace Skila.Language
     public abstract class Node : INode
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; }
 #endif
 
         public abstract IEnumerable<INode> OwnedNodes { get; }
@@ -16,6 +16,12 @@ namespace Skila.Language
         public INode Owner { get; private set; }
         public IScope Scope => Owner == null ? null : ((this.Owner as IScope) ?? this.Owner.Scope);
 
+        protected Node()
+        {
+#if DEBUG
+            DebugId = new DebugId(this.GetType());
+#endif
+        }
         public void DetachFrom(INode owner)
         {
             if (this.DebugId.Id == 123498)

@@ -25,19 +25,19 @@ namespace Skila.Tests
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
-            //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
+            //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().TODO_ErrorPassingReferenceAsTypeArgument();
+            //new Semantics.Templates().InternalIndirectTranslationTables();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ImplicitClosureWithValue();
-            new Execution.Collections().MapFunction();
+            //new Execution.Collections().FilterFunction();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();

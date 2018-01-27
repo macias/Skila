@@ -1,4 +1,6 @@
 ﻿using NaiveLanguageTools.Common;
+using Skila.Language.Entities;
+using Skila.Language.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +13,43 @@ namespace Skila.Language
     // when we later use type "Foo<Int>" we need to associate translation "T -> Int" to the field
     public sealed class TemplateTranslation
     {
-        internal static TemplateTranslation Create(IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
+#if DEBUG
+        public DebugId DebugId { get; } = new DebugId(typeof(TemplateTranslation));
+#endif
+
+        public static readonly TemplateTranslation Empty = new TemplateTranslation(new Dictionary<TemplateParameter, IEntityInstance>());
+
+        public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments = null)
         {
-            // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
-            if (parameters.Any() && arguments.Any() && parameters.Count != arguments.Count())
-                throw new NotImplementedException();
+            var dict = new Dictionary<TemplateParameter, IEntityInstance>();
+            foreach (NameDefinition namedef in new[] { entity.Name }
+                .Concat(entity.EnclosingScopesToRoot()
+                .WhereType<TemplateDefinition>()
+                .Select(it => it.Name)))
+            {
+                foreach (TemplateParameter param in namedef.Parameters)
+                    dict.Add(param, null);
+            }
 
-            if (!arguments.Any())
-                return null;
+            if (arguments != null && arguments.Any())
+            {
+                // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
+                IReadOnlyList<TemplateParameter> parameters = entity.Name.Parameters;
+                if (parameters.Any() && parameters.Count != arguments.Count())
+                    throw new NotImplementedException();
 
-            return new TemplateTranslation(parameters.SyncZip(arguments.Select(it => it)).ToDictionary());
+                foreach (var pair in parameters.SyncZip(arguments.Select(it => it)))
+                {
+                    dict[pair.Item1] = pair.Item2;
+                }
+            }
+
+            if (dict.Count == 0)
+                return Empty;
+            else
+            {
+                return new TemplateTranslation(dict);
+            }
         }
 
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
@@ -32,47 +61,44 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            if (table.Count == 0)
-                return "No translations";
-
             const int limit = 3;
             string s = table.Take(limit).Select(it => $"{it.Key} ==> {it.Value}").Join(", ");
             if (table.Count > limit)
                 s += ", ...";
-            return s;
+            return $"[{table.Count}: {s}]";
         }
 
         internal static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
         {
             if (basic == null)
                 return overlay;
-            else if (overlay == null)
+            else if (overlay == null || basic.table.Count == 0)
                 return basic;
 
-            Dictionary<TemplateParameter, IEntityInstance> dict = new Dictionary<TemplateParameter, IEntityInstance>();
-            // adding basic entries such as they won't make cycles with overlay entries
+            bool translated = false;
+
+            Dictionary<TemplateParameter, IEntityInstance> dict = basic.table.ToDictionary(it => it.Key, it => it.Value);
             foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in basic.table)
             {
-                if (entry.Value is EntityInstance basic_instance && basic_instance.TargetsTemplateParameter
-                    && overlay.table.TryGetValue(basic_instance.TemplateParameterTarget, out IEntityInstance overlay_value)
-                    && overlay_value is EntityInstance overlay_instance && overlay_instance.TargetsTemplateParameter
-                    && basic.table.ContainsKey(overlay_instance.TemplateParameterTarget))
+                if (entry.Value != null)
                 {
-                    continue;
+                    bool trans = false;
+                    dict[entry.Key] = entry.Value.TranslateThrough(ref trans, overlay);
+
+                    if (trans)
+                        translated = true;
                 }
-
-                dict.Add(entry.Key, entry.Value);
+                else if (overlay.Translate(entry.Key, out IEntityInstance value))
+                {
+                    dict[entry.Key] = value;
+                    translated = true;
+                }
             }
 
-            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in overlay.table)
-            {
-                if (dict.ContainsKey(entry.Key))
-                    dict[entry.Key] = entry.Value;
-                else
-                    dict.Add(entry.Key, entry.Value);
-            }
-
-            return new TemplateTranslation(dict);
+            if (translated)
+                return new TemplateTranslation(dict);
+            else
+                return basic;
         }
 
         public override bool Equals(object obj)
@@ -111,8 +137,9 @@ namespace Skila.Language
 
         internal bool Translate(TemplateParameter templateParameter, out IEntityInstance instanceArgument)
         {
-            return this.table.TryGetValue(templateParameter, out instanceArgument);
+            return this.table.TryGetValue(templateParameter, out instanceArgument) && instanceArgument != null;
         }
+
     }
 
 }

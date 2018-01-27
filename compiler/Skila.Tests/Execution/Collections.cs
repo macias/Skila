@@ -12,6 +12,56 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter FilterFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            const string elem_name = "my_elem";
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("below"),
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.IsLess(NameReference.Create( "x"),IntLiteral.Create("5")))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.IntTypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.IntTypeReference(),
+                            NameFactory.IntTypeReference(),
+                            // todo: use sink
+                            NameFactory.IntTypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.IntTypeReference(), NameFactory.IntTypeReference(), NameFactory.IntTypeReference()),
+                        IntLiteral.Create("6"), IntLiteral.Create("2"))),
+
+                    VariableDeclaration.CreateStatement("m", null,
+                        FunctionCall.Create(NameReference.Create("t", NameFactory.FilterFunctionName), NameReference.Create("below"))),
+
+                    VariableDeclaration.CreateStatement("acc", null, IntLiteral.Create("0"), EntityModifier.Reassignable),
+                    Loop.CreateForEach(elem_name, NameFactory.IntTypeReference(), NameReference.Create("m"),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                    Return.Create(NameReference.Create("acc"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter MapFunction()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });

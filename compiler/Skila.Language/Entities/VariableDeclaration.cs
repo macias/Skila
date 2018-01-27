@@ -49,7 +49,8 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource, null));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource, 
+                translation: TemplateTranslation.Create(this)));
 
             this.closures = new List<TypeDefinition>();
 
@@ -83,7 +84,8 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, 
+            TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
@@ -91,11 +93,6 @@ namespace Skila.Language.Entities
         public override bool IsReadingValueOfNode(IExpression node)
         {
             return node == this.InitValue;
-        }
-
-        public bool IsField()
-        {
-            return this.OwnerType() != null;
         }
 
         private bool isGlobalVariable()
@@ -174,7 +171,7 @@ namespace Skila.Language.Entities
             if (this.Evaluation != null)
                 return;
 
-            if (this.DebugId.Id == 27173)
+            if (this.DebugId.Id == 27427)
             {
                 ;
             }
@@ -186,7 +183,7 @@ namespace Skila.Language.Entities
             IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
             if (tn_eval != null
                 && ((InitValue == null && this.isGlobalVariable())
-                    || (this.IsField() && this.autoFieldDefaultInit != null)))
+                    || (this.IsTypeContained() && this.autoFieldDefaultInit != null)))
             {
                 if (this.TypeName.TryGetSingleType(out NameReference type_name, out EntityInstance type_instance))
                 {
@@ -228,7 +225,7 @@ namespace Skila.Language.Entities
             this.DataTransfer(ctx, ref initValue, this_eval);
             this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
 
-            if ((this.IsField() && this.Modifier.HasStatic) || this.isGlobalVariable())
+            if ((this.IsTypeContained() && this.Modifier.HasStatic) || this.isGlobalVariable())
             {
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
@@ -271,7 +268,7 @@ namespace Skila.Language.Entities
             if (!(this.InitValue is Alloc))
                 this.ValidateReferenceAssociatedReference(ctx);
 
-            if (!validateStorage(ctx, this.OwnerType()))
+            if (!validateStorage(ctx, this.ContainingType()))
                 ctx.AddError(ErrorCode.NestedValueOfItself, this);
 
             if (!ctx.Env.Options.TypelessVariablesDuringTests && this.Owner is TypeContainerDefinition && this.TypeName == null)
@@ -280,7 +277,7 @@ namespace Skila.Language.Entities
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
 
-            if (this.IsField() && this.Name.Name != NameFactory.PropertyAutoField)
+            if (this.IsTypeContained() && this.Name.Name != NameFactory.PropertyAutoField)
             {
                 // consider Foo<T> with field f, type T
                 // can I pass instance of Foo<U> (U extends T) somewhere?

@@ -21,7 +21,7 @@ namespace Skila.Language
         }
 
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId();
+        public DebugId DebugId { get; } = new DebugId(typeof(EntityInstanceCore));
 #endif
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
@@ -39,14 +39,6 @@ namespace Skila.Language
         public bool MissingTemplateArguments => !this.TemplateArguments.Any() && this.Target.Name.Arity > 0;
 
         public bool IsTypeImplementation => this.Target.IsType() && this.TargetType.IsTypeImplementation;
-
-        public bool DependsOnTypeParameter_UNUSED
-        {
-            get
-            {
-                return this.TargetsTemplateParameter || this.TemplateArguments.Any(it => it.DependsOnTypeParameter);
-            }
-        }
 
         private EntityInstanceCore(IEntity target, IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability)
         {

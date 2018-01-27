@@ -27,7 +27,7 @@ namespace Skila.Language.Extensions
         }
         public static FunctionDefinition TryGetSuperFunction(this FunctionDefinition func, ComputationContext ctx)
         {
-            TypeDefinition curr_type = func.OwnerType();
+            TypeDefinition curr_type = func.ContainingType();
             if (curr_type == null)
                 return null; // we need to be within type to get base function
 
@@ -69,7 +69,7 @@ namespace Skila.Language.Extensions
         public static bool IsCopyInitConstructor(this FunctionDefinition @this)
         {
             return @this.IsInitConstructor() && @this.Parameters.Count == 1
-                && @this.Parameters.Single().TypeName.Evaluation.Components == @this.OwnerType().InstanceOf;
+                && @this.Parameters.Single().TypeName.Evaluation.Components == @this.ContainingType().InstanceOf;
         }
 
         internal static bool IsOverloadedDuplicate(FunctionDefinition f1, FunctionDefinition f2)
@@ -145,7 +145,7 @@ namespace Skila.Language.Extensions
         public static bool IsDerivedOf(ComputationContext ctx, FunctionDefinition derivedFunc,
             FunctionDefinition baseFunc, EntityInstance baseTemplate)
         {
-            if (baseFunc.DebugId.Id==1104)
+            if (derivedFunc.DebugId.Id==182 && baseFunc.DebugId.Id== 131)
             {
                 ;
             }
