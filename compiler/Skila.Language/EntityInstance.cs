@@ -30,7 +30,7 @@ namespace Skila.Language
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return Create(targetInstance, arguments.Select(it => it.Evaluated(ctx)), overrideMutability);
+            return Create(targetInstance, arguments.Select(it => it.Evaluation.Components), overrideMutability);
         }
 
         internal static EntityInstance Create(EntityInstance targetInstance,
@@ -40,14 +40,6 @@ namespace Skila.Language
 
             return targetInstance.Target.GetInstance(templateArguments, overrideMutability,
                 TemplateTranslation.Combine(targetInstance.Translation, trans_arg));
-        }
-
-        internal static EntityInstance CreateUpdated(EntityInstance targetInstance, TemplateTranslation translation)
-        {
-            if (Object.Equals(targetInstance.Translation, translation))
-                return targetInstance;
-            else
-                return targetInstance.Target.GetInstance(targetInstance.TemplateArguments, targetInstance.OverrideMutability, translation);
         }
 
 #if DEBUG
@@ -64,7 +56,7 @@ namespace Skila.Language
 
         public EntityInstanceCore Core { get; }
 
-        internal TemplateTranslation Translation { get; }
+        public TemplateTranslation Translation { get; }
 
         public IEntity Target => this.Core.Target;
         public TypeDefinition TargetType => this.Target.CastType();

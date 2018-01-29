@@ -19,7 +19,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private const int debugTraceId = -1;
+        private const int debugTraceId = 77;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
         private int hostDisposables;
@@ -53,26 +53,30 @@ namespace Skila.Interpreter
             }
         }
 
-        internal bool TryRelease(ExecutionContext ctx, ObjectData obj, bool passingOut, string callInfo)
+        internal bool TryRelease(ExecutionContext ctx, ObjectData releasingObject,
+            // the object which is passed out of the block 
+            ObjectData passingOutObject, string callInfo)
         {
-            if (!ctx.Env.IsPointerOfType(obj.RunTimeTypeInstance))
+            bool is_passing_out_now = releasingObject == passingOutObject;
+
+            if (!ctx.Env.IsPointerOfType(releasingObject.RunTimeTypeInstance))
             {
-                if (!ctx.Env.IsReferenceOfType(obj.RunTimeTypeInstance) && !passingOut)
+                if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance) && !is_passing_out_now)
                 {
-                    if (obj.DebugId.Id == debugTraceId)
-                        Console.WriteLine($"VAL-DEL{(passingOut ? "/OUT" : "")} {callInfo}");
+                    if (releasingObject.DebugId.Id == debugTraceId)
+                        Console.WriteLine($"VAL-DEL{(is_passing_out_now ? "/OUT" : "")} {callInfo}");
                     // removing valued-objects
-                    freeObjectData(ctx, obj, false, $"as value {callInfo}");
+                    freeObjectData(ctx, releasingObject, passingOutObject, false, $"as value {callInfo}");
                 }
                 return false;
             }
 
-            obj = obj.DereferencedOnce();
+            releasingObject = releasingObject.DereferencedOnce();
             // todo: after adding nulls to Skila remove this condition
-            if (obj == null)
+            if (releasingObject == null)
                 return false;
 
-            if (obj.DebugId.Id == 183100)
+            if (releasingObject.DebugId.Id == 183100)
             {
                 ;
             }
@@ -81,33 +85,33 @@ namespace Skila.Interpreter
 
             lock (this.threadLock)
             {
-                if (!this.refCounts.TryGetValue(obj, out count))
+                if (!this.refCounts.TryGetValue(releasingObject, out count))
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
                 --count;
                 if (count < 0)
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-                if (count == 0 && !passingOut)
+                if (count == 0 && !is_passing_out_now)
                 {
-                    this.refCounts.Remove(obj);
-                    freeObjectData(ctx, obj, true, callInfo);
+                    this.refCounts.Remove(releasingObject);
+                    freeObjectData(ctx, releasingObject, passingOutObject, true, callInfo);
                 }
                 else
-                    this.refCounts[obj] = count;
+                    this.refCounts[releasingObject] = count;
             }
 
-            if (obj.DebugId.Id == debugTraceId)
-                Console.WriteLine($"DEC{(passingOut ? "/OUT" : "")} {count}  {callInfo}");
+            if (releasingObject.DebugId.Id == debugTraceId)
+                Console.WriteLine($"DEC{(is_passing_out_now ? "/OUT" : "")} {count}  {callInfo}");
 
             return true;
         }
 
-        private void freeObjectData(ExecutionContext ctx, ObjectData obj, bool destroy, string callInfo)
+        private void freeObjectData(ExecutionContext ctx, ObjectData obj, ObjectData passingOut, bool destroy, string callInfo)
         {
             lock (this.threadLock)
             {
-                if (obj.Free(ctx, destroy, callInfo))
+                if (obj.Free(ctx, passingOut, destroy, callInfo))
                     --this.hostDisposables;
             }
         }

@@ -211,7 +211,7 @@ namespace Skila.Language.Entities
             }
 
             // marking regular functions a static one will make further processing easier
-            if (!this.Modifier.HasStatic && this.EnclosingScope<TypeContainerDefinition>().IsNamespace())
+            if (!this.Modifier.HasStatic &&  parent is IEntity entity_parent && entity_parent.Modifier.HasStatic) 
                 this.SetModifier(this.Modifier | EntityModifier.Static);
 
             if (!this.Modifier.IsAccessSet)

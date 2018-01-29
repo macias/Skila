@@ -27,7 +27,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(Return.Create(Undef.Create())))
                     .Modifier(EntityModifier.Pinned);
             FunctionDefinition conv3 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
-                 NameFactory.StringTypeReference(),
+                 NameFactory.StringPointerTypeReference(),
                     Block.CreateStatement(Return.Create(Undef.Create())))
                     .Modifier(EntityModifier.Pinned)
                     .Parameters(FunctionParameter.Create("x",NameFactory.IntTypeReference(), ExpressionReadMode.CannotBeRead));

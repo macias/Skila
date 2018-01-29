@@ -135,7 +135,7 @@ namespace Skila.Language
             return this.table.Aggregate(0, (acc, it) => acc ^ RuntimeHelpers.GetHashCode(it.Key) ^ RuntimeHelpers.GetHashCode(it.Value));
         }
 
-        internal bool Translate(TemplateParameter templateParameter, out IEntityInstance instanceArgument)
+        public bool Translate(TemplateParameter templateParameter, out IEntityInstance instanceArgument)
         {
             return this.table.TryGetValue(templateParameter, out instanceArgument) && instanceArgument != null;
         }

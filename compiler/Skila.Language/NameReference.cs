@@ -148,7 +148,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id ==  7636)
+            if (this.DebugId.Id == 7636)
             {
                 ;
             }
@@ -224,7 +224,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 27425)
+            if (this.DebugId.Id == 1244)
             {
                 ;
             }
@@ -322,15 +322,16 @@ namespace Skila.Language
                 if (this.Prefix is NameReference prefix_ref
                     // todo: make it nice, currently refering to base look like static reference
                     && prefix_ref.Name != NameFactory.BaseVariableName
-                    && prefix_ref.Binding.Match.Target.IsType())
+                    && prefix_ref.Binding.Match.Target.IsTypeContainer())
                 {
-                    TypeDefinition target_type = prefix_ref.Binding.Match.TargetType;
-                    IEnumerable<EntityInstance> entities = target_type.FindEntities(this, find_mode);
+                    TypeContainerDefinition target = prefix_ref.Binding.Match.Target.CastTypeContainer();
+                    IEnumerable<EntityInstance> entities = target.FindEntities(this, find_mode);
 
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
 
-                    entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
+                    if (target is TypeDefinition)
+                        entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
                     return entities;
                 }
@@ -355,7 +356,8 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    entities = filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName || !it.Target.Modifier.HasStatic);
+                    entities = filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName
+                        || !it.Target.Modifier.HasStatic);
 
                     if (this.Prefix.DebugId.Id == 2572)
                     {

@@ -13,11 +13,26 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class CompilerProtection
     {
-
         [TestMethod]
         public IErrorReporter Environment()
         {
             var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter EnvironmentOption2()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DebugThrowOnError = true,
+                StaticMemberOnlyThroughTypeName = true
+            });
 
             var resolver = NameResolver.Create(env);
 

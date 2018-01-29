@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().EnvironmentOption2();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -31,7 +31,7 @@ namespace Skila.Tests
             // new Semantics.NameResolution().ResolvingIt();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().InternalIndirectTranslationTables();
+            //new Semantics.Templates().TranslationTableOfInferredCommonTypes();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -43,9 +43,10 @@ namespace Skila.Tests
             //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
+            new Execution.Io().FileReadingLines();
             //new Execution.Library().StringToInt();
             //new Execution.Objects().ParallelAssignment();
-            //new Execution.Pointers().StackChunkWithBasicPointers();
+            //new Execution.Pointers().RefCountsOnReadingFunctionCall();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().HasConstraintWithValue();
 

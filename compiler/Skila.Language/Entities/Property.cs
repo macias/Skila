@@ -207,6 +207,11 @@ namespace Skila.Language.Entities
                     this.SetModifier(this.Modifier | EntityModifier.Public);
             }
 
+            if (parent is IEntity entity_parent)
+            {
+                if (!this.Modifier.HasStatic && entity_parent.Modifier.HasStatic)
+                    this.SetModifier(this.Modifier | EntityModifier.Static);
+            }
             // we need to notify accessors about attachment to type, so those methods could create correct "this" parameter
             this.Getter?.AttachTo(this);
             this.Setter?.AttachTo(this);

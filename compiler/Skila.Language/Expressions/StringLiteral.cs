@@ -14,7 +14,7 @@ namespace Skila.Language.Expressions
         }
 
         private StringLiteral(string value)
-            : base(value, NameFactory.StringTypeReference())
+            : base(value, NameFactory.StringPointerTypeReference())
         {
         }
     }

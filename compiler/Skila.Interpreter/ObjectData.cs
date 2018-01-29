@@ -19,7 +19,7 @@ namespace Skila.Interpreter
     public sealed class ObjectData
     {
 #if DEBUG
-        public DebugId DebugId { get; } = new DebugId(typeof(ObjectData));
+        public DebugId DebugId { get; }
 #endif
 
         internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
@@ -185,7 +185,15 @@ namespace Skila.Interpreter
             }
         }
 
-        private ObjectData(Data data)
+        private ObjectData()
+        {
+            this.DebugId = new DebugId(typeof(ObjectData));
+            if (this.DebugId.Id==77)
+            {
+                ;
+            }
+        }
+        private ObjectData(Data data) : this()
         {
             if (this.DebugId.Id == 9167)
             {
@@ -194,7 +202,7 @@ namespace Skila.Interpreter
             this.data = data;
         }
 
-        private ObjectData(ObjectData src)
+        private ObjectData(ObjectData src) : this()
         {
             if (src.isFreed)
                 throw new ObjectDisposedException($"{src}");
@@ -224,7 +232,7 @@ namespace Skila.Interpreter
             return result;
         }
 
-        internal bool Free(ExecutionContext ctx, bool destroy, string callInfo)
+        internal bool Free(ExecutionContext ctx,ObjectData passingOut, bool destroy, string callInfo)
         {
             if (this.DebugId.Id == 182254)
             {
@@ -237,7 +245,7 @@ namespace Skila.Interpreter
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryRelease(ctx, field.Value, passingOut: false, callInfo: $"field of {callInfo}");
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut, callInfo: $"field of {callInfo}");
             }
 
             bool host_disposed = false;
@@ -254,10 +262,10 @@ namespace Skila.Interpreter
             if (this.PlainValue is Chunk chunk)
             {
                 for (int i = 0; i < chunk.Count; ++i)
-                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut: false, callInfo: $"chunk elem of {callInfo}");
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut, callInfo: $"chunk elem of {callInfo}");
             }
 
-            this.data = null;
+            this.setData(null);
 
             if (destroy)
                 this.isFreed = true;
@@ -265,6 +273,14 @@ namespace Skila.Interpreter
             return host_disposed;
         }
 
+        private void setData(Data data)
+        {
+            if (this.DebugId.Id==77)
+            {
+                ;
+            }
+            this.data = data;
+        }
         internal ObjectData Copy()
         {
             return new ObjectData(this);
@@ -351,7 +367,8 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            this.data = new Data(source.data);
+
+            this.setData(new Data(source.data));
         }
 
     }

@@ -13,6 +13,7 @@ namespace Skila.Language
         public const string SystemNamespace = "System";
         public const string ConcurrencyNamespace = "Concurrency";
         public const string CollectionsNamespace = "Collections";
+        public const string IoNamespace = "Io";
 
         public const string JokerTypeName = "[[@@]]";
         public const string IFunctionTypeName = "IFunction";
@@ -20,6 +21,7 @@ namespace Skila.Language
         public const string ITupleTypeName = "ITuple";
         public const string IIndexableTypeName = "IIndexable";
         public const string IndexIteratorTypeName = "IndexIterator";
+        public const string FileTypeName = "File";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -85,6 +87,8 @@ namespace Skila.Language
         public const string IteratorGet = "get";
         public const string IteratorNext = "next";
 
+        public const string FileReadLines = "readLines";
+
         public const string IterableGetIterator = "getIterator";
 
         public const string LambdaInvoke = "invoke";
@@ -103,6 +107,8 @@ namespace Skila.Language
 
         public const string ChunkSizeConstructorParameter = "size";
         public const string IndexIndexerParameter = "index";
+
+        public const string FileFilePathParameter = "filePath";
 
         public const string OptionHasValue = "HasValue";
         public const string OptionValue = "Value";
@@ -242,6 +248,10 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), IndexIteratorTypeName, templateTypeName);
         }
+        public static NameReference FileTypeReference()
+        {
+            return NameReference.Create(IoNamespaceReference(), FileTypeName);
+        }
         public static NameReference IndexIteratorTypeReference(string templateTypeName)
         {
             return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
@@ -313,12 +323,16 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), CollectionsNamespace);
         }
+        public static NameReference IoNamespaceReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), IoNamespace);
+        }
         public static NameReference ConcurrencyNamespaceReference()
         {
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
-        public static NameReference StringTypeReference()
+        public static NameReference StringPointerTypeReference()
         {
             return NameFactory.PointerTypeReference(NameReference.Create(SystemNamespaceReference(), NameFactory.StringTypeName));
         }

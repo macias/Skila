@@ -12,6 +12,75 @@ namespace Skila.Tests.Execution
     public class Pointers
     {
         [TestMethod]
+        public IInterpreter RefCountsOnReadingFunctionCall()
+        {
+            // the aim of this test is to test heap manager if it correctly handles reading function which returns pointer
+
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("provider"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p_int",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("77")))),
+                    Return.Create( NameReference.Create("p_int")),
+                })));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(),
+                        FunctionCall.Create(NameReference.Create("provider"))),
+                    Return.Create(NameReference.Create("i")),
+                })));
+
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter RefCountsOnIgnoringFunctionCall()
+        {
+            // the aim of this test is to test heap manager if it correctly handles ignoring function which returns pointer
+
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("provider"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("77")))),
+                    Return.Create( NameReference.Create("p_int")),
+                })));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    FunctionCall.Create(NameReference.Create("provider")),
+                    Return.Create( IntLiteral.Create("2")),
+                })));
+
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter StackChunkWithBasicPointers()
         {
             var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
@@ -125,30 +194,6 @@ namespace Skila.Tests.Execution
             return interpreter;
         }
 
-        [TestMethod]
-        public IInterpreter DiscardedReadout()
-        {
-            var env = Language.Environment.Create();
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
-                ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
-                Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
-                    Return.Create( NameReference.Create("p_int")),
-                })));
-
-
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual(2, result.RetValue.PlainValue);
-
-            return interpreter;
-        }
 
         [TestMethod]
         public IInterpreter ExplicitDereferencing()
@@ -249,10 +294,12 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.ReadRequired,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
+                    // let temp *Int = n; // n is argument
                     VariableDeclaration.CreateStatement("temp",NameFactory.PointerTypeReference( NameFactory.IntTypeReference()),
                         NameReference.Create("n")),
+                    // return temp + 1;
                     Return.Create(FunctionCall.Create(NameReference.Create( NameReference.Create("temp"),NameFactory.AddOperator),
-                    FunctionArgument.Create(IntLiteral.Create("1"))))
+                        FunctionArgument.Create(IntLiteral.Create("1"))))
                 }))
                 .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()))));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -260,9 +307,12 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
+                    // let p_int *Int = new *1;
                     VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                    // let proxy *Int = p_int;
                     VariableDeclaration.CreateStatement("proxy",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),NameReference.Create("p_int")),
+                    // return inc(proxy);
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("proxy")))),
                 })));
 

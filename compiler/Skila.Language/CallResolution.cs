@@ -120,40 +120,12 @@ namespace Skila.Language
                     this.TargetFunctionInstance = EntityInstance.Create(this.TargetFunctionInstance, inferred,
                         this.TargetFunctionInstance.OverrideMutability);
 
-                    // accumulate all the knowledge about mappings from the parameters and result
-                    // and put it as one back to function instance
-                    {
-                        TemplateTranslation combined_translation = combineTranslations(this.TargetFunctionInstance.Translation,
-                            this.translatedParamEvaluations, this.translatedResultEvaluation);
-                        this.TargetFunctionInstance = EntityInstance.CreateUpdated(this.TargetFunctionInstance, combined_translation);
-                    }
-
                     extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
                         out this.translatedParamEvaluations,
                         out this.translatedResultEvaluation);
 
                 }
             }
-        }
-
-        private static TemplateTranslation combineTranslations(TemplateTranslation translation, IReadOnlyList<ParameterType>
-            translatedParamEvaluations,
-            EvaluationInfo translatedResultEvaluation)
-        {
-            // todo: this is incorrect, we should compute LCA for translations coming from multiple functions parameters
-            // consider foo<T>(a T, b T)
-            // and call: foo(5,'a')
-            // T for "5" is Int, for 'a' is "Char", so T for foo is Object
-            foreach (TemplateTranslation trans in translatedParamEvaluations
-                .Select(it => it.ElementTypeInstance)
-                .Concat(translatedResultEvaluation.Components)
-                .SelectMany(it => it.EnumerateAll())
-                .Select(it => it.Translation))
-            {
-                translation = TemplateTranslation.Combine(translation, trans);
-            }
-
-            return translation;
         }
 
         private static List<int> createArgParamMapping(EntityInstance targetFunctionInstance,

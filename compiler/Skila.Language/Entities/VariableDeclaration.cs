@@ -76,6 +76,9 @@ namespace Skila.Language.Entities
             if (owner is TypeContainerDefinition && !this.Modifier.IsAccessSet)
                 this.SetModifier(this.Modifier | EntityModifier.Private);
 
+            if (owner is IEntity entity_owner && entity_owner.Modifier.HasStatic && !this.Modifier.HasStatic)
+                this.SetModifier(this.Modifier | EntityModifier.Static);
+
             return true;
         }
 

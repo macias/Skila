@@ -21,7 +21,7 @@ namespace Skila.Language.Entities
             return new Namespace(NameDefinition.Create(name));
         }
 
-        private Namespace(NameDefinition name) : base(EntityModifier.None, name,null)
+        private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null)
         {
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

@@ -14,6 +14,42 @@ namespace Skila.Tests.Semantics
     public class Templates
     {
         [TestMethod]
+        public IErrorReporter TranslationTableOfInferredCommonTypes()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            TemplateParameter template_param = TemplateParametersBuffer.Create("T").Values.Single();
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("getMe", new[] { template_param }),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(), Block.CreateStatement())
+                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T"), ExpressionReadMode.CannotBeRead),
+                        FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"), ExpressionReadMode.CannotBeRead)));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("getMe"), NameReference.Create("x"), NameReference.Create("y"));
+            root_ns.AddBuilder(FunctionBuilder.Create("common",
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                            IntLiteral.Create("3")),
+                        VariableDeclaration.CreateStatement("y", NameFactory.ReferenceTypeReference(NameFactory.BoolTypeReference()),
+                            BoolLiteral.CreateTrue()),
+                        call
+                        )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            // the actual point of this test are those two lines checking if we get correct translation table for entire
+            // instance of the called function
+            Assert.IsTrue(call.Resolution.TargetFunctionInstance.Translation.Translate(template_param, 
+                out IEntityInstance common_instance));
+            Assert.AreEqual(resolver.Context.Env.ObjectType.InstanceOf, common_instance);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter InternalDirectTranslationTables()
         {
             var env = Environment.Create(new Options() { MiniEnvironment = true });

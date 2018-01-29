@@ -6,6 +6,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Language.Extensions;
 using NaiveLanguageTools.Common;
+using System;
 
 namespace Skila.Language
 {
@@ -32,6 +33,7 @@ namespace Skila.Language
         public Namespace SystemNamespace { get; }
         public Namespace ConcurrencyNamespace { get; }
         public Namespace CollectionsNamespace { get; }
+        public Namespace IoNamespace { get; }
 
         public TypeDefinition IntType { get; }
         public FunctionDefinition IntParseStringFunction { get; }
@@ -39,6 +41,10 @@ namespace Skila.Language
         //public TypeDefinition EnumType { get; }
 
         public TypeDefinition StringType { get; }
+        public FunctionDefinition StringCountGetter { get; }
+
+        public TypeDefinition FileType { get; }
+        public FunctionDefinition FileReadLines { get; }
 
         public TypeDefinition OrderingType { get; }
         public VariableDeclaration OrderingLess { get; }
@@ -92,6 +98,7 @@ namespace Skila.Language
             this.SystemNamespace = this.Root.AddNode(Namespace.Create(NameFactory.SystemNamespace));
             this.ConcurrencyNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.ConcurrencyNamespace));
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
+            this.IoNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.IoNamespace));
 
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
@@ -125,8 +132,14 @@ namespace Skila.Language
 
 
 
+
             if (this.Options.MiniEnvironment)
                 return;
+
+
+
+
+
 
             {
                 this.IntType = this.Root.AddNode(createIntType(out FunctionDefinition parse_string));
@@ -199,6 +212,12 @@ namespace Skila.Language
                             NameReference.Create("max")),new[]{ ExpressionFactory.GenericThrow() }),
                        Return.Create(NameReference.Create("coll"))
                     })));
+            }
+
+            {
+                FunctionDefinition read_lines;
+                this.FileType = this.IoNamespace.AddNode(createFile(out read_lines));
+                this.FileReadLines = read_lines;
             }
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
@@ -294,10 +313,11 @@ namespace Skila.Language
                     .Modifier(EntityModifier.Native))
                 .Parents(NameFactory.ObjectTypeReference()));
 
-            this.StringType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.StringTypeName)
-                .Modifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
-                .Parents(NameFactory.ObjectTypeReference()));
-
+            {
+                FunctionDefinition count_getter;
+                this.StringType = this.SystemNamespace.AddNode(createString(out count_getter));
+                this.StringCountGetter = count_getter;
+            }
 
             this.OrderingType = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.OrderingTypeName)
                 .With(EnumCaseBuilder.Create(NameFactory.OrderingLess, NameFactory.OrderingEqual, NameFactory.OrderingGreater)));
@@ -344,6 +364,37 @@ namespace Skila.Language
                 this.iTupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
                 this.CollectionsNamespace.AddBuilder(factory_builder);
             }
+        }
+
+        private TypeDefinition createString(out FunctionDefinition countGetter)
+        {
+            Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
+                .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
+                    .Modifier(EntityModifier.Native));
+
+            countGetter = count_property.Getter;
+
+            return TypeBuilder.Create(NameFactory.StringTypeName)
+                                .Modifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
+                                .Parents(NameFactory.ObjectTypeReference())
+                                .With(count_property);
+        }
+
+        private TypeDefinition createFile(out FunctionDefinition readLines)
+        {
+            readLines = FunctionBuilder.Create(NameFactory.FileReadLines,
+                    NameFactory.OptionTypeReference(NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.StringPointerTypeReference()))),
+                    Block.CreateStatement())
+                      .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
+                            NameFactory.StringPointerTypeReference(),ExpressionReadMode.CannotBeRead))
+                      .Modifier(EntityModifier.Native);
+
+            TypeBuilder builder = TypeBuilder.Create(NameFactory.FileTypeName)
+                .Modifier(EntityModifier.Static)
+                .With(readLines)
+                ;
+
+            return builder;
         }
 
         private static FunctionDefinition createConcat1()
@@ -445,7 +496,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                             ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type))),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), NameFactory.ThisReference(), new[] {
                             IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
-                                FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName), 
+                                FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
                                     NameReference.Create(elem_name))
                             })
                         }),
@@ -617,7 +668,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
         {
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.IntTypeReference()),
                     ExpressionFactory.BodyReturnUndef())
-                    .Parameters(FunctionParameter.Create("s", NameFactory.StringTypeReference(), ExpressionReadMode.CannotBeRead))
+                    .Parameters(FunctionParameter.Create("s", NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
                     .Modifier(EntityModifier.Native | EntityModifier.Static);
 
             return TypeBuilder.Create(NameFactory.IntTypeName)

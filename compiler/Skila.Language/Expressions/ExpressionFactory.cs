@@ -256,7 +256,7 @@ namespace Skila.Language.Expressions
             return IfBranch.CreateIf(condition, new[] { then }, IfBranch.CreateElse(new[] { otherwise }));
         }
 
-        public static IExpression TryGetValue(IExpression option)
+        public static IExpression TryGetOptionValue(IExpression option)
         {
             string temp = AutoName.Instance.CreateNew("try_opt");
             NameReference temp_ref = NameReference.Create(temp);
