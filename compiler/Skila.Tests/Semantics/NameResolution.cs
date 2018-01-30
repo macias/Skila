@@ -14,6 +14,26 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter ErrorDuplicateType()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
+
+            TypeDefinition second_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
+                .Constraints(ConstraintBuilder.Create("T")
+                    .Modifier(EntityModifier.Const)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NameAlreadyExists, second_type));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ResolvingIt()
         {
             var env = Language.Environment.Create();
@@ -45,7 +65,7 @@ namespace Skila.Tests.Semantics
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Protected))
                 .With(FunctionBuilder.Create("foo", ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement())));
 
             NameReference x_ref = NameReference.Create("x");
@@ -57,11 +77,11 @@ namespace Skila.Tests.Semantics
                 .With(VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null))
                 .With(FunctionBuilder.Create("bar", ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create("all", ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement(new IExpression[] {
                         ExpressionFactory.Readout(x_ref),
                         ExpressionFactory.Readout(y_ref),
@@ -90,7 +110,7 @@ namespace Skila.Tests.Semantics
                 .Modifier(EntityModifier.Mutable)
                 .With(FunctionBuilder.Create("dummyReader", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                    
+
                     Block.CreateStatement(new[] {
                         ExpressionFactory.Readout(NameFactory.ThisVariableName,"x")
                     })))
@@ -102,7 +122,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
                     Assignment.CreateStatement(private_ref,IntLiteral.Create("5")),
@@ -133,7 +153,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.Create(NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout(cross_reference),
                 })))
@@ -158,7 +178,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
                     Block.CreateStatement(new IExpression[]{
@@ -189,7 +209,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,IntLiteral.Create("2")),
                     Block.CreateStatement(new IExpression[]{
@@ -218,7 +238,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout( decl)
                 })));
@@ -242,7 +262,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foox"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), x_ref),
                     VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), IntLiteral.Create("1")),

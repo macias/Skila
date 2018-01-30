@@ -1,111 +1,15 @@
 ﻿using System;
 using System.Linq;
 using Skila.Language;
-using Skila.Language.Flow;
-using Skila.Language.Expressions;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
-using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private async Task<ExecValue> executeNativeIntFunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
-        {
-            if (func == ctx.Env.IntParseStringFunction)
-            {
-                ObjectData arg_ptr = ctx.FunctionArguments.Single();
-                ObjectData arg_val = arg_ptr.DereferencedOnce();
-
-                string input_str = arg_val.PlainValue.Cast<string>();
-                Option<ObjectData> int_obj;
-                if (int.TryParse(input_str, out int int_val))
-                    int_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.IntType.InstanceOf, int_val)
-                        .ConfigureAwait(false));
-                else
-                    int_obj = new Option<ObjectData>();
-
-                ObjectData result = await createOption(ctx, func.ResultTypeName.Evaluation.Components, int_obj).ConfigureAwait(false);
-                return ExecValue.CreateReturn(result);
-            }
-            else if (func.Name.Name == NameFactory.AddOperator)
-            {
-                int this_int = thisValue.PlainValue.Cast<int>();
-
-                ObjectData arg = ctx.FunctionArguments.Single();
-                int arg_int = arg.PlainValue.Cast<int>();
-
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int + arg_int)
-                    .ConfigureAwait(false);
-                ExecValue result = ExecValue.CreateReturn(res_value);
-                return result;
-            }
-            else if (func.Name.Name == NameFactory.MulOperator)
-            {
-                int this_int = thisValue.PlainValue.Cast<int>();
-
-                ObjectData arg = ctx.FunctionArguments.Single();
-                int arg_int = arg.PlainValue.Cast<int>();
-
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int * arg_int)
-                    .ConfigureAwait(false);
-                ExecValue result = ExecValue.CreateReturn(res_value);
-                return result;
-            }
-            else if (func.Name.Name == NameFactory.SubOperator)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int - arg_int)
-                    .ConfigureAwait(false);
-                ExecValue result = ExecValue.CreateReturn(res_value);
-                return result;
-            }
-            else if (func.Name.Name == NameFactory.EqualOperator)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components, this_int == arg_int).ConfigureAwait(false));
-                return result;
-            }
-            else if (func.IsDefaultInitConstructor())
-            {
-                thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, 0).ConfigureAwait(false));
-                return ExecValue.CreateReturn(null);
-            }
-            else if (func.IsCopyInitConstructor())
-            {
-                thisValue.Assign(ctx.FunctionArguments.Single());
-                return ExecValue.CreateReturn(null);
-            }
-            else if (func.Name.Name == NameFactory.ComparableCompare)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
-
-                ObjectData ordering_type = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.OrderingType.InstanceOf).ConfigureAwait(false);
-                ObjectData ordering_value;
-                if (this_int < arg_int)
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingLess);
-                else if (this_int > arg_int)
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingGreater);
-                else
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingEqual);
-
-                ExecValue result = ExecValue.CreateReturn(ordering_value);
-                return result;
-            }
-            else
-                throw new NotImplementedException($"Function {func} is not implemented");
-        }
-
         private async Task<ExecValue> executeNativeFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
         {
             TypeDefinition owner_type = func.ContainingType();
@@ -153,7 +57,7 @@ namespace Skila.Interpreter
                     throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
             }
             else if (owner_type == ctx.Env.StringType)
-            {               
+            {
                 if (func == ctx.Env.StringCountGetter)
                 {
                     string native_object = this_value.PlainValue.Cast<string>();
@@ -187,7 +91,7 @@ namespace Skila.Interpreter
 
                     Option<ObjectData> lines_obj;
 
-                    if (lines==null)
+                    if (lines == null)
                         lines_obj = new Option<ObjectData>();
                     else
                     {
@@ -211,11 +115,11 @@ namespace Skila.Interpreter
                         }
 
                         ObjectData chunk_obj = await createChunk(ctx,
-                            ctx.Env.ChunkType.GetInstance(new[] { string_ptr_instance }, 
+                            ctx.Env.ChunkType.GetInstance(new[] { string_ptr_instance },
                             MutabilityFlag.ConstAsSource, null),
                             chunk).ConfigureAwait(false);
                         ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
-                            ctx.Env.PointerType.GetInstance(new[] { chunk_obj.RunTimeTypeInstance },MutabilityFlag.ConstAsSource,null),
+                            ctx.Env.PointerType.GetInstance(new[] { chunk_obj.RunTimeTypeInstance }, MutabilityFlag.ConstAsSource, null),
                             chunk_obj).ConfigureAwait(false);
                         if (!ctx.Heap.TryInc(ctx, chunk_ptr, $"chunk with file lines on heap"))
                             throw new Exception($"{ExceptionCode.SourceInfo()}");
@@ -226,6 +130,19 @@ namespace Skila.Interpreter
 
                     ObjectData result = await createOption(ctx, func.ResultTypeName.Evaluation.Components, lines_obj).ConfigureAwait(false);
                     return ExecValue.CreateReturn(result);
+                }
+                else if (func == ctx.Env.FileExists)
+                {
+                    ObjectData filepath_obj = ctx.GetArgument(func, NameFactory.FileFilePathParameter);
+                    if (!filepath_obj.TryDereferenceAnyOnce(ctx.Env, out ObjectData filepath_val))
+                        throw new Exception($"{ExceptionCode.SourceInfo()}");
+                    string filepath = filepath_val.PlainValue.Cast<string>();
+
+                    bool exists = System.IO.File.Exists(filepath);
+
+                    ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
+                        exists).ConfigureAwait(false));
+                    return result;
                 }
                 else
                     throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
@@ -306,7 +223,7 @@ namespace Skila.Interpreter
             }
             else if (owner_type == ctx.Env.IntType)
             {
-                return await executeNativeIntFunctionAsync(ctx, func,this_value).ConfigureAwait(false);
+                return await executeNativeIntFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             }
             else if (owner_type == ctx.Env.BoolType)
             {

@@ -11,6 +11,54 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Templates
     {
+        //        [TestMethod]
+        public IInterpreter TODO_Trait()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true});
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Say")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(IntLiteral.Create("2"))
+                }))
+                .Modifier(EntityModifier.Override))
+                .Parents("ISay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Modifier(EntityModifier.Trait)
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(FunctionCall.Create(NameReference.Create("s", "say")))
+                ))
+                .Parameters(FunctionParameter.Create("s", NameFactory.ReferenceTypeReference("X")))));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("g", null,
+                        ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                    VariableDeclaration.CreateStatement("y", null, ExpressionFactory.StackConstructor("Say")),
+                    Return.Create(FunctionCall.Create(NameReference.Create("g", "hello"), NameReference.Create("y")))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        //        [TestMethod]
         public IInterpreter TODO_ConditionalConstraint()
         {
             var env = Environment.Create();

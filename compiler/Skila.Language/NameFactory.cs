@@ -88,6 +88,7 @@ namespace Skila.Language
         public const string IteratorNext = "next";
 
         public const string FileReadLines = "readLines";
+        public const string FileExists = "exists";
 
         public const string IterableGetIterator = "getIterator";
 

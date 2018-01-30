@@ -14,6 +14,31 @@ namespace Skila.Tests.Execution
         private const string randomTextFilePath = "Data/random_text.utf8.txt";
 
         [TestMethod]
+        public IInterpreter FileExists()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("e",null,FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
+                        NameFactory.FileExists), StringLiteral.Create(randomTextFilePath))),
+                    IfBranch.CreateIf(NameReference.Create("e"),new[] { Return.Create(IntLiteral.Create("2")) },
+                        IfBranch.CreateElse(new[] { Return.Create(IntLiteral.Create("-5")) }))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter FileReadingLines()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });

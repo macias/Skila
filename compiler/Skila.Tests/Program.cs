@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().EnvironmentOption2();
+             new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -28,10 +28,10 @@ namespace Skila.Tests
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
-            // new Semantics.NameResolution().ResolvingIt();
+             //new Semantics.NameResolution().ErrorDuplicateType();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().TranslationTableOfInferredCommonTypes();
+            //new Semantics.Templates().ErrorConflictingConstConstraint();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -43,12 +43,12 @@ namespace Skila.Tests
             //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
-            new Execution.Io().FileReadingLines();
+            //new Execution.Io().FileExists();
             //new Execution.Library().StringToInt();
             //new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().RefCountsOnReadingFunctionCall();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
-            //new Execution.Templates().HasConstraintWithValue();
+            //new Execution.Templates().TODO_Trait();
 
             //if (false)
             {

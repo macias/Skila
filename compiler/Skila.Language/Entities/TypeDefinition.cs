@@ -5,6 +5,7 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
+using Skila.Language.Comparers;
 
 namespace Skila.Language.Entities
 {
@@ -35,7 +36,7 @@ namespace Skila.Language.Entities
             if (typeParameter.Constraint.Functions.Any())
                 modifier |= EntityModifier.Protocol;
             else
-                modifier |= EntityModifier.Base;
+                modifier |= EntityModifier.Base | EntityModifier.Interface;//@@@
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
@@ -49,6 +50,7 @@ namespace Skila.Language.Entities
 
         public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
         public bool IsInterface => this.Modifier.HasInterface;
+        public bool IsTrait => this.Modifier.HasTrait;
         public bool IsProtocol => this.Modifier.HasProtocol;
 
         public bool IsJoker => this.Name.Name == NameFactory.JokerTypeName;
@@ -279,6 +281,22 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
+            if (this.Modifier.HasTrait)
+            {
+                if (!this.Name.Parameters.Any())
+                    ctx.AddError(ErrorCode.NonGenericTrait, this);
+                else
+                {
+                    if (!this.Constraints.Any())
+                        ctx.AddError(ErrorCode.UnconstrainedTrait, this);
+
+                    TypeDefinition host_type = this.Owner.OwnedNodes.WhereType<TypeDefinition>(it => !it.IsTrait)
+                        .FirstOrDefault(it => EntityNameArityComparer.Instance.Equals(this.Name, it.Name));
+                    if (host_type==null)
+                        ctx.AddError(ErrorCode.MissingHostTypeForTrait,this);
+                }
+            }
+
             if (this.Modifier.HasAssociatedReference)
             {
                 if (!this.Modifier.IsSealed)
@@ -337,12 +355,19 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
             }
 
-            if (!this.Modifier.HasMutable)
+            if (this.InstanceOf.MutabilityOfType(ctx) != MutabilityFlag.ForceMutable)
             {
+                // the above check is more than checking just a flag
+                // for template types the mutability depends on parameter constraints
                 foreach (NameReference parent in this.ParentNames)
+                {
                     if (parent.Evaluation.Components.MutabilityOfType(ctx) == MutabilityFlag.ForceMutable)
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
+                }
+            }
 
+            if (!this.Modifier.HasMutable)
+            {
                 foreach (VariableDeclaration field in this.AllNestedFields)
                 {
                     if (field.Modifier.HasReassignable)

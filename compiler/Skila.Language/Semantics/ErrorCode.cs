@@ -104,5 +104,9 @@
         AssociatedReferenceRequiresNonOptionalParameter = 100,
         AssociatedReferenceRequiresPassingByReference = 101,
         ReferenceAsTypeArgument = 102,
+        NonGenericTrait = 103,
+        UnconstrainedTrait = 104,
+        MissingHostTypeForTrait = 105,
+        MisplacedConstraint = 106,
     }
 }

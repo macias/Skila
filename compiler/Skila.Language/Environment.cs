@@ -45,6 +45,7 @@ namespace Skila.Language
 
         public TypeDefinition FileType { get; }
         public FunctionDefinition FileReadLines { get; }
+        public FunctionDefinition FileExists { get; }
 
         public TypeDefinition OrderingType { get; }
         public VariableDeclaration OrderingLess { get; }
@@ -114,6 +115,8 @@ namespace Skila.Language
 
             // pointer and reference are not of Object type (otherwise we could have common root for String and pointer to Int)
             this.ReferenceType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.ReferenceTypeName, "RFT", VarianceMode.Out))
+                // todo: uncomment this when we have traits and IReplicable interface
+                // .Modifier(EntityModifier.Native | EntityModifier.Base)
                 .Modifier(EntityModifier.Native)
                 .Slicing(true));
             /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
@@ -124,6 +127,11 @@ namespace Skila.Language
                   Block.CreateStatement(new IExpression[] { })));*/
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "PTT", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
+                // todo: uncomment this when we have traits and IReplicable interface
+                // this allows to make such override of the method
+                // Parent::foo() -> Ref<T>
+                // Child::foo() -> Ptr<T> 
+//                .Parents(NameFactory.ReferenceTypeReference("PTT"))
                 .Slicing(true));
 
             /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
@@ -216,8 +224,10 @@ namespace Skila.Language
 
             {
                 FunctionDefinition read_lines;
-                this.FileType = this.IoNamespace.AddNode(createFile(out read_lines));
+                FunctionDefinition exists;
+                this.FileType = this.IoNamespace.AddNode(createFile(readLines: out read_lines,exists:out exists));
                 this.FileReadLines = read_lines;
+                this.FileExists = exists;
             }
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
@@ -380,18 +390,24 @@ namespace Skila.Language
                                 .With(count_property);
         }
 
-        private TypeDefinition createFile(out FunctionDefinition readLines)
+        private TypeDefinition createFile(out FunctionDefinition readLines,out FunctionDefinition exists)
         {
             readLines = FunctionBuilder.Create(NameFactory.FileReadLines,
                     NameFactory.OptionTypeReference(NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.StringPointerTypeReference()))),
                     Block.CreateStatement())
                       .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
-                            NameFactory.StringPointerTypeReference(),ExpressionReadMode.CannotBeRead))
+                            NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
+                      .Modifier(EntityModifier.Native);
+            exists = FunctionBuilder.Create(NameFactory.FileExists,NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                      .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
+                            NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
                       .Modifier(EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.FileTypeName)
                 .Modifier(EntityModifier.Static)
                 .With(readLines)
+                .With(exists)
                 ;
 
             return builder;

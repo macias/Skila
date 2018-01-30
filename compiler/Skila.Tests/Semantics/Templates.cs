@@ -14,6 +14,77 @@ namespace Skila.Tests.Semantics
     public class Templates
     {
         [TestMethod]
+        public IErrorReporter ErrorMisplacedConstraint()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            TemplateConstraint constraints = ConstraintBuilder.Create("BOO").Modifier(EntityModifier.Const);
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "BOO")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.UnitTypeReference(),
+                    Block.CreateStatement())
+                .Constraints(constraints)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MisplacedConstraint, constraints));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorTrait()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Bar"));
+
+            TypeDefinition non_generic_trait = root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Trait));
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
+
+            TypeDefinition unconstrained_trait = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
+                .Modifier(EntityModifier.Trait));
+
+            TypeDefinition missing_host = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MissMe", "Y", VarianceMode.None))
+                .Modifier(EntityModifier.Trait)
+                .Constraints(ConstraintBuilder.Create("Y")
+                    .Modifier(EntityModifier.Const)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonGenericTrait, non_generic_trait));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.UnconstrainedTrait, unconstrained_trait));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingHostTypeForTrait, missing_host));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter Trait()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
+                .Modifier(EntityModifier.Trait)
+                .Constraints(ConstraintBuilder.Create("T")
+                    .Modifier(EntityModifier.Const)));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter TranslationTableOfInferredCommonTypes()
         {
             var env = Environment.Create(new Options() { });
@@ -42,7 +113,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
             // the actual point of this test are those two lines checking if we get correct translation table for entire
             // instance of the called function
-            Assert.IsTrue(call.Resolution.TargetFunctionInstance.Translation.Translate(template_param, 
+            Assert.IsTrue(call.Resolution.TargetFunctionInstance.Translation.Translate(template_param,
                 out IEntityInstance common_instance));
             Assert.AreEqual(resolver.Context.Env.ObjectType.InstanceOf, common_instance);
 

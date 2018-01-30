@@ -24,6 +24,7 @@ namespace Skila.Language
             Base, // unseal types
             Interface,
             Protocol, // same as interface, but supports duck type matching 
+            Trait, // container for additional methods for a type (it is NOT like C# extension)
             Override, // modifier for methods ("override" in C#)
             Abstract,
             Protected,
@@ -46,6 +47,7 @@ namespace Skila.Language
         public static readonly EntityModifier Base = new EntityModifier(ModifierIndex.Base);
         public static readonly EntityModifier Interface = new EntityModifier(ModifierIndex.Interface);
         public static readonly EntityModifier Protocol = new EntityModifier(ModifierIndex.Protocol);
+        public static readonly EntityModifier Trait = new EntityModifier(ModifierIndex.Trait);
         public static readonly EntityModifier Override = new EntityModifier(ModifierIndex.Override);
         public static readonly EntityModifier Abstract = new EntityModifier(ModifierIndex.Abstract);
         public static readonly EntityModifier Const = new EntityModifier(ModifierIndex.Const);
@@ -71,6 +73,7 @@ namespace Skila.Language
         public bool HasBase => this.flags[(int)ModifierIndex.Base] > 0;
         public bool HasInterface => this.flags[(int)ModifierIndex.Interface] > 0;
         public bool HasProtocol => this.flags[(int)ModifierIndex.Protocol] > 0;
+        public bool HasTrait => this.flags[(int)ModifierIndex.Trait] > 0;
         public bool HasOverride => this.flags[(int)ModifierIndex.Override] > 0;
         public bool HasAbstract => this.flags[(int)ModifierIndex.Abstract] > 0;
         public bool HasProtected => this.flags[(int)ModifierIndex.Protected] > 0;

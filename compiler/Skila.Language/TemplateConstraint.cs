@@ -77,6 +77,11 @@ namespace Skila.Language
                     return match == TypeMatch.Same || match == TypeMatch.Substitute;
                 }))
                     ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);
+
+            // the left side: target match (i.e. template inner parameter type) -> template
+            // the right side: this -> template parameter -> name definition -> template
+            if (this.Name.Binding.Match.Target.Owner != this.Owner.Owner.Owner)
+                ctx.AddError(ErrorCode.MisplacedConstraint,this);
         }
 
         public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)

@@ -21,6 +21,7 @@ namespace Skila.Language.Builders
 
         private TemplateConstraint build;
         private EntityModifier modifier;
+
         private IEnumerable<NameReference> inherits;
         private IEnumerable<NameReference> baseOf;
 

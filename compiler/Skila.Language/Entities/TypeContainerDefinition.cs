@@ -36,13 +36,15 @@ namespace Skila.Language.Entities
                 }
             }
 
-            // detecting variables duplicates
-            foreach (VariableDeclaration second_var in this.NestedFields
-                .GroupBy(it => it.Name, EntityBareNameComparer.Instance)
+            // detecting entity duplicates
+            foreach (IEntity entity in this.NestedFields.Select(it => it.Cast<IEntity>())
+                .Concat(this.NestedTypes.Where(it => !it.IsTrait))
+                .Concat(this.NestedProperties.Where(it => !it.IsIndexer))
+                .GroupBy(it => it.Name, EntityNameArityComparer.Instance)
                 .Select(group => group.Skip(1).FirstOrDefault())
                 .Where(it => it != null))
             {
-                ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, second_var);
+                ctx.ErrorManager.AddError(ErrorCode.NameAlreadyExists, entity);
             }
 
             IEntityScopeExtension.Validate(this, ctx);

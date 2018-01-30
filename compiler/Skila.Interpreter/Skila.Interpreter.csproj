@@ -57,6 +57,7 @@
     <Compile Include="ICallContext.cs" />
     <Compile Include="IInstanceValue.cs" />
     <Compile Include="ExceptionCode.cs" />
+    <Compile Include="Interpreter.Int.cs" />
     <Compile Include="Interpreter.Native.cs" />
     <Compile Include="UnitType.cs" />
     <Compile Include="IInterpreter.cs" />
