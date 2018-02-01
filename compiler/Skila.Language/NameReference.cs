@@ -115,6 +115,10 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
+            if (this.DebugId.Id == 7677)
+            {
+                ;
+            }
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
             this.Prefix = prefix;
@@ -324,13 +328,13 @@ namespace Skila.Language
                     && prefix_ref.Name != NameFactory.BaseVariableName
                     && prefix_ref.Binding.Match.Target.IsTypeContainer())
                 {
-                    TypeContainerDefinition target = prefix_ref.Binding.Match.Target.CastTypeContainer();
-                    IEnumerable<EntityInstance> entities = target.FindEntities(this, find_mode);
+                    EntityInstance target_instance = prefix_ref.Binding.Match;
+                    IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this, find_mode);
 
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
 
-                    if (target is TypeDefinition)
+                    if (target_instance.Target is TypeDefinition typedef)
                         entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
                     return entities;
@@ -343,9 +347,8 @@ namespace Skila.Language
                     }
 
                     bool dereferenced = false;
-                    TemplateDefinition prefix_target = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced)
-                        .TargetTemplate;
-                    IEnumerable<EntityInstance> entities = prefix_target.FindEntities(this, find_mode);
+                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced);
+                    IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
                     {
                         IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
                         // we need to get value evaluation to perform translation
@@ -399,7 +402,7 @@ namespace Skila.Language
         }
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 4841)
+            if (this.DebugId.Id == 7677)
             {
                 ;
             }

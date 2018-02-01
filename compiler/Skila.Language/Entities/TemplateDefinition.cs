@@ -19,7 +19,6 @@ namespace Skila.Language.Entities
 
         public NameDefinition Name { get; }
 
-        public IEnumerable<TypeDefinition> NestedTypes => this.NestedTemplates.WhereType<TypeDefinition>();
         public IEnumerable<FunctionDefinition> NestedFunctions => this.NestedTemplates.WhereType<FunctionDefinition>();
         public IEnumerable<FunctionDefinition> AllNestedFunctions => this.NestedFunctions
             .Concat(this.NestedProperties.SelectMany(it => it.Accessors));

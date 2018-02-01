@@ -11,10 +11,10 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Templates
     {
-        //        [TestMethod]
-        public IInterpreter TODO_Trait()
+        [TestMethod]
+        public IInterpreter CallingTraitMethod()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true});
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")

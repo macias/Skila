@@ -108,5 +108,6 @@
         UnconstrainedTrait = 104,
         MissingHostTypeForTrait = 105,
         MisplacedConstraint = 106,
+        TraitConstructor = 107,
     }
 }

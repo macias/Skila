@@ -222,7 +222,7 @@ namespace Skila.Language
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
-                if (arg.DebugId.Id == 27142)
+                if (arg.DebugId.Id == 326)
                 {
                     ;
                 }

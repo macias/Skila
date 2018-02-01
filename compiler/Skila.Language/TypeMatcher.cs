@@ -335,12 +335,18 @@ namespace Skila.Language
             if (closedTemplate == null || closedTemplate.IsJoker)
                 return ConstraintMatch.Yes;
 
-            if (closedTemplate.Target.DebugId.Id == 3703)
+            if (closedTemplate.Target.DebugId.Id == 664)
             {
                 ;
             }
 
-            foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in closedTemplate.Target.Name.Parameters
+            return ArgumentsMatchConstraintsOf(ctx, closedTemplate.Target.Name.Parameters, closedTemplate);
+        }
+
+        public static ConstraintMatch ArgumentsMatchConstraintsOf(ComputationContext ctx,
+            IEnumerable<TemplateParameter> templateParameters, EntityInstance closedTemplate)
+        {
+            foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in templateParameters
                 .SyncZip(closedTemplate.TemplateArguments))
             {
                 ConstraintMatch match = param_arg.Item2.ArgumentMatchesParameterConstraints(ctx, closedTemplate, param_arg.Item1);

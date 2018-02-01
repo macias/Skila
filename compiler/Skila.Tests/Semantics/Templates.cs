@@ -14,6 +14,55 @@ namespace Skila.Tests.Semantics
     public class Templates
     {
         [TestMethod]
+        public IErrorReporter ErrorCallingTraitMethodOnHost()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Say")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(IntLiteral.Create("2"))
+                }))
+                .Modifier(EntityModifier.Override))
+                .Parents("ISay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Modifier(EntityModifier.Trait)
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(IntLiteral.Create("7"))
+                ))));
+
+            FunctionCall call = FunctionCall.Create(NameReference.Create("g", "hello"));
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("g", null,
+                        ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                    Return.Create(call)
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound,call.Name));
+
+            return resolver;
+        }
+
+
+        [TestMethod]
         public IErrorReporter ErrorMisplacedConstraint()
         {
             var env = Environment.Create(new Options() { });
@@ -34,7 +83,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorTrait()
+        public IErrorReporter ErrorTraitDefinition()
         {
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
@@ -54,12 +103,22 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("Y")
                     .Modifier(EntityModifier.Const)));
 
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None)));
+
+            FunctionDefinition trait_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement());
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None))
+                .Modifier(EntityModifier.Trait)
+                .With(trait_constructor)
+                .Constraints(ConstraintBuilder.Create("T")
+                    .Modifier(EntityModifier.Const)));
+
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonGenericTrait, non_generic_trait));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.UnconstrainedTrait, unconstrained_trait));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingHostTypeForTrait, missing_host));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TraitConstructor, trait_constructor));
 
             return resolver;
         }

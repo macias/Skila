@@ -46,21 +46,21 @@ namespace Skila.Language.Extensions
                 && @this.Name.Arity == 0
                 && @this.Parameters.Count == 0;
         }
-        public static bool IsAnyConstructor(this FunctionDefinition @this)
+        public static bool IsAnyConstructor(this IEntity @this)
         {
-            return @this.IsZeroConstructor() || @this.IsNewConstructor() || @this.IsInitConstructor();
+            return @this is FunctionDefinition && (@this.IsZeroConstructor() || @this.IsNewConstructor() || @this.IsInitConstructor());
         }
-        public static bool IsInitConstructor(this FunctionDefinition @this)
+        public static bool IsInitConstructor(this IEntity @this)
         {
-            return @this.Name.Name == NameFactory.InitConstructorName;
+            return @this is FunctionDefinition &&  @this.Name.Name == NameFactory.InitConstructorName;
         }
-        public static bool IsNewConstructor(this FunctionDefinition @this)
+        public static bool IsNewConstructor(this IEntity @this)
         {
-            return @this.Name.Name == NameFactory.NewConstructorName;
+            return @this is FunctionDefinition && @this.Name.Name == NameFactory.NewConstructorName;
         }
-        public static bool IsZeroConstructor(this FunctionDefinition @this)
+        public static bool IsZeroConstructor(this IEntity @this)
         {
-            return @this.Name.Name == NameFactory.ZeroConstructorName;
+            return @this is FunctionDefinition && @this.Name.Name == NameFactory.ZeroConstructorName;
         }
         public static bool IsDefaultInitConstructor(this FunctionDefinition @this)
         {

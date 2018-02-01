@@ -40,8 +40,74 @@ namespace Skila.Language.Extensions
 
         public static IEnumerable<EntityInstance> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
         {
+            IEnumerable<EntityInstance> entities = filterAvailableEntities(availableEntities(scope), scope, name, findMode);
+            return findEntities(name, entities);
+        }
+        public static IEnumerable<EntityInstance> FindEntities(this EntityInstance scopeInstance, ComputationContext ctx, NameReference name, EntityFindMode findMode)
+        {
+            IEnumerable<EntityInstance> entities = filterAvailableEntities(availableEntities(ctx, scopeInstance), scopeInstance.TargetTemplate, name, findMode);
+            return findEntities(name, entities);
+        }
+
+        public static IEnumerable<EntityInstance> findEntities(NameReference name, IEnumerable<EntityInstance> entities)
+        {
+            var result = new List<EntityInstance>();
+
+            foreach (EntityInstance entity_instance in entities)
+            {
+                IEntity entity = entity_instance.Target;
+
+                if (name.Arity > 0 || entity is TypeContainerDefinition)
+                {
+                    if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
+                        result.Add(entity_instance);
+                }
+                else
+                {
+                    if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
+                        result.Add(entity_instance);
+                }
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<EntityInstance> availableEntities(IEntityScope scope)
+        {
             IEnumerable<EntityInstance> entities = scope.AvailableEntities ?? scope.NestedEntityInstances();
 
+            return entities;
+        }
+
+        private static IEnumerable<EntityInstance> availableEntities(ComputationContext ctx, EntityInstance scopeInstance)
+        {
+            IEntityScope scope = scopeInstance.Target.Cast<TemplateDefinition>();
+
+            IEnumerable<EntityInstance> entities = availableEntities(scope);
+
+            if (scope is TypeDefinition typedef)
+            {
+                foreach (TypeDefinition trait in typedef.AssociatedTraits)
+                {
+                    // todo: once computed which traits fit maybe we could cache them within given instance?
+                    ConstraintMatch match = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, trait.Name.Parameters, scopeInstance);
+                    if (match != ConstraintMatch.Yes)
+                        continue;
+
+                    IEnumerable<EntityInstance> trait_entities = trait.AvailableEntities
+                        .Select(it => it.TranslateThroughTraitHost(trait: trait))
+                        .Where(it => !it.Target.IsAnyConstructor());
+
+                    entities = entities.Concat(trait_entities);
+                }
+            }
+
+            return entities;
+        }
+
+        private static IEnumerable<EntityInstance> filterAvailableEntities(IEnumerable<EntityInstance> entities,
+            IEntityScope scope, NameReference name, EntityFindMode findMode)
+        {
             if (scope is TypeDefinition typedef)
             {
                 if (findMode == EntityFindMode.WithCurrentProperty)
@@ -65,25 +131,7 @@ namespace Skila.Language.Extensions
                 }
             }
 
-            var result = new List<EntityInstance>();
-
-            foreach (EntityInstance entity_instance in entities)
-            {
-                IEntity entity = entity_instance.Target;
-
-                if (name.Arity > 0 || entity is TypeContainerDefinition)
-                {
-                    if (EntityNameArityComparer.Instance.Equals(name, entity.Name))
-                        result.Add(entity_instance);
-                }
-                else
-                {
-                    if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
-                        result.Add(entity_instance);
-                }
-            }
-
-            return result;
+            return entities;
         }
     }
 }

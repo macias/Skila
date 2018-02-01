@@ -383,7 +383,7 @@ namespace Skila.Tests.Semantics
 
             Assert.AreEqual(1, parent_ref.Binding.Matches.Count());
             Assert.AreEqual(foo_type, parent_ref.Binding.Match.Target);
-            Assert.AreEqual(tuple_type.NestedTypes.Single(),
+            Assert.AreEqual(tuple_type.NestedTypes().Single(),
                 parent_ref.Binding.Match.TemplateArguments.Single().Target());
 
             return resolver;

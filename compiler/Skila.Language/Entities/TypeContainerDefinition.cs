@@ -38,7 +38,7 @@ namespace Skila.Language.Entities
 
             // detecting entity duplicates
             foreach (IEntity entity in this.NestedFields.Select(it => it.Cast<IEntity>())
-                .Concat(this.NestedTypes.Where(it => !it.IsTrait))
+                .Concat(this.NestedTypes().Where(it => !it.IsTrait))
                 .Concat(this.NestedProperties.Where(it => !it.IsIndexer))
                 .GroupBy(it => it.Name, EntityNameArityComparer.Instance)
                 .Select(group => group.Skip(1).FirstOrDefault())

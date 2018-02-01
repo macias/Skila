@@ -254,6 +254,11 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
+                    if (this.DebugId.Id == 275)
+                    {
+                        ;
+                    }
+
                     IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.Target), targetFunctionInstance: it))
@@ -264,11 +269,6 @@ namespace Skila.Language.Expressions
                     targets = targets.Where(it => it.ArgumentTypesMatchParameters(ctx)).StoreReadOnly();
                     if (this.RequestedOutcomeTypeName != null)
                         targets = targets.Where(it => it.OutcomeMatchesRequest(ctx)).StoreReadOnly();
-
-                    if (this.DebugId.Id == 821)
-                    {
-                        ;
-                    }
 
                     targets = resolveOverloading(targets).StoreReadOnly();
 

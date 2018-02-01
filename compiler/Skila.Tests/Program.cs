@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-             new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -31,7 +31,7 @@ namespace Skila.Tests
              //new Semantics.NameResolution().ErrorDuplicateType();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().ErrorConflictingConstConstraint();
+            //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -48,7 +48,7 @@ namespace Skila.Tests
             //new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().RefCountsOnReadingFunctionCall();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
-            //new Execution.Templates().TODO_Trait();
+            new Execution.Templates().CallingTraitMethod();
 
             //if (false)
             {

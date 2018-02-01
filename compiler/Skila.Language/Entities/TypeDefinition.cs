@@ -36,7 +36,7 @@ namespace Skila.Language.Entities
             if (typeParameter.Constraint.Functions.Any())
                 modifier |= EntityModifier.Protocol;
             else
-                modifier |= EntityModifier.Base | EntityModifier.Interface;//@@@
+                modifier |= EntityModifier.Base | EntityModifier.Interface;
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
@@ -75,6 +75,9 @@ namespace Skila.Language.Entities
 
         private IReadOnlyCollection<EntityInstance> availableEntities;
         public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntities;
+
+        public IEnumerable<TypeDefinition> AssociatedTraits => this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
+        public TypeDefinition AssociatedHost => this.Owner.NestedTypes().FirstOrDefault(it => it.isHostOfTrait(this));
 
         private TypeDefinition(EntityModifier modifier,
             bool allowSlicing,
@@ -290,10 +293,9 @@ namespace Skila.Language.Entities
                     if (!this.Constraints.Any())
                         ctx.AddError(ErrorCode.UnconstrainedTrait, this);
 
-                    TypeDefinition host_type = this.Owner.OwnedNodes.WhereType<TypeDefinition>(it => !it.IsTrait)
-                        .FirstOrDefault(it => EntityNameArityComparer.Instance.Equals(this.Name, it.Name));
-                    if (host_type==null)
-                        ctx.AddError(ErrorCode.MissingHostTypeForTrait,this);
+                    TypeDefinition host_type = AssociatedHost;
+                    if (host_type == null)
+                        ctx.AddError(ErrorCode.MissingHostTypeForTrait, this);
                 }
             }
 
@@ -390,13 +392,18 @@ namespace Skila.Language.Entities
             }
         }
 
+        private bool isHostOfTrait(TypeDefinition trait)
+        {
+            return trait.IsTrait && !this.IsTrait && EntityNameArityComparer.Instance.Equals(this.Name, trait.Name);
+        }
+
         private void setupConstructors()
         {
             if (this.DebugId.Id == 3181)
             {
                 ;
             }
-            if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol)
+            if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol || this.IsTrait)
                 return;
 
             if (!this.Modifier.HasNative && !this.NestedFunctions.Where(it => it.IsInitConstructor()).Any())

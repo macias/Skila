@@ -136,12 +136,6 @@ namespace Skila.Language
             return this.Evaluation;
         }
 
-        public EntityInstance TranslateThrough(EntityInstance closedTemplate)
-        {
-            bool dummy = false;
-            return (this as IEntityInstance).TranslateThrough(ref dummy, closedTemplate.Translation).Cast<EntityInstance>();
-        }
-
         public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {
             return openTemplate.TranslateThrough(ref translated, closedTranslation ?? this.Translation);
@@ -150,6 +144,18 @@ namespace Skila.Language
         public bool IsTemplateParameterOf(TemplateDefinition template)
         {
             return this.TargetsTemplateParameter && template.ContainsElement(this.TargetType);
+        }
+
+        internal EntityInstance TranslateThroughTraitHost(TypeDefinition trait)
+        {
+            return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability,
+                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait)).Cast<EntityInstance>();
+        }
+
+        public EntityInstance TranslateThrough(EntityInstance closedTemplate)
+        {
+            bool dummy = false;
+            return TranslateThrough(ref dummy, closedTemplate.Translation).Cast<EntityInstance>();
         }
 
         public IEntityInstance TranslateThrough(ref bool translated, TemplateTranslation translation)
@@ -246,6 +252,10 @@ namespace Skila.Language
             {
                 ;
             }
+
+            if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
+                return ConstraintMatch.Yes;
+
             if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
                 return ConstraintMatch.ConstViolation;
 

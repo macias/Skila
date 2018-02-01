@@ -268,6 +268,9 @@ namespace Skila.Language.Entities
         {
             TypeDefinition type_owner = this.ContainingType();
 
+            if (type_owner != null && type_owner.IsTrait && this.IsAnyConstructor())
+                ctx.AddError(ErrorCode.TraitConstructor, this);
+
             if (this.Name.Name == NameFactory.ConvertFunctionName && type_owner != null)
             {
                 if (this.Parameters.Any())

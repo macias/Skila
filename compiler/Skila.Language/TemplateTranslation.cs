@@ -21,13 +21,11 @@ namespace Skila.Language
 
         public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments = null)
         {
-            var dict = new Dictionary<TemplateParameter, IEntityInstance>();
-            foreach (NameDefinition namedef in new[] { entity.Name }
-                .Concat(entity.EnclosingScopesToRoot()
-                .WhereType<TemplateDefinition>()
-                .Select(it => it.Name)))
+            var dict = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
+
+            foreach (TemplateDefinition template in entity.EnclosingScopesToRoot().WhereType<TemplateDefinition>())
             {
-                foreach (TemplateParameter param in namedef.Parameters)
+                foreach (TemplateParameter param in template.Name.Parameters)
                     dict.Add(param, null);
             }
 
@@ -66,6 +64,18 @@ namespace Skila.Language
             if (table.Count > limit)
                 s += ", ...";
             return $"[{table.Count}: {s}]";
+        }
+
+        public static TemplateTranslation CombineTraitWithHostParameters(TemplateTranslation translation, TypeDefinition trait)
+        {
+            Dictionary<TemplateParameter, IEntityInstance> dict = translation.table.ToDictionary(it => it.Key, it => it.Value);
+
+            TypeDefinition host = trait.AssociatedHost;
+
+            foreach (TemplateParameter param in trait.Name.Parameters)
+                dict[param] = host.Name.Parameters[param.Index].InstanceOf;
+
+            return new TemplateTranslation(dict);
         }
 
         internal static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
