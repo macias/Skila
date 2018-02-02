@@ -12,6 +12,54 @@ namespace Skila.Tests.Execution
     public class Templates
     {
         [TestMethod]
+        public IInterpreter CallingTraitMethodViaInterface()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Say")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(IntLiteral.Create("7"))
+                }))
+                .Modifier(EntityModifier.Override))
+                .Parents("ISay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .Modifier(EntityModifier.Trait)
+                .Parents("ISay")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(IntLiteral.Create("2"))
+                    )).Modifier(EntityModifier.Override)));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    // crucial point, we store our object as interface *ISay
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference("ISay"),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                    // we call method "say" implemented in trait
+                    Return.Create(FunctionCall.Create(NameReference.Create("g", "say")))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter CallingTraitMethod()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });

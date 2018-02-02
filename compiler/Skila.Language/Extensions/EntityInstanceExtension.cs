@@ -7,7 +7,25 @@ namespace Skila.Language.Extensions
 {
     public static class EntityInstanceExtension
     {
-    
+        public static IEnumerable<TypeDefinition> AvailableTraits(this EntityInstance instance,ComputationContext ctx)
+        {
+            IEntityScope scope = instance.Target.Cast<TemplateDefinition>();
+
+            if (scope is TypeDefinition typedef)
+            {
+                foreach (TypeDefinition trait in typedef.AssociatedTraits)
+                {
+                    // todo: once computed which traits fit maybe we could cache them within given instance?
+                    ConstraintMatch match = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, trait.Name.Parameters, instance);
+                    if (match != ConstraintMatch.Yes)
+                        continue;
+
+                    yield return trait;
+                }
+            }
+
+        }
+
         public static IEnumerable<EntityInstance> PrimaryAncestors(this EntityInstance instance, ComputationContext ctx)
         {
             EntityInstance primary_parent = instance.Inheritance(ctx).MinimalParentsWithObject.FirstOrDefault();

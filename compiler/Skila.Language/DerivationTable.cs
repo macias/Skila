@@ -15,9 +15,10 @@ namespace Skila.Language
         // derived function -> base implementation function
         private readonly IReadOnlyDictionary<FunctionDefinition, FunctionDefinition> derivedBaseMapping;
 
-        public DerivationTable(ComputationContext ctx, IReadOnlyDictionary<FunctionDefinition, List<FunctionDefinition>> mapping)
+        public DerivationTable(ComputationContext ctx,TypeDefinition currentType,
+            IReadOnlyDictionary<FunctionDefinition, List<FunctionDefinition>> mapping)
         {
-            this.derivedBaseMapping = compute(ctx, mapping);
+            this.derivedBaseMapping = compute(ctx,currentType, mapping);
         }
 
         // we look for base functions in two directions
@@ -27,6 +28,7 @@ namespace Skila.Language
         // when we have multiple targets -- well, we have a problem (read more below)
 
         private static Dictionary<FunctionDefinition, FunctionDefinition> compute(ComputationContext ctx,
+            TypeDefinition currentType,
             IReadOnlyDictionary<FunctionDefinition, List<FunctionDefinition>> mapping)
         {
             if (!mapping.Any())
@@ -34,13 +36,13 @@ namespace Skila.Language
 
             var derived_base_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
 
-            TypeDefinition current_type = mapping.First().Key.ContainingType();
-            List<TypeDefinition> parents = current_type.Inheritance.MinimalParentsWithObject
+            //TypeDefinition current_type = mapping.First().Key.ContainingType();
+            List<TypeDefinition> parents = currentType.Inheritance.MinimalParentsWithObject
                 // primary parent will be present in primary ancestors sequence
                 .Skip(1)
                 .Select(it => it.TargetType)
                 .ToList();
-            List<TypeDefinition> primary_ancestors = current_type.InstanceOf.PrimaryAncestors(ctx)
+            List<TypeDefinition> primary_ancestors = currentType.InstanceOf.PrimaryAncestors(ctx)
                 .Select(it => it.TargetType)
                 .ToList();
 

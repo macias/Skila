@@ -79,6 +79,7 @@ namespace Skila.Language.Extensions
             return entities;
         }
 
+
         private static IEnumerable<EntityInstance> availableEntities(ComputationContext ctx, EntityInstance scopeInstance)
         {
             IEntityScope scope = scopeInstance.Target.Cast<TemplateDefinition>();
@@ -87,13 +88,8 @@ namespace Skila.Language.Extensions
 
             if (scope is TypeDefinition typedef)
             {
-                foreach (TypeDefinition trait in typedef.AssociatedTraits)
+                foreach (TypeDefinition trait in scopeInstance.AvailableTraits(ctx))
                 {
-                    // todo: once computed which traits fit maybe we could cache them within given instance?
-                    ConstraintMatch match = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, trait.Name.Parameters, scopeInstance);
-                    if (match != ConstraintMatch.Yes)
-                        continue;
-
                     IEnumerable<EntityInstance> trait_entities = trait.AvailableEntities
                         .Select(it => it.TranslateThroughTraitHost(trait: trait))
                         .Where(it => !it.Target.IsAnyConstructor());

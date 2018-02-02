@@ -76,7 +76,8 @@ namespace Skila.Language.Entities
         private IReadOnlyCollection<EntityInstance> availableEntities;
         public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntities;
 
-        public IEnumerable<TypeDefinition> AssociatedTraits => this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
+        public IEnumerable<TypeDefinition> AssociatedTraits => this.IsJoker ? Enumerable.Empty<TypeDefinition>() 
+            : this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
         public TypeDefinition AssociatedHost => this.Owner.NestedTypes().FirstOrDefault(it => it.isHostOfTrait(this));
 
         private TypeDefinition(EntityModifier modifier,
@@ -146,8 +147,11 @@ namespace Skila.Language.Entities
             foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsWithoutObject.Reverse())
                 virtual_mapping.OverrideWith(parent_instance.TargetType.InheritanceVirtualTable);
 
+            IEnumerable<FunctionDefinition> all_nested_functions = this.AllNestedFunctions
+                .Concat(this.AssociatedTraits.SelectMany(it => it.AllNestedFunctions));
+
             // derived (here) method -> base methods
-            Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = this.AllNestedFunctions
+            Dictionary<FunctionDefinition, List<FunctionDefinition>> derivation_mapping = all_nested_functions
                 .Where(it => it.Modifier.HasOverride)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
@@ -181,7 +185,7 @@ namespace Skila.Language.Entities
                     ;
                 }
 
-                foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, this.AllNestedFunctions))
+                foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, all_nested_functions))
                 {
                     if (deriv_info.Derived == null)
                     {
@@ -257,7 +261,7 @@ namespace Skila.Language.Entities
             }
 
             this.InheritanceVirtualTable = virtual_mapping;
-            this.DerivationTable = new DerivationTable(ctx, derivation_mapping);
+            this.DerivationTable = new DerivationTable(ctx,this, derivation_mapping);
             this.availableEntities = inherited_member_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
 
 
@@ -514,7 +518,7 @@ namespace Skila.Language.Entities
 
         private bool computeAncestors(ComputationContext ctx, HashSet<TypeDefinition> visited)
         {
-            if (this.DebugId.Id == 4631)
+            if (this.DebugId.Id == 662)
             {
                 ;
             }
@@ -529,7 +533,8 @@ namespace Skila.Language.Entities
             // object is parent of every type, so seeing "1" everytime is not productive
             var ancestors = new Dictionary<EntityInstance, int>(ReferenceEqualityComparer<EntityInstance>.Instance);
 
-            foreach (NameReference parent_name in this.ParentNames)
+            IEnumerable<NameReference> all_parent_names = this.ParentNames.Concat(this.AssociatedTraits.SelectMany(it => it.ParentNames));
+            foreach (NameReference parent_name in all_parent_names)
             {
                 parent_name.Surfed(ctx);
                 EntityInstance parent = parent_name.Evaluation.Components as EntityInstance;
@@ -577,7 +582,7 @@ namespace Skila.Language.Entities
             // almost the exactly the order user gave, however
             // user could give incorrect order in respect to interface/implementation 
             // so to to avoid further errors sort the parents in correct order
-            List<EntityInstance> ordered_parents = this.ParentNames
+            List<EntityInstance> ordered_parents = all_parent_names //this.ParentNames
                 .Select(it =>
                 {
                     var p_instance = it.Evaluation.Components as EntityInstance;
@@ -606,7 +611,7 @@ namespace Skila.Language.Entities
             else if (this == ctx.Env.ObjectType)
                 object_dist = 0;
             else
-                throw new System.Exception("Internal exception");
+                throw new System.Exception("Having no ancestors is impossible");
 
             this.Inheritance = new TypeInheritance(new TypeAncestor(ctx.Env.ObjectType.InstanceOf, object_dist),
                 ordered_parents,

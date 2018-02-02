@@ -13,6 +13,45 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Templates
     {
+       // [TestMethod]
+        public IErrorReporter TODO_PassingTraitAsIncorrectInterface()
+        {
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+            
+            root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .Modifier(EntityModifier.Trait)
+                .Parents("ISay")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(IntLiteral.Create("2"))
+                    )).Modifier(EntityModifier.Override)));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("major"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference("ISay"),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                    ExpressionFactory.Readout("g")
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(222, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorCallingTraitMethodOnHost()
         {
@@ -21,14 +60,6 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
                 .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
-
-            root_ns.AddBuilder(TypeBuilder.Create("Say")
-                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                Block.CreateStatement(new[] {
-                    Return.Create(IntLiteral.Create("2"))
-                }))
-                .Modifier(EntityModifier.Override))
-                .Parents("ISay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
 

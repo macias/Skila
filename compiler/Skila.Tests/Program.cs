@@ -31,7 +31,7 @@ namespace Skila.Tests
              //new Semantics.NameResolution().ErrorDuplicateType();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
+            //new Semantics.Templates().TODO_PassingTraitAsIncorrectInterface();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -48,7 +48,7 @@ namespace Skila.Tests
             //new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().RefCountsOnReadingFunctionCall();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
-            new Execution.Templates().CallingTraitMethod();
+            //new Execution.Templates().CallingTraitMethodViaInterface();
 
             //if (false)
             {
