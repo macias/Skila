@@ -14,6 +14,7 @@ namespace Skila.Language
         public const string ConcurrencyNamespace = "Concurrency";
         public const string CollectionsNamespace = "Collections";
         public const string IoNamespace = "Io";
+        public const string TextNamespace = "Text";
 
         public const string JokerTypeName = "[[@@]]";
         public const string IFunctionTypeName = "IFunction";
@@ -22,6 +23,7 @@ namespace Skila.Language
         public const string IIndexableTypeName = "IIndexable";
         public const string IndexIteratorTypeName = "IndexIterator";
         public const string FileTypeName = "File";
+        public const string CaptureTypeName = "Capture";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -55,6 +57,11 @@ namespace Skila.Language
         public const string ThursdayDayOfWeekTypeName = "thursday";
         public const string FridayDayOfWeekTypeName = "friday";
         public const string SaturdayDayOfWeekTypeName = "saturday";
+
+        public const string CaptureIndexFieldName = "index";
+        public const string CaptureCountFieldName = "count";
+        public const string CaptureIdFieldName = "id";
+        public const string CaptureNameFieldName = "name";
 
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
@@ -225,15 +232,15 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
@@ -258,17 +265,17 @@ namespace Skila.Language
             return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
         }
         public static NameReference IIndexableTypeReference(INameReference templateTypeName,
-            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+            MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
         public static NameReference IIterableTypeReference(string templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+            MutabilityFlag mutability = MutabilityFlag.SameAsSource)
         {
             return IIterableTypeReference(NameReference.Create(templateParamName), mutability);
         }
         public static NameReference IIterableTypeReference(NameReference templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+            MutabilityFlag mutability = MutabilityFlag.SameAsSource)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
@@ -311,7 +318,7 @@ namespace Skila.Language
             return NameReference.Create(MutabilityFlag.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, ObjectTypeName);
         }
@@ -333,9 +340,9 @@ namespace Skila.Language
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
-        public static NameReference StringPointerTypeReference()
+        public static NameReference StringPointerTypeReference(MutabilityFlag mutability = MutabilityFlag.SameAsSource)
         {
-            return NameFactory.PointerTypeReference(NameReference.Create(SystemNamespaceReference(), NameFactory.StringTypeName));
+            return NameFactory.PointerTypeReference(NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName));
         }
         public static NameReference ComparableTypeReference()
         {
@@ -345,9 +352,9 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
-        public static NameReference OptionTypeReference(INameReference name)
+        public static NameReference OptionTypeReference(INameReference name,MutabilityFlag mutability = MutabilityFlag.SameAsSource)
         {
-            return NameReference.Create(SystemNamespaceReference(), NameFactory.OptionTypeName, name);
+            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }
 
         public static NameReference ExceptionTypeReference()

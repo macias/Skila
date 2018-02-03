@@ -92,7 +92,19 @@ namespace Skila.Language.Expressions
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
-        public bool IsDereferenced { get; set; }
+        private bool isDereferenced { get; set; }
+        public bool IsDereferenced
+        {
+            get { return this.isDereferenced; }
+            set
+            {
+                if (value && this.DebugId.Id == 274)
+                {
+                    ;
+                }
+                this.isDereferenced = value;
+            }
+        }
         public bool IsDereferencing { get; set; }
         // public bool IsStaticCall => this.Resolution.TargetInstance.Target.Modifier.HasStatic;
 

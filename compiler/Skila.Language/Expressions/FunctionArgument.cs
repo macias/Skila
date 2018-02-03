@@ -70,7 +70,7 @@ namespace Skila.Language.Expressions
             this.MappedTo = param;
 
             if (param.IsVariadic && this.IsSpread)
-                this.Expression.Cast<Spread>().Setup(ctx,param.Variadic);
+                this.Expression.Cast<Spread>().LiveSetup(ctx,param.Variadic);
         }
         public bool IsLValue(ComputationContext ctx)
         {

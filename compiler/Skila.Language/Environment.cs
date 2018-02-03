@@ -34,6 +34,7 @@ namespace Skila.Language
         public Namespace ConcurrencyNamespace { get; }
         public Namespace CollectionsNamespace { get; }
         public Namespace IoNamespace { get; }
+        public Namespace TextNamespace { get; }
 
         public TypeDefinition IntType { get; }
         public FunctionDefinition IntParseStringFunction { get; }
@@ -42,6 +43,8 @@ namespace Skila.Language
 
         public TypeDefinition StringType { get; }
         public FunctionDefinition StringCountGetter { get; }
+
+        public TypeDefinition CaptureType { get; }
 
         public TypeDefinition FileType { get; }
         public FunctionDefinition FileReadLines { get; }
@@ -100,6 +103,7 @@ namespace Skila.Language
             this.ConcurrencyNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.ConcurrencyNamespace));
             this.CollectionsNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.CollectionsNamespace));
             this.IoNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.IoNamespace));
+            this.TextNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.TextNamespace));
 
             this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ObjectTypeName)));
@@ -131,7 +135,7 @@ namespace Skila.Language
                 // this allows to make such override of the method
                 // Parent::foo() -> Ref<T>
                 // Child::foo() -> Ptr<T> 
-//                .Parents(NameFactory.ReferenceTypeReference("PTT"))
+                //                .Parents(NameFactory.ReferenceTypeReference("PTT"))
                 .Slicing(true));
 
             /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
@@ -225,10 +229,12 @@ namespace Skila.Language
             {
                 FunctionDefinition read_lines;
                 FunctionDefinition exists;
-                this.FileType = this.IoNamespace.AddNode(createFile(readLines: out read_lines,exists:out exists));
+                this.FileType = this.IoNamespace.AddNode(createFile(readLines: out read_lines, exists: out exists));
                 this.FileReadLines = read_lines;
                 this.FileExists = exists;
             }
+
+//            this.CaptureType = this.TextNamespace.AddNode(createCapture());
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
 
@@ -376,6 +382,25 @@ namespace Skila.Language
             }
         }
 
+        private TypeDefinition createCapture()
+        {
+            return TypeBuilder.Create(NameFactory.CaptureTypeName)
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.IntTypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureCountFieldName, NameFactory.IntTypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.IntTypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
+                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.SameAsSource),
+                        MutabilityFlag.SameAsSource)))
+                .With(ExpressionFactory.BasicConstructor(new[] {
+                    NameFactory.CaptureIndexFieldName, NameFactory.CaptureCountFieldName,
+                    NameFactory.CaptureIdFieldName, NameFactory.CaptureNameFieldName }, new[] {
+                        NameFactory.IntTypeReference(),NameFactory.IntTypeReference(),
+                        NameFactory.IntTypeReference(),NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.SameAsSource),
+                            MutabilityFlag.SameAsSource)
+                    }))
+                    ;
+        }
+
         private TypeDefinition createString(out FunctionDefinition countGetter)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.IntTypeReference())
@@ -390,7 +415,7 @@ namespace Skila.Language
                                 .With(count_property);
         }
 
-        private TypeDefinition createFile(out FunctionDefinition readLines,out FunctionDefinition exists)
+        private TypeDefinition createFile(out FunctionDefinition readLines, out FunctionDefinition exists)
         {
             readLines = FunctionBuilder.Create(NameFactory.FileReadLines,
                     NameFactory.OptionTypeReference(NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.StringPointerTypeReference()))),
@@ -398,7 +423,7 @@ namespace Skila.Language
                       .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
                             NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
                       .Modifier(EntityModifier.Native);
-            exists = FunctionBuilder.Create(NameFactory.FileExists,NameFactory.BoolTypeReference(),
+            exists = FunctionBuilder.Create(NameFactory.FileExists, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                       .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
                             NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))

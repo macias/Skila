@@ -34,7 +34,7 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
+            return new NameReference(MutabilityFlag.SameAsSource, prefix, name, arguments, isRoot: false);
         }
         public static NameReference Create(MutabilityFlag overrideMutability, string name, params INameReference[] arguments)
         {
@@ -47,7 +47,7 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target)
         {
-            var result = new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
+            var result = new NameReference(MutabilityFlag.SameAsSource, prefix, name, arguments, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { target });
             return result;
@@ -93,7 +93,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference(MutabilityFlag.SameAsSource, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
         public bool IsDereferencing { get; set; }
@@ -524,7 +524,7 @@ namespace Skila.Language
                 if (this.EnclosingScopesToRoot().Contains(template))
                 {
                     bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.ConstAsSource);
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.SameAsSource);
 
                     // don't report errors for covariant types which are used in immutable template types
                     if (!covariant_in_immutable &&

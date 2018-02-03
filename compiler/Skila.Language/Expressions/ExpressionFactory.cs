@@ -24,17 +24,14 @@ namespace Skila.Language.Expressions
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                                            Block.CreateStatement(new[] {
+                                            Block.CreateStatement(
                         // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.DownCast(NameReference.Create("cmp"),
+                        VariableDeclaration.CreateStatement("obj", null, ExpressionFactory.DownCast(NameReference.Create("cmp"),
                             NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
-                        // if not obj.hasValue then throw
-                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),
-                            ExpressionFactory.GenericThrow()),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
-                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
-                                            }))
+                            ExpressionFactory.TryGetOptionValue(NameReference.Create("obj"))))
+                                            ))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))));
@@ -43,16 +40,14 @@ namespace Skila.Language.Expressions
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
                                             ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
-                                            Block.CreateStatement(new[] {
+                                            Block.CreateStatement(
                         // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj",null,ExpressionFactory.DownCast(NameReference.Create("cmp"),
+                        VariableDeclaration.CreateStatement("obj", null, ExpressionFactory.DownCast(NameReference.Create("cmp"),
                             NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
-                        // if not obj.hasValue then return false
-                        ExpressionFactory.IfOptionEmpty(NameReference.Create("obj"),ExpressionFactory.GenericThrow()),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
-                            ExpressionFactory.OptionValue(NameReference.Create("obj")))),
-                                            }))
+                            ExpressionFactory.TryGetOptionValue(NameReference.Create("obj"))))
+                                            ))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference()))));
@@ -258,22 +253,23 @@ namespace Skila.Language.Expressions
 
         public static IExpression TryGetOptionValue(IExpression option)
         {
+            return OptionCoalesce(option, GenericThrow());
+        }
+
+        public static IExpression OptionCoalesce(IExpression option, IExpression fallback)
+        {
             string temp = AutoName.Instance.CreateNew("try_opt");
             NameReference temp_ref = NameReference.Create(temp);
             return Block.CreateExpression(new[] {
+                // todo: shouldn't it be a reference to option?
                 VariableDeclaration.CreateStatement(temp, null, option),
-                Ternary(optionHasValue(temp_ref), OptionValue(temp_ref), GenericThrow())
+                Ternary(optionHasValue(temp_ref), OptionValue(temp_ref), fallback)
             });
         }
 
         private static NameReference optionHasValue(IExpression option)
         {
             return NameReference.Create(option, NameFactory.OptionHasValue);
-        }
-
-        public static IExpression IfOptionEmpty(IExpression option, params IExpression[] then)
-        {
-            return IfBranch.CreateIf(ExpressionFactory.Not(optionHasValue(option)), then);
         }
 
         public static NameReference OptionValue(IExpression option)

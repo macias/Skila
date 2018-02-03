@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 
@@ -10,6 +9,22 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class PropertyBuilder : IBuilder<Property>
     {
+        public static PropertyBuilder CreateAutoGetter(string name, NameReference typename,
+                IExpression initValue = null)
+        {
+            return CreateAutoGetter(name, typename, out PropertyMembers dummy, initValue);
+        }
+        public static PropertyBuilder CreateAutoGetter(string name, NameReference typename,
+            out PropertyMembers members, IExpression initValue = null)
+        {
+            PropertyBuilder builder = PropertyBuilder.Create(name, typename)
+                .WithAutoField(initValue, EntityModifier.None, out VariableDeclaration field)
+                .WithAutoGetter(out FunctionDefinition getter);
+
+            members = new PropertyMembers() { Field = field, Getter = getter };
+
+            return builder;
+        }
         public static PropertyBuilder CreateAutoFull(string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
@@ -125,7 +140,7 @@ namespace Skila.Language.Builders
             if (build != null)
                 throw new Exception();
 
-            getter = Property.CreateAutoGetter(this.ValueTypeName,modifier);
+            getter = Property.CreateAutoGetter(this.ValueTypeName, modifier);
             this.getters.Add(getter);
 
             return this;
@@ -165,12 +180,12 @@ namespace Skila.Language.Builders
         {
             return WithSetter(body, out FunctionDefinition dummy, modifier);
         }
-        public PropertyBuilder WithAutoSetter(out FunctionDefinition setter,EntityModifier modifier = null)
+        public PropertyBuilder WithAutoSetter(out FunctionDefinition setter, EntityModifier modifier = null)
         {
             if (build != null)
                 throw new Exception();
 
-            setter = Property.CreateAutoSetter(this.ValueTypeName,modifier);
+            setter = Property.CreateAutoSetter(this.ValueTypeName, modifier);
             this.setters.Add(setter);
 
             return this;
@@ -178,7 +193,7 @@ namespace Skila.Language.Builders
 
         public PropertyBuilder WithAutoSetter(EntityModifier modifier = null)
         {
-            return WithAutoSetter( out FunctionDefinition setter,modifier);
+            return WithAutoSetter(out FunctionDefinition setter, modifier);
         }
 
         public static implicit operator Property(PropertyBuilder @this)

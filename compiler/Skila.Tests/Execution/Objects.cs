@@ -12,6 +12,64 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter CorruptedParallelAssignmentWithSpread()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",NameFactory.IntTypeReference(),null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("y",NameFactory.IntTypeReference(),null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("z",NameFactory.IntTypeReference(),null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.Tuple(IntLiteral.Create("-3"),IntLiteral.Create("5"))),
+                    Assignment.CreateStatement(new[]{ NameReference.Create("x"), NameReference.Create("y"),NameReference.Create("z") },
+                        new[]{  Spread.Create(NameReference.Create("a")) }),
+                    ExpressionFactory.Readout("z"),
+                    Return.Create(ExpressionFactory.Add("x","y"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(DataMode.Throw, result.Mode);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter ParallelAssignmentWithSpread()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",NameFactory.IntTypeReference(),null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("y",NameFactory.IntTypeReference(),null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.Tuple(IntLiteral.Create("-3"),IntLiteral.Create("5"))),
+                    Assignment.CreateStatement(new[]{ NameReference.Create("x"), NameReference.Create("y") },
+                        new[]{  Spread.Create(NameReference.Create("a")) }),
+                    Return.Create(ExpressionFactory.Add("x","y"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter ParallelAssignment()
         {
             var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });

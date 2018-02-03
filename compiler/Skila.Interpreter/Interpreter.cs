@@ -349,8 +349,8 @@ namespace Skila.Interpreter
                     ;
                 }
 
-                    ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj,
-                        callInfo: $"unwinding {bindable_obj.Item1} from stack of {scope}");
+                ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj,
+                    callInfo: $"unwinding {bindable_obj.Item1} from stack of {scope}");
             }
         }
 
@@ -411,7 +411,7 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Return ret)
         {
-            if (ret.DebugId.Id == 160)
+            if (ret.DebugId.Id == 34)
             {
                 ;
             }
@@ -517,7 +517,7 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId.Id == 27230)
+            if (call.DebugId.Id == 274)
             {
                 ;
             }
@@ -543,21 +543,6 @@ namespace Skila.Interpreter
             return ExecValue.CreateExpression(ret_value);
         }
 
-        private ObjectData handleCallResult(ExecutionContext ctx, IExpression node, ObjectData retValue)
-        {
-            if (node.IsDereferenced)
-            {
-                ObjectData temp = retValue.TryDereferenceAnyMany(ctx.Env);
-                temp = temp.Copy();
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, callInfo: $"drop on deref {node}");
-                retValue = temp;
-            }
-            else
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead? retValue:null, callInfo: $"drop ret {node}");
-
-            return retValue;
-
-        }
         private async Task<ExecValue> callPropertyGetterAsync(ExecutionContext ctx, NameReference name)
         {
             if (name.DebugId.Id == 2611)
@@ -679,7 +664,7 @@ namespace Skila.Interpreter
                     }
 
                     ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.ConstAsSource, null),
+                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.SameAsSource, null),
                         chunk).ConfigureAwait(false);
                     args[param.Index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
                 }
@@ -868,7 +853,7 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Assignment assign)
         {
-            if (assign.DebugId.Id == 3100)
+            if (assign.DebugId.Id == 285)
             {
                 ;
             }
@@ -884,8 +869,8 @@ namespace Skila.Interpreter
                     ;
                 }
                 ExecValue lhs;
-                ObjectData rhs_obj = rhs_val.ExprValue.TryDereferenceOnce(assign, assign.RhsValue);
-                ctx.Heap.TryInc(ctx, rhs_obj, $"rhs-assignment {assign}");
+                ObjectData rhs_obj = hackyDereference(ctx,rhs_val.ExprValue, assign, assign.RhsValue);
+                //ctx.Heap.TryInc(ctx, rhs_obj, $"rhs-assignment {assign}");
 
                 if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property)
                 {
@@ -921,11 +906,10 @@ namespace Skila.Interpreter
                     return rhs_val;
             }
 
-            ObjectData rhs_obj = rhs_val.ExprValue;
+            ObjectData rhs_obj = hackyDereference(ctx,rhs_val.ExprValue, decl, decl.InitValue);
 
             ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
-            ctx.Heap.TryInc(ctx, lhs_obj, $"lhs-decl {decl}");
 
             if (decl.DebugId.Id == 352)
             {
@@ -933,6 +917,39 @@ namespace Skila.Interpreter
             }
 
             return rhs_val;
+        }
+
+        private static ObjectData hackyDereference(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr) 
+        {
+            // todo: clean it up -- currently function call perform its own, custom, derefencing so when getting value from some
+            // expression we need to check if this was function call or not, remove this mess
+
+            if (!(childExpr is FunctionCall))
+                obj = obj.TryDereferenceOnce(parentExpr, childExpr);
+
+            ctx.Heap.TryInc(ctx, obj, $"decl/assign {parentExpr}");
+
+            return obj;
+        }
+
+        private ObjectData handleCallResult(ExecutionContext ctx, IExpression node, ObjectData retValue)
+        {
+            if (node.DebugId.Id == 278)
+            {
+                ;
+            }
+            if (node.IsDereferenced)
+            {
+                ObjectData temp = retValue.TryDereferenceAnyMany(ctx.Env);
+                temp = temp.Copy();
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, callInfo: $"drop on deref {node}");
+                retValue = temp;
+            }
+            else
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, callInfo: $"drop ret {node}");
+
+            return retValue;
+
         }
 
         private async Task<ObjectData> createOption(ExecutionContext ctx, IEntityInstance optionType, Option<ObjectData> option)

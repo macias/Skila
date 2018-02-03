@@ -394,7 +394,7 @@ namespace Skila.Language.Entities
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
                     MutabilityFlag field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
-                    if (field_eval_mutability != MutabilityFlag.ConstAsSource)
+                    if (field_eval_mutability != MutabilityFlag.SameAsSource)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions

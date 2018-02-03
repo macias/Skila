@@ -2,7 +2,7 @@
 {
     public enum MutabilityFlag
     {
-        ConstAsSource,
+        SameAsSource,
         Neutral,
         ForceMutable,
     }

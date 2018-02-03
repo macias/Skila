@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
-using Skila.Language.Entities;
 using Skila.Language.Extensions;
 
 namespace Skila.Language.Expressions
@@ -13,6 +12,7 @@ namespace Skila.Language.Expressions
     {
         private enum Mode
         {
+            None,
             Pointer,
             Reference
         }
@@ -30,8 +30,8 @@ namespace Skila.Language.Expressions
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Expr,typename }.Where(it => it != null);
 
-        private NameReference typename;
-        private readonly Mode mode;
+        private INameReference typename;
+        private Mode mode;
 
         private AddressOf(Mode mode, IExpression expr)
             : base(ExpressionReadMode.ReadRequired)
@@ -57,10 +57,15 @@ namespace Skila.Language.Expressions
             if (this.Evaluation == null)
             {
                 INameReference inner = Expr.Evaluation.Components.NameOf;
-                if (this.mode == Mode.Reference)
-                    typename = NameFactory.ReferenceTypeReference(inner);
-                else
+                if (this.mode == Mode.Pointer)
                     typename = NameFactory.PointerTypeReference(inner);
+                else if (ctx.Env.IsReferenceOfType(Expr.Evaluation.Components))
+                {
+                    this.typename = inner;
+                    this.mode = Mode.None;
+                }
+                else
+                    typename = NameFactory.ReferenceTypeReference(inner);
 
                 typename.AttachTo(this);
                 typename.Evaluated(ctx);

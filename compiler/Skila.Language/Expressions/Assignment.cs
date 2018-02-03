@@ -41,7 +41,8 @@ namespace Skila.Language.Expressions
             else
                 return new Assignment(readMode, lhs, rhsValue);
         }
-        private static IExpression create(ExpressionReadMode readMode, IEnumerable<IExpression> lhsExpr, IEnumerable<IExpression> rhsValue)
+        private static IExpression create(ExpressionReadMode readMode, IEnumerable<IExpression> lhsExpr, 
+            IEnumerable<IExpression> rhsValue)
         {
             if (lhsExpr.Count() == 1 && rhsValue.Count() == 1)
             {
@@ -53,18 +54,40 @@ namespace Skila.Language.Expressions
             }
             else
             {
-                string rhs_temp = AutoName.Instance.CreateNew("par_ass");
+                string rhs_temp_name = AutoName.Instance.CreateNew("par");
                 var code = new List<IExpression>();
-                code.Add(VariableDeclaration.CreateStatement(rhs_temp, null, ExpressionFactory.Tuple(rhsValue.ToArray())));
-                int i = 0;
-                foreach (IExpression lhs in lhsExpr)
+
+                if (rhsValue.Count() == 1 && rhsValue.Single() is Spread spread) 
                 {
-                    code.Add(Assignment.CreateStatement(lhs, NameReference.Create(rhs_temp, NameFactory.TupleItemName(i))));
-                    ++i;
+                    spread.RouteSetup(lhsExpr.Count(), lhsExpr.Count());
+
+                    // let par = RHS 
+                    code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null, spread));
+                    int i = 0;
+                    foreach (IExpression lhs in lhsExpr)
+                    {
+                        // LHS[i] = par.at(i)
+                        code.Add(Assignment.CreateStatement(lhs, FunctionCall.Create(NameReference.Create(rhs_temp_name, NameFactory.PropertyIndexerName),
+                            IntLiteral.Create($"{i}"))));
+                        ++i;
+                    }
+                }
+                else
+                {
+                    // let par = new Tuple(RHS)
+                    code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null, ExpressionFactory.Tuple(rhsValue.ToArray())));
+                    int i = 0;
+                    foreach (IExpression lhs in lhsExpr)
+                    {
+                        // LHS[i] = par.Item[i]
+                        code.Add(Assignment.CreateStatement(lhs, NameReference.Create(rhs_temp_name, NameFactory.TupleItemName(i))));
+                        ++i;
+                    }
+
                 }
 
                 if (readMode != ExpressionReadMode.CannotBeRead)
-                    code.Add(NameReference.Create(rhs_temp));
+                    code.Add(NameReference.Create(rhs_temp_name));
 
                 return Block.Create(readMode, code);
             }

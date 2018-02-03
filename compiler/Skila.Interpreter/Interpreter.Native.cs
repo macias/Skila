@@ -116,10 +116,10 @@ namespace Skila.Interpreter
 
                         ObjectData chunk_obj = await createChunk(ctx,
                             ctx.Env.ChunkType.GetInstance(new[] { string_ptr_instance },
-                            MutabilityFlag.ConstAsSource, null),
+                            MutabilityFlag.SameAsSource, null),
                             chunk).ConfigureAwait(false);
                         ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
-                            ctx.Env.PointerType.GetInstance(new[] { chunk_obj.RunTimeTypeInstance }, MutabilityFlag.ConstAsSource, null),
+                            ctx.Env.PointerType.GetInstance(new[] { chunk_obj.RunTimeTypeInstance }, MutabilityFlag.SameAsSource, null),
                             chunk_obj).ConfigureAwait(false);
                         if (!ctx.Heap.TryInc(ctx, chunk_ptr, $"chunk with file lines on heap"))
                             throw new Exception($"{ExceptionCode.SourceInfo()}");
@@ -297,7 +297,7 @@ namespace Skila.Interpreter
                     Option<ObjectData> received = await channel.ReceiveAsync().ConfigureAwait(false);
 
                     // we have to compute Skila Option type (not C# one we use for C# channel type)
-                    EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: MutabilityFlag.ConstAsSource,
+                    EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: MutabilityFlag.SameAsSource,
                         translation: null);
                     ObjectData result = await createOption(ctx, option_type, received).ConfigureAwait(false);
 

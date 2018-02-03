@@ -157,7 +157,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.SameAsSource,
                 translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));

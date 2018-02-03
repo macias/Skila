@@ -96,7 +96,7 @@ namespace Skila.Language.Extensions
                 MutabilityFlag mutability = thisObject.Evaluation.Components.MutabilityOfType(ctx);
                 if (mutability == MutabilityFlag.ForceMutable)
                     closure_builder.Modifier(EntityModifier.Mutable);
-                else if (mutability != MutabilityFlag.ConstAsSource)
+                else if (mutability != MutabilityFlag.SameAsSource)
                     throw new NotImplementedException();
             }
 

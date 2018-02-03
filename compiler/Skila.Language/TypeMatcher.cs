@@ -219,8 +219,8 @@ namespace Skila.Language
         {
             switch (inputMutability)
             {
-                case MutabilityFlag.ConstAsSource: return targetMutability != MutabilityFlag.ForceMutable;
-                case MutabilityFlag.ForceMutable: return targetMutability != MutabilityFlag.ConstAsSource;
+                case MutabilityFlag.SameAsSource: return targetMutability != MutabilityFlag.ForceMutable;
+                case MutabilityFlag.ForceMutable: return targetMutability != MutabilityFlag.SameAsSource;
                 case MutabilityFlag.Neutral: return targetMutability == MutabilityFlag.Neutral;
                 default: throw new NotImplementedException();
             }

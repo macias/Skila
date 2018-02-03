@@ -46,7 +46,7 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityFlag.ConstAsSource, translation: TemplateTranslation.Empty);
+            overrideMutability: MutabilityFlag.SameAsSource, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -256,7 +256,7 @@ namespace Skila.Language
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
-            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.SameAsSource)
                 return ConstraintMatch.ConstViolation;
 
 

@@ -49,7 +49,7 @@ namespace Skila.Language.Extensions
                 ;
             }
             if (!visited.Add(@this))
-                return MutabilityFlag.ConstAsSource;
+                return MutabilityFlag.SameAsSource;
 
             foreach (EntityInstance instance in @this.EnumerateAll())
             {
@@ -63,7 +63,7 @@ namespace Skila.Language.Extensions
                 if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
                 {
                     MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
-                    if (mutability != MutabilityFlag.ConstAsSource)
+                    if (mutability != MutabilityFlag.SameAsSource)
                         return mutability;
                 }
 
@@ -81,7 +81,7 @@ namespace Skila.Language.Extensions
                     return MutabilityFlag.ForceMutable;
             }
 
-            return MutabilityFlag.ConstAsSource;
+            return MutabilityFlag.SameAsSource;
         }
     }
 }

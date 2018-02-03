@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"...{Expr}"; 
+            string result = $"...{Expr}";
             return result;
         }
 
@@ -49,28 +49,37 @@ namespace Skila.Language.Expressions
                 this.Evaluation = this.Expr.Evaluation;
         }
 
-        internal void Setup(ComputationContext ctx, Variadic variadic)
+        internal void LiveSetup(ComputationContext ctx, Variadic variadic)
+        {
+            if (this.prepared)
+                throw new Exception("Something wrong?");
+
+            if (!variadic.HasUpperLimit && !variadic.HasLowerLimit)
+                this.prepared = true;
+            else
+            {
+                RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.MaxLimit : (int?)null);
+                this.expr.Evaluated(ctx);
+            }
+        }
+
+        internal void RouteSetup(int minLimit, int? maxLimit)
         {
             if (this.prepared)
                 throw new Exception("Something wrong?");
 
             this.prepared = true;
 
-            if (!variadic.HasUpperLimit && !variadic.HasLowerLimit)
-                return;
-
             this.expr.DetachFrom(this);
-            if (variadic.HasUpperLimit)
+            if (maxLimit.HasValue)
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
-                    FunctionArgument.Create(IntLiteral.Create($"{variadic.MinLimit}")),
-                    FunctionArgument.Create(IntLiteral.Create($"{variadic.MaxLimit}")));
+                    FunctionArgument.Create(IntLiteral.Create($"{minLimit}")),
+                    FunctionArgument.Create(IntLiteral.Create($"{maxLimit}")));
             else
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
-                    FunctionArgument.Create(IntLiteral.Create($"{variadic.MinLimit}")));
+                    FunctionArgument.Create(IntLiteral.Create($"{minLimit}")));
 
             this.expr.AttachTo(this);
-
-            this.expr.Evaluated(ctx);
         }
     }
 }
