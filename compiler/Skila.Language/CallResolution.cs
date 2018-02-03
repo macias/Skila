@@ -487,7 +487,7 @@ namespace Skila.Language
                 if (arg_type_instance == null)
                     return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
-                IEnumerable<EntityInstance> arg_family = arg_type_instance.Inheritance(ctx).AncestorsWithoutObject
+                IEnumerable<EntityInstance> arg_family = arg_type_instance.Inheritance(ctx).OrderedAncestorsWithoutObject
                     .Concat(arg_type_instance);
                 arg_type_instance = arg_family
                     .SingleOrDefault(it => it.TargetType == param_type_instance.TargetType);

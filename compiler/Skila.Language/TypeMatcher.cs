@@ -158,7 +158,7 @@ namespace Skila.Language
                 MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
 
                 IEnumerable<TypeAncestor> input_family = new[] { new TypeAncestor(input, 0) }
-                    .Concat(input.Inheritance(ctx).TypeAncestorsIncludingObject
+                    .Concat(input.Inheritance(ctx).OrderedTypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
                     .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum));
                 foreach (TypeAncestor inherited_input in input_family)
@@ -190,7 +190,7 @@ namespace Skila.Language
 
                 // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
-                    .Concat(target.Inheritance(ctx).TypeAncestorsIncludingObject)
+                    .Concat(target.Inheritance(ctx).OrderedTypeAncestorsIncludingObject)
                     .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), matching.EnabledSlicing());
 
                 if (m != TypeMatch.No)
@@ -288,7 +288,7 @@ namespace Skila.Language
                 return true;
             }
 
-            HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).AncestorsIncludingObject.Concat(type_a).ToHashSet();
+            HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             return result != null;
         }

@@ -75,7 +75,7 @@ namespace Skila.Language
             {
                 if (!this.TargetType.IsInheritanceComputed)
                     this.TargetType.Surfed(ctx);
-                this.inheritance = this.TargetType.Inheritance.TranslateThrough(this);
+                this.inheritance = this.TargetType.Inheritance.TranslateThrough(ctx,this);
             }
             return inheritance;
         }
@@ -314,7 +314,7 @@ namespace Skila.Language
 
         public bool IsStrictDescendantOf(ComputationContext ctx, EntityInstance ancestor)
         {
-            return this.Inheritance(ctx).AncestorsIncludingObject.Contains(ancestor);
+            return this.Inheritance(ctx).OrderedAncestorsIncludingObject.Contains(ancestor);
         }
 
         public bool IsStrictAncestorOf(ComputationContext ctx, IEntityInstance descendant)

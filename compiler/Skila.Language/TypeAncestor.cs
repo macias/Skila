@@ -18,5 +18,10 @@ namespace Skila.Language
         {
             return $"{AncestorInstance}({Distance})";
         }
+
+        public TypeAncestor TranslateThrough(EntityInstance closedTemplate)
+        {
+            return new TypeAncestor(this.AncestorInstance.TranslateThrough(closedTemplate), this.Distance);
+        }
     }
 }

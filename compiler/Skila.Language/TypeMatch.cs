@@ -97,7 +97,7 @@ namespace Skila.Language
             return !(m1 == m2);
         }
 
-        internal bool HasFlag(TypeMatch other)
+        public bool HasFlag(TypeMatch other)
         {
             return (this.flag & other.flag) != 0;
         }

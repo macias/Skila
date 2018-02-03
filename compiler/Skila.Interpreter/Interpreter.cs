@@ -474,6 +474,7 @@ namespace Skila.Interpreter
                 default: throw new InvalidOperationException();
             }
         }
+
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IsType isType)
         {
             ObjectData lhs_obj = (await ExecutedAsync(isType.Lhs, ctx).ConfigureAwait(false)).ExprValue;
@@ -482,7 +483,7 @@ namespace Skila.Interpreter
                 isType.RhsTypeName.Evaluation.Components,
                 allowSlicing: false);
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
-                match == TypeMatch.Same || match == TypeMatch.Substitute).ConfigureAwait(false));
+                match.HasFlag(TypeMatch.Same) || match.HasFlag(TypeMatch.Substitute)).ConfigureAwait(false));
         }
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, ReinterpretType reinterpret)
@@ -767,7 +768,7 @@ namespace Skila.Interpreter
                     bool found_duck = false;
 
                     foreach (EntityInstance ancestor in thisValue.RunTimeTypeInstance.TargetType.Inheritance
-                        .AncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance))
+                        .OrderedAncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance))
                         .Concat(thisValue.RunTimeTypeInstance))
                     {
                         if (ancestor.TryGetDuckVirtualTable(inner_type, out VirtualTable vtable))

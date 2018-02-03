@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+            //new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             // new Semantics.Expressions().ErrorSelfAssignment();
@@ -28,10 +28,10 @@ namespace Skila.Tests
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorUsingMutablesOnNeutral();
-             //new Semantics.NameResolution().ErrorDuplicateType();
+            //new Semantics.NameResolution().ErrorDuplicateType();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().TODO_PassingTraitAsIncorrectInterface();
+            new Semantics.Templates().ErrorCallingTraitMethodOnHost();
             //new Semantics.TypeMatching().ErrorMatchingIntersection();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -48,7 +48,7 @@ namespace Skila.Tests
             //new Execution.Objects().ParallelAssignment();
             //new Execution.Pointers().RefCountsOnReadingFunctionCall();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
-            //new Execution.Templates().CallingTraitMethodViaInterface();
+            //new Execution.Templates().CheckingHostTraitRuntimeType();
 
             //if (false)
             {

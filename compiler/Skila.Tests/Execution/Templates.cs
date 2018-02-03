@@ -12,6 +12,97 @@ namespace Skila.Tests.Execution
     public class Templates
     {
         [TestMethod]
+        public IInterpreter CheckingHostTraitRuntimeType()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+
+            root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .Modifier(EntityModifier.Trait)
+                .Parents("ISay")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(IntLiteral.Create("2"))
+                    )).Modifier(EntityModifier.Override)));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    // just plain host, no trait is used
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                    // we should have fail-test here
+                    Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
+                        IntLiteral.Create("99"), IntLiteral.Create("2")))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter CheckingTraitRuntimeType()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Say")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                Block.CreateStatement(new[] {
+                    Return.Create(IntLiteral.Create("7"))
+                }))
+                .Modifier(EntityModifier.Override))
+                .Parents("ISay"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
+                .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
+                .Modifier(EntityModifier.Trait)
+                .Parents("ISay")
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(IntLiteral.Create("2"))
+                    )).Modifier(EntityModifier.Override)));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                        ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                    Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"),NameReference.Create("ISay")),
+                        IntLiteral.Create("2"),IntLiteral.Create("88")))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter CallingTraitMethodViaInterface()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -97,53 +188,6 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("y", null, ExpressionFactory.StackConstructor("Say")),
                     Return.Create(FunctionCall.Create(NameReference.Create("g", "hello"), NameReference.Create("y")))
                 )));
-
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual(2, result.RetValue.PlainValue);
-
-            return interpreter;
-        }
-
-        //        [TestMethod]
-        public IInterpreter TODO_ConditionalConstraint()
-        {
-            var env = Environment.Create();
-            var root_ns = env.Root;
-
-            root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
-
-            root_ns.AddBuilder(TypeBuilder.Create("Say")
-                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                Block.CreateStatement(new[] {
-                    Return.Create(IntLiteral.Create("2"))
-                }))
-                .Modifier(EntityModifier.Override))
-                .Parents("ISay"));
-
-            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T")
-                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
-                Block.CreateStatement(new[] {
-                    Return.Create(FunctionCall.Create(NameReference.Create("s","say")))
-                }))
-                .Parameters(FunctionParameter.Create("s", NameFactory.PointerTypeReference("T")))
-                // this is constraint on function, meaning function will be available when T inherits from ISay
-                .Constraints(ConstraintBuilder.Create("T").Inherits("ISay"))));
-
-
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
-                ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
-                Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("g",null,
-                        ExpressionFactory.StackConstructor(NameReference.Create("Greeter",NameReference.Create("Say")))),
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructor(NameReference.Create("Say"))),
-                    Return.Create(FunctionCall.Create(NameReference.Create("g","say"),
-                        FunctionArgument.Create(NameReference.Create("y"))))
-                })));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);

@@ -109,5 +109,7 @@
         MissingHostTypeForTrait = 105,
         MisplacedConstraint = 106,
         TraitConstructor = 107,
+        TraitInheritingTypeImplementation = 108,
+        FieldInNonImplementationType = 109,
     }
 }

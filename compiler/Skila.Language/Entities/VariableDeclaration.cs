@@ -280,13 +280,22 @@ namespace Skila.Language.Entities
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
 
-            if (this.IsTypeContained() && this.Name.Name != NameFactory.PropertyAutoField)
             {
-                // consider Foo<T> with field f, type T
-                // can I pass instance of Foo<U> (U extends T) somewhere?
-                // sure, as long the field cannot be reassigned (otherwise the receiver could reset it to T, while callee would expect U)
-                this.TypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx,
-                    this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
+                TypeDefinition containing_type = this.ContainingType();
+                if (containing_type != null)
+                {
+                    if (containing_type.IsTrait || containing_type.IsInterface || containing_type.IsProtocol)
+                        ctx.AddError(ErrorCode.FieldInNonImplementationType, this);
+
+                    if (this.Name.Name != NameFactory.PropertyAutoField)
+                    {
+                        // consider Foo<T> with field f, type T
+                        // can I pass instance of Foo<U> (U extends T) somewhere?
+                        // sure, as long the field cannot be reassigned (otherwise the receiver could reset it to T, while callee would expect U)
+                        this.TypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx,
+                            this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
+                    }
+                }
             }
 
             {

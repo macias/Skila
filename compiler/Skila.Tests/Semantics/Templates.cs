@@ -13,15 +13,15 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Templates
     {
-       // [TestMethod]
-        public IErrorReporter TODO_PassingTraitAsIncorrectInterface()
+        [TestMethod]
+        public IErrorReporter PassingTraitAsIncorrectInterface()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
                 .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
-            
+
             root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
@@ -35,19 +35,20 @@ namespace Skila.Tests.Semantics
                         Return.Create(IntLiteral.Create("2"))
                     )).Modifier(EntityModifier.Override)));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("major"),
+            IExpression init_value = ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")));
+            root_ns.AddBuilder(FunctionBuilder.Create("major",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference("ISay"),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                        init_value),
                     ExpressionFactory.Readout("g")
                 )));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(222, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
 
             return resolver;
         }
@@ -63,7 +64,11 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
 
-            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
+            // this function is located in trait, thus unavailable
+            FunctionCall int_call = FunctionCall.Create(NameReference.CreateThised("hello"));
+            root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T")
+                .With(FunctionBuilder.Create("reaching", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(int_call))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Modifier(EntityModifier.Trait)
@@ -73,7 +78,7 @@ namespace Skila.Tests.Semantics
                     Return.Create(IntLiteral.Create("7"))
                 ))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("g", "hello"));
+            FunctionCall ext_call = FunctionCall.Create(NameReference.Create("g", "hello"));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
@@ -81,13 +86,14 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("g", null,
                         ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
-                    Return.Create(call)
+                    Return.Create(ext_call)
                 )));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound,call.Name));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, ext_call.Name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, int_call.Name));
 
             return resolver;
         }
@@ -119,7 +125,8 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Bar"));
+            root_ns.AddBuilder(TypeBuilder.Create("Bar")
+                .Modifier(EntityModifier.Base));
 
             TypeDefinition non_generic_trait = root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Trait));
@@ -137,25 +144,38 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None)));
 
             FunctionDefinition trait_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement());
+            VariableDeclaration trait_field = VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), IntLiteral.Create("5"), EntityModifier.Public);
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None))
                 .Modifier(EntityModifier.Trait)
                 .With(trait_constructor)
+                .With(trait_field)
+                .Constraints(ConstraintBuilder.Create("T")
+                    .Modifier(EntityModifier.Const)));
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Inheriting", "T", VarianceMode.None)));
+
+            NameReference parent_impl = NameReference.Create("Bar");
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Inheriting", "T", VarianceMode.None))
+                .Parents(parent_impl)
+                .Modifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(6, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonGenericTrait, non_generic_trait));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.UnconstrainedTrait, unconstrained_trait));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingHostTypeForTrait, missing_host));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TraitConstructor, trait_constructor));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TraitInheritingTypeImplementation, parent_impl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.FieldInNonImplementationType, trait_field));
 
             return resolver;
         }
 
         [TestMethod]
-        public IErrorReporter Trait()
+        public IErrorReporter BasicTraitDefinition()
         {
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
@@ -243,7 +263,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             // testing here template translation
-            EntityInstance child_ancestor = child.Inheritance.AncestorsWithoutObject.Single();
+            EntityInstance child_ancestor = child.Inheritance.OrderedAncestorsWithoutObject.Single();
             IEntityInstance translated = base_func.ResultTypeName.Evaluation.Components.TranslateThrough(child_ancestor);
 
             // we have single function overriden, so it is easy to debug and spot if something goes wrong

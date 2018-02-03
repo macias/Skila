@@ -76,7 +76,7 @@ namespace Skila.Language.Entities
         private IReadOnlyCollection<EntityInstance> availableEntities;
         public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntities;
 
-        public IEnumerable<TypeDefinition> AssociatedTraits => this.IsJoker ? Enumerable.Empty<TypeDefinition>() 
+        public IEnumerable<TypeDefinition> AssociatedTraits => this.IsJoker ? Enumerable.Empty<TypeDefinition>()
             : this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
         public TypeDefinition AssociatedHost => this.Owner.NestedTypes().FirstOrDefault(it => it.isHostOfTrait(this));
 
@@ -119,6 +119,8 @@ namespace Skila.Language.Entities
 
         private void compute(ComputationContext ctx)
         {
+            foreach (TypeDefinition trait in this.AssociatedTraits)
+                trait.computeAncestors(ctx, new HashSet<TypeDefinition>());
             computeAncestors(ctx, new HashSet<TypeDefinition>());
 
             if (this.Modifier.HasEnum)
@@ -144,8 +146,13 @@ namespace Skila.Language.Entities
 
             // base method -> derived (here) method
             var virtual_mapping = new VirtualTable(isPartial: false);
-            foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsWithoutObject.Reverse())
+            foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsWithoutObject
+                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.MinimalParentsWithoutObject))
+                .Distinct()
+                .Reverse())
+            {
                 virtual_mapping.OverrideWith(parent_instance.TargetType.InheritanceVirtualTable);
+            }
 
             IEnumerable<FunctionDefinition> all_nested_functions = this.AllNestedFunctions
                 .Concat(this.AssociatedTraits.SelectMany(it => it.AllNestedFunctions));
@@ -159,7 +166,9 @@ namespace Skila.Language.Entities
 
             var missing_func_implementations = new List<FunctionDefinition>();
 
-            foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+            foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsWithoutObject
+                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.OrderedAncestorsWithoutObject))
+                .Distinct())
             {
                 // special case are properties -- properties are in fact not inherited, their accessors are
                 // however user sees properties, so we get members here (including properties), but when we compute
@@ -261,7 +270,7 @@ namespace Skila.Language.Entities
             }
 
             this.InheritanceVirtualTable = virtual_mapping;
-            this.DerivationTable = new DerivationTable(ctx,this, derivation_mapping);
+            this.DerivationTable = new DerivationTable(ctx, this, derivation_mapping);
             this.availableEntities = inherited_member_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
 
 
@@ -273,7 +282,7 @@ namespace Skila.Language.Entities
 
         private bool isDerivedByAncestors(FunctionDefinition baseFunction)
         {
-            foreach (EntityInstance ancestor in this.Inheritance.AncestorsWithoutObject)
+            foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsWithoutObject)
             {
                 if (ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(baseFunction, out FunctionDefinition dummy))
                 {
@@ -348,8 +357,14 @@ namespace Skila.Language.Entities
 
             {
                 TypeDefinition primary_parent = this.Inheritance.GetTypeImplementationParent()?.TargetType;
-                if (primary_parent != null && this.Modifier.HasEnum != primary_parent.Modifier.HasEnum)
-                    ctx.AddError(ErrorCode.EnumCrossInheritance, this);
+                if (primary_parent != null)
+                {
+                    if (this.Modifier.HasEnum != primary_parent.Modifier.HasEnum)
+                        ctx.AddError(ErrorCode.EnumCrossInheritance, this);
+
+                    if (this.Modifier.HasTrait)
+                        ctx.AddError(ErrorCode.TraitInheritingTypeImplementation, this.ParentNames.First());
+                }
             }
 
             if (!this.Modifier.IsAbstract)
@@ -533,7 +548,7 @@ namespace Skila.Language.Entities
             // object is parent of every type, so seeing "1" everytime is not productive
             var ancestors = new Dictionary<EntityInstance, int>(ReferenceEqualityComparer<EntityInstance>.Instance);
 
-            IEnumerable<NameReference> all_parent_names = this.ParentNames.Concat(this.AssociatedTraits.SelectMany(it => it.ParentNames));
+            IEnumerable<NameReference> all_parent_names = this.ParentNames;
             foreach (NameReference parent_name in all_parent_names)
             {
                 parent_name.Surfed(ctx);
@@ -555,7 +570,7 @@ namespace Skila.Language.Entities
                     parent.TargetType.Surfed(ctx);
 
                 if (parent.TargetType.IsInheritanceComputed)
-                    foreach (TypeAncestor ancestor in parent.TargetType.Inheritance.TypeAncestorsWithoutObject
+                    foreach (TypeAncestor ancestor in parent.TargetType.Inheritance.OrderedTypeAncestorsWithoutObject
                         .Select(it => new TypeAncestor(it.AncestorInstance.TranslateThrough(parent), it.Distance + 1)))
                     {
                         int dist;
@@ -615,7 +630,7 @@ namespace Skila.Language.Entities
 
             this.Inheritance = new TypeInheritance(new TypeAncestor(ctx.Env.ObjectType.InstanceOf, object_dist),
                 ordered_parents,
-                orderedCompleteAncestors: ancestors.Select(it => new TypeAncestor(it.Key, it.Value)).OrderBy(it => it.Distance));
+                completeAncestors: ancestors.Select(it => new TypeAncestor(it.Key, it.Value)));
 
             return true;
         }
