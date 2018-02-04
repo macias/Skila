@@ -46,7 +46,7 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityFlag.SameAsSource, translation: TemplateTranslation.Empty);
+            overrideMutability: MutabilityFlag.ConstAsSource, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -205,14 +205,14 @@ namespace Skila.Language
             }
         }
 
-        public TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing)
+        public TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, TypeMatching matching)
         {
-            return TypeMatcher.Matches(ctx, input, this, TypeMatching.Create(allowSlicing));
+            return TypeMatcher.Matches(ctx, input, this, matching);
         }
 
-        public TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
+        public TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, TypeMatching matching)
         {
-            return target.MatchesInput(ctx, this, allowSlicing);
+            return target.MatchesInput(ctx, this, matching);
         }
         public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
         {
@@ -256,7 +256,7 @@ namespace Skila.Language
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
-            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.SameAsSource)
+            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
                 return ConstraintMatch.ConstViolation;
 
 
@@ -284,7 +284,7 @@ namespace Skila.Language
 
             foreach (EntityInstance constraint_base in param.Constraint.TranslateBaseOf(closedTemplate))
             {
-                if (!arg_bases.Any(it => TypeMatch.No != constraint_base.MatchesTarget(ctx, it, allowSlicing: true)))
+                if (!arg_bases.Any(it => TypeMatch.No != constraint_base.MatchesTarget(ctx, it, TypeMatching.Create(allowSlicing: true))))
                     return ConstraintMatch.BaseViolation;
             }
 

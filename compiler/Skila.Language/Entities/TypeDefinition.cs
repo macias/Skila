@@ -393,8 +393,14 @@ namespace Skila.Language.Entities
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
+                    if (this.DebugId.Id==42)
+                    {
+                        ;
+                    }
                     MutabilityFlag field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
-                    if (field_eval_mutability != MutabilityFlag.SameAsSource)
+                    if (field_eval_mutability != MutabilityFlag.ConstAsSource
+                        && field_eval_mutability != MutabilityFlag.GenericUnknownMutability
+                        && field_eval_mutability!= MutabilityFlag.ForceConst)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions

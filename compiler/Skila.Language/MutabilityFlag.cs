@@ -1,10 +1,14 @@
-﻿namespace Skila.Language
-{
+﻿using System;
+
+namespace Skila.Language
+{    
     public enum MutabilityFlag
     {
-        SameAsSource,
+        ConstAsSource,
         Neutral,
         ForceMutable,
+        ForceConst,
+        GenericUnknownMutability
     }
 
 }

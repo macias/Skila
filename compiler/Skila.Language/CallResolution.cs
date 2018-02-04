@@ -228,7 +228,7 @@ namespace Skila.Language
                 }
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
-                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, allowSlicing: false);
+                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, TypeMatching.Create(allowSlicing: false));
 
                 int idx = this.argParamMapping[arg.Index];
                 // in case of variadic parameter several arguments hit the same param, so their type matching can be different
@@ -252,7 +252,7 @@ namespace Skila.Language
         {
             // requested result type has to match perfectly (without conversions)
             TypeMatch match = this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
-                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, allowSlicing: false);
+                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, TypeMatching.Create(allowSlicing: false));
             return match == TypeMatch.Same || match == TypeMatch.Substitute;
         }
 

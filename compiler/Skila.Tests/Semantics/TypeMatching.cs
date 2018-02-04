@@ -10,7 +10,7 @@ using Skila.Language.Flow;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class TypeMatching
+    public class TypeMatchingTests
     {
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
@@ -288,10 +288,10 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, allowSlicing: true));
-            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, allowSlicing: true));
-            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, allowSlicing: true);
+            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
+            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
+            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
+            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, TypeMatching.Create(allowSlicing: true));
             Assert.AreNotEqual(TypeMatch.Same, match);
             Assert.AreNotEqual(TypeMatch.Substitute, match);
 
@@ -382,11 +382,11 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(TypeMatch.Substitute, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriv_union.Evaluation.Components, allowSlicing: true));
+                separate_deriv_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true)));
             Assert.AreEqual(TypeMatch.Substitute, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_abc_union.Evaluation.Components, allowSlicing: true));
+                separate_abc_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true)));
             TypeMatch match = sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriz_union.Evaluation.Components, allowSlicing: true);
+                separate_deriz_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true));
             Assert.AreNotEqual(TypeMatch.Same, match);
             Assert.AreNotEqual(TypeMatch.Substitute, match);
 

@@ -133,11 +133,11 @@ namespace Skila.Language.Flow
             {
                 foreach (IEvaluable part in new IEvaluable[] { Body, Next })
                 {
-                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, allowSlicing: false) == TypeMatch.No)
+                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, TypeMatching.Create(allowSlicing: false)) == TypeMatch.No)
                     {
                         return false;
                     }
-                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, allowSlicing: false) == TypeMatch.No)
+                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, TypeMatching.Create(allowSlicing: false)) == TypeMatch.No)
                     {
                         return false;
                     }

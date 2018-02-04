@@ -55,7 +55,7 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
-            if (@this.DebugId.Id == 3837)
+            if (@this.DebugId.Id == 285)
             {
                 ;
             }
@@ -65,7 +65,7 @@ namespace Skila.Language.Extensions
                 ;
             }
 
-            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, allowSlicing: false);
+            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: false, literalSource : source is Literal));
 
             if (match == TypeMatch.No)
             {
@@ -77,7 +77,7 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = ExpressionFactory.StackConstructor((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
                 source.AttachTo(@this);
-                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
+                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: false));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
@@ -91,7 +91,7 @@ namespace Skila.Language.Extensions
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
                 IEntityInstance source_eval = source.Evaluated(ctx);
-                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, allowSlicing: true);
+                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: true));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception($"Internal error: matching result {m}");
             }
@@ -100,7 +100,7 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = FunctionCall.ConvCall(source, (targetTypeName as EntityInstance).NameOf);
                 source.AttachTo(@this);
-                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, allowSlicing: false);
+                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: false));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }

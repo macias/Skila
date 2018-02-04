@@ -69,8 +69,8 @@ namespace Skila.Language
             VarianceMode variance, TypeMatching matching);
         public abstract TypeMatch TemplateMatchesTarget(ComputationContext ctx, IEntityInstance target,
                 VarianceMode variance, TypeMatching matching);
-        public abstract TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);
-        public abstract TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing);
+        public abstract TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, TypeMatching matching);
+        public abstract TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, TypeMatching matching);
         public abstract bool IsOverloadDistinctFrom(IEntityInstance other);
         public abstract IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
 

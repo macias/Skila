@@ -34,7 +34,7 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityFlag.SameAsSource, prefix, name, arguments, isRoot: false);
+            return new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
         }
         public static NameReference Create(MutabilityFlag overrideMutability, string name, params INameReference[] arguments)
         {
@@ -47,7 +47,7 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target)
         {
-            var result = new NameReference(MutabilityFlag.SameAsSource, prefix, name, arguments, isRoot: false);
+            var result = new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { target });
             return result;
@@ -93,7 +93,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityFlag.SameAsSource, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference(MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
         public bool IsDereferencing { get; set; }
@@ -134,7 +134,16 @@ namespace Skila.Language
             string args = "";
             if (TemplateArguments.Any())
                 args = "<" + TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-            return new[] { this.Prefix?.ToString(), Name + args }.Where(it => it != null).Join(".");
+            string result = new[] { this.Prefix?.ToString(), Name + args }.Where(it => it != null).Join(".");
+
+            switch (this.OverrideMutability)
+            {
+                case MutabilityFlag.ForceConst: return $"const {result}";
+                case MutabilityFlag.ForceMutable: return $"mut {result}";
+                case MutabilityFlag.Neutral: return $"neut {result}";
+                case MutabilityFlag.ConstAsSource: return result;
+                default: throw new Exception();
+            }
         }
 
         public void Evaluate(ComputationContext ctx)
@@ -524,7 +533,7 @@ namespace Skila.Language
                 if (this.EnclosingScopesToRoot().Contains(template))
                 {
                     bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.SameAsSource);
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.ConstAsSource);
 
                     // don't report errors for covariant types which are used in immutable template types
                     if (!covariant_in_immutable &&

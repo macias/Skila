@@ -172,7 +172,7 @@ namespace Skila.Language.Entities
                 {
                     // it is tempting to allowing conversions here, but it would mean that we have back to all "returns"
                     // to apply such conversions, besides such fluent result type is a bit of a stretch
-                    TypeMatch match = candidate.MatchesTarget(ctx, common, allowSlicing: false);
+                    TypeMatch match = candidate.MatchesTarget(ctx, common, TypeMatching.Create(allowSlicing: false));
                     if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);

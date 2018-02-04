@@ -12,6 +12,34 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorForcingConst()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            NameReference rhs_value = NameReference.Create("a");
+
+            root_ns.AddBuilder(FunctionBuilder.Create("innocent",
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        // this is ok, we are assigning literal here
+                        VariableDeclaration.CreateStatement("x",
+                            NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst), StringLiteral.Create("hi"), EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("a", null, StringLiteral.Create("no")),
+                        // this is not ok, we are assigning mutable to const
+                        Assignment.CreateStatement(NameReference.Create("x"), rhs_value),
+                        ExpressionFactory.Readout("x")
+                        )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, rhs_value));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorImmutableMethodCallingMutable()
         {
             var env = Language.Environment.Create();
@@ -43,7 +71,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
                 .Modifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.CreateAutoFull("numi",NameFactory.IntTypeReference(),null))
+                .With(PropertyBuilder.CreateAutoFull("numi", NameFactory.IntTypeReference(), null))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Mutable)));
@@ -55,7 +83,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     // we can assign both mutable and immutable to neutral
                     VariableDeclaration.CreateStatement("x",
-                        NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral,"Elka")),
+                        NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral, "Elka")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Elka"))),
                     call,
                     assignment
@@ -163,7 +191,7 @@ namespace Skila.Tests.Semantics
 
                 Block.CreateStatement(new[] {
                     // we can assign both mutable and immutable to neutral
-                    VariableDeclaration.CreateStatement("x", 
+                    VariableDeclaration.CreateStatement("x",
                         NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference( MutabilityFlag.Neutral)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
                     ExpressionFactory.Readout("x"),
@@ -267,9 +295,9 @@ namespace Skila.Tests.Semantics
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
                 null, EntityModifier.Reassignable | EntityModifier.Public);
-            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
+            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("Bar"),
                 Undef.Create(), modifier: EntityModifier.Public);
-            TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
+            TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                .With(decl1)
                .With(decl2));
 
@@ -282,6 +310,24 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
+        [TestMethod]
+        public IErrorReporter TransitiveMutability()
+        {
+            var env = Language.Environment.Create();
+            var root_ns = env.Root;
+
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
+                Undef.Create(), modifier: EntityModifier.Public);
+            // we can declare type Point as non-mutable, because it will be mutable or not depending on T
+            TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create("Point", "T")
+               .With(decl));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
         [TestMethod]
         public IErrorReporter ErrorViolatingConstConstraint()
         {

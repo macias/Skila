@@ -1,4 +1,5 @@
-﻿using Skila.Language.Entities;
+﻿using NaiveLanguageTools.Common;
+using Skila.Language.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,39 +50,63 @@ namespace Skila.Language.Extensions
                 ;
             }
             if (!visited.Add(@this))
-                return MutabilityFlag.SameAsSource;
+                return MutabilityFlag.ConstAsSource;
 
-            foreach (EntityInstance instance in @this.EnumerateAll())
+            IEnumerable<MutabilityFlag> mutabilities = @this.EnumerateAll().Select(it => instanceMutability(ctx, it, visited))
+                .Where(it => it != MutabilityFlag.ConstAsSource)
+                .StoreReadOnly();
+
+            if (mutabilities.Any())
             {
-                Entities.IEntity target = instance.Target;
-                if (!target.IsType())
-                    throw new Exception("Internal error");
+                if (mutabilities.All(it => it == MutabilityFlag.GenericUnknownMutability))
+                    return MutabilityFlag.GenericUnknownMutability;
+                else
+                    return mutabilities.First();
+            }
 
-                if (instance.OverrideMutability == MutabilityFlag.ForceMutable)
-                    return MutabilityFlag.ForceMutable;
+            return MutabilityFlag.ConstAsSource;
+        }
 
-                if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
-                {
-                    MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
-                    if (mutability != MutabilityFlag.SameAsSource)
-                        return mutability;
-                }
+        private static MutabilityFlag instanceMutability(ComputationContext ctx, EntityInstance instance, HashSet<IEntityInstance> visited)
+        {
+            Entities.IEntity target = instance.Target;
+            if (!target.IsType())
+                throw new Exception("Internal error");
 
-                foreach (VariableDeclaration field in target.CastType().AllNestedFields)
-                {
-                    IEntityInstance eval = field.Evaluated(ctx);
-                    if (eval.mutabilityOfType(ctx, visited) == MutabilityFlag.ForceMutable)
-                        return MutabilityFlag.ForceMutable;
-                }
+            if (instance.OverrideMutability == MutabilityFlag.ForceMutable)
+                return MutabilityFlag.ForceMutable;
 
-                if (instance.OverrideMutability == MutabilityFlag.Neutral)
-                    return instance.OverrideMutability;
+            if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
+            {
+                MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
+                if (mutability != MutabilityFlag.ConstAsSource)
+                    return mutability;
+            }
 
-                if (target.Modifier.HasMutable)
+            foreach (VariableDeclaration field in target.CastType().AllNestedFields)
+            {
+                IEntityInstance eval = field.Evaluated(ctx);
+                if (eval.mutabilityOfType(ctx, visited) == MutabilityFlag.ForceMutable)
                     return MutabilityFlag.ForceMutable;
             }
 
-            return MutabilityFlag.SameAsSource;
+            if (instance.OverrideMutability == MutabilityFlag.ForceConst
+                || instance.OverrideMutability == MutabilityFlag.Neutral)
+            {
+                return instance.OverrideMutability;
+            }
+
+            if (target.Modifier.HasMutable)
+            {
+                if (instance.TargetsTemplateParameter)
+                    return MutabilityFlag.GenericUnknownMutability;
+                else
+                    return MutabilityFlag.ForceMutable;
+            }
+
+
+            return MutabilityFlag.ConstAsSource;
         }
     }
+
 }

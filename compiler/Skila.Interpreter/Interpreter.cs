@@ -481,7 +481,7 @@ namespace Skila.Interpreter
             // todo: make something more intelligent with computation context
             TypeMatch match = lhs_obj.RunTimeTypeInstance.MatchesTarget(ComputationContext.CreateBare(ctx.Env),
                 isType.RhsTypeName.Evaluation.Components,
-                allowSlicing: false);
+                TypeMatching.Create(allowSlicing: false));
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
                 match.HasFlag(TypeMatch.Same) || match.HasFlag(TypeMatch.Substitute)).ConfigureAwait(false));
         }
@@ -664,7 +664,7 @@ namespace Skila.Interpreter
                     }
 
                     ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.SameAsSource, null),
+                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.ConstAsSource, null),
                         chunk).ConfigureAwait(false);
                     args[param.Index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
                 }

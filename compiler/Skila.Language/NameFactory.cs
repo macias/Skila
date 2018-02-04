@@ -232,15 +232,15 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
+        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
@@ -265,17 +265,17 @@ namespace Skila.Language
             return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
         }
         public static NameReference IIndexableTypeReference(INameReference templateTypeName,
-            MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
+            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
         public static NameReference IIterableTypeReference(string templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.SameAsSource)
+            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             return IIterableTypeReference(NameReference.Create(templateParamName), mutability);
         }
         public static NameReference IIterableTypeReference(NameReference templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.SameAsSource)
+            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
@@ -318,7 +318,7 @@ namespace Skila.Language
             return NameReference.Create(MutabilityFlag.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.SameAsSource)
+        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, ObjectTypeName);
         }
@@ -340,7 +340,7 @@ namespace Skila.Language
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
-        public static NameReference StringPointerTypeReference(MutabilityFlag mutability = MutabilityFlag.SameAsSource)
+        public static NameReference StringPointerTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             return NameFactory.PointerTypeReference(NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName));
         }
@@ -352,7 +352,7 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
-        public static NameReference OptionTypeReference(INameReference name,MutabilityFlag mutability = MutabilityFlag.SameAsSource)
+        public static NameReference OptionTypeReference(INameReference name,MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }

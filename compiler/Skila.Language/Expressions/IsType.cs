@@ -51,7 +51,7 @@ namespace Skila.Language.Expressions
                 if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
                 {
                     TypeMatch lhs_rhs_match = this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components,
-                        allowSlicing: true);
+                        TypeMatching.Create(allowSlicing: true));
 
                     if (lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute))
                         // checking if x (of String) is Object does not make sense
@@ -66,7 +66,7 @@ namespace Skila.Language.Expressions
                         if (is_lhs_sealed)
                         {
                             TypeMatch rhs_lhs_match = this.RhsTypeName.Evaluation.Components.MatchesTarget(ctx, this.Lhs.Evaluation.Components,
-                                allowSlicing: true);
+                                TypeMatching.Create(allowSlicing: true));
 
                             // we cannot check if x (of Int) is String because Int is sealed and there is no way
                             // it could be something else not available in its inheritance tree

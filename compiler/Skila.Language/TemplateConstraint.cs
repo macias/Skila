@@ -73,7 +73,8 @@ namespace Skila.Language
                 if (this.InheritsNames.Any(it
                     =>
                 {
-                    TypeMatch match = it.Evaluation.Components.MatchesTarget(ctx, base_of.Evaluation.Components, allowSlicing: true);
+                    TypeMatch match = it.Evaluation.Components.MatchesTarget(ctx, base_of.Evaluation.Components, 
+                        TypeMatching.Create(allowSlicing: true));
                     return match == TypeMatch.Same || match == TypeMatch.Substitute;
                 }))
                     ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);

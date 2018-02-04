@@ -1,14 +1,21 @@
 ﻿## Mutability
 
-### Terms
+### Concepts
 
-Immutable data -- data we can guarantee are immutable (in deep sense).
+Mutable type -- a type which has one of the following:
+  * mutable method
+  * reassignable field
+  * field of mutable type **instance**
+  
+Immutable type -- a type which is not mutable.
 
-Mutable data -- data that can be mutated (can have mutable methods).
+A type (definition) can be different than type instance, for example
+type `Foo<T>` can be immutable, but if we insert there for `T` some mutable 
+type instance like `String`, then `Foo<String>` type instance becomes mutable.
 
-Neutral -- data we cannot guarantee are immutable, so in fact
-they can be immutable. Can have mutable methods but cannot be 
-used though.
+An instance of the type can be requested as neutral -- it can have mutable methods but cannot be 
+used though. Currently typical example would be a method with neutral `IIterable<T>` parameter, meaning
+we can pass there some mutable derived instance or immutable.
  
 ### Sharing
 
@@ -33,7 +40,7 @@ So we have 3 options:
 
 We decided to have immutable data by default and mark explicitly
 mutable and neutral ones (except for type constraints). 
-You can pass mutable data only when mutable data
+You can pass mutable data when mutable or neutral data
 is expected. This prevents user from aliasing mutability:
 
     var p *Object; // in theory pointer to immutable data

@@ -27,8 +27,8 @@ namespace Skila.Language
         TypeMatch TemplateMatchesInput(ComputationContext ctx, EntityInstance input, VarianceMode variance, TypeMatching matching);
 
         // are types can be assigned or passed
-        TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing);
-        TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing);
+        TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, TypeMatching matching);
+        TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, TypeMatching matching);
 
         bool IsStrictDescendantOf(ComputationContext ctx, EntityInstance ancestor);
         bool IsStrictAncestorOf(ComputationContext ctx, IEntityInstance descendant);

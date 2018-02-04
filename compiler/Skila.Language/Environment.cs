@@ -123,12 +123,7 @@ namespace Skila.Language
                 // .Modifier(EntityModifier.Native | EntityModifier.Base)
                 .Modifier(EntityModifier.Native)
                 .Slicing(true));
-            /*  this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
-                  new[] { FunctionParameter.Create("value", NameReference.Create("T"), Variadic.None, null, isNameRequired: false) },
-                  Block.CreateStatement(new IExpression[] { })));
-              this.ReferenceType.AddNode(FunctionDefinition.CreateInitConstructor(EntityModifier.Implicit,
-                  new[] { FunctionParameter.Create("value", NameFactory.PointerTypeReference(NameReference.Create("T")), Variadic.None, null, isNameRequired: false) },
-                  Block.CreateStatement(new IExpression[] { })));*/
+
             this.PointerType = Root.AddBuilder(TypeBuilder.Create(NameDefinition.Create(NameFactory.PointerTypeName, "PTT", VarianceMode.Out))
                 .Modifier(EntityModifier.Native)
                 // todo: uncomment this when we have traits and IReplicable interface
@@ -137,12 +132,6 @@ namespace Skila.Language
                 // Child::foo() -> Ptr<T> 
                 //                .Parents(NameFactory.ReferenceTypeReference("PTT"))
                 .Slicing(true));
-
-            /*this.PointerType.AddNode(FunctionDefinition.CreateFunction(EntityModifier.Implicit, NameDefinition.Create(NameFactory.ConvertFunctionName),
-                null, ExpressionReadMode.ReadRequired, NameReference.Create("T"),
-                Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) })));*/
-
-
 
 
             if (this.Options.MiniEnvironment)
@@ -234,11 +223,11 @@ namespace Skila.Language
                 this.FileExists = exists;
             }
 
-//            this.CaptureType = this.TextNamespace.AddNode(createCapture());
+            this.CaptureType = this.TextNamespace.AddNode(createCapture());
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
 
-            this.IIteratorType = this.CollectionsNamespace.AddNode(createIterator());
+            this.IIteratorType = this.CollectionsNamespace.AddNode(createIIterator());
 
             this.IndexIteratorType = this.CollectionsNamespace.AddNode(createIndexIterator());
 
@@ -389,14 +378,18 @@ namespace Skila.Language
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureCountFieldName, NameFactory.IntTypeReference()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.IntTypeReference()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
-                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.SameAsSource),
-                        MutabilityFlag.SameAsSource)))
+                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst))))
                 .With(ExpressionFactory.BasicConstructor(new[] {
-                    NameFactory.CaptureIndexFieldName, NameFactory.CaptureCountFieldName,
-                    NameFactory.CaptureIdFieldName, NameFactory.CaptureNameFieldName }, new[] {
-                        NameFactory.IntTypeReference(),NameFactory.IntTypeReference(),
-                        NameFactory.IntTypeReference(),NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.SameAsSource),
-                            MutabilityFlag.SameAsSource)
+                        NameFactory.CaptureIndexFieldName,
+                        NameFactory.CaptureCountFieldName,
+                        NameFactory.CaptureIdFieldName,
+                        NameFactory.CaptureNameFieldName
+                    }, 
+                    new[] {
+                        NameFactory.IntTypeReference(),
+                        NameFactory.IntTypeReference(),
+                        NameFactory.IntTypeReference(),
+                        NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst))
                     }))
                     ;
         }
@@ -814,8 +807,6 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
               TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
-                            // mutable because we cannot set const-constraint on Option template type argument
-                            .Modifier(EntityModifier.Mutable)
                             .With(has_value_getter)
                             .With(value_getter)
                             .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create(elem_type), Undef.Create()))
@@ -969,7 +960,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
             return builder;
         }
 
-        private static TypeDefinition createIterator()
+        private static TypeDefinition createIIterator()
         {
             const string elem_type = "ITRT";
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIteratorTypeName, elem_type, VarianceMode.Out))

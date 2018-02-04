@@ -199,6 +199,10 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId.Id==285)
+            {
+                ;
+            }
             if (this.Evaluation == null)
             {
                 this.TrapClosure(ctx, ref this.rhsValue);

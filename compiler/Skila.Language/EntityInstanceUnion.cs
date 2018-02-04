@@ -73,12 +73,12 @@ namespace Skila.Language
             return match;
         }
 
-        public override TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, bool allowSlicing)
+        public override TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, TypeMatching matching)
         {
             TypeMatch match = TypeMatch.No;
             foreach (IEntityInstance target in this.Instances)
             {
-                TypeMatch m = target.MatchesInput(ctx, input, allowSlicing);
+                TypeMatch m = target.MatchesInput(ctx, input, matching);
                 if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                     return m;
                 else if (m == TypeMatch.InConversion
@@ -95,9 +95,9 @@ namespace Skila.Language
 
         // this is somewhat limiting, because when we have multiple targets we go easy way not allowing
         // type conversion, some day improve it
-        public override TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, bool allowSlicing)
+        public override TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, TypeMatching matching)
         {
-            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, allowSlicing)).ToArray();
+            IEnumerable<TypeMatch> matches = this.Instances.Select(it => it.MatchesTarget(ctx, target, matching)).ToArray();
             if (matches.All(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
 

@@ -83,7 +83,7 @@ namespace Skila.Language
                         ;
                     }
 
-                    TypeMatch m = input.MatchesTarget(ctx, conv_type, conv_slicing_sub);
+                    TypeMatch m = input.MatchesTarget(ctx, conv_type, TypeMatching.Create(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.InConversion;
                 }
@@ -98,7 +98,7 @@ namespace Skila.Language
                     int target_dereferences = ctx.Env.Dereference(target, out IEntityInstance inner_target_type);
                     int input_dereferences = ctx.Env.Dereference(input, out IEntityInstance inner_input_type);
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, TypeMatching.Create(allowSlicing: true));
                     if (target_dereferences > input_dereferences && m != TypeMatch.No)
                         m |= TypeMatch.ImplicitReference;
                     return m;
@@ -107,7 +107,7 @@ namespace Skila.Language
                 {
                     ctx.Env.Dereferenced(target, out IEntityInstance inner_target_type);
 
-                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, allowSlicing: true);
+                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, TypeMatching.Create(allowSlicing: true));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m | TypeMatch.ImplicitReference;
                 }
@@ -119,7 +119,7 @@ namespace Skila.Language
                 {
                     ctx.Env.Dereferenced(input, out IEntityInstance inner_input_type);
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, target, allowSlicing: true);
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m | TypeMatch.AutoDereference;
                 }
@@ -138,7 +138,7 @@ namespace Skila.Language
                         ;
                     }
 
-                    TypeMatch m = conv_type.MatchesTarget(ctx, target, conv_slicing_sub);
+                    TypeMatch m = conv_type.MatchesTarget(ctx, target, TypeMatching.Create(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.OutConversion;
                 }
@@ -172,7 +172,7 @@ namespace Skila.Language
                         // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
                         MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
-                        if (!mutabilityMatches(input_mutability, target_mutability))
+                        if (!mutabilityMatches(input_mutability, target_mutability, matching.LiteralSource))
                             return TypeMatch.Mismatched(mutability: true);
                         else if (input == target)
                             return TypeMatch.Same;
@@ -215,13 +215,18 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
-        private static bool mutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
+        private static bool mutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability, bool inputLiteral)
         {
             switch (inputMutability)
             {
-                case MutabilityFlag.SameAsSource: return targetMutability != MutabilityFlag.ForceMutable;
-                case MutabilityFlag.ForceMutable: return targetMutability != MutabilityFlag.SameAsSource;
+                case MutabilityFlag.ForceConst: return targetMutability != MutabilityFlag.ForceMutable && targetMutability!= MutabilityFlag.GenericUnknownMutability;
+                case MutabilityFlag.ConstAsSource: return targetMutability != MutabilityFlag.ForceMutable && targetMutability != MutabilityFlag.GenericUnknownMutability;
+                case MutabilityFlag.ForceMutable:
+                    return inputLiteral
+                        || (targetMutability != MutabilityFlag.ConstAsSource && targetMutability != MutabilityFlag.ForceConst);
                 case MutabilityFlag.Neutral: return targetMutability == MutabilityFlag.Neutral;
+                case MutabilityFlag.GenericUnknownMutability:
+                    return targetMutability != MutabilityFlag.ConstAsSource && targetMutability != MutabilityFlag.ForceConst;
                 default: throw new NotImplementedException();
             }
         }
@@ -245,7 +250,7 @@ namespace Skila.Language
                 if (match)
                 {
                     MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
-                    if (!mutabilityMatches(target_mutability, input_mutability))
+                    if (!mutabilityMatches(target_mutability, input_mutability, inputLiteral: false))
                         return TypeMatch.Mismatched(mutability: true);
                     else if (input == target)
                         return TypeMatch.Same;

@@ -78,7 +78,7 @@ namespace Skila.Language
 
             this.defaultValue = defaultValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.SameAsSource,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource,
                 translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));

@@ -95,10 +95,10 @@ namespace Skila.Language
 
             if (hasReference)
                 aggregate_instance = ctx.Env.ReferenceType.GetInstance(new[] { aggregate_instance }, 
-                    overrideMutability: MutabilityFlag.SameAsSource, translation: null);
+                    overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
             else if (hasPointer)
                 aggregate_instance = ctx.Env.PointerType.GetInstance(new[] { aggregate_instance }, 
-                    overrideMutability: MutabilityFlag.SameAsSource, translation: null);
+                    overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
             return aggregate_instance;
         }
 
