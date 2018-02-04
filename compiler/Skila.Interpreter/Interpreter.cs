@@ -298,9 +298,13 @@ namespace Skila.Interpreter
             {
                 result = await executeAsync(ctx, boolOp).ConfigureAwait(false);
             }
-            else if (node is IsType isType)
+            else if (node is IsType is_type)
             {
-                result = await executeAsync(ctx, isType).ConfigureAwait(false);
+                result = await executeAsync(ctx, is_type).ConfigureAwait(false);
+            }
+            else if (node is IsSame is_same)
+            {
+                result = await executeAsync(ctx, is_same).ConfigureAwait(false);
             }
             else if (node is ReinterpretType reinterpret)
             {
@@ -484,6 +488,19 @@ namespace Skila.Interpreter
                 TypeMatching.Create(allowSlicing: false));
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
                 match.HasFlag(TypeMatch.Same) || match.HasFlag(TypeMatch.Substitute)).ConfigureAwait(false));
+        }
+
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, IsSame isSame)
+        {
+            ExecValue lhs_exec = await ExecutedAsync(isSame.Lhs, ctx).ConfigureAwait(false);
+            if (lhs_exec.Mode != DataMode.Expression)
+                return lhs_exec;
+            ExecValue rhs_exec = await ExecutedAsync(isSame.Rhs, ctx).ConfigureAwait(false);
+            if (rhs_exec.Mode != DataMode.Expression)
+                return rhs_exec;
+            bool same_ptr = lhs_exec.ExprValue.PlainValue == rhs_exec.ExprValue.PlainValue;
+            return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
+                same_ptr).ConfigureAwait(false));
         }
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, ReinterpretType reinterpret)

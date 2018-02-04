@@ -45,7 +45,7 @@ namespace Skila.Language.Extensions
         private static MutabilityFlag mutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
             HashSet<IEntityInstance> visited)
         {
-            if (@this.DebugId.Id == 27)
+            if (@this.DebugId.Id == 4936)
             {
                 ;
             }

@@ -361,5 +361,28 @@ namespace Skila.Language
 
             return ConstraintMatch.Yes;
         }
+
+        public static bool ExchangableTypes(ComputationContext ctx, IEntityInstance lhsEval, IEntityInstance rhsEval)
+        {
+            bool is_lhs_sealed = lhsEval.EnumerateAll()
+                .Select(it => { ctx.Env.Dereference(it, out IEntityInstance result); return result; })
+                .SelectMany(it => it.EnumerateAll())
+                .All(it => it.Target.Modifier.IsSealed);
+
+            if (is_lhs_sealed)
+            {
+                TypeMatch rhs_lhs_match = rhsEval.MatchesTarget(ctx, lhsEval,
+                    TypeMatching.Create(allowSlicing: true));
+
+                // we cannot check if x (of Int) is String because Int is sealed and there is no way
+                // it could be something else not available in its inheritance tree
+                if (!rhs_lhs_match.HasFlag(TypeMatch.Same) && !rhs_lhs_match.HasFlag(TypeMatch.Substitute))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

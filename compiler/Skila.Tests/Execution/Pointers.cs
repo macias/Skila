@@ -12,6 +12,42 @@ namespace Skila.Tests.Execution
     public class Pointers
     {
         [TestMethod]
+        public IInterpreter TestingSamePointers()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),IntLiteral.Create("2"))),
+                    VariableDeclaration.CreateStatement("y",null,NameReference.Create("x")),
+                    VariableDeclaration.CreateStatement("z",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),IntLiteral.Create("2"))),
+                    VariableDeclaration.CreateStatement("acc", null, IntLiteral.Create("0"), EntityModifier.Reassignable),
+                    IfBranch.CreateIf(IsSame.Create(NameReference.Create("x"),NameReference.Create("y")),new[]{
+                        Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("2")))
+                    }),
+                    IfBranch.CreateIf(IsSame.Create(NameReference.Create("x"),NameReference.Create("z")),new[]{
+                        Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("7")))
+                    }),
+                    Return.Create(NameReference.Create("acc"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+        [TestMethod]
         public IInterpreter RefCountsOnReadingFunctionCall()
         {
             // the aim of this test is to test heap manager if it correctly handles reading function which returns pointer

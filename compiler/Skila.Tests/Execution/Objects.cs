@@ -10,7 +10,7 @@ namespace Skila.Tests.Execution
 {
     [TestClass]
     public class Objects
-    {
+    {   
         [TestMethod]
         public IInterpreter CorruptedParallelAssignmentWithSpread()
         {

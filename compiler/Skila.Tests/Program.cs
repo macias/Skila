@@ -46,7 +46,7 @@ namespace Skila.Tests
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().StringToInt();
             //new Execution.Objects().ParallelAssignmentWithSpread();
-            //new Execution.Pointers().RefCountsOnReadingFunctionCall();
+            new Execution.Pointers().TestingSamePointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().CheckingHostTraitRuntimeType();
 

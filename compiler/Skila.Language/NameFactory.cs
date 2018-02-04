@@ -23,7 +23,9 @@ namespace Skila.Language
         public const string IIndexableTypeName = "IIndexable";
         public const string IndexIteratorTypeName = "IndexIterator";
         public const string FileTypeName = "File";
+        public const string TypeInfoTypeName = "TypeInfo";
         public const string CaptureTypeName = "Capture";
+        public const string MatchTypeName = "Match";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -62,6 +64,10 @@ namespace Skila.Language
         public const string CaptureCountFieldName = "count";
         public const string CaptureIdFieldName = "id";
         public const string CaptureNameFieldName = "name";
+
+        public const string MatchIndexFieldName = "index";
+        public const string MatchCountFieldName = "count";
+        public const string MatchCapturesFieldName = "captures";
 
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
@@ -133,6 +139,8 @@ namespace Skila.Language
         public const string MapFunctionName = "map";
         public const string FilterFunctionName = "filter";
         public const string AppendFunctionName = "append";
+
+        public const string GetTypeFunctionName = "getType";
 
         public static NameReference UnitTypeReference()
         {
@@ -289,13 +297,13 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
         }
-        public static NameReference ArrayTypeReference(string templateParamName)
+        public static NameReference ArrayTypeReference(string templateParamName, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return ArrayTypeReference(NameReference.Create(templateParamName));
+            return ArrayTypeReference(NameReference.Create(templateParamName), mutability);
         }
-        public static NameReference ArrayTypeReference(INameReference templateParamName)
+        public static NameReference ArrayTypeReference(INameReference templateParamName, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(CollectionsNamespaceReference(), ArrayTypeName, templateParamName);
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), ArrayTypeName, templateParamName);
         }
         public static NameReference ConcatReference()
         {
@@ -331,6 +339,10 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), CollectionsNamespace);
         }
+        public static NameReference TextNamespaceReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), TextNamespace);
+        }
         public static NameReference IoNamespaceReference()
         {
             return NameReference.Create(SystemNamespaceReference(), IoNamespace);
@@ -352,7 +364,7 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
-        public static NameReference OptionTypeReference(INameReference name,MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference OptionTypeReference(INameReference name, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }
@@ -360,6 +372,14 @@ namespace Skila.Language
         public static NameReference ExceptionTypeReference()
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.ExceptionTypeName);
+        }
+        public static NameReference TypeInfoPointerTypeReference()
+        {
+            return PointerTypeReference(NameReference.Create(SystemNamespaceReference(), NameFactory.TypeInfoTypeName));
+        }
+        public static NameReference CaptureTypeReference()
+        {
+            return NameReference.Create(TextNamespaceReference(), NameFactory.CaptureTypeName);
         }
         public static NameReference DoubleTypeReference()
         {

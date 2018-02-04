@@ -58,23 +58,8 @@ namespace Skila.Language.Expressions
                         ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
                     else
                     {
-                        bool is_lhs_sealed = this.Lhs.Evaluation.Components.EnumerateAll()
-                            .Select(it => { ctx.Env.Dereference(it, out IEntityInstance result); return result; })
-                            .SelectMany(it => it.EnumerateAll())
-                            .All(it => it.Target.Modifier.IsSealed);
-
-                        if (is_lhs_sealed)
-                        {
-                            TypeMatch rhs_lhs_match = this.RhsTypeName.Evaluation.Components.MatchesTarget(ctx, this.Lhs.Evaluation.Components,
-                                TypeMatching.Create(allowSlicing: true));
-
-                            // we cannot check if x (of Int) is String because Int is sealed and there is no way
-                            // it could be something else not available in its inheritance tree
-                            if (!rhs_lhs_match.HasFlag(TypeMatch.Same) && !rhs_lhs_match.HasFlag(TypeMatch.Substitute))
-                            {
-                                ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
-                            }
-                        }
+                        if (!TypeMatcher.ExchangableTypes(ctx,this.Lhs.Evaluation.Components,this.RhsTypeName.Evaluation.Components))
+                            ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
 
                         foreach (EntityInstance instance in this.Lhs.Evaluation.Components.EnumerateAll())
                         {
@@ -97,5 +82,7 @@ namespace Skila.Language.Expressions
 
             }
         }
+
+      
     }
 }

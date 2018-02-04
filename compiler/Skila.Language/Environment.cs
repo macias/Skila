@@ -45,6 +45,9 @@ namespace Skila.Language
         public FunctionDefinition StringCountGetter { get; }
 
         public TypeDefinition CaptureType { get; }
+        public TypeDefinition MatchType { get; }
+
+        public TypeDefinition TypeInfoType { get; }
 
         public TypeDefinition FileType { get; }
         public FunctionDefinition FileReadLines { get; }
@@ -105,8 +108,10 @@ namespace Skila.Language
             this.IoNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.IoNamespace));
             this.TextNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.TextNamespace));
 
-            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(
-                NameDefinition.Create(NameFactory.ObjectTypeName)));
+            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.ObjectTypeName)
+                .With(FunctionBuilder.Create(NameFactory.GetTypeFunctionName,NameFactory.TypeInfoPointerTypeReference(),
+                    Block.CreateStatement())
+                        .Modifier(EntityModifier.Native)));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
     .Modifier(EntityModifier.Native)
@@ -133,6 +138,7 @@ namespace Skila.Language
                 //                .Parents(NameFactory.ReferenceTypeReference("PTT"))
                 .Slicing(true));
 
+            this.TypeInfoType = this.SystemNamespace.AddNode(createTypeInfo());
 
             if (this.Options.MiniEnvironment)
                 return;
@@ -224,6 +230,7 @@ namespace Skila.Language
             }
 
             this.CaptureType = this.TextNamespace.AddNode(createCapture());
+            this.MatchType = this.TextNamespace.AddNode(createMatch());
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
 
@@ -371,25 +378,53 @@ namespace Skila.Language
             }
         }
 
+        private TypeDefinition createTypeInfo()
+        {
+            return TypeBuilder.Create(NameFactory.TypeInfoTypeName)
+                .Modifier(EntityModifier.HeapOnly);
+        }
+
         private TypeDefinition createCapture()
         {
             return TypeBuilder.Create(NameFactory.CaptureTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.IntTypeReference()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureCountFieldName, NameFactory.IntTypeReference()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.IntTypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.IntTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureCountFieldName, NameFactory.IntTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.IntTypeReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
-                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst))))
+                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst)), Undef.Create()))
                 .With(ExpressionFactory.BasicConstructor(new[] {
                         NameFactory.CaptureIndexFieldName,
                         NameFactory.CaptureCountFieldName,
                         NameFactory.CaptureIdFieldName,
                         NameFactory.CaptureNameFieldName
-                    }, 
+                    },
                     new[] {
                         NameFactory.IntTypeReference(),
                         NameFactory.IntTypeReference(),
                         NameFactory.IntTypeReference(),
                         NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst))
+                    }))
+                    ;
+        }
+
+        private TypeDefinition createMatch()
+        {
+            return TypeBuilder.Create(NameFactory.MatchTypeName)
+                .Modifier(EntityModifier.Mutable) // consequence of not being able to const array of captures
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.IntTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCountFieldName, NameFactory.IntTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
+                    // todo: const array
+                    NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference())), Undef.Create()))
+                .With(ExpressionFactory.BasicConstructor(new[] {
+                        NameFactory.MatchIndexFieldName,
+                        NameFactory.MatchCountFieldName,
+                        NameFactory.MatchCapturesFieldName
+                    },
+                    new[] {
+                        NameFactory.IntTypeReference(),
+                        NameFactory.IntTypeReference(),
+                        NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference()))
                     }))
                     ;
         }
@@ -469,7 +504,7 @@ namespace Skila.Language
             const string coll2_name = "coll2";
             const string elem_name = "cat3_elem";
             return FunctionBuilder.Create(NameDefinition.Create(NameFactory.ConcatFunctionName,
-TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
+    TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
                 NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem3_type),
                     MutabilityFlag.Neutral)),
                 Block.CreateStatement(
@@ -831,7 +866,7 @@ TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values),
 
     def min(cmp `Self) `Self => this<cmp ? this : cmp;
     def max(cmp `Self) `Self => this>cmp ? this : cmp;
-  end
+    end
 
              */
             var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolTypeReference(),

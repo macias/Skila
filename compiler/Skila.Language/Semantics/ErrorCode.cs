@@ -111,5 +111,6 @@
         TraitConstructor = 107,
         TraitInheritingTypeImplementation = 108,
         FieldInNonImplementationType = 109,
+        CannotUseValueExpression = 110,
     }
 }
