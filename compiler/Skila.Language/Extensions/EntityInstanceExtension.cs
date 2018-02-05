@@ -28,7 +28,7 @@ namespace Skila.Language.Extensions
 
         public static IEnumerable<EntityInstance> PrimaryAncestors(this EntityInstance instance, ComputationContext ctx)
         {
-            EntityInstance primary_parent = instance.Inheritance(ctx).MinimalParentsWithObject.FirstOrDefault();
+            EntityInstance primary_parent = instance.Inheritance(ctx).MinimalParentsIncludingObject.FirstOrDefault();
             if (primary_parent == null)
                 return Enumerable.Empty<EntityInstance>();
             else

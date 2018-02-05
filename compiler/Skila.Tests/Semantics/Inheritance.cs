@@ -361,7 +361,7 @@ namespace Skila.Tests.Semantics
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
                 env.IntType.InstanceOf, env.DoubleType.InstanceOf, out IEntityInstance common);
             Assert.IsTrue(found);
-            Assert.AreEqual(env.ObjectType.InstanceOf, common);
+            Assert.AreEqual(env.IObjectType.InstanceOf, common);
 
             return resolver;
         }

@@ -47,6 +47,7 @@ namespace Skila.Tests.Execution
 
             return interpreter;
         }
+
         [TestMethod]
         public IInterpreter RefCountsOnReadingFunctionCall()
         {

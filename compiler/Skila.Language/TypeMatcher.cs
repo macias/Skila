@@ -219,7 +219,7 @@ namespace Skila.Language
         {
             switch (inputMutability)
             {
-                case MutabilityFlag.ForceConst: return targetMutability != MutabilityFlag.ForceMutable && targetMutability!= MutabilityFlag.GenericUnknownMutability;
+                case MutabilityFlag.ForceConst: return targetMutability != MutabilityFlag.ForceMutable && targetMutability != MutabilityFlag.GenericUnknownMutability;
                 case MutabilityFlag.ConstAsSource: return targetMutability != MutabilityFlag.ForceMutable && targetMutability != MutabilityFlag.GenericUnknownMutability;
                 case MutabilityFlag.ForceMutable:
                     return inputLiteral
@@ -314,7 +314,7 @@ namespace Skila.Language
             if (via_implementation != null)
                 return via_implementation;
 
-            foreach (EntityInstance interface_parent in type.Inheritance(ctx).MinimalParentsWithObject
+            foreach (EntityInstance interface_parent in type.Inheritance(ctx).MinimalParentsIncludingObject
                 .Where(it => it != implementation_parent))
             {
                 EntityInstance via_interface = selectFromLowestCommonAncestorPool(ctx, interface_parent, pool);
@@ -362,21 +362,34 @@ namespace Skila.Language
             return ConstraintMatch.Yes;
         }
 
-        public static bool ExchangableTypes(ComputationContext ctx, IEntityInstance lhsEval, IEntityInstance rhsEval)
+        public static bool InterchangeableTypes(ComputationContext ctx, IEntityInstance eval1, IEntityInstance eval2)
         {
-            bool is_lhs_sealed = lhsEval.EnumerateAll()
+            ctx.Env.Dereference(eval1, out eval1);
+            ctx.Env.Dereference(eval2, out eval2);
+
+            // if both types are sealed they are interchangeable only if they are the same
+            // if one is not sealed then it has to be possible to subsitute them
+            // otherwise they are completely alien and checking is-type/is-same does not make sense
+            if (!interchangeableTypesTo(ctx, eval1, eval2))
+                return false;
+            bool result = interchangeableTypesTo(ctx, eval2, eval1);
+            return result;
+        }
+
+        private static bool interchangeableTypesTo(ComputationContext ctx, IEntityInstance input, IEntityInstance target)
+        {
+            bool is_input_sealed = input.EnumerateAll()
                 .Select(it => { ctx.Env.Dereference(it, out IEntityInstance result); return result; })
                 .SelectMany(it => it.EnumerateAll())
                 .All(it => it.Target.Modifier.IsSealed);
 
-            if (is_lhs_sealed)
+            if (is_input_sealed)
             {
-                TypeMatch rhs_lhs_match = rhsEval.MatchesTarget(ctx, lhsEval,
-                    TypeMatching.Create(allowSlicing: true));
+                TypeMatch match = input.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true));
 
-                // we cannot check if x (of Int) is String because Int is sealed and there is no way
+                // example: we cannot check if x (of Int) is IAlien because Int is sealed and there is no way
                 // it could be something else not available in its inheritance tree
-                if (!rhs_lhs_match.HasFlag(TypeMatch.Same) && !rhs_lhs_match.HasFlag(TypeMatch.Substitute))
+                if (!match.HasFlag(TypeMatch.Same) && !match.HasFlag(TypeMatch.Substitute))
                 {
                     return false;
                 }

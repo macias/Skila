@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using NaiveLanguageTools.Common;
-using Skila.Language.Data;
 using Skila.Language.Extensions;
 using Skila.Language;
-using System;
 using Skila.Language.Entities;
 using System.Threading.Tasks;
 
@@ -68,17 +65,12 @@ namespace Skila.Interpreter
 
             if (!existing)
             {
-                ObjectData type_object = null;
-
-                TypeContainerDefinition target = typeInstance.Target.CastTypeContainer();
-
-                IEnumerable<VariableDeclaration> static_fields = target.NestedFields.Where(it => it.Modifier.HasStatic);
-                if (static_fields.Any())
-                    type_object = await ObjectData.CreateTypeAsync(ctx, typeInstance).ConfigureAwait(false);
-
+                ObjectData type_object = await ObjectData.CreateTypeAsync(ctx, typeInstance).ConfigureAwait(false);
                 type_entry.SetResult(type_object);
 
-                if (type_object != null)
+                TypeContainerDefinition target = typeInstance.Target.CastTypeContainer();
+                IEnumerable<VariableDeclaration> static_fields = target.NestedFields.Where(it => it.Modifier.HasStatic);
+                if (static_fields.Any())
                 {
                     Interpreter.SetupFunctionCallData(ref ctx, typeInstance.TemplateArguments, metaThis: null, functionArguments: null);
                     await ctx.Interpreter.ExecutedAsync(target.NestedFunctions.Single(it => it.IsZeroConstructor()

@@ -20,7 +20,7 @@ namespace Skila.Language
         public IEnumerable<EntityInstance> OrderedAncestorsIncludingObject => this.OrderedTypeAncestorsIncludingObject.Select(it => it.AncestorInstance);
 
         public IEnumerable<EntityInstance> MinimalParentsWithoutObject { get; }
-        public IEnumerable<EntityInstance> MinimalParentsWithObject
+        public IEnumerable<EntityInstance> MinimalParentsIncludingObject
             => this.addObject ? this.MinimalParentsWithoutObject.Concat(this.objectType.AncestorInstance) : this.MinimalParentsWithoutObject;
 
         private TypeAncestor objectType { get; }

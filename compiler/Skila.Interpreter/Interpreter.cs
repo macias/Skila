@@ -270,6 +270,10 @@ namespace Skila.Interpreter
             {
                 result = await executeAsync(ctx, int_lit).ConfigureAwait(false);
             }
+            else if (node is DoubleLiteral double_lit)
+            {
+                result = await executeAsync(ctx, double_lit).ConfigureAwait(false);
+            }
             else if (node is StringLiteral str_lit)
             {
                 result = await executeAsync(ctx, str_lit).ConfigureAwait(false);
@@ -401,6 +405,11 @@ namespace Skila.Interpreter
             return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
         }
 
+        private Task<ExecValue> executeAsync(ExecutionContext ctx, DoubleLiteral literal)
+        {
+            return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
+        }
+
         private Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
         {
             return executeAllocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, literal.Evaluation.Components, literal.Value);
@@ -498,6 +507,10 @@ namespace Skila.Interpreter
             ExecValue rhs_exec = await ExecutedAsync(isSame.Rhs, ctx).ConfigureAwait(false);
             if (rhs_exec.Mode != DataMode.Expression)
                 return rhs_exec;
+            if (lhs_exec.ExprValue.PlainValue == null)
+                throw new Exception($"Internal error, Skila does not have null pointers {ExceptionCode.SourceInfo()}");
+            if (rhs_exec.ExprValue.PlainValue == null)
+                throw new Exception($"Internal error, Skila does not have null pointers {ExceptionCode.SourceInfo()}");
             bool same_ptr = lhs_exec.ExprValue.PlainValue == rhs_exec.ExprValue.PlainValue;
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
                 same_ptr).ConfigureAwait(false));

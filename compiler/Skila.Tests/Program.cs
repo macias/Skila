@@ -17,14 +17,14 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            new Semantics.CompilerProtection().Environment();
+            //new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
-            // new Semantics.Expressions().ErrorSelfAssignment();
+           //  new Semantics.Expressions().ErrorIsSameOnValues();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
-            //new Semantics.Inheritance().ErrorHeapModifierOnOverride();
+            //new Semantics.Inheritance().ErrorLoopedAncestors();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().TransitiveMutability();
@@ -32,7 +32,7 @@ namespace Skila.Tests
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
-            //new Semantics.TypeMatching().ErrorMatchingIntersection();
+            //new Semantics.TypeMatchingTest().ErrorIsTypeAlienSealed();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
@@ -45,8 +45,8 @@ namespace Skila.Tests
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().StringToInt();
-            //new Execution.Objects().ParallelAssignmentWithSpread();
-            new Execution.Pointers().TestingSamePointers();
+            //new Execution.Objects().TestingTypeInfo();
+            //new Execution.Pointers().TestingSamePointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().CheckingHostTraitRuntimeType();
 

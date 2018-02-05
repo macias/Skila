@@ -59,7 +59,8 @@ namespace Skila.Language
         public VariableDeclaration OrderingGreater { get; }
         public TypeDefinition ComparableType { get; }
         public TypeDefinition DoubleType { get; }
-        public TypeDefinition ObjectType { get; }
+        public TypeDefinition IObjectType { get; }
+        public FunctionDefinition IObjectGetTypeFunction { get; }
 
         public TypeDefinition ChunkType { get; }
         public FunctionDefinition ChunkSizeConstructor { get; }
@@ -108,10 +109,11 @@ namespace Skila.Language
             this.IoNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.IoNamespace));
             this.TextNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.TextNamespace));
 
-            this.ObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.ObjectTypeName)
-                .With(FunctionBuilder.Create(NameFactory.GetTypeFunctionName,NameFactory.TypeInfoPointerTypeReference(),
+            this.IObjectGetTypeFunction = FunctionBuilder.Create(NameFactory.GetTypeFunctionName, NameFactory.TypeInfoPointerTypeReference(),
                     Block.CreateStatement())
-                        .Modifier(EntityModifier.Native)));
+                        .Modifier(EntityModifier.Native);
+            this.IObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.IObjectTypeName)
+                .With(IObjectGetTypeFunction));
 
             this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
     .Modifier(EntityModifier.Native)

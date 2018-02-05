@@ -29,7 +29,7 @@ namespace Skila.Language
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
-        public const string ObjectTypeName = "Object";
+        public const string IObjectTypeName = "IObject";
         public const string ReferenceTypeName = "Ref";
         public const string PointerTypeName = "Ptr";
         public const string BoolTypeName = "Bool";
@@ -328,7 +328,7 @@ namespace Skila.Language
 
         public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(overrideMutability, NameReference.Root, ObjectTypeName);
+            return NameReference.Create(overrideMutability, NameReference.Root, IObjectTypeName);
         }
 
         public static NameReference SystemNamespaceReference()
@@ -354,7 +354,11 @@ namespace Skila.Language
 
         public static NameReference StringPointerTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameFactory.PointerTypeReference(NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName));
+            return NameFactory.PointerTypeReference(StringTypeReference(mutability));
+        }
+        public static NameReference StringTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        {
+            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName);
         }
         public static NameReference ComparableTypeReference()
         {

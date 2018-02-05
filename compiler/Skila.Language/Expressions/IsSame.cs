@@ -9,6 +9,10 @@ namespace Skila.Language.Expressions
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class IsSame : Expression
     {
+        public static IsSame Create(string lhs, string rhs)
+        {
+            return Create(NameReference.Create(lhs), NameReference.Create(rhs));
+        }
         public static IsSame Create(IExpression lhs, IExpression rhs)
         {
             return new IsSame(lhs, rhs);
@@ -56,8 +60,7 @@ namespace Skila.Language.Expressions
             if (!ctx.Env.IsPointerLikeOfType(this.Rhs.Evaluation.Components))
                 ctx.AddError(ErrorCode.CannotUseValueExpression, this.Rhs);
 
-            if (!TypeMatcher.ExchangableTypes(ctx, this.Lhs.Evaluation.Components, this.Rhs.Evaluation.Components)
-                || !TypeMatcher.ExchangableTypes(ctx, this.Rhs.Evaluation.Components, this.Lhs.Evaluation.Components))
+            if (!TypeMatcher.InterchangeableTypes(ctx, this.Lhs.Evaluation.Components, this.Rhs.Evaluation.Components))
                 ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
         }
     }

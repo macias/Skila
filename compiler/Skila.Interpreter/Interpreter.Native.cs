@@ -225,6 +225,18 @@ namespace Skila.Interpreter
             {
                 return await executeNativeIntFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             }
+            else if (owner_type == ctx.Env.IObjectType)
+            {
+                if (func==ctx.Env.IObjectGetTypeFunction)
+                {
+                    // todo: add some real TypeInfo object, for now it is empty so we can return whatever is unique
+                    ObjectData fake = await ctx.TypeRegistry.RegisterGetAsync(ctx, this_value.RunTimeTypeInstance).ConfigureAwait(false);
+                    fake = await fake.ReferenceAsync(ctx).ConfigureAwait(false);
+                    return ExecValue.CreateReturn(fake);
+                }
+                else
+                    throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
+            }
             else if (owner_type == ctx.Env.BoolType)
             {
                 if (func.IsDefaultInitConstructor())

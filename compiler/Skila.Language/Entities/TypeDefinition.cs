@@ -146,8 +146,8 @@ namespace Skila.Language.Entities
 
             // base method -> derived (here) method
             var virtual_mapping = new VirtualTable(isPartial: false);
-            foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsWithoutObject
-                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.MinimalParentsWithoutObject))
+            foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsIncludingObject
+                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.MinimalParentsIncludingObject))
                 .Distinct()
                 .Reverse())
             {
@@ -166,8 +166,8 @@ namespace Skila.Language.Entities
 
             var missing_func_implementations = new List<FunctionDefinition>();
 
-            foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsWithoutObject
-                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.OrderedAncestorsWithoutObject))
+            foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsIncludingObject
+                .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.OrderedAncestorsIncludingObject))
                 .Distinct())
             {
                 // special case are properties -- properties are in fact not inherited, their accessors are
@@ -284,7 +284,8 @@ namespace Skila.Language.Entities
         {
             foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsWithoutObject)
             {
-                if (ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(baseFunction, out FunctionDefinition dummy))
+                if (ancestor.TargetType.InheritanceVirtualTable != null
+                    && ancestor.TargetType.InheritanceVirtualTable.TryGetDerived(baseFunction, out FunctionDefinition dummy))
                 {
                     return true;
                 }
@@ -393,14 +394,14 @@ namespace Skila.Language.Entities
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (this.DebugId.Id==42)
+                    if (this.DebugId.Id == 42)
                     {
                         ;
                     }
                     MutabilityFlag field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
                     if (field_eval_mutability != MutabilityFlag.ConstAsSource
                         && field_eval_mutability != MutabilityFlag.GenericUnknownMutability
-                        && field_eval_mutability!= MutabilityFlag.ForceConst)
+                        && field_eval_mutability != MutabilityFlag.ForceConst)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions
@@ -582,7 +583,7 @@ namespace Skila.Language.Entities
                         int dist;
                         if (ancestors.TryGetValue(ancestor.AncestorInstance, out dist))
                         {
-                            if (ancestor.AncestorInstance == ctx.Env.ObjectType.InstanceOf)
+                            if (ancestor.AncestorInstance == ctx.Env.IObjectType.InstanceOf)
                                 ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
                             else
                                 ancestors[ancestor.AncestorInstance] = System.Math.Min(dist, ancestor.Distance);
@@ -616,8 +617,8 @@ namespace Skila.Language.Entities
 
             // add implicit Object only if it is not Object itself and if there are no given parents
             // when there are parents given we will get Object through parents
-            if (this != ctx.Env.ObjectType && !parents.Any())
-                ordered_parents.Add(ctx.Env.ObjectType.InstanceOf);
+            if (this != ctx.Env.IObjectType && !parents.Any())
+                ordered_parents.Add(ctx.Env.IObjectType.InstanceOf);
 
             foreach (EntityInstance parent in ordered_parents)
                 ancestors.Add(parent, 1);
@@ -626,15 +627,15 @@ namespace Skila.Language.Entities
             if (ancestors.Any())
             {
                 object_dist = ancestors.Max(it => it.Value);
-                if (!ancestors.ContainsKey(ctx.Env.ObjectType.InstanceOf))
+                if (!ancestors.ContainsKey(ctx.Env.IObjectType.InstanceOf))
                     ++object_dist;
             }
-            else if (this == ctx.Env.ObjectType)
+            else if (this == ctx.Env.IObjectType)
                 object_dist = 0;
             else
                 throw new System.Exception("Having no ancestors is impossible");
 
-            this.Inheritance = new TypeInheritance(new TypeAncestor(ctx.Env.ObjectType.InstanceOf, object_dist),
+            this.Inheritance = new TypeInheritance(new TypeAncestor(ctx.Env.IObjectType.InstanceOf, object_dist),
                 ordered_parents,
                 completeAncestors: ancestors.Select(it => new TypeAncestor(it.Key, it.Value)));
 

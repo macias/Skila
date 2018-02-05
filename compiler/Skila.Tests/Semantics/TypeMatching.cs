@@ -10,8 +10,37 @@ using Skila.Language.Flow;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class TypeMatchingTests
+    public class TypeMatchingTest
     {
+        [TestMethod]
+        public IErrorReporter ErrorIsTypeAlienSealed()
+        {
+            var env = Environment.Create();
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("What")
+                .Parents("IWhat"));
+
+            // comparison does not make sense, because string is sealed and it is not possible to be given interface
+            IsType is_type = IsType.Create(NameReference.Create("x"), NameFactory.StringTypeReference());
+            root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference("IWhat"), Undef.Create()),
+                    Return.Create(is_type)
+            )));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {

@@ -10,7 +10,49 @@ namespace Skila.Tests.Execution
 {
     [TestClass]
     public class Objects
-    {   
+    {
+        [TestMethod]
+        public IInterpreter TestingTypeInfo()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",null,IntLiteral.Create("1")),
+                    VariableDeclaration.CreateStatement("b",null,IntLiteral.Create("2")),
+                    VariableDeclaration.CreateStatement("c",null,DoubleLiteral.Create("1")),
+                    VariableDeclaration.CreateStatement("x",null,
+                        FunctionCall.Create(NameReference.Create("a",NameFactory.GetTypeFunctionName))),
+                    VariableDeclaration.CreateStatement("y",null,
+                        FunctionCall.Create(NameReference.Create("b",NameFactory.GetTypeFunctionName))),
+                    VariableDeclaration.CreateStatement("z",null,
+                        FunctionCall.Create(NameReference.Create("c",NameFactory.GetTypeFunctionName))),
+
+                    VariableDeclaration.CreateStatement("acc", null, IntLiteral.Create("0"), EntityModifier.Reassignable),
+                    IfBranch.CreateIf(IsSame.Create("x","y"),new[]{
+                        Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("2")))
+                    }),
+                    IfBranch.CreateIf(IsSame.Create("x","z"),new[]{
+                        Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("7")))
+                    }),
+                    Return.Create(NameReference.Create("acc"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
         [TestMethod]
         public IInterpreter CorruptedParallelAssignmentWithSpread()
         {

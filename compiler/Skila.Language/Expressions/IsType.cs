@@ -58,7 +58,11 @@ namespace Skila.Language.Expressions
                         ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
                     else
                     {
-                        if (!TypeMatcher.ExchangableTypes(ctx,this.Lhs.Evaluation.Components,this.RhsTypeName.Evaluation.Components))
+                        if (this.DebugId.Id==2)
+                        {
+                            ;
+                        }
+                        if (!TypeMatcher.InterchangeableTypes(ctx,this.Lhs.Evaluation.Components,this.RhsTypeName.Evaluation.Components))
                             ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
 
                         foreach (EntityInstance instance in this.Lhs.Evaluation.Components.EnumerateAll())

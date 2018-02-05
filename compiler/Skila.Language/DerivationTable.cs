@@ -37,7 +37,7 @@ namespace Skila.Language
             var derived_base_mapping = new Dictionary<FunctionDefinition, FunctionDefinition>();
 
             //TypeDefinition current_type = mapping.First().Key.ContainingType();
-            List<TypeDefinition> parents = currentType.Inheritance.MinimalParentsWithObject
+            List<TypeDefinition> parents = currentType.Inheritance.MinimalParentsIncludingObject
                 // primary parent will be present in primary ancestors sequence
                 .Skip(1)
                 .Select(it => it.TargetType)
