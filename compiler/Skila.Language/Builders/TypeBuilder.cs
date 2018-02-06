@@ -42,7 +42,7 @@ namespace Skila.Language.Builders
             TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
             builder = builder
                 .Modifier(EntityModifier.Enum)
-                .Parents(NameFactory.EquatableTypeReference())
+                .Parents(NameFactory.IEquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private,
                     new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.IntTypeReference(),
                         ExpressionReadMode.CannotBeRead) },
@@ -157,6 +157,13 @@ namespace Skila.Language.Builders
         public TypeDefinition Build()
         {
             if (build == null)
+            {
+                // todo: maybe introduce IFeature to make distinction between active features and attributes?
+                if (features.Any(it => it is EntityModifier))
+                {
+                    throw new Exception("Add modifier via Modifier method");
+                }
+
                 build = TypeDefinition.Create(this.modifier,
                     this.name,
                     this.constraints,
@@ -165,6 +172,7 @@ namespace Skila.Language.Builders
                     // put fields first so when function refers to variable it is already evaluated (midly hackerish)
                     // this avoids clearing/restoring local names registry of the evaluated function
                     features.OrderBy(it => it is VariableDeclaration ? 0 : 1));
+            }
             return build;
         }
 

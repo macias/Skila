@@ -12,6 +12,101 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter PassingSelfTypeCheck()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Tiny")
+                .Modifier(EntityModifier.Base)
+                .Parents(NameFactory.IEquatableTypeReference())
+                .WithEquatableEquals()
+                .With(FunctionBuilder.Create(NameFactory.EqualOperator,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse())))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create("Tiny"), ExpressionReadMode.CannotBeRead)))
+                    );
+
+            root_ns.AddBuilder(TypeBuilder.Create("Rich")
+                .Parents("Tiny")
+                .WithEquatableEquals(EntityModifier.UnchainBase)
+                .With(FunctionBuilder.Create(NameFactory.EqualOperator,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create("Rich"), ExpressionReadMode.CannotBeRead)))
+                    );
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",NameFactory.PointerTypeReference(NameFactory.IEquatableTypeReference()),
+                        ExpressionFactory.HeapConstructor("Rich")),
+                    VariableDeclaration.CreateStatement("b",NameFactory.PointerTypeReference(NameFactory.IEquatableTypeReference()),
+                        ExpressionFactory.HeapConstructor("Rich")),
+                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
+                        NameReference.Create("b")),IntLiteral.Create("2"),IntLiteral.Create("7")))                    
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter DetectingImpostorSelfType()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Tiny")
+                .Modifier(EntityModifier.Base)
+                .Parents(NameFactory.IEquatableTypeReference())
+                .WithEquatableEquals()
+                .With(FunctionBuilder.Create(NameFactory.EqualOperator,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create("Tiny"), ExpressionReadMode.CannotBeRead)))
+                    );
+
+            root_ns.AddBuilder(TypeBuilder.Create("Rich")
+                .Parents("Tiny")
+                .WithEquatableEquals(EntityModifier.UnchainBase)
+                .With(FunctionBuilder.Create(NameFactory.EqualOperator,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create("Rich"), ExpressionReadMode.CannotBeRead)))
+                    );
+
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",NameFactory.PointerTypeReference(NameFactory.IEquatableTypeReference()),
+                        ExpressionFactory.HeapConstructor("Tiny")),
+                    VariableDeclaration.CreateStatement("b",NameFactory.PointerTypeReference(NameFactory.IEquatableTypeReference()),
+                        ExpressionFactory.HeapConstructor("Rich")),
+                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
+                        NameReference.Create("b"))),
+                    Return.Create(IntLiteral.Create("44"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(DataMode.Throw, result.Mode);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter TestingTypeInfo()
         {
             var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });

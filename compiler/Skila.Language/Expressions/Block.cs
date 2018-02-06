@@ -36,6 +36,10 @@ namespace Skila.Language.Expressions
         {
             return constructor(Purpose.Regular, ExpressionReadMode.CannotBeRead,null, null);
         }
+        public static Block CreateExpression(params IExpression[] body)
+        {
+            return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired, null, body);
+        }
         public static Block CreateExpression(IEnumerable<IExpression> body)
         {
             return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired,null, body);

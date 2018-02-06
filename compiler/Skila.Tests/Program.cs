@@ -45,7 +45,7 @@ namespace Skila.Tests
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().StringToInt();
-            //new Execution.Objects().TestingTypeInfo();
+            new Execution.Objects().PassingSelfTypeCheck();
             //new Execution.Pointers().TestingSamePointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().CheckingHostTraitRuntimeType();

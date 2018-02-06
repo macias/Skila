@@ -854,23 +854,6 @@ namespace Skila.Language
 
         private static TypeDefinition createComparableType()
         {
-
-            /*
-             *   interface Comparable refines Equatable
-    def compare(cmp Self) Ordering;
-
-    final refines def ==(cmp Self) Bool => this.compare(cmp)==Ordering.equal;
-
-    def <(cmp Self) Bool => this.compare(cmp)==Ordering.less;
-    def <=(cmp Self) Bool => this.compare(cmp) != Ordering.greater;
-    def >(cmp Self) Bool => this.compare(cmp)==Ordering.greater;
-    def >=(cmp Self) Bool => this.compare(cmp) != Ordering.less;
-
-    def min(cmp `Self) `Self => this<cmp ? this : cmp;
-    def max(cmp `Self) `Self => this>cmp ? this : cmp;
-    end
-
-             */
             var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
@@ -899,7 +882,7 @@ namespace Skila.Language
                 .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
 
             return TypeBuilder.CreateInterface(NameFactory.ComparableTypeName)
-                .Parents(NameFactory.EquatableTypeReference())
+                .Parents(NameFactory.IEquatableTypeReference())
                 .Modifier(EntityModifier.Base)
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.ComparableCompare, NameFactory.OrderingTypeReference())
                     .Modifier(EntityModifier.Pinned)

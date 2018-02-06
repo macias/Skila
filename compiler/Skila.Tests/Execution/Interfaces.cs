@@ -23,7 +23,7 @@ namespace Skila.Tests.Execution
                 NameFactory.IntTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // e &IEquatable = 3
-                    VariableDeclaration.CreateStatement("e",NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()),
+                    VariableDeclaration.CreateStatement("e",NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference()),
                         IntLiteral.Create("3")),
                     // i Int = 7
                     VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(), IntLiteral.Create("7")),

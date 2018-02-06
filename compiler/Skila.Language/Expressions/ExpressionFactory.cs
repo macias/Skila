@@ -25,29 +25,45 @@ namespace Skila.Language.Expressions
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                             Block.CreateStatement(
-                        // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj", null, ExpressionFactory.DownCast(NameReference.Create("cmp"),
+                          // let obj = cmp cast? Self
+                          VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
                             NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
-                            ExpressionFactory.TryGetOptionValue(NameReference.Create("obj"))))
-                                            ))
+                            NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.EquatableTypeReference()))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference()))));
+        }
+        public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
+        {
+            return Block.CreateExpression(
+                // this is basically check for Self type
+                // assert this.getType()==other.GetType()
+                // please note
+                // assert other is CurrentType
+                // has different (and incorrect) meaning, because it does not really check both entities type
+                // consider this to be IFooChild of IFoo->IFooParent->IFooChild
+                // and current type would be IFooParent and the other would be of this type
+                AssertTrue(IsSame.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.GetTypeFunctionName)),
+                    FunctionCall.Create(NameReference.Create(paramName, NameFactory.GetTypeFunctionName)))),
+
+                // maybe in future it would be possible to dynamically cast to the actual type of other
+                // this would mean static dispatch to later calls
+                ExpressionFactory.TryGetOptionValue(ExpressionFactory.DownCast(NameReference.Create(paramName), currentTypeName))
+                );
         }
         public static TypeBuilder WithComparableCompare(this TypeBuilder builder, EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
                                             ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
                                             Block.CreateStatement(
-                        // let obj = cmp cast? Int
-                        VariableDeclaration.CreateStatement("obj", null, ExpressionFactory.DownCast(NameReference.Create("cmp"),
-                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
+                            // let obj = cmp cast? Self
+                            VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
+                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
-                            ExpressionFactory.TryGetOptionValue(NameReference.Create("obj"))))
-                                            ))
+                            NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference()))));

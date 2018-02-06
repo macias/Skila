@@ -216,7 +216,7 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), DateTypeName);
         }
-        public static NameReference EquatableTypeReference()
+        public static NameReference IEquatableTypeReference()
         {
             return NameReference.Create(SystemNamespaceReference(), IEquatableTypeName);
         }
