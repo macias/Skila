@@ -412,12 +412,11 @@ namespace Skila.Language
         private TypeDefinition createMatch()
         {
             return TypeBuilder.Create(NameFactory.MatchTypeName)
-                .Modifier(EntityModifier.Mutable) // consequence of not being able to const array of captures
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.IntTypeReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCountFieldName, NameFactory.IntTypeReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
-                    // todo: const array
-                    NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference())), Undef.Create()))
+                    NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), MutabilityFlag.ForceConst)),
+                        Undef.Create()))
                 .With(ExpressionFactory.BasicConstructor(new[] {
                         NameFactory.MatchIndexFieldName,
                         NameFactory.MatchCountFieldName,
@@ -426,7 +425,8 @@ namespace Skila.Language
                     new[] {
                         NameFactory.IntTypeReference(),
                         NameFactory.IntTypeReference(),
-                        NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference()))
+                        NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(),
+                            MutabilityFlag.ForceConst))
                     }))
                     ;
         }
@@ -1123,6 +1123,11 @@ namespace Skila.Language
         public bool IsPointerOfType(IEntityInstance instance)
         {
             return instance.EnumerateAll().All(it => it.IsOfType(PointerType));
+        }
+        public EntityInstance Reference(IEntityInstance instance, MutabilityFlag mutability, TemplateTranslation translation,
+            bool viaPointer)
+        {
+            return (viaPointer ? this.PointerType : this.ReferenceType).GetInstance(new[] { instance }, mutability, translation);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {

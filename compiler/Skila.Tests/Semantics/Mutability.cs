@@ -12,6 +12,109 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorAbusingForcedConst()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Stone"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
+                .With(FunctionBuilder.Create("violate", NameFactory.UnitTypeReference(), Block.CreateStatement())
+                    .Modifier(EntityModifier.Mutable))
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mangler")
+                .Modifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("m",
+                    NameFactory.PointerTypeReference(NameReference.Create("Mutator", NameReference.Create("Stone"))),
+                    Undef.Create(),
+                    EntityModifier.Public | EntityModifier.Reassignable))
+                    );
+
+            FunctionCall mut_call = FunctionCall.Create(NameReference.CreateThised("f", "m", "violate"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f", "m"), Undef.Create());
+            root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                .With(VariableDeclaration.CreateStatement("f",
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mangler")),
+                    Undef.Create(),
+                    EntityModifier.Public))
+                 .With(FunctionBuilder.Create("testing", NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        mut_call,
+                        assignment
+                    ))));
+
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteringNonMutableInstance, mut_call));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AlteringNonMutableInstance, assignment));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ForcingConstIndirectly()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Stone"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mangler")
+                .Modifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("f",
+                    NameFactory.PointerTypeReference(NameReference.Create("Mutator", NameReference.Create("Stone"))),
+                    Undef.Create(),
+                    EntityModifier.Public))
+                    );
+
+            root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                .With(VariableDeclaration.CreateStatement("f",
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mangler")),
+                    Undef.Create(),
+                    EntityModifier.Public))
+                    );
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ForcingConstDirectly()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Stone"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                .With(VariableDeclaration.CreateStatement("f",
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mutator", NameReference.Create("Stone"))),
+                    Undef.Create(),
+                    EntityModifier.Public))
+                    );
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorForcingConst()
         {
             var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });

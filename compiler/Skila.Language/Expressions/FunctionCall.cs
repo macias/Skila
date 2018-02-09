@@ -192,7 +192,7 @@ namespace Skila.Language.Expressions
                 // pass const instance (of mutable type) as neutral instance (aliasing const instance)
                 // and then call mutable method making "const" guarantee invalid
 
-                if (this.DebugId.Id == 26801)
+                if (this.DebugId.Id == 284)
                 {
                     ;
                 }

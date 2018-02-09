@@ -70,42 +70,33 @@ namespace Skila.Language.Extensions
         private static MutabilityFlag instanceMutability(ComputationContext ctx, EntityInstance instance, HashSet<IEntityInstance> visited)
         {
             Entities.IEntity target = instance.Target;
-            if (!target.IsType())
-                throw new Exception("Internal error");
-
-            if (instance.OverrideMutability == MutabilityFlag.ForceMutable)
-                return MutabilityFlag.ForceMutable;
+            if (!target.IsType()) // namespace
+                return MutabilityFlag.ConstAsSource;
 
             if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
                 MutabilityFlag mutability = val_instance.mutabilityOfType(ctx, visited);
-                if (mutability != MutabilityFlag.ConstAsSource)
-                    return mutability;
+                return mutability;
             }
-
-            foreach (VariableDeclaration field in target.CastType().AllNestedFields)
+            else
             {
-                IEntityInstance eval = field.Evaluated(ctx);
-                if (eval.mutabilityOfType(ctx, visited) == MutabilityFlag.ForceMutable)
-                    return MutabilityFlag.ForceMutable;
+                if (instance.OverrideMutability == MutabilityFlag.ForceMutable
+                    || instance.OverrideMutability == MutabilityFlag.ForceConst
+                    || instance.OverrideMutability == MutabilityFlag.Neutral)
+                {
+                    return instance.OverrideMutability;
+                }
+
+                if (target.Modifier.HasMutable)
+                {
+                    if (instance.TargetsTemplateParameter)
+                        return MutabilityFlag.GenericUnknownMutability;
+                    else
+                        return MutabilityFlag.ForceMutable;
+                }
+
+                return MutabilityFlag.ConstAsSource;
             }
-
-            if (instance.OverrideMutability == MutabilityFlag.ForceConst
-                || instance.OverrideMutability == MutabilityFlag.Neutral)
-            {
-                return instance.OverrideMutability;
-            }
-
-            if (target.Modifier.HasMutable)
-            {
-                if (instance.TargetsTemplateParameter)
-                    return MutabilityFlag.GenericUnknownMutability;
-                else
-                    return MutabilityFlag.ForceMutable;
-            }
-
-
-            return MutabilityFlag.ConstAsSource;
         }
     }
 

@@ -30,16 +30,7 @@ namespace Skila.Language
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
-            return Create(targetInstance, arguments.Select(it => it.Evaluation.Components), overrideMutability);
-        }
-
-        internal static EntityInstance Create(EntityInstance targetInstance,
-            IEnumerable<IEntityInstance> templateArguments, MutabilityFlag overrideMutability)
-        {
-            TemplateTranslation trans_arg = TemplateTranslation.Create(targetInstance.Target, templateArguments);
-
-            return targetInstance.Target.GetInstance(templateArguments, overrideMutability,
-                TemplateTranslation.Combine(targetInstance.Translation, trans_arg));
+            return targetInstance.Build(arguments.Select(it => it.Evaluation.Components), overrideMutability);
         }
 
 #if DEBUG
@@ -75,7 +66,7 @@ namespace Skila.Language
             {
                 if (!this.TargetType.IsInheritanceComputed)
                     this.TargetType.Surfed(ctx);
-                this.inheritance = this.TargetType.Inheritance.TranslateThrough(ctx,this);
+                this.inheritance = this.TargetType.Inheritance.TranslateThrough(ctx, this);
             }
             return inheritance;
         }
@@ -124,6 +115,10 @@ namespace Skila.Language
 
         public IEntityInstance Evaluated(ComputationContext ctx)
         {
+            if (this.DebugId.Id == 5612)
+            {
+                ;
+            }
             if (this.Evaluation == null)
             {
                 IEntityInstance eval = this.Target.Evaluated(ctx);
@@ -131,8 +126,12 @@ namespace Skila.Language
                 if (this.Evaluation.IsJoker)
                     this.Aggregate = EntityInstance.Joker;
                 else
-                    this.Aggregate = this.Target.Evaluation.Aggregate.TranslateThrough(this);
+                {
+                    EntityInstance aggregate = this.Target.Evaluation.Aggregate;
+                    this.Aggregate = aggregate.TranslateThrough(this);
+                }
             }
+
             return this.Evaluation;
         }
 
@@ -344,6 +343,19 @@ namespace Skila.Language
 
             return false;
 
+        }
+
+        public EntityInstance Build(MutabilityFlag mutability)
+        {
+            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
+        }
+
+        internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityFlag overrideMutability)
+        {
+            TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
+
+            return this.Target.GetInstance(templateArguments, overrideMutability,
+                TemplateTranslation.Combine(this.Translation, trans_arg));
         }
 
         public IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)

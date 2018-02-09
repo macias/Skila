@@ -394,7 +394,7 @@ namespace Skila.Language.Entities
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (this.DebugId.Id == 42)
+                    if (field.DebugId.Id == 249)
                     {
                         ;
                     }

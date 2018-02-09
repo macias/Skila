@@ -60,8 +60,7 @@ namespace Skila.Language
                 string args = "";
                 if (this.TemplateArguments.Any())
                     args = "<" + this.TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-                string mut = this.OverrideMutability == MutabilityFlag.ForceMutable ? "mutable " : this.OverrideMutability == MutabilityFlag.Neutral ? "neutral " : "";
-                string result = $"{mut}{this.Target.Name.Name}{args}";
+                string result = $"{this.OverrideMutability.StringPrefix()}{this.Target.Name.Name}{args}";
                 return result;
             }
         }

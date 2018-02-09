@@ -119,7 +119,7 @@ namespace Skila.Interpreter
                             MutabilityFlag.ConstAsSource, null),
                             chunk).ConfigureAwait(false);
                         ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
-                            ctx.Env.PointerType.GetInstance(new[] { chunk_obj.RunTimeTypeInstance }, MutabilityFlag.ConstAsSource, null),
+                            ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityFlag.ConstAsSource, null, viaPointer: true),
                             chunk_obj).ConfigureAwait(false);
                         if (!ctx.Heap.TryInc(ctx, chunk_ptr, $"chunk with file lines on heap"))
                             throw new Exception($"{ExceptionCode.SourceInfo()}");
@@ -227,7 +227,7 @@ namespace Skila.Interpreter
             }
             else if (owner_type == ctx.Env.IObjectType)
             {
-                if (func==ctx.Env.IObjectGetTypeFunction)
+                if (func == ctx.Env.IObjectGetTypeFunction)
                 {
                     // todo: add some real TypeInfo object, for now it is empty so we can return whatever is unique
                     ObjectData fake = await ctx.TypeRegistry.RegisterGetAsync(ctx, this_value.RunTimeTypeInstance).ConfigureAwait(false);

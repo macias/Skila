@@ -136,14 +136,7 @@ namespace Skila.Language
                 args = "<" + TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
             string result = new[] { this.Prefix?.ToString(), Name + args }.Where(it => it != null).Join(".");
 
-            switch (this.OverrideMutability)
-            {
-                case MutabilityFlag.ForceConst: return $"const {result}";
-                case MutabilityFlag.ForceMutable: return $"mut {result}";
-                case MutabilityFlag.Neutral: return $"neut {result}";
-                case MutabilityFlag.ConstAsSource: return result;
-                default: throw new Exception();
-            }
+            return this.OverrideMutability.StringPrefix() + result;
         }
 
         public void Evaluate(ComputationContext ctx)
@@ -161,7 +154,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 7636)
+            if (this.DebugId.Id == 7845)
             {
                 ;
             }
@@ -185,8 +178,9 @@ namespace Skila.Language
         {
             EntityInstance instance = this.Binding.Match;
 
-            if (instance.Target.IsType() || instance.Target.IsNamespace())
+            if (instance.Target.IsTypeContainer())
             {
+                instance = instance.Build(this.OverrideMutability);
                 eval = instance;
                 aggregate = instance;
             }
@@ -194,7 +188,31 @@ namespace Skila.Language
             {
                 eval = instance.Evaluated(ctx);
                 aggregate = instance.Aggregate;
+
+                if (this.Prefix != null)
+                {
+                    MutabilityFlag prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
+                    if (prefix_mutability == MutabilityFlag.ForceConst)
+                    {
+                        eval = rebuildInstance(ctx, eval, prefix_mutability);
+                        aggregate = rebuildInstance(ctx, aggregate, prefix_mutability).Cast<EntityInstance>();
+                    }
+                }
             }
+        }
+
+        private static IEntityInstance rebuildInstance(ComputationContext ctx, IEntityInstance instance, MutabilityFlag mutability)
+        {
+            return instance.Map(it =>
+            {
+                if (ctx.Env.DereferencedOnce(it, out IEntityInstance val_instance, out bool via_pointer))
+                {
+                    IEntityInstance val_rebuilt = val_instance.Map(x => rebuildInstance(ctx, x, mutability));
+                    return ctx.Env.Reference(val_rebuilt, mutability, it.Translation, via_pointer);
+                }
+                else
+                    return it.Build(mutability);
+            });
         }
 
         private void handleBinding(ComputationContext ctx)

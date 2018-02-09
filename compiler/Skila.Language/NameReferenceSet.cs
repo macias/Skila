@@ -93,12 +93,10 @@ namespace Skila.Language
                 EntityInstanceExtension.BuildDuckVirtualTable(ctx, instance, aggregate_instance, allowPartial: partialVirtualTables);
             }
 
-            if (hasReference)
-                aggregate_instance = ctx.Env.ReferenceType.GetInstance(new[] { aggregate_instance }, 
-                    overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
-            else if (hasPointer)
-                aggregate_instance = ctx.Env.PointerType.GetInstance(new[] { aggregate_instance }, 
-                    overrideMutability: MutabilityFlag.ConstAsSource, translation: null);
+            if (hasReference || hasPointer)
+                aggregate_instance = ctx.Env.Reference(aggregate_instance, MutabilityFlag.ConstAsSource,
+                    translation: null, viaPointer: hasPointer);
+
             return aggregate_instance;
         }
 

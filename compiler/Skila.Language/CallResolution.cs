@@ -99,7 +99,7 @@ namespace Skila.Language
             IEntityInstance call_ctx_eval = callContext.Evaluation;
             if (call_ctx_eval != null)
                 // we need to have evaluation of the value, not ref/ptr, so the correct template translation table could kick in
-                ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval); 
+                ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval);
 
             extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
@@ -117,7 +117,7 @@ namespace Skila.Language
                 {
                     this.InferredTemplateArguments = inferred.Select(it => it.NameOf).StoreReadOnly();
 
-                    this.TargetFunctionInstance = EntityInstance.Create(this.TargetFunctionInstance, inferred,
+                    this.TargetFunctionInstance = this.TargetFunctionInstance.Build(inferred,
                         this.TargetFunctionInstance.OverrideMutability);
 
                     extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
@@ -403,7 +403,7 @@ namespace Skila.Language
                 ;
             }
 
-            EntityInstance closedTemplate = EntityInstance.Create(this.TargetFunctionInstance, templateArguments,
+            EntityInstance closedTemplate = this.TargetFunctionInstance.Build(templateArguments,
                 this.TargetFunctionInstance.OverrideMutability);
 
             var result = new List<IEntityInstance>();
