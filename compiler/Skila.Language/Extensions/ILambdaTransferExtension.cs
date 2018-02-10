@@ -161,7 +161,7 @@ namespace Skila.Language.Extensions
                 if (name_ref.Prefix != null)
                 {
                     name_ref.Prefix.DetachFrom(name_ref);
-                    name_ref.Prefix.IsDereferenced = false; // we have to clear it because we will reuse it
+                    name_ref.Prefix.DereferencedCount_LEGACY = 0; // we have to clear it because we will reuse it
                 }
                 TypeDefinition closure_type = buildTypeOfReference(ctx, name_ref, this_obj);
                 node.AddClosure(closure_type);

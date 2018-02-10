@@ -63,8 +63,8 @@ namespace Skila.Language.Flow
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
-        public bool IsDereferenced { get; set; }
-        public bool IsDereferencing { get; set; }
+        public int DereferencedCount_LEGACY { get; set; }
+        public int DereferencingCount { get; set; }
 
         private Loop(NameDefinition label,
             IEnumerable<IExpression> init,

@@ -8,7 +8,8 @@ namespace Skila.Language
         Neutral,
         ForceMutable,
         ForceConst,
-        GenericUnknownMutability
+        GenericUnknownMutability,
+        DualConstMutable, // for literals
     }
 
 
@@ -18,11 +19,12 @@ namespace Skila.Language
         {
             switch (flag)
             {
-                case MutabilityFlag.ForceConst: return $"const ";
+                case MutabilityFlag.DualConstMutable: return $"dual ";
+                case MutabilityFlag.ForceConst: return $"fconst ";
                 case MutabilityFlag.ForceMutable: return $"mut ";
                 case MutabilityFlag.Neutral: return $"neut ";
                 case MutabilityFlag.ConstAsSource: return "";
-                case MutabilityFlag.GenericUnknownMutability: return "";
+                case MutabilityFlag.GenericUnknownMutability: return "g ";
                 default: throw new Exception();
             }
 

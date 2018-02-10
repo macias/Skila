@@ -46,6 +46,9 @@ namespace Skila.Language
 
         public TypeDefinition CaptureType { get; }
         public TypeDefinition MatchType { get; }
+        public TypeDefinition RegexType { get; }
+        public FunctionDefinition RegexContainsFunction { get; }
+        public VariableDeclaration RegexPatternField { get; }
 
         public TypeDefinition TypeInfoType { get; }
 
@@ -233,6 +236,12 @@ namespace Skila.Language
 
             this.CaptureType = this.TextNamespace.AddNode(createCapture());
             this.MatchType = this.TextNamespace.AddNode(createMatch());
+            {
+                this.RegexType = this.TextNamespace.AddNode(createRegex(out VariableDeclaration pattern,
+                    out FunctionDefinition contains));
+                this.RegexPatternField = pattern;
+                this.RegexContainsFunction = contains;
+            }
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
 
@@ -428,6 +437,29 @@ namespace Skila.Language
                         NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(),
                             MutabilityFlag.ForceConst))
                     }))
+                    ;
+        }
+
+        private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains)
+        {
+            pattern = VariableDeclaration.CreateStatement(NameFactory.RegexPatternFieldName,
+                    NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst),
+                    Undef.Create(), EntityModifier.Native);
+
+            contains = FunctionBuilder.Create(NameFactory.RegexContainsFunctionName, NameFactory.BoolTypeReference(), Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(MutabilityFlag.Neutral),
+                        ExpressionReadMode.CannotBeRead));
+
+            return TypeBuilder.Create(NameFactory.RegexTypeName)
+                .With(pattern)
+                .With(ExpressionFactory.BasicConstructor(new[] {
+                        NameFactory.RegexPatternFieldName,
+                    },
+                    new[] {
+                        NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst),
+                    }))
+                .With(contains)
                     ;
         }
 

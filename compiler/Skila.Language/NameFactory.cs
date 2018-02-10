@@ -26,6 +26,7 @@ namespace Skila.Language
         public const string TypeInfoTypeName = "TypeInfo";
         public const string CaptureTypeName = "Capture";
         public const string MatchTypeName = "Match";
+        public const string RegexTypeName = "Regex";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
         public const string UnitValue = "unit";
@@ -68,6 +69,9 @@ namespace Skila.Language
         public const string MatchIndexFieldName = "index";
         public const string MatchCountFieldName = "count";
         public const string MatchCapturesFieldName = "captures";
+
+        public const string RegexPatternFieldName = "pattern";
+        public const string RegexContainsFunctionName = "contains";
 
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
@@ -384,6 +388,10 @@ namespace Skila.Language
         public static NameReference CaptureTypeReference()
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.CaptureTypeName);
+        }
+        public static NameReference RegexTypeReference()
+        {
+            return NameReference.Create(TextNamespaceReference(), NameFactory.RegexTypeName);
         }
         public static NameReference DoubleTypeReference()
         {

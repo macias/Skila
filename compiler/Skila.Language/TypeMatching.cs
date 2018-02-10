@@ -2,18 +2,16 @@
 {
     public struct TypeMatching
     {
-        public static TypeMatching Create(bool allowSlicing, bool literalSource = false)
+        public static TypeMatching Create(bool allowSlicing)
         {
             return new TypeMatching()
             {
                 AllowSlicing = allowSlicing,
-                LiteralSource = literalSource,
                 Position = VarianceMode.Out
             };
         }
 
         public bool AllowSlicing { get; set; }
-        public bool LiteralSource { get; set; }
         public VarianceMode Position { get; set; }
 
         internal TypeMatching EnabledSlicing()

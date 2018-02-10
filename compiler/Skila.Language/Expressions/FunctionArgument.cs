@@ -26,8 +26,8 @@ namespace Skila.Language.Expressions
 
         public EvaluationInfo Evaluation => this.Expression.Evaluation;
         public ValidationData Validation { get { return this.Expression.Validation; } set { this.Expression.Validation = value; } }
-        public bool IsDereferenced { get { return this.Expression.IsDereferenced; } set { this.Expression.IsDereferenced = value; } }
-        public bool IsDereferencing { get; set; }
+        public int DereferencedCount_LEGACY { get { return this.Expression.DereferencedCount_LEGACY; } set { this.Expression.DereferencedCount_LEGACY = value; } }
+        public int DereferencingCount { get; set; }
 
         public string NameLabel { get; }
         public bool HasNameLabel => this.NameLabel != null;

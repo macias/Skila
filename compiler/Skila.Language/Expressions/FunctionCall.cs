@@ -92,20 +92,16 @@ namespace Skila.Language.Expressions
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
-        private bool isDereferenced { get; set; }
-        public bool IsDereferenced
+        private int dereferencedCount { get; set; }
+        public int DereferencedCount_LEGACY
         {
-            get { return this.isDereferenced; }
+            get { return this.dereferencedCount; }
             set
             {
-                if (value && this.DebugId.Id == 274)
-                {
-                    ;
-                }
-                this.isDereferenced = value;
+                this.dereferencedCount = value;
             }
         }
-        public bool IsDereferencing { get; set; }
+        public int DereferencingCount { get; set; }
         // public bool IsStaticCall => this.Resolution.TargetInstance.Target.Modifier.HasStatic;
 
         // eventually some vague callee expression will become a name reference to a function
@@ -232,9 +228,9 @@ namespace Skila.Language.Expressions
                 {
                     EntityInstance eval = this.Callee.Evaluation.Components.Cast<EntityInstance>();
 
-                    this.Callee.IsDereferenced = ctx.Env.DereferencedOnce(eval, out IEntityInstance __eval, out bool via_pointer);
-                    this.IsDereferencing = this.Callee.IsDereferenced;
-                    if (this.Callee.IsDereferenced)
+                    this.Callee.DereferencedCount_LEGACY = ctx.Env.DereferencedOnce(eval, out IEntityInstance __eval, out bool via_pointer)?1:0;
+                    this.DereferencingCount = this.Callee.DereferencedCount_LEGACY;
+                    if (this.Callee.DereferencedCount_LEGACY>0)
                         eval = __eval.Cast<EntityInstance>();
 
                     if (!(this.Name.Binding.Match.Target is FunctionDefinition)
@@ -266,7 +262,7 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId.Id == 275)
+                    if (this.DebugId.Id == 297)
                     {
                         ;
                     }

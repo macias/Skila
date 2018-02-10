@@ -224,6 +224,15 @@ namespace Skila.Language.Entities
                 this_eval = EntityInstance.Joker;
                 this_aggregate = EntityInstance.Joker;
             }
+            else
+            {
+                MutabilityFlag mutability = this_eval.MutabilityOfType(ctx);
+                if (mutability== MutabilityFlag.DualConstMutable)
+                {
+                    this_eval = this_eval.Rebuild(ctx, MutabilityFlag.ForceMutable);
+                    this_aggregate = this_aggregate.Rebuild(ctx, MutabilityFlag.ForceMutable).Cast<EntityInstance>();
+                }
+            }
 
             this.DataTransfer(ctx, ref initValue, this_eval);
             this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);

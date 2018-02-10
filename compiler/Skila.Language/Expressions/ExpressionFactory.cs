@@ -3,6 +3,7 @@ using Skila.Language.Entities;
 using Skila.Language.Flow;
 using System.Linq;
 using System;
+using NaiveLanguageTools.Common;
 
 namespace Skila.Language.Expressions
 {
@@ -156,6 +157,13 @@ namespace Skila.Language.Expressions
             else
                 return FunctionCall.Create(NameReference.Create(NameFactory.TupleFactoryReference(), NameFactory.CreateFunctionName), arguments);
         }
+        public static IExpression InitializeIndexable(string name, params IExpression[] arguments)
+        {
+            return Block.CreateStatement(arguments.ZipWithIndex().Select(it => 
+                Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create(name),
+                FunctionArgument.Create(IntLiteral.Create($"{it.Item2}"))),
+                it.Item1)));
+        }
         public static IExpression StackConstructor(NameReference typeName, params IExpression[] arguments)
         {
             return StackConstructor(typeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
@@ -194,6 +202,14 @@ namespace Skila.Language.Expressions
         public static IExpression Add(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
+        }
+        public static IExpression Inc(string name)
+        {
+            return Assignment.CreateStatement(NameReference.Create(name),Add(NameReference.Create(name),IntLiteral.Create("1")));
+        }
+        public static IExpression IncBy(string name,string add)
+        {
+            return Assignment.CreateStatement(NameReference.Create(name), Add(NameReference.Create(name), NameReference.Create(add)));
         }
         public static IExpression Mul(IExpression lhs, IExpression rhs)
         {

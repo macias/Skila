@@ -96,8 +96,8 @@ namespace Skila.Language
         public static NameReference Root => new NameReference(MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
-        public bool IsDereferencing { get; set; }
-        public bool IsDereferenced { get; set; }
+        public int DereferencingCount { get; set; }
+        public int DereferencedCount_LEGACY { get; set; }
 
         public bool IsSuperReference => this.Name == NameFactory.SuperFunctionName;
 
@@ -194,25 +194,11 @@ namespace Skila.Language
                     MutabilityFlag prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
                     if (prefix_mutability == MutabilityFlag.ForceConst)
                     {
-                        eval = rebuildInstance(ctx, eval, prefix_mutability);
-                        aggregate = rebuildInstance(ctx, aggregate, prefix_mutability).Cast<EntityInstance>();
+                        eval = eval.Rebuild(ctx, prefix_mutability);
+                        aggregate = aggregate.Rebuild(ctx, prefix_mutability).Cast<EntityInstance>();
                     }
                 }
             }
-        }
-
-        private static IEntityInstance rebuildInstance(ComputationContext ctx, IEntityInstance instance, MutabilityFlag mutability)
-        {
-            return instance.Map(it =>
-            {
-                if (ctx.Env.DereferencedOnce(it, out IEntityInstance val_instance, out bool via_pointer))
-                {
-                    IEntityInstance val_rebuilt = val_instance.Map(x => rebuildInstance(ctx, x, mutability));
-                    return ctx.Env.Reference(val_rebuilt, mutability, it.Translation, via_pointer);
-                }
-                else
-                    return it.Build(mutability);
-            });
         }
 
         private void handleBinding(ComputationContext ctx)
@@ -221,17 +207,13 @@ namespace Skila.Language
             {
                 if (this.Prefix != null)
                 {
-                    bool dereferenced = false;
-                    this.Prefix.Evaluation.Components.EnumerateAll().ForEach(it => tryDereference(ctx, it, ref dereferenced));
+                    int dereferenced = computeDereferences(ctx, this.Prefix.Evaluation.Components);
                     if (this.Prefix.DebugId.Id == 2572)
                     {
                         ;
                     }
-                    if (dereferenced)
-                    {
-                        this.Prefix.IsDereferenced = true;
-                        this.IsDereferencing = true;
-                    }
+                    this.Prefix.DereferencedCount_LEGACY = dereferenced;
+                    this.DereferencingCount = dereferenced;
                 }
             }
             else
@@ -249,6 +231,17 @@ namespace Skila.Language
                     ctx.ErrorManager.AddError(errorCode, this);
                 }
             }
+        }
+
+        private static int computeDereferences(ComputationContext ctx, IEntityInstance eval)
+        {
+            int dereferenced = 0;
+            eval.EnumerateAll().ForEach(it =>
+            {
+                tryDereference(ctx, it, out int d);
+                dereferenced = Math.Max(d, dereferenced);
+            });
+            return dereferenced;
         }
 
         private IEnumerable<EntityInstance> computeBinding(ComputationContext ctx,
@@ -373,8 +366,8 @@ namespace Skila.Language
                         ;
                     }
 
-                    bool dereferenced = false;
-                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, ref dereferenced);
+                    int dereferenced = 0;
+                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, out dereferenced);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
                     {
                         IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
@@ -393,11 +386,8 @@ namespace Skila.Language
                     {
                         ;
                     }
-                    if (dereferenced)
-                    {
-                        this.Prefix.IsDereferenced = true;
-                        this.IsDereferencing = true;
-                    }
+                    this.Prefix.DereferencedCount_LEGACY = dereferenced;
+                    this.DereferencingCount = dereferenced;
 
                     return entities;
                 }
@@ -568,12 +558,11 @@ namespace Skila.Language
 
         }
 
-        private EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, ref bool dereferenced)
+        private static EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, out int dereferenced)
         {
-            if (!ctx.Env.Dereferenced(entityInstance, out IEntityInstance __eval))
+            dereferenced = ctx.Env.Dereference(entityInstance, out IEntityInstance __eval);
+            if (dereferenced == 0)
                 return entityInstance;
-
-            dereferenced = true;
 
             // todo: this is incorrect, just a temporary shortcut
             return __eval.Cast<EntityInstance>();

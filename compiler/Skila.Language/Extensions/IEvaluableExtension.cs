@@ -60,12 +60,12 @@ namespace Skila.Language.Extensions
                 ;
             }
             IEntityInstance src_type = source.Evaluation.Components;
-            if (src_type.DebugId.Id == 88480 && targetTypeName.DebugId.Id == 27504)
+            if (src_type.DebugId.Id == 7185 && targetTypeName.DebugId.Id == 4930)
             {
                 ;
             }
 
-            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: false, literalSource : source is Literal));
+            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(allowSlicing: false));
 
             if (match == TypeMatch.No)
             {
@@ -106,16 +106,13 @@ namespace Skila.Language.Extensions
             }
             else if (match.HasFlag(TypeMatch.AutoDereference))
             {
+                source.DereferencedCount_LEGACY = match.Dereferences; 
+                @this.Cast<IExpression>().DereferencingCount = match.Dereferences;
+
                 match ^= TypeMatch.AutoDereference;
                 if (match != TypeMatch.Substitute && match != TypeMatch.Same)
                     throw new NotImplementedException();
 
-                if (source.DebugId.Id == 2572)
-                {
-                    ;
-                }
-                source.IsDereferenced = true;
-                @this.Cast<IExpression>().IsDereferencing = true;
             }
             else if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                 throw new NotImplementedException();

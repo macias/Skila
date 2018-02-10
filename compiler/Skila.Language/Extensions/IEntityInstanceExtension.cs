@@ -8,6 +8,21 @@ namespace Skila.Language.Extensions
 {
     public static class IEntityInstanceExtension
     {
+        public static IEntityInstance Rebuild(this IEntityInstance instance, ComputationContext ctx,  MutabilityFlag mutability)
+        {
+            return instance.Map(elem =>
+            {
+                if (ctx.Env.DereferencedOnce(elem, out IEntityInstance val_instance, out bool via_pointer))
+                {
+                    IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, mutability));
+                    return ctx.Env.Reference(val_rebuilt, mutability, elem.Translation, via_pointer);
+                }
+                else
+                    return elem.Build(mutability);
+            });
+        }
+
+
         public static IEntity Target(this IEntityInstance instance)
         {
             if (instance is EntityInstance)
@@ -82,6 +97,7 @@ namespace Skila.Language.Extensions
             {
                 if (instance.OverrideMutability == MutabilityFlag.ForceMutable
                     || instance.OverrideMutability == MutabilityFlag.ForceConst
+                    || instance.OverrideMutability == MutabilityFlag.DualConstMutable
                     || instance.OverrideMutability == MutabilityFlag.Neutral)
                 {
                     return instance.OverrideMutability;

@@ -340,8 +340,8 @@ namespace Skila.Language.Entities
         #region IExpression
         // function is an expression only for a moment, as lambda, until it is lifted as closure method
         // however we have to provide those membes to be compatible with interface
-        bool IExpression.IsDereferenced { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
-        bool IExpression.IsDereferencing { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+        int IExpression.DereferencedCount_LEGACY { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
+        int IExpression.DereferencingCount { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
         ExpressionReadMode IExpression.ReadMode => throw new NotImplementedException();
         bool IExpression.IsRead { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } }
         bool IExpression.IsLValue(ComputationContext ctx)

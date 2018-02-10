@@ -41,8 +41,8 @@ namespace Skila.Language.Flow
         // public ExecutionFlow Flow => ExecutionFlow.CreateFork(branches);
 
         public bool IsComputed => this.Evaluation != null;
-        public bool IsDereferencing { get; set; }
-        public bool IsDereferenced { get; set; }
+        public int DereferencingCount { get; set; }
+        public int DereferencedCount_LEGACY { get; set; }
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 

@@ -122,6 +122,8 @@ namespace Skila.Interpreter
                 return this.data.PlainValue;
             }
         }
+        public string NativeString => this.PlainValue.Cast<string>();
+
         internal VirtualTable InheritanceVirtualTable
         {
             get
@@ -231,6 +233,13 @@ namespace Skila.Interpreter
                 throw new ObjectDisposedException($"{result}");
             return result;
         }
+        public ObjectData Dereferenced(int count)
+        {
+            ObjectData self = this;
+            for (int i = 0; i < count; ++i)
+                self = self.DereferencedOnce();
+            return self;
+        }
 
         internal bool Free(ExecutionContext ctx,ObjectData passingOut, bool destroy, string callInfo)
         {
@@ -312,19 +321,25 @@ namespace Skila.Interpreter
             else
                 return this;
         }
-        internal ObjectData TryDereferenceAnyMany(Language.Environment env)
+        internal ObjectData TryDereferenceAnyMany(Language.Environment env,int count)
         {
-            ObjectData result = this;
-            while (env.IsPointerLikeOfType(result.RunTimeTypeInstance))
-                result = result.DereferencedOnce();
-            return result;
+            ObjectData self = this;
+            for (int i = 0; i < count; ++i)
+            {
+                if (!env.IsPointerLikeOfType(self.RunTimeTypeInstance))
+                    break;
+                else
+                    self = self.DereferencedOnce();
+            }
+            return self;
         }
         internal bool TryDereferenceMany(Language.Environment env, IExpression parentExpr, IExpression childExpr,
             out ObjectData dereferenced)
         {
-            if (isDereferenced(parentExpr, childExpr))
+            int deref_count = dereferencedCount(parentExpr, childExpr);
+            if (deref_count>0)
             {
-                dereferenced = this.TryDereferenceAnyMany(env);
+                dereferenced = this.TryDereferenceAnyMany(env,deref_count);
                 return true;
             }
             else
@@ -335,7 +350,7 @@ namespace Skila.Interpreter
         }
         internal ObjectData TryDereferenceOnce(IExpression parentExpr, IExpression childExpr)
         {
-            if (isDereferenced(parentExpr, childExpr))
+            if (dereferencedCount(parentExpr, childExpr)>0)
             {
                 return this.DereferencedOnce();
             }
@@ -345,13 +360,12 @@ namespace Skila.Interpreter
             }
         }
 
-        private bool isDereferenced(IExpression parentExpr, IExpression childExpr)
+        private int dereferencedCount(IExpression parentExpr, IExpression childExpr)
         {
-            bool dereferencing = childExpr != null && childExpr.IsDereferenced;
-            if (dereferencing != parentExpr.IsDereferencing)
+            if (childExpr != null && childExpr.DereferencedCount_LEGACY != parentExpr.DereferencingCount)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            return parentExpr.IsDereferencing;
+            return parentExpr.DereferencingCount;
         }
 
         public void Assign(ObjectData source)

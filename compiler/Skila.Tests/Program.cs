@@ -17,17 +17,17 @@ namespace Skila.Tests
 
         public static void Main()
         {
-          //  new Semantics.CompilerProtection().Environment();
+            //  new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
-           //  new Semantics.Expressions().ErrorIsSameOnValues();
+            //  new Semantics.Expressions().ErrorIsSameOnValues();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //new Semantics.FunctionCalls().FunctorArgumentMapping();
             // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
             //new Semantics.Inheritance().ErrorLoopedAncestors();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
-            new Semantics.Mutability().ErrorAbusingForcedConst();
+            //new Semantics.Mutability().ErrorForcingConst();
             //new Semantics.NameResolution().ErrorDuplicateType();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
@@ -37,7 +37,7 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ImplicitClosureWithValue();
-            //new Execution.Collections().FilterFunction();
+           // new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
@@ -46,11 +46,12 @@ namespace Skila.Tests
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().StringToInt();
             //new Execution.Objects().PassingSelfTypeCheck();
-            //new Execution.Pointers().TestingSamePointers();
+            //new Execution.Pointers().StackChunkWithBasicPointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().CheckingHostTraitRuntimeType();
+            new Execution.Text().RegexContains();
 
-            //if (false)
+           // if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);

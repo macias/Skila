@@ -51,6 +51,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Execution\Text.cs" />
     <Compile Include="Execution\Io.cs" />
     <Compile Include="Execution\Concurrency.cs" />
     <Compile Include="Execution\Library.cs" />

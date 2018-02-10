@@ -60,10 +60,31 @@ namespace Skila.Interpreter
             {
                 if (func == ctx.Env.StringCountGetter)
                 {
-                    string native_object = this_value.PlainValue.Cast<string>();
+                    string native_object = this_value.NativeString;
                     ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
                         native_object.Length).ConfigureAwait(false);
                     return ExecValue.CreateReturn(result);
+                }
+                else
+                    throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
+            }
+            else if (owner_type == ctx.Env.RegexType)
+            {
+                if (func == ctx.Env.RegexContainsFunction)
+                {
+                    ObjectData arg = ctx.FunctionArguments.Single();
+                    ObjectData arg_val = arg.DereferencedOnce();
+                    string arg_str = arg_val.NativeString;
+
+                    ObjectData pattern_obj = this_value.GetField(ctx.Env.RegexPatternField);
+                    ObjectData pattern_val = pattern_obj.DereferencedOnce();
+                    string pattern = pattern_val.NativeString;
+
+                    bool val = new System.Text.RegularExpressions.Regex(pattern).IsMatch(arg_str);
+
+                    ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                        func.ResultTypeName.Evaluation.Components, val).ConfigureAwait(false));
+                    return result;
                 }
                 else
                     throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");

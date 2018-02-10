@@ -440,10 +440,9 @@ namespace Skila.Interpreter
 
         private static ObjectData prepareExitData(ExecutionContext ctx, IFunctionExit exit, ObjectData objData)
         {
-            if (exit.Expr.IsDereferenced != exit.IsDereferencing)
+            if (exit.Expr.DereferencedCount_LEGACY != exit.DereferencingCount)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
-            if (exit.IsDereferencing)
-                objData = objData.DereferencedOnce();
+            objData = objData.Dereferenced(exit.DereferencingCount);
             if (!ctx.Env.IsPointerLikeOfType(objData.RunTimeTypeInstance))
                 objData = objData.Copy();
             ctx.Heap.TryInc(ctx, objData, $"{nameof(prepareExitData)} {exit}");
@@ -547,7 +546,7 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId.Id == 274)
+            if (call.DebugId.Id == 297)
             {
                 ;
             }
@@ -640,7 +639,7 @@ namespace Skila.Interpreter
         }
         private async Task<CallInfo> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId.Id == 127717)
+            if (call.DebugId.Id == 297)
             {
                 ;
             }
@@ -671,9 +670,8 @@ namespace Skila.Interpreter
                     ObjectData arg_obj = arg_exec.ExprValue;
                     if (arg_obj.TryDereferenceMany(ctx.Env, arg, arg, out ObjectData dereferenced))
                         arg_obj = dereferenced;
-                    else
-                        ctx.Heap.TryInc(ctx, arg_obj, $"{nameof(prepareFunctionCallAsync)} non-variadic {arg}");
 
+                    ctx.Heap.TryInc(ctx, arg_obj, $"{nameof(prepareFunctionCallAsync)} non-variadic {arg}");
                     arg_obj = prepareArgument(ctx, arg_obj);
 
                     args[param.Index] = arg_obj;
@@ -899,7 +897,7 @@ namespace Skila.Interpreter
                     ;
                 }
                 ExecValue lhs;
-                ObjectData rhs_obj = hackyDereference(ctx,rhs_val.ExprValue, assign, assign.RhsValue);
+                ObjectData rhs_obj = hackyDereference(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
                 //ctx.Heap.TryInc(ctx, rhs_obj, $"rhs-assignment {assign}");
 
                 if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property)
@@ -936,7 +934,7 @@ namespace Skila.Interpreter
                     return rhs_val;
             }
 
-            ObjectData rhs_obj = hackyDereference(ctx,rhs_val.ExprValue, decl, decl.InitValue);
+            ObjectData rhs_obj = hackyDereference(ctx, rhs_val.ExprValue, decl, decl.InitValue);
 
             ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
@@ -949,7 +947,7 @@ namespace Skila.Interpreter
             return rhs_val;
         }
 
-        private static ObjectData hackyDereference(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr) 
+        private static ObjectData hackyDereference(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr)
         {
             // todo: clean it up -- currently function call perform its own, custom, derefencing so when getting value from some
             // expression we need to check if this was function call or not, remove this mess
@@ -968,9 +966,10 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            if (node.IsDereferenced)
+
+            if (node.DereferencedCount_LEGACY > 0)
             {
-                ObjectData temp = retValue.TryDereferenceAnyMany(ctx.Env);
+                ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
                 temp = temp.Copy();
                 ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, callInfo: $"drop on deref {node}");
                 retValue = temp;
