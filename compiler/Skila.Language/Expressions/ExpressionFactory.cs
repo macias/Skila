@@ -4,6 +4,7 @@ using Skila.Language.Flow;
 using System.Linq;
 using System;
 using NaiveLanguageTools.Common;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Expressions
 {
@@ -159,9 +160,9 @@ namespace Skila.Language.Expressions
         }
         public static IExpression InitializeIndexable(string name, params IExpression[] arguments)
         {
-            return Block.CreateStatement(arguments.ZipWithIndex().Select(it => 
+            return Block.CreateStatement(arguments.ZipWithIndex().Select(it =>
                 Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create(name),
-                FunctionArgument.Create(IntLiteral.Create($"{it.Item2}"))),
+                FunctionArgument.Create(NatLiteral.Create($"{it.Item2}"))),
                 it.Item1)));
         }
         public static IExpression StackConstructor(NameReference typeName, params IExpression[] arguments)
@@ -203,13 +204,21 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression AddOverflow(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOverflowOperator), FunctionArgument.Create(rhs));
+        }
+        internal static IExpression Inc(Func<IExpression> expr)
+        {
+            return Assignment.CreateStatement(expr(), Add(expr(), Nat8Literal.Create("1")));
+        }
         public static IExpression Inc(string name)
         {
-            return Assignment.CreateStatement(NameReference.Create(name),Add(NameReference.Create(name),IntLiteral.Create("1")));
+            return Inc(() => NameReference.Create(name));
         }
-        public static IExpression IncBy(string name,string add)
+        public static IExpression IncBy(string name, string addName)
         {
-            return Assignment.CreateStatement(NameReference.Create(name), Add(NameReference.Create(name), NameReference.Create(add)));
+            return Assignment.CreateStatement(NameReference.Create(name), Add(NameReference.Create(name), NameReference.Create(addName)));
         }
         public static IExpression Mul(IExpression lhs, IExpression rhs)
         {
@@ -275,7 +284,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression AssertEqual(IExpression expected, IExpression actual)
         {
-            return AssertTrue(IsEqual(expected,actual));
+            return AssertTrue(IsEqual(expected, actual));
         }
 
         public static IExpression AssertOptionValue(IExpression option)
@@ -314,9 +323,5 @@ namespace Skila.Language.Expressions
             return NameReference.Create(option, NameFactory.OptionValue);
         }
 
-        internal static IExpression IncStatement(Func<IExpression> expr)
-        {
-            return Assignment.CreateStatement(expr(), Add(expr(), IntLiteral.Create("1")));
-        }
     }
 }

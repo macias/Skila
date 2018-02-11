@@ -5,6 +5,7 @@ using Skila.Language.Builders;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Interpreter;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Execution
 {
@@ -28,22 +29,22 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameReference.Create("Weekend"),  
                        // please note we only refer to "Sat" through "First", the type is still "Weekend"
                         NameReference.Create("First","Sat")),
                     VariableDeclaration.CreateStatement("b",NameReference.Create("First"), NameReference.Create("Weekend","Sun"),EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("b"),NameReference.Create("First","Mon")),
-                    VariableDeclaration.CreateStatement("x",null, FunctionCall.ConvCall(NameReference.Create("a"),NameFactory.IntTypeReference())),
-                    VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),NameFactory.IntTypeReference())),
+                    VariableDeclaration.CreateStatement("x",null, FunctionCall.ConvCall(NameReference.Create("a"),NameFactory.Int64TypeReference())),
+                    VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),NameFactory.Int64TypeReference())),
                     Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -55,15 +56,15 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
-                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("3"))
+                        Return.Create(Int64Literal.Create("3"))
                     }))));
 
             root_ns.AddBuilder(TypeBuilder.Create("GetNeg")
-                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-1"))
+                        Return.Create(Int64Literal.Create("-1"))
                     }))));
 
             NameReferenceUnion union = NameReferenceUnion.Create(NameFactory.PointerTypeReference(NameReference.Create("GetNeg")),
@@ -71,7 +72,7 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",union, Undef.Create(),EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("b",union, Undef.Create(),EntityModifier.Reassignable),
@@ -85,7 +86,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -97,22 +98,22 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
-                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetNeg")
-                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.Create("GetAll")
                 .Parents("IGetPos", "IGetNeg")
-                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("3"))
+                        Return.Create(Int64Literal.Create("3"))
                     }))
                     .Modifier(EntityModifier.Override)
                     )
-                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-1"))
+                        Return.Create(Int64Literal.Create("-1"))
                     }))
                     .Modifier(EntityModifier.Override)
                     ));
@@ -123,7 +124,7 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, Undef.Create(),EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("b",intersection, Undef.Create(),EntityModifier.Reassignable),
@@ -137,7 +138,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -153,18 +154,18 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("33"))
+                        Return.Create(Int64Literal.Create("33"))
                     }))
                     .Modifier(EntityModifier.Base)));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("SomeChild")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("2"))
+                        Return.Create(Int64Literal.Create("2"))
                     }))
                     .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
                 .Parents(NameReference.Create("MyBase")));
@@ -172,7 +173,7 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("MyBase")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("SomeChild"))),
@@ -182,7 +183,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -194,8 +195,8 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IBase")
-                .With(FunctionBuilder.CreateDeclaration("getA", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference()))
-                .With(FunctionBuilder.CreateDeclaration("getB", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("getA", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference()))
+                .With(FunctionBuilder.CreateDeclaration("getB", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
                 .Parents("IBase")
@@ -203,17 +204,17 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getA"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-50"))
+                        Return.Create(Int64Literal.Create("-50"))
                     }))
                     .Modifier(EntityModifier.Override))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("51"))
+                        Return.Create(Int64Literal.Create("51"))
                     }))
                     .Modifier(EntityModifier.Override)));
 
@@ -222,18 +223,18 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getA"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-1000"))
+                        Return.Create(Int64Literal.Create("-1000"))
                     }))
                     .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         // return 1+super()+base.getA()
-                        Return.Create(ExpressionFactory.Add( IntLiteral.Create("1"),
+                        Return.Create(ExpressionFactory.Add( Int64Literal.Create("1"),
                             ExpressionFactory.Add(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName)),
                                 FunctionCall.Create(NameReference.Create(NameFactory.BaseVariableName,"getA")))))
                     }))
@@ -242,7 +243,7 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // i *IBase
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IBase")),
@@ -257,7 +258,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Skila.Language.Expressions
+namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class BoolLiteral : Literal
@@ -14,6 +14,7 @@ namespace Skila.Language.Expressions
             return new BoolLiteral(false);
         }
 
+        public override object LiteralValue => this.Value;
         public bool Value { get; }
 
         private BoolLiteral(bool value)

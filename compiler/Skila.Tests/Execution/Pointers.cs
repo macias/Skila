@@ -5,6 +5,7 @@ using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Interpreter;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Execution
 {
@@ -21,21 +22,21 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),IntLiteral.Create("2"))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),Int64Literal.Create("2"))),
                     VariableDeclaration.CreateStatement("y",null,NameReference.Create("x")),
                     VariableDeclaration.CreateStatement("z",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),IntLiteral.Create("2"))),
-                    VariableDeclaration.CreateStatement("acc", null, IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),Int64Literal.Create("2"))),
+                    VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), EntityModifier.Reassignable),
                     IfBranch.CreateIf(IsSame.Create(NameReference.Create("x"),NameReference.Create("y")),new[]{
                         Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("2")))
+                            ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("2")))
                     }),
                     IfBranch.CreateIf(IsSame.Create(NameReference.Create("x"),NameReference.Create("z")),new[]{
                         Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),IntLiteral.Create("7")))
+                            ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("7")))
                     }),
                     Return.Create(NameReference.Create("acc"))
                 })));
@@ -43,7 +44,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -59,19 +60,19 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("provider"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("77")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("77")))),
                     Return.Create( NameReference.Create("p_int")),
                 })));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.IntTypeReference(),
+                    VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(),
                         FunctionCall.Create(NameReference.Create("provider"))),
                     Return.Create(NameReference.Create("i")),
                 })));
@@ -94,20 +95,20 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("provider"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("77")))),
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("77")))),
                     Return.Create( NameReference.Create("p_int")),
                 })));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     FunctionCall.Create(NameReference.Create("provider")),
-                    Return.Create( IntLiteral.Create("2")),
+                    Return.Create( Int64Literal.Create("2")),
                 })));
 
 
@@ -126,23 +127,23 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("chicken",null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.PointerTypeReference( NameFactory.IntTypeReference())),
-                            FunctionArgument.Create(IntLiteral.Create("2")))),
-                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("0")),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("-6"))),
-                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("1")),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("8"))),
-                    Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("0")),
-                        FunctionCall.Indexer(NameReference.Create("chicken"),IntLiteral.Create("1"))))
+                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.PointerTypeReference( NameFactory.Int64TypeReference())),
+                            FunctionArgument.Create(NatLiteral.Create("2")))),
+                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),NatLiteral.Create("0")),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("-6"))),
+                    Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("chicken"),NatLiteral.Create("1")),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("8"))),
+                    Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("chicken"),NatLiteral.Create("0")),
+                        FunctionCall.Indexer(NameReference.Create("chicken"),NatLiteral.Create("1"))))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -156,18 +157,18 @@ namespace Skila.Tests.Execution
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("inc"),
                 ExpressionReadMode.ReadRequired,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("n"),IntLiteral.Create("1")))
+                    Return.Create(ExpressionFactory.Add(NameReference.Create("n"),Int64Literal.Create("1")))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.IntTypeReference())));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference())));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("1")))),
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("p_int")))),
                 })));
 
@@ -175,7 +176,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -189,10 +190,10 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("2")))),
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("2")))),
                     Return.Create( NameReference.Create("p_int")),
                 })));
 
@@ -200,7 +201,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -214,19 +215,19 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ptr",NameFactory.PointerTypeReference(NameFactory.BoolTypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.BoolTypeReference(),FunctionArgument.Create(BoolLiteral.CreateTrue()))),
-                    Return.Create( IfBranch.CreateIf( NameReference.Create("ptr"),new[]{ IntLiteral.Create("2") },
-                        IfBranch.CreateElse(new[]{ IntLiteral.Create("5") }))),
+                    Return.Create( IfBranch.CreateIf( NameReference.Create("ptr"),new[]{ Int64Literal.Create("2") },
+                        IfBranch.CreateElse(new[]{ Int64Literal.Create("5") }))),
                 })));
 
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -241,32 +242,32 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // x *Int = new Int(4)
-                    VariableDeclaration.CreateStatement("x",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
-                            FunctionArgument.Create(IntLiteral.Create("4"))),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("x",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("4"))),EntityModifier.Reassignable),
                     // y *Int = x
-                    VariableDeclaration.CreateStatement("y",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()), NameReference.Create("x")),
+                    VariableDeclaration.CreateStatement("y",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()), NameReference.Create("x")),
                     // *x = 7 // y <- 7
-                    Assignment.CreateStatement(Dereference.Create( NameReference.Create("x")),IntLiteral.Create("7")),
+                    Assignment.CreateStatement(Dereference.Create( NameReference.Create("x")),Int64Literal.Create("7")),
                     // z *Int
-                    VariableDeclaration.CreateStatement("z", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()), null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("z", NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()), null, EntityModifier.Reassignable),
                     // z = x
                     Assignment.CreateStatement(NameReference.Create("z"), NameReference.Create("x")),
                     // v = y + z  // 14
                     VariableDeclaration.CreateStatement("v", null, ExpressionFactory.Add("y", "z"), EntityModifier.Reassignable),
                     // x = -12
                     Assignment.CreateStatement(NameReference.Create("x"),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
-                            FunctionArgument.Create(IntLiteral.Create("-12")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("-12")))),
                     // *z = *x   // z <- -12
                     Assignment.CreateStatement(Dereference.Create(NameReference.Create("z")), Dereference.Create(NameReference.Create("x"))),
                     // x = -1000
                     Assignment.CreateStatement(NameReference.Create("x"),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
-                            FunctionArgument.Create(IntLiteral.Create("-1000")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("-1000")))),
                     // v = v+z  // v = 14 + (-12)
                     Assignment.CreateStatement(NameReference.Create("v"), ExpressionFactory.Add("v", "z")),
                     Return.Create(NameReference.Create("v"))
@@ -276,7 +277,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -290,22 +291,22 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // p_int *Int = new Int(1)
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
-                            FunctionArgument.Create(IntLiteral.Create("1"))),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("1"))),EntityModifier.Reassignable),
                     // v_int Int = *p_int // automatic dereference
-                    VariableDeclaration.CreateStatement("v_int",NameFactory.IntTypeReference(), NameReference.Create("p_int")),
+                    VariableDeclaration.CreateStatement("v_int",NameFactory.Int64TypeReference(), NameReference.Create("p_int")),
                     // z_int Int
-                    VariableDeclaration.CreateStatement("z_int",NameFactory.IntTypeReference(), null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("z_int",NameFactory.Int64TypeReference(), null,EntityModifier.Reassignable),
                     // z_int = *p_int // automatic derereference
                     Assignment.CreateStatement(NameReference.Create( "z_int"), NameReference.Create("p_int")),
                     // p_int = new Int(77)
                     Assignment.CreateStatement(NameReference.Create("p_int"),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),
-                            FunctionArgument.Create(IntLiteral.Create("77")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("77")))),
                     // return v_int + z_int 
                     Return.Create( FunctionCall.Create(NameReference.Create( NameReference.Create("v_int"),NameFactory.AddOperator),
                         FunctionArgument.Create(NameReference.Create("z_int"))))
@@ -315,7 +316,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -329,26 +330,26 @@ namespace Skila.Tests.Execution
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("inc"),
                 ExpressionReadMode.ReadRequired,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // let temp *Int = n; // n is argument
-                    VariableDeclaration.CreateStatement("temp",NameFactory.PointerTypeReference( NameFactory.IntTypeReference()),
+                    VariableDeclaration.CreateStatement("temp",NameFactory.PointerTypeReference( NameFactory.Int64TypeReference()),
                         NameReference.Create("n")),
                     // return temp + 1;
                     Return.Create(FunctionCall.Create(NameReference.Create( NameReference.Create("temp"),NameFactory.AddOperator),
-                        FunctionArgument.Create(IntLiteral.Create("1"))))
+                        FunctionArgument.Create(Int64Literal.Create("1"))))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.IntTypeReference()))));
+                .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()))));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // let p_int *Int = new *1;
-                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(),FunctionArgument.Create(IntLiteral.Create("1")))),
+                    VariableDeclaration.CreateStatement("p_int",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("1")))),
                     // let proxy *Int = p_int;
-                    VariableDeclaration.CreateStatement("proxy",NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),NameReference.Create("p_int")),
+                    VariableDeclaration.CreateStatement("proxy",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),NameReference.Create("p_int")),
                     // return inc(proxy);
                     Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( NameReference.Create("proxy")))),
                 })));
@@ -357,7 +358,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -370,20 +371,20 @@ namespace Skila.Tests.Execution
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("v", NameFactory.IntTypeReference(), null,
+                .With(VariableDeclaration.CreateStatement("v", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
                     Undef.Create(), EntityModifier.Public | EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference(NameReference.Create("Chain")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
                     Assignment.CreateStatement(NameReference.Create("p","n"),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Chain"))),
-                    Assignment.CreateStatement(NameReference.Create("p","n","v"),IntLiteral.Create("2")),
+                    Assignment.CreateStatement(NameReference.Create("p","n","v"),Int64Literal.Create("2")),
                     Return.Create(NameReference.Create("p","n","v")),
                 })));
 
@@ -391,7 +392,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }

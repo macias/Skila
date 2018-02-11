@@ -128,6 +128,11 @@ namespace Skila.Language.Expressions
             IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
         {
+            if (this.DebugId.Id == 68)
+            {
+                ;
+            }
+
             this.mode = mode;
             this.callee = callee;
             this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
@@ -228,9 +233,9 @@ namespace Skila.Language.Expressions
                 {
                     EntityInstance eval = this.Callee.Evaluation.Components.Cast<EntityInstance>();
 
-                    this.Callee.DereferencedCount_LEGACY = ctx.Env.DereferencedOnce(eval, out IEntityInstance __eval, out bool via_pointer)?1:0;
+                    this.Callee.DereferencedCount_LEGACY = ctx.Env.DereferencedOnce(eval, out IEntityInstance __eval, out bool via_pointer) ? 1 : 0;
                     this.DereferencingCount = this.Callee.DereferencedCount_LEGACY;
-                    if (this.Callee.DereferencedCount_LEGACY>0)
+                    if (this.Callee.DereferencedCount_LEGACY > 0)
                         eval = __eval.Cast<EntityInstance>();
 
                     if (!(this.Name.Binding.Match.Target is FunctionDefinition)

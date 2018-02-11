@@ -243,11 +243,15 @@ namespace Skila.Language
             });
             return dereferenced;
         }
-        //@@@@
+
         private IEnumerable<EntityInstance> computeBinding(ComputationContext ctx,
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
+            if (this.DebugId.Id== 870)
+            {
+                ;
+            }
             IEnumerable<EntityInstance> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
             IEnumerable<EntityInstance> aliases = entities.Where(it => it.Target is Alias);
             if (aliases.Any())
@@ -255,7 +259,9 @@ namespace Skila.Language
                 {
                     var alias = it.Target.Cast<Alias>();
                     alias.SetIsMemberUsed();
-                    return alias.Replacement.Cast<NameReference>().Binding.Matches;
+                    NameReference name_reference = alias.Replacement.Cast<NameReference>();
+                    name_reference.Surfed(ctx);
+                    return name_reference.Binding.Matches;
                 });
             else
                 return entities;

@@ -3,6 +3,7 @@ using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
+using Skila.Language.Expressions.Literals;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
 
@@ -174,13 +175,13 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
                 .Modifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.CreateAutoFull("numi", NameFactory.IntTypeReference(), null))
+                .With(PropertyBuilder.CreateAutoFull("numi", NameFactory.Int64TypeReference(), null))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Mutable)));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("x", "mutator"));
-            IExpression assignment = Assignment.CreateStatement(NameReference.Create("x", "numi"), IntLiteral.Create("5"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.Create("x", "numi"), Int64Literal.Create("5"));
             root_ns.AddBuilder(FunctionBuilder.Create("foo",
                 NameFactory.UnitTypeReference(),
                 Block.CreateStatement(
@@ -207,10 +208,10 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), IntLiteral.Create("5"));
+            IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), Int64Literal.Create("5"));
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), null,
+                .With(VariableDeclaration.CreateStatement("f", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement(
@@ -232,7 +233,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create();
             var root_ns = env.Root;
 
-            Property property = PropertyBuilder.Create("bar", NameFactory.IntTypeReference())
+            Property property = PropertyBuilder.Create("bar", NameFactory.Int64TypeReference())
                     .WithSetter(body: null);
             FunctionDefinition function = FunctionBuilder.CreateDeclaration("getMe", NameFactory.UnitTypeReference())
                     .Modifier(EntityModifier.Mutable);
@@ -396,7 +397,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
 
-            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
+            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.Int64TypeReference(),
                 null, EntityModifier.Reassignable | EntityModifier.Public);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("Bar"),
                 Undef.Create(), modifier: EntityModifier.Public);
@@ -483,7 +484,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
                 .Modifier(EntityModifier.Mutable));
 
-            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.IntTypeReference(),
+            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.Int64TypeReference(),
                 null, EntityModifier.Reassignable | EntityModifier.Public);
             VariableDeclaration decl2 = VariableDeclaration.CreateStatement("m", NameReference.Create("Bar"),
                 null, modifier: EntityModifier.Public);

@@ -6,6 +6,7 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
 {
@@ -72,20 +73,20 @@ namespace Skila.Tests.Semantics
                     new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
-                    NameFactory.PointerTypeReference(NameFactory.IntTypeReference()),
+                    NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                     Block.CreateStatement(new[] {
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2")))
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
                     }))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
                     ExpressionFactory.Readout("i"),
-                    Return.Create(IntLiteral.Create("2"))
+                    Return.Create(Int64Literal.Create("2"))
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -121,11 +122,11 @@ namespace Skila.Tests.Semantics
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value),
                     ExpressionFactory.Readout("i"),
-                    Return.Create(IntLiteral.Create("2"))
+                    Return.Create(Int64Literal.Create("2"))
                 })));
 
             var resolver = NameResolver.Create(env);

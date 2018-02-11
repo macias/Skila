@@ -7,6 +7,7 @@ using Skila.Language.Flow;
 using Skila.Language.Semantics;
 using System.Linq;
 using Skila.Language.Extensions;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
 {
@@ -20,7 +21,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
 
@@ -30,9 +31,9 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                 .Modifier(EntityModifier.Trait)
                 .Parents("ISay")
-                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
-                        Return.Create(IntLiteral.Create("2"))
+                        Return.Create(Int64Literal.Create("2"))
                     )).Modifier(EntityModifier.Override)));
 
             IExpression init_value = ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")));
@@ -60,7 +61,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
 
@@ -73,16 +74,16 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Modifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
-                    Return.Create(IntLiteral.Create("7"))
+                    Return.Create(Int64Literal.Create("7"))
                 ))));
 
             FunctionCall ext_call = FunctionCall.Create(NameReference.Create("g", "hello"));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("g", null,
                         ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
@@ -144,7 +145,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None)));
 
             FunctionDefinition trait_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement());
-            VariableDeclaration trait_field = VariableDeclaration.CreateStatement("f", NameFactory.IntTypeReference(), IntLiteral.Create("5"), EntityModifier.Public);
+            VariableDeclaration trait_field = VariableDeclaration.CreateStatement("f", NameFactory.Int64TypeReference(), Int64Literal.Create("5"), EntityModifier.Public);
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None))
                 .Modifier(EntityModifier.Trait)
                 .With(trait_constructor)
@@ -211,8 +212,8 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create("common",
                     NameFactory.UnitTypeReference(),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("x", NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
-                            IntLiteral.Create("3")),
+                        VariableDeclaration.CreateStatement("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("3")),
                         VariableDeclaration.CreateStatement("y", NameFactory.ReferenceTypeReference(NameFactory.BoolTypeReference()),
                             BoolLiteral.CreateTrue()),
                         call
@@ -349,7 +350,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement()));
 
             NameReference function_name = NameReference.Create("proxy",
-                NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()));
+                NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()));
 
             root_ns.AddBuilder(FunctionBuilder.Create("tester",
                 ExpressionReadMode.CannotBeRead,
@@ -382,7 +383,7 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("X")
                     .BaseOf(NameReference.Create("T"))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("part", NameFactory.IntTypeReference(), NameReference.Sink()));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part", NameFactory.Int64TypeReference(), NameReference.Sink()));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("caller"),
                 NameFactory.UnitTypeReference(),
@@ -394,8 +395,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
-            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
+            Assert.AreEqual(env.Int64Type.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
+            Assert.AreEqual(env.Int64Type.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
 
             return resolver;
         }
@@ -415,7 +416,7 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("X")
                     .BaseOf(NameReference.Create("T"))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("part"), IntLiteral.Create("5"));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part"), Int64Literal.Create("5"));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("caller"),
                 NameFactory.UnitTypeReference(),
@@ -427,8 +428,8 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
-            Assert.AreEqual(env.IntType.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
+            Assert.AreEqual(env.Int64Type.InstanceOf, call.Name.TemplateArguments[0].Evaluation.Components);
+            Assert.AreEqual(env.Int64Type.InstanceOf, call.Name.TemplateArguments[1].Evaluation.Components);
 
             return resolver;
         }
@@ -499,12 +500,12 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
-                ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference());
+                ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference());
 
             // this function accepts any parameter where parameter type has function "getMe"
             FunctionDefinition constrained_func = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
                 TemplateParametersBuffer.Create().Add("T").Values),
-                ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(), Block.CreateStatement(new[] {
+                ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
                      }))
                      .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
@@ -514,16 +515,16 @@ namespace Skila.Tests.Semantics
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("YMan")
                 .With(FunctionBuilder.Create(NameDefinition.Create("missing"),
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("2"))
+                        Return.Create(Int64Literal.Create("2"))
                     }))));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("proxy"), FunctionArgument.Create(NameReference.Create("y_man")));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("y_man",null,ExpressionFactory.HeapConstructor(NameReference.Create("YMan"))),
                     Return.Create(call)

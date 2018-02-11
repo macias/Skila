@@ -68,6 +68,11 @@
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Entities\Alias.cs" />
+    <Compile Include="Expressions\Literals\Int16Literal.cs" />
+    <Compile Include="Expressions\Literals\IntLiteral.cs" />
+    <Compile Include="Expressions\Literals\NatLiteral.cs" />
+    <Compile Include="Expressions\Literals\Nat8Literal.cs" />
+    <Compile Include="Expressions\Literals\Nat64Literal.cs" />
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="TypeMatching.cs" />
@@ -114,7 +119,7 @@
     <Compile Include="Semantics\ErrorManager.cs" />
     <Compile Include="Expressions\Alloc.cs" />
     <Compile Include="Expressions\AddressOf.cs" />
-    <Compile Include="Expressions\DoubleLiteral.cs" />
+    <Compile Include="Expressions\Literals\DoubleLiteral.cs" />
     <Compile Include="Extensions\EntityInstanceExtension.cs" />
     <Compile Include="ReportCollector.cs" />
     <Compile Include="IErrorReporter.cs" />
@@ -152,9 +157,9 @@
     <Compile Include="Flow\IfBranch.cs" />
     <Compile Include="Flow\LoopInterrupt.cs" />
     <Compile Include="EntityModifier.cs" />
-    <Compile Include="Expressions\BoolLiteral.cs" />
-    <Compile Include="Expressions\Literal.cs" />
-    <Compile Include="Expressions\StringLiteral.cs" />
+    <Compile Include="Expressions\Literals\BoolLiteral.cs" />
+    <Compile Include="Expressions\Literals\Literal.cs" />
+    <Compile Include="Expressions\Literals\StringLiteral.cs" />
     <Compile Include="Flow\Return.cs" />
     <Compile Include="Expressions\Assignment.cs" />
     <Compile Include="ILambdaTransfer.cs" />
@@ -170,7 +175,7 @@
     <Compile Include="IIndexed.cs" />
     <Compile Include="Expressions\FunctionArgument.cs" />
     <Compile Include="Expressions\UnitValue.cs" />
-    <Compile Include="Expressions\IntLiteral.cs" />
+    <Compile Include="Expressions\Literals\Int64Literal.cs" />
     <Compile Include="Extensions\IExpressionExtension.cs" />
     <Compile Include="TypeInheritance.cs" />
     <Compile Include="CallResolution.cs" />

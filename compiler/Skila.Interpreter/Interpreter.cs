@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Threading.Tasks;
 using System.Threading;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Interpreter
 {
@@ -262,21 +263,13 @@ namespace Skila.Interpreter
             {
                 result = await executeAsync(ctx, name_ref).ConfigureAwait(false);
             }
-            else if (node is BoolLiteral bool_lit)
-            {
-                result = await executeAsync(ctx, bool_lit).ConfigureAwait(false);
-            }
-            else if (node is IntLiteral int_lit)
-            {
-                result = await executeAsync(ctx, int_lit).ConfigureAwait(false);
-            }
-            else if (node is DoubleLiteral double_lit)
-            {
-                result = await executeAsync(ctx, double_lit).ConfigureAwait(false);
-            }
             else if (node is StringLiteral str_lit)
             {
                 result = await executeAsync(ctx, str_lit).ConfigureAwait(false);
+            }
+            else if (node is Literal lit)
+            {
+                result = await executeAsync(ctx, lit).ConfigureAwait(false);
             }
             else if (node is Return ret)
             {
@@ -395,23 +388,14 @@ namespace Skila.Interpreter
             return ExecValue.CreateExpression(obj);
         }
 
-        private Task<ExecValue> executeAsync(ExecutionContext ctx, BoolLiteral literal)
+        private Task<ExecValue> executeAsync(ExecutionContext ctx, Literal literal)
         {
-            return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
-        }
-
-        private Task<ExecValue> executeAsync(ExecutionContext ctx, IntLiteral literal)
-        {
-            return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
-        }
-
-        private Task<ExecValue> executeAsync(ExecutionContext ctx, DoubleLiteral literal)
-        {
-            return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.Value);
+            return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.LiteralValue);
         }
 
         private Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
         {
+            // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return executeAllocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, literal.Evaluation.Components, literal.Value);
         }
 

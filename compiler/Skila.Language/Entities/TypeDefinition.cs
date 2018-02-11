@@ -6,6 +6,7 @@ using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Comparers;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Entities
 {
@@ -135,7 +136,7 @@ namespace Skila.Language.Entities
                     .Sum(it => it.NestedFields.Count(f => f.Modifier.HasEnum));
 
                 foreach (VariableDeclaration decl in this.NestedFields.Where(it => it.Modifier.HasEnum))
-                    zero_constructor.UserBody.Append(decl.CreateFieldInitCall(IntLiteral.Create($"{enum_ord++}")));
+                    zero_constructor.UserBody.Append(decl.CreateFieldInitCall(Int64Literal.Create($"{enum_ord++}")));
 
             }
 

@@ -5,6 +5,7 @@ using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Interpreter;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Execution
 {
@@ -20,7 +21,7 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
                       // Skila-1 old test, so in comments there is its syntax used
                       // let re = %r/(\d+)/;
@@ -32,16 +33,16 @@ namespace Skila.Tests.Execution
                       VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2016-04-14")),
                       VariableDeclaration.CreateStatement("matches",null,
                         FunctionCall.Create(NameReference.Create("re",NameFactory.RegexMatchFunctionName),NameReference.Create("s"))),
-                      ExpressionFactory.AssertEqual(IntLiteral.Create("3"),
+                      ExpressionFactory.AssertEqual(Int64Literal.Create("3"),
                             FunctionCall.Create(NameReference.Create("matches",NameFactory.IterableCount))),
 
-                    Return.Create(IntLiteral.Create("7"))
+                    Return.Create(Int64Literal.Create("7"))
                 )));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(7, result.RetValue.PlainValue);
+            Assert.AreEqual(7L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -55,12 +56,12 @@ namespace Skila.Tests.Execution
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
                     // https://msdn.microsoft.com/en-us/library/3y21t6y4(v=vs.110).aspx#Anchor_3
                     VariableDeclaration.CreateStatement("partNumbers",null,
                         ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.StringPointerTypeReference(
-                            MutabilityFlag.ForceConst)),IntLiteral.Create("5"))),
+                            MutabilityFlag.ForceConst)), NatLiteral.Create("5"))),
                     ExpressionFactory.InitializeIndexable("partNumbers",
                         StringLiteral.Create("1298-673-4192"), // pass
                         StringLiteral.Create("A08Z-931-468A"), // pass
@@ -72,8 +73,8 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.StackConstructor(NameFactory.RegexTypeReference(),
                             StringLiteral.Create(@"^[a-zA-Z0-9]\d{2}[a-zA-Z0-9](-\d{3}){2}[A-Za-z0-9]$"))),
 
-                    VariableDeclaration.CreateStatement("acc",null,IntLiteral.Create("0"),EntityModifier.Reassignable),
-                    VariableDeclaration.CreateStatement("i", null, IntLiteral.Create("1"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("1"), EntityModifier.Reassignable),
                     // for each entry we add to the result its (index+1)^2, original code used printing but we need single number
                     Loop.CreateForEach("partNumber", null, NameReference.Create("partNumbers"), new IExpression[] {
                         VariableDeclaration.CreateStatement("w", null, ExpressionFactory.Mul("i","i")),
@@ -89,7 +90,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(5, result.RetValue.PlainValue);
+            Assert.AreEqual(5L, result.RetValue.PlainValue);
 
             return interpreter;
         }

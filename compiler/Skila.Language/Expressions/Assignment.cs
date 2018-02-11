@@ -7,6 +7,7 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Entities;
 using Skila.Language.Semantics;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Expressions
 {
@@ -68,7 +69,7 @@ namespace Skila.Language.Expressions
                     {
                         // LHS[i] = par.at(i)
                         code.Add(Assignment.CreateStatement(lhs, FunctionCall.Create(NameReference.Create(rhs_temp_name, NameFactory.PropertyIndexerName),
-                            IntLiteral.Create($"{i}"))));
+                            NatLiteral.Create($"{i}"))));
                         ++i;
                     }
                 }

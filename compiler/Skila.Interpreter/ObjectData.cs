@@ -123,6 +123,10 @@ namespace Skila.Interpreter
             }
         }
         public string NativeString => this.PlainValue.Cast<string>();
+        public Int16 NativeInt16 => this.PlainValue.Cast<Int16>();
+        public Int64 NativeInt64 => this.PlainValue.Cast<Int64>();
+        public UInt64 NativeNat64 => this.PlainValue.Cast<UInt64>();
+        public byte NativeNat8 => this.PlainValue.Cast<byte>();
 
         internal VirtualTable InheritanceVirtualTable
         {
@@ -270,7 +274,7 @@ namespace Skila.Interpreter
 
             if (this.PlainValue is Chunk chunk)
             {
-                for (int i = 0; i < chunk.Count; ++i)
+                for (UInt64 i = 0; i != chunk.Count; ++i)
                     ctx.Heap.TryRelease(ctx, chunk[i], passingOut, callInfo: $"chunk elem of {callInfo}");
             }
 

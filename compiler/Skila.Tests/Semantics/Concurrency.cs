@@ -20,7 +20,7 @@ namespace Skila.Tests.Semantics
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, 
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, 
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {
                     FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
@@ -35,7 +35,7 @@ namespace Skila.Tests.Semantics
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("r",null,ExpressionFactory.HeapConstructor(NameReference.Create("Point"))),
                     Spawn.Create(FunctionCall.Create(mutable_method,mutable_arg)),

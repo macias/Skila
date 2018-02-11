@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Expressions
 {
@@ -73,11 +74,11 @@ namespace Skila.Language.Expressions
             this.expr.DetachFrom(this);
             if (maxLimit.HasValue)
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
-                    FunctionArgument.Create(IntLiteral.Create($"{minLimit}")),
-                    FunctionArgument.Create(IntLiteral.Create($"{maxLimit}")));
+                    FunctionArgument.Create(NatLiteral.Create($"{minLimit}")),
+                    FunctionArgument.Create(NatLiteral.Create($"{maxLimit}")));
             else
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
-                    FunctionArgument.Create(IntLiteral.Create($"{minLimit}")));
+                    FunctionArgument.Create(NatLiteral.Create($"{minLimit}")));
 
             this.expr.AttachTo(this);
         }

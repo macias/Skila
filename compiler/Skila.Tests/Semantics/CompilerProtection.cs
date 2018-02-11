@@ -3,6 +3,7 @@ using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
+using Skila.Language.Expressions.Literals;
 using Skila.Language.Flow;
 
 namespace Skila.Tests.Semantics
@@ -83,7 +84,7 @@ namespace Skila.Tests.Semantics
 
             var decl = root_ns.AddNode(
                 VariableDeclaration.CreateStatement("x",
-                    NameReference.Create("Foo", NameFactory.IntTypeReference()), IntLiteral.Create("5")));
+                    NameReference.Create("Foo", NameFactory.Int64TypeReference()), Int64Literal.Create("5")));
 
             var resolver = NameResolver.Create(env);
 

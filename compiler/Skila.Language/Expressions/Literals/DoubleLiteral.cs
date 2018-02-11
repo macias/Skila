@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Skila.Language.Expressions
+namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class DoubleLiteral : Literal
     {
         private readonly double? value;
         public double Value => this.value.Value;
+
+        public override object LiteralValue => this.Value;
 
         public static DoubleLiteral Create(string inputValue)
         {

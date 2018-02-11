@@ -34,7 +34,13 @@ namespace Skila.Language
         public const string ReferenceTypeName = "Ref";
         public const string PointerTypeName = "Ptr";
         public const string BoolTypeName = "Bool";
-        public const string IntTypeName = "Int";
+        public const string Int16TypeName = "Int16";
+        public const string Int64TypeName = "Int64";
+        public const string IntTypeName = "Int"; // todo: make it platform dependent
+        public const string Nat8TypeName = "Nat8";
+        public const string Nat64TypeName = "Nat64";
+        public const string NatTypeName = "Nat"; // todo: make it platform dependent
+        public const string SizeTypeName = "Size"; // todo: make it platform dependent
         //public const string EnumTypeName = "Enum";
         public const string OrderingTypeName = "Ordering";
         public const string ComparableTypeName = "Comparable";
@@ -66,6 +72,9 @@ namespace Skila.Language
         public const string CaptureIdFieldName = "id";
         public const string CaptureNameFieldName = "name";
 
+        public const string NumMinValueName = "minValue";
+        public const string NumMaxValueName = "maxValue";
+
         public const string MatchIndexFieldName = "index";
         public const string MatchCountFieldName = "count";
         public const string MatchCapturesFieldName = "captures";
@@ -89,6 +98,7 @@ namespace Skila.Language
 
         public const string ComparableCompare = "compare";
 
+        public const string AddOverflowOperator = "+®";
         public const string AddOperator = "+";
         public const string MulOperator = "*";
         public const string SubOperator = "-";
@@ -166,9 +176,34 @@ namespace Skila.Language
             return NameReference.Create(NameReference.Root, IFunctionTypeName, types);
         }
 
+
+        public static NameReference Int16TypeReference()
+        {
+            return NameReference.Create(NameReference.Root, Int16TypeName);
+        }
+        public static NameReference Int64TypeReference()
+        {
+            return NameReference.Create(NameReference.Root, Int64TypeName);
+        }
         public static NameReference IntTypeReference()
         {
             return NameReference.Create(NameReference.Root, IntTypeName);
+        }
+        public static NameReference Nat8TypeReference()
+        {
+            return NameReference.Create(NameReference.Root, Nat8TypeName);
+        }
+        public static NameReference Nat64TypeReference()
+        {
+            return NameReference.Create(NameReference.Root, Nat64TypeName);
+        }
+        public static NameReference NatTypeReference()
+        {
+            return NameReference.Create(NameReference.Root, NatTypeName);
+        }
+        public static NameReference SizeTypeReference()
+        {
+            return NameReference.Create(NameReference.Root, SizeTypeName);
         }
         /* public static NameReference EnumTypeReference()
          {

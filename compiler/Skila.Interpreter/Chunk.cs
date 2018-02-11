@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Skila.Interpreter
 {
@@ -8,9 +9,9 @@ namespace Skila.Interpreter
     {
         private readonly ObjectData[] data;
 
-        public int Count => this.data.Length;
+        public UInt64 Count => (UInt64)this.data.Length;
 
-        public ObjectData this[int idx]
+        public ObjectData this[UInt64 idx]
         {
             get { return this.data[idx]; }
             set { this.data[idx] = value; }

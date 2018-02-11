@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using NaiveLanguageTools.Common;
 
-namespace Skila.Language.Expressions
+namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public abstract class Literal : Expression
@@ -11,6 +11,8 @@ namespace Skila.Language.Expressions
         public string InputValue { get; }
         public override IEnumerable<INode> OwnedNodes => new[] { typeName };
         public override ExecutionFlow Flow => ExecutionFlow.Empty;
+
+        public abstract object LiteralValue { get; }
 
         protected Literal(string inputValue, NameReference typeName)
         : base(ExpressionReadMode.ReadRequired)

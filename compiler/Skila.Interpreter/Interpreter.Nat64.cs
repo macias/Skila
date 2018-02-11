@@ -10,17 +10,17 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private async Task<ExecValue> executeNativeIntFunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
+        private async Task<ExecValue> executeNativeNat64FunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
         {
-            if (func == ctx.Env.IntParseStringFunction)
+            if (func == ctx.Env.Nat64ParseStringFunction)
             {
                 ObjectData arg_ptr = ctx.FunctionArguments.Single();
                 ObjectData arg_val = arg_ptr.DereferencedOnce();
 
-                string input_str = arg_val.PlainValue.Cast<string>();
+                string input_str = arg_val.NativeString;
                 Option<ObjectData> int_obj;
-                if (int.TryParse(input_str, out int int_val))
-                    int_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.IntType.InstanceOf, int_val)
+                if (UInt64.TryParse(input_str, out UInt64 int_val))
+                    int_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.Nat64Type.InstanceOf, int_val)
                         .ConfigureAwait(false));
                 else
                     int_obj = new Option<ObjectData>();
@@ -30,10 +30,22 @@ namespace Skila.Interpreter
             }
             else if (func.Name.Name == NameFactory.AddOperator)
             {
-                int this_int = thisValue.PlainValue.Cast<int>();
+                var this_int = thisValue.NativeNat64;
 
                 ObjectData arg = ctx.FunctionArguments.Single();
-                int arg_int = arg.PlainValue.Cast<int>();
+                var arg_int = arg.NativeNat64;
+
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int + arg_int))
+                    .ConfigureAwait(false);
+                ExecValue result = ExecValue.CreateReturn(res_value);
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.AddOverflowOperator)
+            {
+                var this_int = thisValue.NativeNat64;
+
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_int = arg.NativeNat64;
 
                 ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int + arg_int)
                     .ConfigureAwait(false);
@@ -42,12 +54,12 @@ namespace Skila.Interpreter
             }
             else if (func.Name.Name == NameFactory.MulOperator)
             {
-                int this_int = thisValue.PlainValue.Cast<int>();
+                var this_int = thisValue.NativeNat64;
 
                 ObjectData arg = ctx.FunctionArguments.Single();
-                int arg_int = arg.PlainValue.Cast<int>();
+                var arg_int = arg.NativeNat64;
 
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int * arg_int)
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int * arg_int))
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
@@ -55,25 +67,26 @@ namespace Skila.Interpreter
             else if (func.Name.Name == NameFactory.SubOperator)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int - arg_int)
+                var this_int = thisValue.NativeNat64;
+                var arg_int = arg.NativeNat64;
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int - arg_int))
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
             }
             else if (func.Name.Name == NameFactory.EqualOperator)
             {
+                var this_int = thisValue.NativeNat64;
+
                 ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
+                var arg_int = arg.NativeNat64;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
                     this_int == arg_int).ConfigureAwait(false));
                 return result;
             }
             else if (func.IsDefaultInitConstructor())
             {
-                thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, 0).ConfigureAwait(false));
+                thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (UInt64)0).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
             else if (func.IsCopyInitConstructor())
@@ -81,11 +94,19 @@ namespace Skila.Interpreter
                 thisValue.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);
             }
+            else if (func== ctx.Env.Nat64FromNat8Constructor)
+            {
+                ObjectData arg_obj = ctx.FunctionArguments.Single();
+                var arg_val = arg_obj.NativeNat8;
+
+                thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (UInt64)arg_val).ConfigureAwait(false));
+                return ExecValue.CreateReturn(null);
+            }
             else if (func.Name.Name == NameFactory.ComparableCompare)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
-                int this_int = thisValue.PlainValue.Cast<int>();
-                int arg_int = arg.PlainValue.Cast<int>();
+                var this_int = thisValue.NativeNat64;
+                var arg_int = arg.NativeNat64;
 
                 ObjectData ordering_type = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.OrderingType.InstanceOf).ConfigureAwait(false);
                 ObjectData ordering_value;

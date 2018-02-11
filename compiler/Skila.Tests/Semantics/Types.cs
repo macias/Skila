@@ -7,6 +7,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Flow;
 using Skila.Language.Extensions;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
 {
@@ -147,7 +148,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null, EntityModifier.Public)));
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, EntityModifier.Public)));
 
             var resolver = NameResolver.Create(env);
 
@@ -165,7 +166,7 @@ namespace Skila.Tests.Semantics
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                    new[] { FunctionParameter.Create("a", NameFactory.IntTypeReference(),
+                    new[] { FunctionParameter.Create("a", NameFactory.Int64TypeReference(),
                         Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement())));
             VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null,
@@ -249,16 +250,16 @@ namespace Skila.Tests.Semantics
             FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("foo"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference());
+                    NameFactory.Int64TypeReference());
             FunctionDefinition abstract_func = FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
+                    NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
                     .Modifier(EntityModifier.Abstract);
             FunctionDefinition base_func = FunctionBuilder.Create(
                     NameDefinition.Create("basic"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(), Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("3")) }))
+                    NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
                     .Modifier(EntityModifier.Base);
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(func_decl)

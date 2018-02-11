@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace Skila.Language.Expressions
+namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class StringLiteral : Literal
     {
         public string Value => InputValue;
+        public override object LiteralValue => this.Value;
 
         public static StringLiteral Create(string value)
         {

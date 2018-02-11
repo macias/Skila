@@ -6,6 +6,7 @@ using Skila.Language.Builders;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Flow;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
 {
@@ -48,19 +49,19 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
-                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetNeg")
-                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference())));
+                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
             root_ns.AddBuilder(TypeBuilder.Create("GetAll")
-                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("3"))
+                        Return.Create(Int64Literal.Create("3"))
                     })))
-                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
-                        Return.Create(IntLiteral.Create("-1"))
+                        Return.Create(Int64Literal.Create("-1"))
                     }))));
 
             NameReferenceIntersection intersection = NameReferenceIntersection.Create(
@@ -100,7 +101,7 @@ namespace Skila.Tests.Semantics
                 // added second conversion to check if compiler correctly disambiguate the call
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.ConvertFunctionName),
-                    null, ExpressionReadMode.ReadRequired, NameFactory.IntTypeReference(),
+                    null, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
                     .Modifier(EntityModifier.Implicit)));
             var type_bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar")));
@@ -171,7 +172,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IntTypeReference()));
+            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()));
             var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
@@ -213,7 +214,7 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             INameReference typename = NameReferenceUnion.Create(new[] {
-                NameFactory.ReferenceTypeReference(NameFactory.IntTypeReference()),
+                NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
                 NameFactory.BoolTypeReference() });
             var decl = VariableDeclaration.CreateStatement("foo", typename, initValue: Undef.Create());
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(

@@ -6,6 +6,7 @@ using Skila.Language.Entities;
 using Skila.Language.Builders;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
 {
@@ -18,12 +19,12 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            IntLiteral value = IntLiteral.Create("3");
+            Int64Literal value = Int64Literal.Create("3");
             root_ns.AddBuilder(FunctionBuilder.Create("foo",
                 NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("x", null, 
-                        ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("2"))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2"))),
                     Return.Create(IsSame.Create(NameReference.Create("x"),value))
             )));
 
@@ -42,11 +43,11 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create();
             var root_ns = env.Root;
 
-            IntLiteral value = IntLiteral.Create("3");
+            Int64Literal value = Int64Literal.Create("3");
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new[] {
                     Return.Create( Dereference.Create(value)),
             })));
@@ -73,7 +74,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
 
                 Block.CreateStatement(new[] {
-                    VariableDeclaration.CreateStatement("c", null,IntLiteral.Create("3")),
+                    VariableDeclaration.CreateStatement("c", null,Int64Literal.Create("3")),
                     discard,
             })));
 
@@ -94,7 +95,7 @@ namespace Skila.Tests.Semantics
 
             NameReferenceUnion type_set = NameReferenceUnion.Create(
                 NameFactory.PointerTypeReference(NameFactory.BoolTypeReference()),
-                NameFactory.PointerTypeReference(NameFactory.IntTypeReference()));
+                NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
                 ExpressionReadMode.OptionalUse,
@@ -120,7 +121,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
-            IntLiteral int_literal = IntLiteral.Create("1");
+            Int64Literal int_literal = Int64Literal.Create("1");
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), null,
@@ -129,7 +130,7 @@ namespace Skila.Tests.Semantics
 
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, AddressOf.CreatePointer(int_literal)),
-                    VariableDeclaration.CreateStatement("y", null, AddressOf.CreateReference(IntLiteral.Create("2"))),
+                    VariableDeclaration.CreateStatement("y", null, AddressOf.CreateReference(Int64Literal.Create("2"))),
                     ExpressionFactory.Readout("x"),
                     ExpressionFactory.Readout("y"),
             })));
@@ -150,11 +151,11 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
-                new IExpression[] { IntLiteral.Create("5")
+                new IExpression[] { Int64Literal.Create("5")
                 },
-                    IfBranch.CreateElse(new[] { IntLiteral.Create("7") }));
+                    IfBranch.CreateElse(new[] { Int64Literal.Create("7") }));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), if_ctrl, EntityModifier.Public));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), if_ctrl, EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
 
@@ -169,9 +170,9 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
             var root_ns = env.Root;
 
-            NameReference non_value = NameFactory.IntTypeReference();
+            NameReference non_value = NameFactory.Int64TypeReference();
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), initValue: non_value,
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), initValue: non_value,
                 modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
@@ -190,13 +191,13 @@ namespace Skila.Tests.Semantics
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
-                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
+                    FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
                 NameFactory.DoubleTypeReference(),
                 Block.CreateStatement(new[] {
                     Return.Create(DoubleLiteral.Create("3.3")) })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             root_ns.AddNode(Block.CreateStatement(new[] { call }));
 
@@ -218,13 +219,13 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("getter"),
                 null,
                 ExpressionReadMode.ReadRequired,
-                NameFactory.IntTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(IntLiteral.Create("5")) })));
+                NameFactory.Int64TypeReference(),
+                Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("5")) })));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("getter"));
             NameReference func_ref = NameReference.Create("getter");
             root_ns.AddNode(Block.CreateStatement(new IExpression[] {
-                VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()),
+                VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()),
                 // errors: assigning to r-value
                 Assignment.CreateStatement(call,NameReference.Create("i")),
                 Assignment.CreateStatement(func_ref,Undef.Create())
@@ -247,7 +248,7 @@ namespace Skila.Tests.Semantics
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .Modifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null,
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable)));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("getter"),
@@ -259,7 +260,7 @@ namespace Skila.Tests.Semantics
             NameReference field_ref = NameReference.Create(FunctionCall.Create(NameReference.Create("getter")), "x");
             root_ns.AddNode(Block.CreateStatement(new IExpression[] {
                 // error: assigning to r-value
-                Assignment.CreateStatement(field_ref,IntLiteral.Create("3")),
+                Assignment.CreateStatement(field_ref,Int64Literal.Create("3")),
             }));
 
             var resolver = NameResolver.Create(env);
@@ -278,13 +279,13 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
-                    FunctionParameter.Create("x", NameFactory.IntTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
+                    FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.BoolTypeReference(),
                 Block.CreateStatement(new[] {
                     Return.Create(BoolLiteral.CreateTrue()) })));
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.IntTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                 call, EntityModifier.Public);
@@ -335,10 +336,10 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Oint")
                 .Modifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.IntTypeReference(),
-                    new[] { Property.CreateAutoField(NameFactory.IntTypeReference(), null, EntityModifier.Reassignable) },
-                    new[] { Property.CreateAutoGetter(NameFactory.IntTypeReference()) },
-                    new[] { Property.CreateAutoSetter(NameFactory.IntTypeReference()) })));
+                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                    new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), null, EntityModifier.Reassignable) },
+                    new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
+                    new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) })));
 
             var var_decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolTypeReference(),
                 Undef.Create(), EntityModifier.Reassignable);

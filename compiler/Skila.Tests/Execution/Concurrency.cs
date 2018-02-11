@@ -6,6 +6,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Interpreter;
 using System.Threading.Tasks;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Execution
 {
@@ -21,13 +22,13 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
-                        FunctionArgument.Create(IntLiteral.Create("2")))),
-                    Return.Create(IntLiteral.Create("0"))
+                        FunctionArgument.Create(Int64Literal.Create("2")))),
+                    Return.Create(Int64Literal.Create("0"))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
@@ -46,12 +47,12 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
-                    Return.Create(IntLiteral.Create("0"))
+                    Return.Create(Int64Literal.Create("0"))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
@@ -73,18 +74,18 @@ namespace Skila.Tests.Execution
                 NameFactory.UnitTypeReference(),                
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
-                        FunctionArgument.Create(IntLiteral.Create("2")))),
+                        FunctionArgument.Create(Int64Literal.Create("2")))),
                 }))
-                .Parameters(FunctionParameter.Create("ch", NameFactory.PointerTypeReference(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference())),
+                .Parameters(FunctionParameter.Create("ch", NameFactory.PointerTypeReference(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference())),
                     Variadic.None, null, isNameRequired: false)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.IntTypeReference(),
+                NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.IntTypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
                     Spawn.Create(FunctionCall.Create(NameReference.Create("sender"),FunctionArgument.Create(NameReference.Create("ch")))),
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
@@ -95,7 +96,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2, result.RetValue.PlainValue);
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }
