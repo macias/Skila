@@ -14,6 +14,31 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter NameAliasing()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .With(Alias.Create("Boo",NameFactory.IntTypeReference()))
+                .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("x",NameReference.Create("Boo"),IntLiteral.Create("2")),
+                        ExpressionFactory.Readout("x"),
+
+                        Alias.Create("Loc", NameFactory.IntTypeReference()),
+                        VariableDeclaration.CreateStatement("y", NameReference.Create("Loc"), IntLiteral.Create("3")),
+                        ExpressionFactory.Readout("y")
+                    ))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorDuplicateType()
         {
             var env = Environment.Create(new Options() { });

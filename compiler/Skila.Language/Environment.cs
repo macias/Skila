@@ -48,6 +48,7 @@ namespace Skila.Language
         public TypeDefinition MatchType { get; }
         public TypeDefinition RegexType { get; }
         public FunctionDefinition RegexContainsFunction { get; }
+        public FunctionDefinition RegexMatchFunction { get; }
         public VariableDeclaration RegexPatternField { get; }
 
         public TypeDefinition TypeInfoType { get; }
@@ -237,10 +238,13 @@ namespace Skila.Language
             this.CaptureType = this.TextNamespace.AddNode(createCapture());
             this.MatchType = this.TextNamespace.AddNode(createMatch());
             {
-                this.RegexType = this.TextNamespace.AddNode(createRegex(out VariableDeclaration pattern,
-                    out FunctionDefinition contains));
+                this.RegexType = this.TextNamespace.AddNode(createRegex(
+                    out VariableDeclaration pattern,
+                    out FunctionDefinition contains,
+                    out FunctionDefinition match));
                 this.RegexPatternField = pattern;
                 this.RegexContainsFunction = contains;
+                this.RegexMatchFunction = match;
             }
 
             this.IIterableType = this.CollectionsNamespace.AddNode(createIIterable());
@@ -440,13 +444,20 @@ namespace Skila.Language
                     ;
         }
 
-        private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains)
+        private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains,out FunctionDefinition match)
         {
             pattern = VariableDeclaration.CreateStatement(NameFactory.RegexPatternFieldName,
                     NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst),
                     Undef.Create(), EntityModifier.Native);
 
             contains = FunctionBuilder.Create(NameFactory.RegexContainsFunctionName, NameFactory.BoolTypeReference(), Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(MutabilityFlag.Neutral),
+                        ExpressionReadMode.CannotBeRead));
+
+            match = FunctionBuilder.Create(NameFactory.RegexMatchFunctionName, 
+                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.MatchTypeReference())), 
+                Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(MutabilityFlag.Neutral),
                         ExpressionReadMode.CannotBeRead));
@@ -460,6 +471,7 @@ namespace Skila.Language
                         NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst),
                     }))
                 .With(contains)
+                .With(match)
                     ;
         }
 

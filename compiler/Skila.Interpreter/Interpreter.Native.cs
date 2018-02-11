@@ -86,6 +86,25 @@ namespace Skila.Interpreter
                         func.ResultTypeName.Evaluation.Components, val).ConfigureAwait(false));
                     return result;
                 }
+                else if (func == ctx.Env.RegexMatchFunction)
+                {
+                    ObjectData arg = ctx.FunctionArguments.Single();
+                    ObjectData arg_val = arg.DereferencedOnce();
+                    string arg_str = arg_val.NativeString;
+
+                    ObjectData pattern_obj = this_value.GetField(ctx.Env.RegexPatternField);
+                    ObjectData pattern_val = pattern_obj.DereferencedOnce();
+                    string pattern = pattern_val.NativeString;
+
+                    throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
+
+                    // todo: continue work here!!!
+                    bool val = new System.Text.RegularExpressions.Regex(pattern).IsMatch(arg_str);
+
+                    ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                        func.ResultTypeName.Evaluation.Components, val).ConfigureAwait(false));
+                    return result;
+                }
                 else
                     throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
             }

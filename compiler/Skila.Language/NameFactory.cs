@@ -72,6 +72,7 @@ namespace Skila.Language
 
         public const string RegexPatternFieldName = "pattern";
         public const string RegexContainsFunctionName = "contains";
+        public const string RegexMatchFunctionName = "match";
 
         public const string DoubleTypeName = "Double";
         public const string ThisVariableName = "this";
@@ -388,6 +389,10 @@ namespace Skila.Language
         public static NameReference CaptureTypeReference()
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.CaptureTypeName);
+        }
+        public static NameReference MatchTypeReference()
+        {
+            return NameReference.Create(TextNamespaceReference(), NameFactory.MatchTypeName);
         }
         public static NameReference RegexTypeReference()
         {

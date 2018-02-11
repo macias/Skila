@@ -273,6 +273,11 @@ namespace Skila.Language.Expressions
             return IfBranch.CreateIf(ExpressionFactory.Not(condition), new[] { GenericThrow() });
         }
 
+        public static IExpression AssertEqual(IExpression expected, IExpression actual)
+        {
+            return AssertTrue(IsEqual(expected,actual));
+        }
+
         public static IExpression AssertOptionValue(IExpression option)
         {
             return AssertTrue(optionHasValue(option));

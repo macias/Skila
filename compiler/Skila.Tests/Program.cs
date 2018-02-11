@@ -28,7 +28,7 @@ namespace Skila.Tests
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorForcingConst();
-            //new Semantics.NameResolution().ErrorDuplicateType();
+            new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
@@ -49,7 +49,7 @@ namespace Skila.Tests
             //new Execution.Pointers().StackChunkWithBasicPointers();
             // new Execution.Properties().OverridingMethodWithIndexerGetter();
             //new Execution.Templates().CheckingHostTraitRuntimeType();
-            new Execution.Text().RegexContains();
+            //new Execution.Text().TODO_RegexMatch();
 
            // if (false)
             {

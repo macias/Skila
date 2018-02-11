@@ -67,6 +67,7 @@
     <Compile Include="Data\LayerDictionary.Flat.cs" />
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
+    <Compile Include="Entities\Alias.cs" />
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="TypeMatching.cs" />
