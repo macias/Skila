@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TraitFunctionCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -46,12 +46,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallInterface()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = true });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
         }
         [TestMethod]
         public IInterpreter DuckVirtualCallProtocol()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = false });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
         }
         private IInterpreter duckVirtualCall(IOptions options)
         {
@@ -99,12 +99,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckDeepVirtualCallInterface()
         {
-            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = true });
+            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
         }
         [TestMethod]
         public IInterpreter DuckDeepVirtualCallProtocol()
         {
-            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = false });
+            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
         }
 
         private IInterpreter duckDeepVirtualCall(IOptions options)
@@ -167,12 +167,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseInterface()
         {
-            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true });
+            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
         }
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseProtocol()
         {
-            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = false });
+            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
         }
 
         private IInterpreter duckVirtualCallWithGenericBase(IOptions options)

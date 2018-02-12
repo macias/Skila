@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsSameOnValues()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDereferencingValue()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
@@ -64,7 +64,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDiscardingNonFunctionCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             IExpression discard = ExpressionFactory.Readout("c");
@@ -147,7 +147,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReadingIfAsExpression()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
@@ -167,7 +167,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingNonValue()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             NameReference non_value = NameFactory.Int64TypeReference();
@@ -186,7 +186,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringFunctionResult()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -212,7 +212,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningSimpleRValues()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -243,7 +243,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningCompoundRValues()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -274,7 +274,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingFunctionVoidResult()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -302,7 +302,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnusedExpression()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -330,7 +330,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSelfAssignment()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

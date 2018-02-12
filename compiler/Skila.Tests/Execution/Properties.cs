@@ -16,7 +16,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OverridingMethodWithIndexerGetter()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
@@ -61,7 +61,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OverridingMethodWithGetter()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
@@ -102,7 +102,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter Indexer()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             IEnumerable<FunctionParameter> property_parameters = new[] { FunctionParameter.Create("idx", NameFactory.Int64TypeReference()) };
@@ -155,7 +155,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AutoProperties()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")

@@ -163,7 +163,10 @@ namespace Skila.Language.Expressions
                     // if assignment to referential type is not done in nested scope, if yes, we assume it is escaping
                     // reference and report an error
                     if (lhs_var.IsFunctionContained() && lhs_var.Scope != this.Scope
-                        && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components))
+                        && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components)
+                        // todo: preserve the typematch (enhance DereferenceCount to full info) so we could here just check
+                        // if it is pure transfer, or auto-referencing, instead of again checking types
+                        && !ctx.Env.IsPointerOfType(this.RhsValue.Evaluation.Components))
                         ctx.AddError(ErrorCode.EscapingReference, this);
 
                     FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();

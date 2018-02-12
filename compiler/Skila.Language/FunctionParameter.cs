@@ -18,12 +18,17 @@ namespace Skila.Language
              bool isNameRequired,
              ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue, isNameRequired: isNameRequired);
+            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue,null, isNameRequired: isNameRequired);
         }
         public static FunctionParameter Create(string name, INameReference typeName,
             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null, isNameRequired: false);
+            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null,null, isNameRequired: false);
+        }
+        public static FunctionParameter Create(string name, INameReference typeName,EntityModifier modifier,
+            ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
+        {
+            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null,modifier, isNameRequired: false);
         }
 
         public bool IsNameRequired { get; }
@@ -62,10 +67,10 @@ namespace Skila.Language
         public bool IsSurfed { get; set; }
 
         private FunctionParameter(ExpressionReadMode readMode, string name, INameReference typeName, Variadic variadic,
-            IExpression defaultValue, bool isNameRequired)
+            IExpression defaultValue, EntityModifier modifier, bool isNameRequired)
         {
             this.UsageMode = readMode;
-            this.Modifier = EntityModifier.None;
+            this.Modifier = modifier ?? EntityModifier.None;
             this.Name = NameDefinition.Create(name);
             this.IsNameRequired = isNameRequired;
             this.Variadic = variadic;

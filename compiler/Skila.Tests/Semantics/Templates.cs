@@ -57,7 +57,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingTraitMethodOnHost()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -339,7 +339,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPassingReferenceAsTypeArgument()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
@@ -372,7 +372,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
@@ -404,7 +404,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
@@ -437,7 +437,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingConstConstraint()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mut").Modifier(EntityModifier.Mutable));
@@ -465,7 +465,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingTypesConstraint()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
@@ -496,7 +496,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHasConstraint()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),

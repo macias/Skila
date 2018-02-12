@@ -127,7 +127,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingModifier()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -144,7 +144,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AutoDefaultConstructor()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -161,7 +161,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNoDefaultConstructor()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
@@ -211,7 +211,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             NameReference field_ref1 = NameReference.Create("field");
@@ -244,7 +244,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIncorrectMethodsForType()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(

@@ -12,10 +12,19 @@ namespace Skila.Language
         public bool ReferencingBase { get; set; }
         public bool DiscardingAnyExpressionDuringTests { get; set; }
         public bool GlobalVariables { get; set; }
-        // todo: limit usage of this option and eventually remove it completely
-        public bool TypelessVariablesDuringTests { get; set; }
-        public bool DebugThrowOnError { get; set; }
+        public bool RelaxedMode { get; set; }
+        private bool debugThrowOnError;
+        public bool DebugThrowOnError
+        {
+            get
+            {
+                return debugThrowOnError;
+                //return false;
+            }
+            set { debugThrowOnError = value; }
+        }
         public bool MiniEnvironment { get; set; }
+        public bool AllowInvalidMainResult { get; set; }
 
         public override string ToString()
         {

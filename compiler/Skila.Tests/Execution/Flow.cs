@@ -17,7 +17,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ThrowingException()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -49,7 +49,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IfBranches()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

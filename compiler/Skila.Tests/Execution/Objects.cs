@@ -13,9 +13,35 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter OverflowAddition()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat64TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("b",null,NameReference.Create(NameFactory.Nat64TypeReference(),
+                        NameFactory.NumMaxValueName),EntityModifier.Reassignable),
+                    Assignment.CreateStatement(NameReference.Create("b"),
+                        ExpressionFactory.AddOverflow(NameReference.Create("b"),Nat64Literal.Create("3"))),
+                    Return.Create(NameReference.Create("b"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2UL, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter PassingSelfTypeCheck()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true,DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
@@ -62,7 +88,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DetectingImpostorSelfType()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
@@ -110,7 +136,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TestingTypeInfo()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true,DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
 
@@ -152,7 +178,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CorruptedParallelAssignmentWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
 
@@ -182,7 +208,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelAssignmentWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
 
@@ -210,7 +236,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelAssignment()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
 
@@ -237,7 +263,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AccessingObjectFields()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -268,7 +294,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter UsingEnums()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Sizing")
@@ -296,7 +322,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ConstructorChaining()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,

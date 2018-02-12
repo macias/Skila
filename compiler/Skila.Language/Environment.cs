@@ -13,9 +13,21 @@ namespace Skila.Language
 {
     public sealed class Environment
     {
-        public static Environment Create(IOptions options = null)
+        public static Environment Create(IOptions options)
         {
             return new Environment(options);
+        }
+
+        private Option<FunctionDefinition> mainFunction;
+        public FunctionDefinition MainFunction
+        {
+            get
+            {
+                if (!mainFunction.HasValue)
+                    mainFunction = new Option<FunctionDefinition>(this.Root.FindEntities(NameReference.Create(NameFactory.MainFunctionName),
+                        EntityFindMode.ScopeLimited).FirstOrDefault()?.TargetFunction);
+                return mainFunction.Value;
+            }
         }
 
         // at index "i" there is functor which takes "i" in-parameters
@@ -50,7 +62,7 @@ namespace Skila.Language
 
         public TypeDefinition Nat8Type { get; }
         public FunctionDefinition Nat8ParseStringFunction { get; }
-        
+
         //public TypeDefinition EnumType { get; }
 
         public TypeDefinition StringType { get; }
@@ -185,7 +197,7 @@ namespace Skila.Language
                     out FunctionDefinition parse_string,
                     this.Int64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.Create(NameFactory.IntTypeName,NameFactory.Int64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.IntTypeName, NameFactory.Int64TypeReference(), EntityModifier.Public));
                 this.Int64ParseStringFunction = parse_string;
             }
             {
@@ -201,11 +213,11 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                 this.Nat64Type = this.Root.AddNode(createNumXType(NameFactory.Nat64TypeName,
-                    Nat64Literal.Create($"{UInt64.MinValue}"),
-                    Nat64Literal.Create($"{UInt64.MaxValue}"),
-                    out FunctionDefinition parse_string,
-                    this.Nat64FromNat8Constructor));
+                this.Nat64Type = this.Root.AddNode(createNumXType(NameFactory.Nat64TypeName,
+                   Nat64Literal.Create($"{UInt64.MinValue}"),
+                   Nat64Literal.Create($"{UInt64.MaxValue}"),
+                   out FunctionDefinition parse_string,
+                   this.Nat64FromNat8Constructor));
                 // todo: make it platform-dependant
                 this.Root.AddNode(Alias.Create(NameFactory.NatTypeName, NameFactory.Nat64TypeReference(), EntityModifier.Public));
                 this.Root.AddNode(Alias.Create(NameFactory.SizeTypeName, NameFactory.NatTypeReference(), EntityModifier.Public));
@@ -222,62 +234,10 @@ namespace Skila.Language
                     null, Block.CreateStatement()))
                 );
 
-            // spread functions family
             {
-                // todo: take iterables as input and convert them to sequence (all spreads)
-
-                // no limits
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
-                    NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] { FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
-                        overrideMutability: MutabilityFlag.Neutral))) },
-                   ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
-                        overrideMutability: MutabilityFlag.Neutral)),
-                   Block.CreateStatement(new IExpression[] {
-                       Return.Create(NameReference.Create("coll"))
-                   })));
-            }
-            {
-                // with min limit
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(
-                        NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                   new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
-                            overrideMutability:MutabilityFlag.Neutral))),
-                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()),
-                   },
-                   ExpressionReadMode.ReadRequired,
-                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
-                        overrideMutability: MutabilityFlag.Neutral)),
-                   Block.CreateStatement(new IExpression[] {
-                       IfBranch.CreateIf(ExpressionFactory.IsLess(FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount)),
-                            NameReference.Create("min")),new[]{ ExpressionFactory.GenericThrow() }),
-                       Return.Create(NameReference.Create("coll"))
-                   })));
-            }
-            {
-                // with min+max limit
-                this.SystemNamespace.AddBuilder(FunctionBuilder.Create(NameDefinition.Create(
-                        NameFactory.SpreadFunctionName, "T", VarianceMode.None),
-                    new[] {
-                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",
-                            overrideMutability:MutabilityFlag.Neutral))),
-                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()),
-                        FunctionParameter.Create("max", NameFactory.SizeTypeReference()),
-                    },
-                    ExpressionReadMode.ReadRequired,
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
-                        overrideMutability: MutabilityFlag.Neutral)),
-                    Block.CreateStatement(new IExpression[] {
-                        VariableDeclaration.CreateStatement("count",null,
-                            FunctionCall.Create(NameReference.Create("coll",NameFactory.IterableCount))),
-                       IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.Create("count"),
-                            NameReference.Create("min")),new[]{ ExpressionFactory.GenericThrow() }),
-                       IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.Create("count"),
-                            NameReference.Create("max")),new[]{ ExpressionFactory.GenericThrow() }),
-                       Return.Create(NameReference.Create("coll"))
-                    })));
+                createSpreads(out FunctionDefinition spread_min, out FunctionDefinition spread_min_max);
+                this.SystemNamespace.AddNode(spread_min);
+                this.SystemNamespace.AddNode(spread_min_max);
             }
 
             {
@@ -446,6 +406,69 @@ namespace Skila.Language
             }
         }
 
+        private void createSpreads(out FunctionDefinition spread_min, out FunctionDefinition spread_min_max)
+        {
+            Func<IfBranch> make_solid = () => IfBranch.CreateIf(ExpressionFactory.Not(IsType.Create(NameReference.Create("coll"), 
+                NameFactory.ISequenceTypeReference("T"))),
+                        new[] {
+                                Assignment.CreateStatement(NameReference.Create("coll"),
+                                    ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference("T", MutabilityFlag.Neutral),
+                                        NameReference.Create("coll")))
+                        });
+
+            // todo: take iterables as input and convert them to sequence (all spreads)
+
+            // with min limit
+                spread_min = FunctionBuilder.Create(
+                        NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
+                   new[] {
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+//                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference("T",
+                            overrideMutability:MutabilityFlag.Neutral))
+                            //, EntityModifier.Reassignable
+                            ),
+                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()),
+                   },
+                   ExpressionReadMode.ReadRequired,
+                   NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral)),
+                   Block.CreateStatement(
+                       // todo:
+                       // make_solid(),
+
+                       IfBranch.CreateIf(ExpressionFactory.IsLess(FunctionCall.Create(NameReference.Create("coll", NameFactory.IterableCount)),
+                            NameReference.Create("min")), new[] { ExpressionFactory.GenericThrow() }),
+                       Return.Create(NameReference.Create("coll"))
+                    ));
+
+            // with min+max limit
+                spread_min_max = FunctionBuilder.Create(NameDefinition.Create(
+                        NameFactory.SpreadFunctionName, "T", VarianceMode.None),
+                    new[] {
+                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",
+//                        FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.IIterableTypeReference("T",
+                            overrideMutability:MutabilityFlag.Neutral))
+                            //, EntityModifier.Reassignable
+                            ),
+                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()),
+                        FunctionParameter.Create("max", NameFactory.SizeTypeReference()),
+                    },
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                        overrideMutability: MutabilityFlag.Neutral)),
+                    Block.CreateStatement(
+                        //todo:
+                        // make_solid(),
+                        VariableDeclaration.CreateStatement("count", null,
+                            FunctionCall.Create(NameReference.Create("coll", NameFactory.IterableCount))),
+                       IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.Create("count"),
+                            NameReference.Create("min")), new[] { ExpressionFactory.GenericThrow() }),
+                       IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.Create("count"),
+                            NameReference.Create("max")), new[] { ExpressionFactory.GenericThrow() }),
+                       Return.Create(NameReference.Create("coll"))
+                    ));
+        }
+
         private TypeDefinition createTypeInfo()
         {
             return TypeBuilder.Create(NameFactory.TypeInfoTypeName)
@@ -497,7 +520,7 @@ namespace Skila.Language
                     ;
         }
 
-        private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains,out FunctionDefinition match)
+        private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains, out FunctionDefinition match)
         {
             pattern = VariableDeclaration.CreateStatement(NameFactory.RegexPatternFieldName,
                     NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst),
@@ -508,8 +531,8 @@ namespace Skila.Language
                     .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(MutabilityFlag.Neutral),
                         ExpressionReadMode.CannotBeRead));
 
-            match = FunctionBuilder.Create(NameFactory.RegexMatchFunctionName, 
-                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.MatchTypeReference())), 
+            match = FunctionBuilder.Create(NameFactory.RegexMatchFunctionName,
+                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.MatchTypeReference())),
                 Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(MutabilityFlag.Neutral),
@@ -825,7 +848,7 @@ namespace Skila.Language
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out atGetter));
         }
 
-        private static TypeDefinition createNumXType(string numTypeName, Literal minValue,Literal maxValue, out FunctionDefinition parseString,
+        private static TypeDefinition createNumXType(string numTypeName, Literal minValue, Literal maxValue, out FunctionDefinition parseString,
             params IMember[] extras)
         {
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.ItTypeReference()),
@@ -838,15 +861,15 @@ namespace Skila.Language
                 .Parents(NameFactory.ObjectTypeReference(), NameFactory.ComparableTypeReference())
                 .With(parseString)
                 .With(extras)
-                .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(), 
+                .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(),
                     minValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
-                .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItTypeReference(), 
-                    maxValue,EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
+                .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItTypeReference(),
+                    maxValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
 
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItTypeReference(), 
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItTypeReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
 
@@ -1110,7 +1133,7 @@ namespace Skila.Language
                 .Parents(NameFactory.IIteratorTypeReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
-                     NameFactory.SizeTypeReference(), NameReference.Create(NameFactory.SizeTypeReference(),NameFactory.NumMaxValueName), 
+                     NameFactory.SizeTypeReference(), NameReference.Create(NameFactory.SizeTypeReference(), NameFactory.NumMaxValueName),
                      EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement(coll_name,
                     NameFactory.ReferenceTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
@@ -1211,6 +1234,10 @@ namespace Skila.Language
         public bool IsIntType(IEntityInstance typeInstance)
         {
             return typeInstance.IsSame(this.Int64Type.InstanceOf, jokerMatchesAll: false);
+        }
+        public bool IsNatType(IEntityInstance typeInstance)
+        {
+            return typeInstance.IsSame(this.Nat64Type.InstanceOf, jokerMatchesAll: false);
         }
         public bool IsOfUnitType(INameReference typeName)
         {

@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorThrowingNonException()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Int64Literal throw_value = Int64Literal.Create("3");

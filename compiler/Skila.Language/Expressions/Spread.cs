@@ -55,16 +55,11 @@ namespace Skila.Language.Expressions
             if (this.prepared)
                 throw new Exception("Something wrong?");
 
-            if (!variadic.HasUpperLimit && !variadic.HasLowerLimit)
-                this.prepared = true;
-            else
-            {
-                RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.MaxLimit : (int?)null);
-                this.expr.Evaluated(ctx);
-            }
+            RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.MaxLimit : (int?)null);
+            this.expr.Evaluated(ctx);
         }
 
-        internal void RouteSetup(int minLimit, int? maxLimit)
+        internal void RouteSetup(int? minLimit, int? maxLimit)
         {
             if (this.prepared)
                 throw new Exception("Something wrong?");

@@ -17,13 +17,13 @@ namespace Skila.Tests
 
         public static void Main()
         {
-              //new Semantics.CompilerProtection().Environment();
+            new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
             //  new Semantics.Flow().ErrorReadingMixedIf();
-          //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
-            // new Semantics.FunctionDefinitions().ErrorInvalidConverters();
+            //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
+            //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
             //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
@@ -40,16 +40,16 @@ namespace Skila.Tests
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            //new Execution.FunctionCalls().MinLimitVariadicFunction();
+            new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
             //new Execution.Inheritance().InheritingEnums();
             // new Execution.Interfaces().TraitFunctionCall();
             //new Execution.Io().FileReadingLines();
-            //new Execution.Library().StringToInt();
-            //new Execution.Objects().PassingSelfTypeCheck();
+            //new Execution.Library().DateDayOfWeek();
+            //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().StackChunkWithBasicPointers();
-             //new Execution.Properties().Indexer();
+            //new Execution.Properties().Indexer();
             //new Execution.Templates().CheckingHostTraitRuntimeType();
-            new Execution.Text().RegexContains();
+            //new Execution.Text().RegexContains();
 
             //if (false)
             {
@@ -62,7 +62,7 @@ namespace Skila.Tests
 
             Console.WriteLine();
 
-            //if (false)
+           // if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);

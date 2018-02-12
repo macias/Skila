@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInvalidVariable()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("3"), modifier: EntityModifier.Public);
@@ -31,6 +31,7 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
+
         [TestMethod]
         public IErrorReporter DetectingUsage()
         {
@@ -82,7 +83,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCompoundDefaultValue()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameReferenceUnion.Create(
@@ -101,7 +102,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter VariableBinding()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -124,7 +125,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AssignmentTypeChecking()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -180,7 +181,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter FunctionAssignment()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -218,7 +219,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorVariableNotUsed()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             VariableDeclaration member = VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(),

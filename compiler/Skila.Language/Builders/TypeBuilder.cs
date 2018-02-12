@@ -44,7 +44,7 @@ namespace Skila.Language.Builders
                 .Modifier(EntityModifier.Enum)
                 .Parents(NameFactory.IEquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private,
-                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.Int64TypeReference(),
+                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.NatTypeReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                     // copy constructor
@@ -52,7 +52,7 @@ namespace Skila.Language.Builders
                     new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameReference.Create(name),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
-                .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName,ExpressionReadMode.ReadRequired,NameFactory.Int64TypeReference(),
+                .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName, ExpressionReadMode.ReadRequired, NameFactory.NatTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native))
                  // when enum inherits an enum it won't call super to check equality

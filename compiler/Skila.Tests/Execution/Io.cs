@@ -17,7 +17,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FileExists()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -42,7 +42,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FileReadingLines()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

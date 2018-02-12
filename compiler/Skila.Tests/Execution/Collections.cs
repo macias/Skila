@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FilterFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             const string elem_name = "my_elem";
@@ -65,7 +65,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MapFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             const string elem_name = "my_elem";
@@ -115,7 +115,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverConcatenatedMixedIterables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
@@ -186,7 +186,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverConcatenatedUniformIterables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             const string elem_name = "my_elem";
@@ -233,7 +233,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverAutoResizedArray()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -271,7 +271,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverTuple()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -307,7 +307,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AccessingTuple()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -344,7 +344,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChunkOnStack()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -386,7 +386,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChunkOnHeap()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

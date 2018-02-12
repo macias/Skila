@@ -20,9 +20,14 @@ namespace Skila.Language
         // use it only on selected tests
         bool DiscardingAnyExpressionDuringTests { get; }
         bool GlobalVariables { get; }
-        bool TypelessVariablesDuringTests { get; }
         bool DebugThrowOnError { get; } // useful when adding new test
         bool MiniEnvironment { get; }
+        bool AllowInvalidMainResult { get; }
+
+        // in non-strict (relaxed) mode programs does not change the meaning they are simply more sloppy written
+        // like for example field declarations with omitted typename, non-strict mode is not for promoting bad looking code
+        // but rather to lower learning curve and allow beginners to start in more "open" environment
+        bool RelaxedMode { get; }
     }
 
     public static class IOptionsExtension

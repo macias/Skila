@@ -191,7 +191,7 @@ namespace Skila.Interpreter
             if (resolver.ErrorManager.Errors.Count != 0)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            return env.Root.FindEntities(NameReference.Create("main"), EntityFindMode.ScopeLimited).Single().Target.CastFunction();
+            return env.MainFunction;
         }
         public ExecValue TestRun(Language.Environment env)
         {

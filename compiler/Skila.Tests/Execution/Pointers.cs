@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TestingSamePointers()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true,DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
 
@@ -54,7 +54,7 @@ namespace Skila.Tests.Execution
         {
             // the aim of this test is to test heap manager if it correctly handles reading function which returns pointer
 
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -89,7 +89,7 @@ namespace Skila.Tests.Execution
         {
             // the aim of this test is to test heap manager if it correctly handles ignoring function which returns pointer
 
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -121,7 +121,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StackChunkWithBasicPointers()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -151,7 +151,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter PointerArgumentAutoDereference()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -184,7 +184,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DereferenceOnReturn()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -209,7 +209,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DereferenceOnIfCondition()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -236,7 +236,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ExplicitDereferencing()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -285,7 +285,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DereferenceOnAssignment()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -324,7 +324,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DirectRefCountings()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -366,7 +366,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NestedRefCountings()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")

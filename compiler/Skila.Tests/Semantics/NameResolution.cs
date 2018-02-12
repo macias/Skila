@@ -62,7 +62,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingIt()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -307,7 +307,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCircularReference()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -325,7 +325,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuplicatedName()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), Int64Literal.Create("1"),
@@ -343,7 +343,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceToNestedTarget()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             // reference to nested target
@@ -359,7 +359,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceInSameNamespace()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -376,7 +376,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorResolvingUnqualifiedReferenceToNestedNamespace()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -396,7 +396,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingUnqualifiedReferenceWithinSameNamespace()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -412,7 +412,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingForDuplicatedType()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -432,7 +432,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateResolving()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

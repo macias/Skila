@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorGetterOverridesNothing()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options());
             var root_ns = env.Root;
 
             Property property = PropertyBuilder.Create("getMe", NameFactory.Int64TypeReference())
@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningRValue()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringGetter()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -104,7 +104,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMultipleAccessors()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
@@ -127,7 +127,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAlteringReadOnlyProperty()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")

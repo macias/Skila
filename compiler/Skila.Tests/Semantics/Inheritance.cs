@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHeapModifierOnOverride()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
@@ -52,7 +52,7 @@ namespace Skila.Tests.Semantics
         {
             // https://en.wikipedia.org/wiki/Dominance_(C%2B%2B)#Example_without_diamond_inheritance
 
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
@@ -94,7 +94,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingPinnedDefinition()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Start")
@@ -159,7 +159,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorEnumCrossInheritance()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")
@@ -186,7 +186,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNonVirtualInterfacePattern()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ITransmogrifier")
@@ -240,7 +240,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNothingToOverride()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionDefinition function = FunctionBuilder.Create("getSome",
@@ -263,7 +263,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInheritingHeapOnlyType()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -284,7 +284,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInheritingFinalType()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point")));
@@ -304,7 +304,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTypeImplementationAsSecondaryParent()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point1")).Modifier(EntityModifier.Base));
@@ -325,7 +325,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter LowestCommonAncestor()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var abc_type = root_ns.AddBuilder(TypeBuilder.Create("ABC"));
@@ -354,7 +354,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter LowestCommonAncestorDoubleInt()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var resolver = NameResolver.Create(env);
@@ -370,7 +370,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ParentNamesResolving()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -392,7 +392,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorLoopedAncestors()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -414,7 +414,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIncorrectMethodDerivation()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -463,7 +463,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingFunctionImplementation()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Inter")
@@ -492,7 +492,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperBasicMethodOverride()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -525,7 +525,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperGenericMethodOverride()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("IX", TemplateParametersBuffer.Create()
@@ -561,7 +561,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperGenericMethodOverrideWithGenericOutput()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IMyInterface",
@@ -593,7 +593,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixedMemoryClassOverrideWithGenericOutput()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             // here we define to return reference and value of generic type

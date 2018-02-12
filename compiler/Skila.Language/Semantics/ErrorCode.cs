@@ -112,5 +112,6 @@
         TraitInheritingTypeImplementation = 108,
         FieldInNonImplementationType = 109,
         CannotUseValueExpression = 110,
+        MainFunctionInvalidResultType = 111,
     }
 }

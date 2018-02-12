@@ -4,12 +4,11 @@ using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Expressions.Literals;
-using Skila.Language.Flow;
 
 namespace Skila.Tests.Semantics
 {
-    // put here all tests that check if the compiler is robust enough
-    // tests passes if it does not crash
+    // put here all tests to check if the compiler is robust enough
+    // test passes if it does not crash (anything else HERE is irrelevant)
 
     [TestClass]
     public class CompilerProtection
@@ -57,7 +56,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Internals()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
 
             var resolver = NameResolver.Create(env);
 
@@ -69,7 +68,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularConversion()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.Out))
@@ -121,7 +120,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularMutabilityCheck()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
@@ -132,5 +131,29 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
+
+        [TestMethod]
+        public IErrorReporter ConflictingTypeNameWithAlias()
+        {
+            var env = Language.Environment.Create(new Options() {});
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Whatever")
+                .Modifier(EntityModifier.Base));
+
+            TypeDefinition from_reg = root_ns.AddBuilder(TypeBuilder.CreateEnum(NameFactory.SizeTypeName)
+                .Parents("Whatever")
+                .Modifier(EntityModifier.Base)
+                .With(EnumCaseBuilder.Create("small", "big")));
+
+            TypeDefinition from_enum = root_ns.AddBuilder(TypeBuilder.Create("Another")
+                .Parents(NameFactory.SizeTypeName)
+                .Modifier(EntityModifier.Base));
+
+            var resolver = NameResolver.Create(env);
+
+            return resolver;
+        }
+
     }
 }

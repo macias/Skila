@@ -14,9 +14,31 @@ namespace Skila.Tests.Semantics
     public class FunctionDefinitions
     {
         [TestMethod]
+        public IErrorReporter ErrorInvalidMainResultType()
+        {
+            var env = Environment.Create(new Options() {});
+            var root_ns = env.Root;
+
+            NameReference result_typename = NameFactory.UnitTypeReference();
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create(NameFactory.MainFunctionName),
+                ExpressionReadMode.OptionalUse,
+                result_typename,
+
+                Block.CreateStatement()));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MainFunctionInvalidResultType,result_typename));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorInvalidConverters()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionDefinition conv1 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
@@ -84,7 +106,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperReturning()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var func_def_int = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -108,7 +130,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReturning()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Return empty_return = Return.Create();
@@ -136,7 +158,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AnonymousVariadicParameters()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
@@ -164,7 +186,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorVariadicParametersInvalidLimits()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(4, 3), null,
@@ -189,7 +211,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter NonConflictingOverload()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -219,7 +241,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConflictingVariadicOverload()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -248,7 +270,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingOverlappingOptionalOverload()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -281,7 +303,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDefaultUndef()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Undef default_value = Undef.Create();
@@ -306,7 +328,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConflictingAdditionalOptionalOverload()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -334,7 +356,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateSpecializationOverload()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -362,7 +384,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringParameters()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionParameter parameter = FunctionParameter.Create("x", NameFactory.Int64TypeReference());
@@ -383,7 +405,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingDisabledParameters()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             NameReference param_ref = NameReference.Create("x");

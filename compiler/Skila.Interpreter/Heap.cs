@@ -19,7 +19,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private const int debugTraceId = -1;
+        private const int debugTraceId = 59 ;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
         private int hostDisposables;

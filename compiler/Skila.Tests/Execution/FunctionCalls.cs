@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OptionalNoLimitsVariadicFunction()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("provider",NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
@@ -66,7 +66,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinMaxLimitVariadicFunction()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -105,7 +105,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinLimitVariadicFunction()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -144,7 +144,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NoLimitsVariadicFunction()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -183,7 +183,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinMaxLimitVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -230,7 +230,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinLimitVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -277,7 +277,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NoLimitsVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -325,7 +325,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter LambdaRecursiveCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
@@ -362,7 +362,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RecursiveCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
@@ -400,7 +400,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RawMethods()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -423,7 +423,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ReturningUnit()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -456,7 +456,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OptionalParameters()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -495,7 +495,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter UsingFunctionParameter()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -526,7 +526,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter LocalVariablesLeakCheck()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

@@ -15,26 +15,26 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DateDayOfWeek()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
+                NameFactory.NatTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("d",null,ExpressionFactory.StackConstructor(NameFactory.DateTypeReference(),
                         // it is Friday
                         Int16Literal.Create("2017"),Nat8Literal.Create("12"),Nat8Literal.Create("29"))),
                     VariableDeclaration.CreateStatement("i",null, 
-                        FunctionCall.ConvCall( NameReference.Create("d",NameFactory.DateDayOfWeekProperty),NameFactory.Int64TypeReference())),
+                        FunctionCall.ConvCall( NameReference.Create("d",NameFactory.DateDayOfWeekProperty),NameFactory.NatTypeReference())),
                     Return.Create(NameReference.Create("i"))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(5L, result.RetValue.PlainValue);
+            Assert.AreEqual(5UL, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -42,7 +42,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringToInt()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

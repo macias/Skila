@@ -288,6 +288,8 @@ namespace Skila.Language.Entities
                 this.ResultTypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx, VarianceMode.Out);
             }
 
+            if (!ctx.Env.Options.AllowInvalidMainResult && this==ctx.Env.MainFunction && this.ResultTypeName.Evaluation.Components != ctx.Env.Nat8Type.InstanceOf)
+                ctx.AddError(ErrorCode.MainFunctionInvalidResultType, this.ResultTypeName);
 
             if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
             {

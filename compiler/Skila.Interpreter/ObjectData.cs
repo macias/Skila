@@ -128,6 +128,8 @@ namespace Skila.Interpreter
         public UInt64 NativeNat64 => this.PlainValue.Cast<UInt64>();
         public byte NativeNat8 => this.PlainValue.Cast<byte>();
 
+        public UInt64 NativeNat => this.NativeNat64;
+
         internal VirtualTable InheritanceVirtualTable
         {
             get

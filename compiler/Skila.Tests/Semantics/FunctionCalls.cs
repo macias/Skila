@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorRegularFunctionWithSpreadCall()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -53,7 +53,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter VariadicFunctionWithMixedFormArguments()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -91,7 +91,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorVariadicFunctionMissingSpread()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -128,7 +128,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnqualifiedBaseConstructorCall()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
@@ -160,7 +160,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAmbiguousCallWithDistinctOutcomeTypes()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             var func1 = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("go"),
@@ -184,7 +184,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter BasicStaticMethodCall()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var func_def = FunctionBuilder.Create(
@@ -216,7 +216,7 @@ namespace Skila.Tests.Semantics
             {
                 DiscardingAnyExpressionDuringTests = true,
                 GlobalVariables = true,
-                TypelessVariablesDuringTests = true
+                RelaxedMode = true
             });
             var root_ns = env.Root;
 
@@ -292,7 +292,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnchainedBase()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
@@ -381,7 +381,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingSelfFunctionByFunctioName()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             NameReference self_function_reference = NameReference.Create("foo");
@@ -402,7 +402,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorBasicFunctionCall()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
@@ -431,7 +431,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingNonFunction()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             NameReference non_func_ref = NameReference.Create("i");
@@ -454,7 +454,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter MultipleVariadicParameters()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null, false,
@@ -490,7 +490,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ArbitraryOptional()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None,
@@ -522,7 +522,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter NonOptionalVariadicParameters()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
@@ -549,7 +549,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InvalidNumberForVariadicParameter()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(3, 5), null,
@@ -601,7 +601,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuplicateArgumentsCall()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -632,7 +632,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DirectArgumentMapping()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
@@ -738,7 +738,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperFunctionCallTypeInference()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -765,7 +765,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateDirectArgumentMapping()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -873,7 +873,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateResultType()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo", TemplateParametersBuffer.Create()
@@ -904,7 +904,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CallingFunctionWithOptionalParameters()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),

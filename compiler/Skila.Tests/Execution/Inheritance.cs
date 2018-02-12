@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InheritingEnums()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
@@ -29,22 +29,25 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
+                NameFactory.NatTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameReference.Create("Weekend"),  
                        // please note we only refer to "Sat" through "First", the type is still "Weekend"
                         NameReference.Create("First","Sat")),
-                    VariableDeclaration.CreateStatement("b",NameReference.Create("First"), NameReference.Create("Weekend","Sun"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("b",NameReference.Create("First"), NameReference.Create("Weekend","Sun"),
+                        EntityModifier.Reassignable),
                     Assignment.CreateStatement(NameReference.Create("b"),NameReference.Create("First","Mon")),
-                    VariableDeclaration.CreateStatement("x",null, FunctionCall.ConvCall(NameReference.Create("a"),NameFactory.Int64TypeReference())),
-                    VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),NameFactory.Int64TypeReference())),
+                    VariableDeclaration.CreateStatement("x",null, FunctionCall.ConvCall(NameReference.Create("a"),
+                        NameFactory.NatTypeReference())),
+                    VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),
+                        NameFactory.NatTypeReference())),
                     Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
                 })));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+            Assert.AreEqual(2UL, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -52,7 +55,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TypeUnion()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
@@ -94,7 +97,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TypeIntersection()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -146,7 +149,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter VirtualCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("MyBase")
@@ -191,7 +194,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter VirtualCallAtBase()
         {
-            var env = Environment.Create(new Options() { ReferencingBase = true });
+            var env = Environment.Create(new Options() { ReferencingBase = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IBase")

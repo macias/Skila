@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CheckingHostTraitRuntimeType()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -59,7 +59,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CheckingTraitRuntimeType()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -106,7 +106,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CallingTraitMethodViaInterface()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -154,7 +154,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CallingTraitMethod()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -201,7 +201,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter HasConstraintWithPointer()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
@@ -243,7 +243,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter HasConstraintWithValue()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),

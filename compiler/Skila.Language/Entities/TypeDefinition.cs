@@ -136,7 +136,7 @@ namespace Skila.Language.Entities
                     .Sum(it => it.NestedFields.Count(f => f.Modifier.HasEnum));
 
                 foreach (VariableDeclaration decl in this.NestedFields.Where(it => it.Modifier.HasEnum))
-                    zero_constructor.UserBody.Append(decl.CreateFieldInitCall(Int64Literal.Create($"{enum_ord++}")));
+                    zero_constructor.UserBody.Append(decl.CreateFieldInitCall(NatLiteral.Create($"{enum_ord++}")));
 
             }
 

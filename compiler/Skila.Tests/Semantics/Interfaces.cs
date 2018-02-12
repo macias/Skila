@@ -47,12 +47,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuckTypingInterfaces()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = true, DiscardingAnyExpressionDuringTests = true });
+            return duckTyping(new Options() { InterfaceDuckTyping = true, DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = false, DiscardingAnyExpressionDuringTests = true });
+            return duckTyping(new Options() { InterfaceDuckTyping = false, DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
         }
 
         private IErrorReporter duckTyping(IOptions options)
@@ -99,13 +99,13 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuckTypingInterfaceValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  DiscardingAnyExpressionDuringTests = true });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
         }
 
         [TestMethod]
         public IErrorReporter ErrorDuckTypingProtocolValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , DiscardingAnyExpressionDuringTests = true });
+            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
         }
 
         private IErrorReporter errorDuckTypingValues(IOptions options)

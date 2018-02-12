@@ -146,7 +146,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableMethodCallingMutable()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             FunctionCall call = FunctionCall.Create(NameReference.CreateThised("mutator"));
@@ -170,7 +170,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingMutablesOnNeutral()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
@@ -205,7 +205,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableMethodAlteringData()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), Int64Literal.Create("5"));
@@ -230,7 +230,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutableMethodInImmutableType()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             Property property = PropertyBuilder.Create("bar", NameFactory.Int64TypeReference())
@@ -254,7 +254,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutabilityLaunderingOnReturn()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
 
@@ -391,7 +391,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableTypes()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -417,7 +417,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TransitiveMutability()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
@@ -478,7 +478,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutableGlobalVariables()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, TypelessVariablesDuringTests = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -504,7 +504,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixedInheritance()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")

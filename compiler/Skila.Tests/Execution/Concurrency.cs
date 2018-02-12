@@ -16,7 +16,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChannelDeadLockOnSend()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -41,7 +41,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChannelDeadLockOnReceive()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -65,7 +65,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter SingleMessage()
         {
-            var env = Language.Environment.Create();
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

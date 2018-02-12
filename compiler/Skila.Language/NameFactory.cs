@@ -58,6 +58,8 @@ namespace Skila.Language
         public const string DateTypeName = "Date";
         public const string DateDayOfWeekProperty = "dayOfWeek";
 
+        public const string MainFunctionName = "main";
+
         public const string DayOfWeekTypeName = "DayOfWeek";
         public const string SundayDayOfWeekTypeName = "sunday";
         public const string MondayDayOfWeekTypeName = "monday";
@@ -280,17 +282,9 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
-        {
-            return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
-        }
         public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
-        }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
-        {
-            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
         public static NameReference IIteratorTypeReference(INameReference templateTypeName)
         {
@@ -317,15 +311,23 @@ namespace Skila.Language
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
-        public static NameReference IIterableTypeReference(string templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
-            return IIterableTypeReference(NameReference.Create(templateParamName), mutability);
+            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
+        }
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        {
+            return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
+        }
+        public static NameReference IIterableTypeReference(string templateParamName,
+            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        {
+            return IIterableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
         public static NameReference IIterableTypeReference(NameReference templateParamName,
-            MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
+            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
         }
 

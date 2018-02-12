@@ -182,7 +182,7 @@ namespace Skila.Tests.Semantics
             {
                 DiscardingAnyExpressionDuringTests = true,
                 GlobalVariables = true,
-                TypelessVariablesDuringTests = true
+                RelaxedMode = true
             });
             var root_ns = env.Root;
 
@@ -304,7 +304,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ImplicitValueReferenceConversionOnCall()
         {
-            var env = Environment.Create();
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

@@ -62,16 +62,17 @@ namespace Skila.Interpreter
             else if (func.Name.Name == NameFactory.EqualOperator)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
-                var this_int = this_value.NativeInt64;
-                var arg_int = arg.NativeInt64;
+                var this_int = this_value.NativeNat;
+                var arg_int = arg.NativeNat;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components, this_int == arg_int).ConfigureAwait(false));
                 return result;
             }
             else if (func.Name.Name == NameFactory.ConvertFunctionName)
             {
-                if (ctx.Env.IsIntType(func.ResultTypeName.Evaluation.Components))
+                if (ctx.Env.IsNatType(func.ResultTypeName.Evaluation.Components))
                 {
-                    ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components, this_value.PlainValue).ConfigureAwait(false);
+                    ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
+                        this_value.PlainValue).ConfigureAwait(false);
                     return ExecValue.CreateReturn(result);
                 }
                 else
@@ -279,7 +280,7 @@ namespace Skila.Interpreter
                 ObjectData day_obj = this_value.GetField(ctx.Env.DateDayField);
                 var day = day_obj.NativeNat8;
 
-                Int64 day_of_week = (Int64)(new DateTime(year, month, day).DayOfWeek);
+                UInt64 day_of_week = (UInt64)(new DateTime(year, month, day).DayOfWeek);
 
                 ObjectData ret_obj = await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components, day_of_week).ConfigureAwait(false);
