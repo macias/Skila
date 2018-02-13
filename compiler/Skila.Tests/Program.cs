@@ -17,7 +17,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -27,12 +27,12 @@ namespace Skila.Tests
             //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
-            //new Semantics.Mutability().ErrorForcingConst();
+            new Semantics.Mutability().ErrorCastingWithMutabilityChange();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
             //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
-            //new Semantics.TypeMatchingTest().ErrorIsTypeAlienSealed();
+            //new Semantics.TypeMatchingTest().ErrorTestingValueType();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 

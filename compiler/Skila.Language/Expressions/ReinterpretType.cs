@@ -35,7 +35,7 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"({RhsTypeName}){Lhs}"; 
+            string result = $"({RhsTypeName}){Lhs}";
             return result;
         }
 
@@ -48,6 +48,22 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
                 this.Evaluation = this.RhsTypeName.Evaluation;
+        }
+
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
+
+            if (this.DebugId.Id == 7)
+            {
+                ;
+            }
+
+            // we can do whatever but we cannot shake off the const/neutral off
+            MutabilityFlag lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
+            MutabilityFlag rhs_mutability = this.RhsTypeName.Evaluation.Components.MutabilityOfType(ctx);
+            if (!TypeMatcher.MutabilityMatches(lhs_mutability, rhs_mutability))
+                ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
         }
     }
 }

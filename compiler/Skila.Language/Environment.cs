@@ -406,7 +406,7 @@ namespace Skila.Language
             }
         }
 
-        private void createSpreads(out FunctionDefinition spread_min, out FunctionDefinition spread_min_max)
+        private void createSpreads(out FunctionDefinition spreadMin, out FunctionDefinition spreadMinMax)
         {
             Func<IfBranch> make_solid = () => IfBranch.CreateIf(ExpressionFactory.Not(IsType.Create(NameReference.Create("coll"), 
                 NameFactory.ISequenceTypeReference("T"))),
@@ -419,7 +419,7 @@ namespace Skila.Language
             // todo: take iterables as input and convert them to sequence (all spreads)
 
             // with min limit
-                spread_min = FunctionBuilder.Create(
+                spreadMin = FunctionBuilder.Create(
                         NameDefinition.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                    new[] {
                         FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
@@ -442,7 +442,7 @@ namespace Skila.Language
                     ));
 
             // with min+max limit
-                spread_min_max = FunctionBuilder.Create(NameDefinition.Create(
+                spreadMinMax = FunctionBuilder.Create(NameDefinition.Create(
                         NameFactory.SpreadFunctionName, "T", VarianceMode.None),
                     new[] {
                         FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(  NameFactory.ISequenceTypeReference("T",

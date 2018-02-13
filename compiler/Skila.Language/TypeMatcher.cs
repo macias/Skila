@@ -83,7 +83,7 @@ namespace Skila.Language
                         ;
                     }
 
-                    TypeMatch m = input.MatchesTarget(ctx, conv_type, TypeMatching.Create(conv_slicing_sub));
+                    TypeMatch m = input.MatchesTarget(ctx, conv_type, matching.WithSlicing(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.InConversion;
                 }
@@ -98,7 +98,7 @@ namespace Skila.Language
                     int target_dereferences = ctx.Env.Dereference(target, out IEntityInstance inner_target_type);
                     int input_dereferences = ctx.Env.Dereference(input, out IEntityInstance inner_input_type);
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, TypeMatching.Create(allowSlicing: true));
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching.WithSlicing(true));
                     if (target_dereferences > input_dereferences && m != TypeMatch.No)
                         m |= TypeMatch.ImplicitReference;
                     return m;
@@ -107,7 +107,7 @@ namespace Skila.Language
                 {
                     ctx.Env.Dereferenced(target, out IEntityInstance inner_target_type);
 
-                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, TypeMatching.Create(allowSlicing: true));
+                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, matching.WithSlicing(true));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m | TypeMatch.ImplicitReference;
                 }
@@ -125,7 +125,7 @@ namespace Skila.Language
                 {
                     ctx.Env.DereferencedOnce(input, out IEntityInstance inner_input_type, out bool dummy);
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true));
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, target, matching.WithSlicing(true));
                     if (m.HasFlag(TypeMatch.Same) || m.HasFlag(TypeMatch.Substitute))
                         return m | TypeMatch.AutoDereference;
                 }
@@ -144,7 +144,7 @@ namespace Skila.Language
                         ;
                     }
 
-                    TypeMatch m = conv_type.MatchesTarget(ctx, target, TypeMatching.Create(conv_slicing_sub));
+                    TypeMatch m = conv_type.MatchesTarget(ctx, target, matching.WithSlicing(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return TypeMatch.OutConversion;
                 }
@@ -178,7 +178,8 @@ namespace Skila.Language
                         // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
                         MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
-                        if (!mutabilityMatches(input_mutability, target_mutability))
+                        if (!matching.IgnoreMutability 
+                            && !MutabilityMatches(input_mutability, target_mutability))
                             return TypeMatch.Mismatched(mutability: true);
                         else if (input == target)
                             return TypeMatch.Same;
@@ -197,7 +198,7 @@ namespace Skila.Language
                 // since we compare only enums here we allow slicing (because it is not slicing, just passing single int)
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
                     .Concat(target.Inheritance(ctx).OrderedTypeAncestorsIncludingObject)
-                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), matching.EnabledSlicing());
+                    .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), matching.WithSlicing(true));
 
                 if (m != TypeMatch.No)
                     return m;
@@ -221,7 +222,7 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
-        private static bool mutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
+        internal static bool MutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
         {
             switch (inputMutability)
             {
@@ -260,7 +261,8 @@ namespace Skila.Language
                 if (match)
                 {
                     MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
-                    if (!mutabilityMatches(target_mutability, input_mutability))
+                    if (!matching.IgnoreMutability 
+                        && !MutabilityMatches(target_mutability, input_mutability))
                         return TypeMatch.Mismatched(mutability: true);
                     else if (input == target)
                         return TypeMatch.Same;
@@ -395,7 +397,7 @@ namespace Skila.Language
 
             if (is_input_sealed)
             {
-                TypeMatch match = input.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true));
+                TypeMatch match = input.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true).WithIgnoredMutability( true));
 
                 // example: we cannot check if x (of Int) is IAlien because Int is sealed and there is no way
                 // it could be something else not available in its inheritance tree

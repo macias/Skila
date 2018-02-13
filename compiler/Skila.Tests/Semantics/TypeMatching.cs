@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsTypeAlienSealed()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
@@ -45,7 +45,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true   });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"),
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, init_value),
                     ExpressionFactory.Readout("a")
@@ -89,7 +89,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
@@ -111,7 +111,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("wrapper"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("f", NameReference.Create("Foo"),
                         initValue: Undef.Create()),
@@ -129,7 +129,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTestingValueType()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options()
+            {
+                GlobalVariables = true,
+                RelaxedMode = true,
+                DiscardingAnyExpressionDuringTests = true
+            });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -139,10 +144,21 @@ namespace Skila.Tests.Semantics
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
+            IsType is_type_ref = IsType.Create(NameReference.Create("u"), NameFactory.ISequenceTypeReference("G"));
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create( "more","G",VarianceMode.None), 
+                NameFactory.UnitTypeReference(), 
+                Block.CreateStatement(
+                ExpressionFactory.Readout(is_type_ref)
+                ))
+                .Parameters(FunctionParameter.Create("u",NameFactory.ReferenceTypeReference(
+                    NameFactory.ISequenceTypeReference( "G", overrideMutability: MutabilityFlag.Neutral)))));
+
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type_ref));
+
             return resolver;
         }
         [TestMethod]
@@ -209,7 +225,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true  });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -221,7 +237,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     decl,
                     ExpressionFactory.Readout("foo")
@@ -262,7 +278,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(), 
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(),
                 modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
@@ -294,7 +310,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InheritanceMatching()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -330,7 +346,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConstraintsMatching()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -387,7 +403,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter UnionMatching()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

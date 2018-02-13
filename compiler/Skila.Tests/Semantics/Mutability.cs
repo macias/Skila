@@ -1,17 +1,63 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NaiveLanguageTools.Common;
 using Skila.Language;
 using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Extensions;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
+using System.Linq;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
     public class Mutability
     {
+        [TestMethod]
+        public IErrorReporter ErrorCastingWithMutabilityChange()
+        {
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Alien")
+                .Modifier(EntityModifier.Mutable));
+
+            // since Alien is mutable it looks like we try to shake off neutral flag
+            IExpression bad_cast = ExpressionFactory.DownCast(NameReference.Create("x"),
+                            NameFactory.PointerTypeReference(NameReference.Create("Alien")));
+            ReinterpretType bad_reinterpret = bad_cast.DescendantNodes().WhereType<ReinterpretType>().Single();
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("foo"), null,
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("x",
+
+                        NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference(MutabilityFlag.Neutral)),
+                        Undef.Create()),
+                    VariableDeclaration.CreateStatement("c", null, bad_cast),
+                    ExpressionFactory.Readout("c"),
+
+                    VariableDeclaration.CreateStatement("ok", null,
+                        ExpressionFactory.DownCast(NameReference.Create("x"),
+                            NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral, "Alien")))),
+                    ExpressionFactory.Readout("ok")
+            )));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, bad_reinterpret));
+
+            return resolver;
+        }
+
+
         [TestMethod]
         public IErrorReporter ErrorAbusingForcedConst()
         {
@@ -146,7 +192,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableMethodCallingMutable()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             FunctionCall call = FunctionCall.Create(NameReference.CreateThised("mutator"));
@@ -170,7 +216,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingMutablesOnNeutral()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
@@ -205,7 +251,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableMethodAlteringData()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), Int64Literal.Create("5"));
@@ -230,7 +276,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutableMethodInImmutableType()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             Property property = PropertyBuilder.Create("bar", NameFactory.Int64TypeReference())
@@ -254,7 +300,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMutabilityLaunderingOnReturn()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
 
@@ -391,7 +437,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorImmutableTypes()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -417,7 +463,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TransitiveMutability()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("m", NameReference.Create("T"),
@@ -504,7 +550,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixedInheritance()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")

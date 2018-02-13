@@ -45,48 +45,53 @@ namespace Skila.Language.Expressions
         public override void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
-            {
                 this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf);
+        }
 
-                if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
+
+            if (this.DebugId.Id==8)
+            {
+                ;
+            }
+            if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
+            {
+                TypeMatch lhs_rhs_match = this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components,
+                    TypeMatching.Create(allowSlicing: true).WithIgnoredMutability( true));
+
+                if (lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute))
+                    // checking if x (of String) is Object does not make sense
+                    ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
+                else
                 {
-                    TypeMatch lhs_rhs_match = this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components,
-                        TypeMatching.Create(allowSlicing: true));
-
-                    if (lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute))
-                        // checking if x (of String) is Object does not make sense
-                        ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
-                    else
+                    if (this.DebugId.Id == 2)
                     {
-                        if (this.DebugId.Id==2)
-                        {
-                            ;
-                        }
-                        if (!TypeMatcher.InterchangeableTypes(ctx,this.Lhs.Evaluation.Components,this.RhsTypeName.Evaluation.Components))
-                            ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
+                        ;
+                    }
+                    if (!TypeMatcher.InterchangeableTypes(ctx, this.Lhs.Evaluation.Components, this.RhsTypeName.Evaluation.Components))
+                        ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
 
-                        foreach (EntityInstance instance in this.Lhs.Evaluation.Components.EnumerateAll())
-                        {
-                            if (!instance.Target.IsType())
-                                continue;
+                    foreach (EntityInstance instance in this.Lhs.Evaluation.Components.EnumerateAll())
+                    {
+                        if (!instance.Target.IsType())
+                            continue;
 
-                            // this error is valid as long we don't allow mixes of value types, like "Int|Bool"
-                            if (!instance.TargetType.AllowSlicedSubstitution)
-                            {
-                                // value types are known in advance (in compilation time) so checking their types
-                                // in runtime does not make sense
-                                ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
-                                break;
-                            }
+                        // this error is valid as long we don't allow mixes of value types, like "Int|Bool"
+                        if (!instance.TargetType.AllowSlicedSubstitution)
+                        {
+                            // value types are known in advance (in compilation time) so checking their types
+                            // in runtime does not make sense
+                            ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
+                            break;
                         }
                     }
                 }
-                else
-                    ctx.AddError(ErrorCode.TestingAgainstTypeSet, this.RhsTypeName);
-
             }
+            else
+                ctx.AddError(ErrorCode.TestingAgainstTypeSet, this.RhsTypeName);
         }
 
-      
     }
 }

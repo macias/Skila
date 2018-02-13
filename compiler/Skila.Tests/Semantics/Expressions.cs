@@ -16,16 +16,16 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsSameOnValues()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
             root_ns.AddBuilder(FunctionBuilder.Create("foo",
                 NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("x", null, 
+                    VariableDeclaration.CreateStatement("x", null,
                         ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2"))),
-                    Return.Create(IsSame.Create(NameReference.Create("x"),value))
+                    Return.Create(IsSame.Create(NameReference.Create("x"), value))
             )));
 
 
@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDereferencingValue()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
@@ -64,7 +64,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDiscardingNonFunctionCall()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             IExpression discard = ExpressionFactory.Readout("c");
@@ -115,6 +115,7 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
+
         [TestMethod]
         public IErrorReporter ErrorAddressingRValue()
         {
@@ -212,7 +213,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningSimpleRValues()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -243,7 +244,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningCompoundRValues()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -302,7 +303,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnusedExpression()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -330,7 +331,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSelfAssignment()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
