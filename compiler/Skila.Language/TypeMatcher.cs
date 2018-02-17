@@ -19,7 +19,7 @@ namespace Skila.Language
 
             TypeDefinition target_type = target.TargetType;
 
-            if (matches || (!(ctx.Env.Options.InterfaceDuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
+            if (matches || (!(matching.DuckTyping && target_type.IsInterface) && !target_type.IsProtocol))
                 return matches;
 
             VirtualTable vtable = EntityInstanceExtension.BuildDuckVirtualTable(ctx, input, target, allowPartial: false);
@@ -56,7 +56,7 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
-            if (input.DebugId.Id == 88480 && target.DebugId.Id == 27504)
+            if (input.DebugId.Id == 12494 && target.DebugId.Id == 12498)
             {
                 ;
             }
@@ -154,7 +154,7 @@ namespace Skila.Language
                 matching.AllowSlicing = true;
 
 
-            if (input.DebugId.Id == 88465 && target.DebugId.Id == 27494)
+            if (input.DebugId.Id == 12494 && target.DebugId.Id == 12498)
             {
                 ;
             }
@@ -178,7 +178,7 @@ namespace Skila.Language
                         // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
                         MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
-                        if (!matching.IgnoreMutability 
+                        if (!matching.IgnoreMutability
                             && !MutabilityMatches(input_mutability, target_mutability))
                             return TypeMatch.Mismatched(mutability: true);
                         else if (input == target)
@@ -261,7 +261,7 @@ namespace Skila.Language
                 if (match)
                 {
                     MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
-                    if (!matching.IgnoreMutability 
+                    if (!matching.IgnoreMutability
                         && !MutabilityMatches(target_mutability, input_mutability))
                         return TypeMatch.Mismatched(mutability: true);
                     else if (input == target)
@@ -278,6 +278,19 @@ namespace Skila.Language
             IEntityInstance anyTypeA, IEntityInstance anyTypeB,
             out IEntityInstance result)
         {
+            bool a_dereferenced, b_dereferenced;
+            bool via_pointer = false;
+            {
+                a_dereferenced = ctx.Env.DereferencedOnce(anyTypeA, out IEntityInstance deref_a, out bool a_via_pointer);
+                b_dereferenced = ctx.Env.DereferencedOnce(anyTypeA, out IEntityInstance deref_b, out bool b_via_pointer);
+                if (a_dereferenced && b_dereferenced)
+                {
+                    anyTypeA = deref_a;
+                    anyTypeB = deref_b;
+                    via_pointer = a_via_pointer && b_via_pointer;
+                }
+            }
+
             var type_a = anyTypeA as EntityInstance;
             var type_b = anyTypeB as EntityInstance;
             if (type_a == null)
@@ -307,6 +320,8 @@ namespace Skila.Language
 
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
+            if (result != null && a_dereferenced && b_dereferenced)
+                result = ctx.Env.Reference(result, MutabilityFlag.ConstAsSource, null, via_pointer);
             return result != null;
         }
 
@@ -397,7 +412,7 @@ namespace Skila.Language
 
             if (is_input_sealed)
             {
-                TypeMatch match = input.MatchesTarget(ctx, target, TypeMatching.Create(allowSlicing: true).WithIgnoredMutability( true));
+                TypeMatch match = input.MatchesTarget(ctx, target, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true).WithIgnoredMutability(true));
 
                 // example: we cannot check if x (of Int) is IAlien because Int is sealed and there is no way
                 // it could be something else not available in its inheritance tree

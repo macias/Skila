@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructor(typename,out cons_ref)),
@@ -47,12 +47,25 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuckTypingInterfaces()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = true, DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            return duckTyping(new Options()
+            {
+                InterfaceDuckTyping = true,
+                DiscardingAnyExpressionDuringTests = true,
+                AllowInvalidMainResult = true,
+                DebugThrowOnError = true
+            });
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
         {
-            return duckTyping(new Options() { InterfaceDuckTyping = false, DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            return duckTyping(new Options()
+            {
+                InterfaceDuckTyping = false,
+                DiscardingAnyExpressionDuringTests = true,
+                AllowInvalidMainResult = true,
+                DebugThrowOnError = true,
+                AllowProtocols = true,
+            });
         }
 
         private IErrorReporter duckTyping(IOptions options)
@@ -64,7 +77,7 @@ namespace Skila.Tests.Semantics
                  .With(FunctionBuilder.CreateDeclaration(
                      NameDefinition.Create("bar"),
                      ExpressionReadMode.OptionalUse,
-                     NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()))
+                     NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                      .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                  .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
@@ -99,13 +112,24 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuckTypingInterfaceValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = true,  DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            return errorDuckTypingValues(new Options()
+            {
+                InterfaceDuckTyping = true,
+                DiscardingAnyExpressionDuringTests = true,
+                AllowInvalidMainResult = true
+            });
         }
 
         [TestMethod]
         public IErrorReporter ErrorDuckTypingProtocolValues()
         {
-            return errorDuckTypingValues(new Options() { InterfaceDuckTyping = false , DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            return errorDuckTypingValues(new Options()
+            {
+                AllowProtocols = true,
+                InterfaceDuckTyping = false,
+                DiscardingAnyExpressionDuringTests = true,
+                AllowInvalidMainResult = true
+            });
         }
 
         private IErrorReporter errorDuckTypingValues(IOptions options)

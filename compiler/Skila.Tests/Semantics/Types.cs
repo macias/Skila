@@ -189,13 +189,13 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null,
+                .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null,
                     EntityModifier.Static | EntityModifier.Public)));
 
             NameReference field_ref = NameReference.Create("f", "field");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                                 ExpressionReadMode.OptionalUse,
-                                NameFactory.DoubleTypeReference(),
+                                NameFactory.RealTypeReference(),
                                 Block.CreateStatement(new IExpression[] {
                                     VariableDeclaration.CreateStatement("f",NameReference.Create("Foo"),Undef.Create()),
                                     Return.Create(field_ref) })));
@@ -217,10 +217,10 @@ namespace Skila.Tests.Semantics
             NameReference field_ref1 = NameReference.Create("field");
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.DoubleTypeReference(), null, EntityModifier.Public))
+                .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null, EntityModifier.Public))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.DoubleTypeReference(),
+                    NameFactory.RealTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(field_ref1) }))
                     .Modifier(EntityModifier.Static)));
 
@@ -228,7 +228,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("some_func"), Enumerable.Empty<FunctionParameter>(),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.DoubleTypeReference(),
+                    NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {
                                     Return.Create(field_ref2) })));
 

@@ -13,6 +13,44 @@ namespace Skila.Tests.Execution
     public class Templates
     {
         [TestMethod]
+        public IInterpreter ResolvingGenericArgumentInRuntime()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("oracle", "O", VarianceMode.None),
+                ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(IsType.Create(NameReference.Create("thing"), NameReference.Create("O")))
+                ))
+                .Parameters(FunctionParameter.Create("thing", NameFactory.ReferenceTypeReference(NameFactory.IObjectTypeReference()))));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("i", null, ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("7"))),
+                    VariableDeclaration.CreateStatement("d", null, ExpressionFactory.HeapConstructor(NameFactory.RealTypeReference(), RealLiteral.Create("3.3"))),
+                    IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntTypeReference()),
+                        NameReference.Create("i")),
+                        new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("2")) }),
+                    IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntTypeReference()),
+                        NameReference.Create("d")),
+                        new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("88")) }),
+                    Return.Create(NameReference.Create("acc"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter CheckingHostTraitRuntimeType()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
@@ -41,7 +79,7 @@ namespace Skila.Tests.Execution
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
                     // just plain host, no trait is used
-                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
                     // we should have fail-test here
                     Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
@@ -89,10 +127,10 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+                    VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
-                    Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"),NameReference.Create("ISay")),
-                        Int64Literal.Create("2"),Int64Literal.Create("88")))
+                    Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
+                        Int64Literal.Create("2"), Int64Literal.Create("88")))
                 )));
 
             var interpreter = new Interpreter.Interpreter();
@@ -201,7 +239,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter HasConstraintWithPointer()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
@@ -243,7 +281,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter HasConstraintWithValue()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options()
+            {
+                AllowInvalidMainResult = true,
+                AllowProtocols = true,
+                DebugThrowOnError = true
+            });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),

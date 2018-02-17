@@ -37,6 +37,8 @@ namespace Skila.Interpreter
                 return await executeNativeNat8FunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             else if (owner_type == ctx.Env.Nat64Type)
                 return await executeNativeNat64FunctionAsync(ctx, func, this_value).ConfigureAwait(false);
+            else if (owner_type == ctx.Env.Real64Type)
+                return await executeNativeReal64FunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             else if (owner_type == ctx.Env.IObjectType)
                 return await executeNativeIObjectFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             else if (owner_type == ctx.Env.BoolType)
@@ -106,47 +108,6 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
         }
 
-        private static async Task<ExecValue> executeNativeRegexFunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData this_value)
-        {
-            if (func == ctx.Env.RegexContainsFunction)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                ObjectData arg_val = arg.DereferencedOnce();
-                string arg_str = arg_val.NativeString;
-
-                ObjectData pattern_obj = this_value.GetField(ctx.Env.RegexPatternField);
-                ObjectData pattern_val = pattern_obj.DereferencedOnce();
-                string pattern = pattern_val.NativeString;
-
-                bool val = new System.Text.RegularExpressions.Regex(pattern).IsMatch(arg_str);
-
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
-                    func.ResultTypeName.Evaluation.Components, val).ConfigureAwait(false));
-                return result;
-            }
-            else if (func == ctx.Env.RegexMatchFunction)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                ObjectData arg_val = arg.DereferencedOnce();
-                string arg_str = arg_val.NativeString;
-
-                ObjectData pattern_obj = this_value.GetField(ctx.Env.RegexPatternField);
-                ObjectData pattern_val = pattern_obj.DereferencedOnce();
-                string pattern = pattern_val.NativeString;
-
-                throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
-
-                // todo: continue work here!!!
-                bool val = new System.Text.RegularExpressions.Regex(pattern).IsMatch(arg_str);
-
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
-                    func.ResultTypeName.Evaluation.Components, val).ConfigureAwait(false));
-                return result;
-            }
-            else
-                throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
-        }
-
         private async Task<ExecValue> executeNativeFileFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
         {
             if (func == ctx.Env.FileReadLines)
@@ -186,22 +147,14 @@ namespace Skila.Interpreter
                     foreach (string s in lines)
                     {
                         ObjectData s_ptr = await allocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, string_ptr_instance, s).ConfigureAwait(false);
-                        if (!ctx.Heap.TryInc(ctx, s_ptr, $"building chunk with file lines"))
+                        if (!ctx.Heap.TryInc(ctx, s_ptr, RefCountIncReason.FileLine, $"{filepath}"))
                             throw new Exception($"{ExceptionCode.SourceInfo()}");
 
                         chunk[i] = s_ptr;
                         ++i;
                     }
 
-                    ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { string_ptr_instance },
-                        MutabilityFlag.ConstAsSource, null),
-                        chunk).ConfigureAwait(false);
-                    ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
-                        ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityFlag.ConstAsSource, null, viaPointer: true),
-                        chunk_obj).ConfigureAwait(false);
-                    if (!ctx.Heap.TryInc(ctx, chunk_ptr, $"chunk with file lines on heap"))
-                        throw new Exception($"{ExceptionCode.SourceInfo()}");
+                    ObjectData chunk_ptr = await createChunkOnHeap(ctx, string_ptr_instance, chunk).ConfigureAwait(false);
 
                     lines_obj = new Option<ObjectData>(chunk_ptr);
                 }
@@ -327,79 +280,5 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
         }
 
-        private async Task<ExecValue> executeNativeChunkFunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData this_value)
-        {
-            if (func == ctx.Env.ChunkSizeConstructor)
-            {
-                IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
-                ObjectData size_obj = ctx.FunctionArguments.Single();
-                var size = size_obj.NativeNat64;
-                ObjectData[] chunk = (await Task.WhenAll(Enumerable.Range(0, (int)size).Select(_ => ObjectData.CreateEmptyAsync(ctx, elem_type))).ConfigureAwait(false)).ToArray();
-                this_value.Assign(await createChunk(ctx, this_value.RunTimeTypeInstance, chunk).ConfigureAwait(false));
-                return ExecValue.CreateReturn(null);
-            }
-            else if (func == ctx.Env.ChunkResizeConstructor)
-            {
-                if (this_value.DebugId.Id == 184694)
-                {
-                    ;
-                }
-                IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
-                ObjectData size_obj = ctx.FunctionArguments[0];
-                var size = size_obj.NativeNat64;
-                ObjectData source_obj = ctx.FunctionArguments[1];
-                if (!source_obj.TryDereferenceAnyOnce(ctx.Env, out ObjectData val_obj))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                Chunk source = val_obj.PlainValue.Cast<Chunk>();
-
-                ObjectData[] chunk = new ObjectData[size];
-                var copy_size = Math.Min(size, source.Count);
-                for (UInt64 i = 0; i != copy_size; ++i)
-                {
-                    chunk[i] = source[i];
-                    ctx.Heap.TryInc(ctx, source[i], "copying chunk");
-                }
-                for (var i = copy_size; i < size; ++i)
-                {
-                    chunk[i] = await ObjectData.CreateEmptyAsync(ctx, elem_type).ConfigureAwait(false);
-                }
-                this_value.Assign(await createChunk(ctx, this_value.RunTimeTypeInstance, chunk).ConfigureAwait(false));
-                return ExecValue.CreateReturn(null);
-            }
-            else if (func == ctx.Env.ChunkAtSet)
-            {
-                ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
-                var idx = idx_obj.NativeNat64;
-                Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                ctx.Heap.TryRelease(ctx, chunk[idx], passingOutObject: null, callInfo: "replacing chunk elem");
-                ObjectData arg_ref_object = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
-                // indexer takes reference to element
-                if (!arg_ref_object.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_val))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                if (!ctx.Heap.TryInc(ctx, arg_val, "setting chunk elem"))
-                    arg_val = arg_val.Copy();
-                chunk[idx] = arg_val;
-                return ExecValue.CreateReturn(null);
-            }
-            else if (func == ctx.Env.ChunkAtGet)
-            {
-                ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
-                var idx = idx_obj.NativeNat64;
-                Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                ObjectData obj_value = chunk[idx];
-                // indexer returns reference to an element value
-                ObjectData obj_ref = await obj_value.ReferenceAsync(ctx).ConfigureAwait(false);
-                return ExecValue.CreateReturn(obj_ref);
-            }
-            else if (func == ctx.Env.ChunkCount)
-            {
-                Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    chunk.Count).ConfigureAwait(false);
-                return ExecValue.CreateReturn(result);
-            }
-            else
-                throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
-        }
     }
 }

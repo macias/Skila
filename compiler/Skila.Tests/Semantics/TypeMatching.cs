@@ -14,6 +14,40 @@ namespace Skila.Tests.Semantics
     public class TypeMatchingTest
     {
         [TestMethod]
+        public IErrorReporter DuckTypingOnEmptyInterface()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                // we test this option here or more precisely duck typing
+                InterfaceDuckTyping = true
+            });
+            var root_ns = env.Root;
+
+            // please note it is not the interface is empty (it is not because IObject is not empty), 
+            // but it does not add anything, so in this sense it is empty
+            root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()), Undef.Create()),
+                    // should be legal despite duck typing, i.e. we should not error that the types are exchangable
+                    // they are in sense of duck typing but checking if the type IS another type should be duck-free
+                    ExpressionFactory.Readout(IsType.Create(NameReference.Create("x"), NameReference.Create("IWhat"))),
+                    VariableDeclaration.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("IWhat")), Undef.Create()),
+                    ExpressionFactory.Readout(IsSame.Create(NameReference.Create("x"), NameReference.Create("y")))
+            )));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorIsTypeAlienSealed()
         {
             var env = Environment.Create(new Options() { });
@@ -45,7 +79,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { AllowProtocols = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -138,20 +172,20 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.DoubleTypeReference());
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.ObjectTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
+            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.RealTypeReference());
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IObjectTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
 
             IsType is_type_ref = IsType.Create(NameReference.Create("u"), NameFactory.ISequenceTypeReference("G"));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create( "more","G",VarianceMode.None), 
-                NameFactory.UnitTypeReference(), 
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("more", "G", VarianceMode.None),
+                NameFactory.UnitTypeReference(),
                 Block.CreateStatement(
                 ExpressionFactory.Readout(is_type_ref)
                 ))
-                .Parameters(FunctionParameter.Create("u",NameFactory.ReferenceTypeReference(
-                    NameFactory.ISequenceTypeReference( "G", overrideMutability: MutabilityFlag.Neutral)))));
+                .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceTypeReference(
+                    NameFactory.ISequenceTypeReference("G", overrideMutability: MutabilityFlag.Neutral)))));
 
             var resolver = NameResolver.Create(env);
 
@@ -168,8 +202,8 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()), initValue: Undef.Create(), modifier: EntityModifier.Public);
+            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()));
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()), initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
@@ -189,7 +223,7 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
@@ -209,8 +243,8 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.RealTypeReference()));
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Public);
             var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
@@ -225,7 +259,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -246,8 +280,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.MixingSlicingTypes, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(typename, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MixingSlicingTypes, typename));
 
             return resolver;
         }
@@ -258,9 +291,9 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.DoubleTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.RealTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
             NameReference foo_ref = NameReference.Create("foo");
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ObjectTypeReference(),
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.IObjectTypeReference(),
                 initValue: foo_ref, modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
@@ -278,7 +311,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create(),
                 modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
@@ -294,9 +327,9 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.DoubleTypeReference()),
+            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
                 initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()),
+            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
                 initValue: NameReference.Create("foo"), modifier: EntityModifier.Public);
             root_ns.AddNode(decl_src);
             root_ns.AddNode(decl_dst);
@@ -334,10 +367,14 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match, TypeMatching.Create(allowSlicing: true)));
-            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match, TypeMatching.Create(allowSlicing: true));
+            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match,
+                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match,
+                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match,
+                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match,
+                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
             Assert.AreNotEqual(TypeMatch.Same, match);
             Assert.AreNotEqual(TypeMatch.Substitute, match);
 
@@ -428,11 +465,11 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(TypeMatch.Substitute, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriv_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true)));
+                separate_deriv_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
             Assert.AreEqual(TypeMatch.Substitute, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_abc_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true)));
+                separate_abc_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
             TypeMatch match = sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriz_union.Evaluation.Components, TypeMatching.Create(allowSlicing: true));
+                separate_deriz_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
             Assert.AreNotEqual(TypeMatch.Same, match);
             Assert.AreNotEqual(TypeMatch.Substitute, match);
 

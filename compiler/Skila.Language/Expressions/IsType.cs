@@ -52,14 +52,14 @@ namespace Skila.Language.Expressions
         {
             base.Validate(ctx);
 
-            if (this.DebugId.Id==8)
+            if (this.DebugId.Id == 15)
             {
                 ;
             }
             if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
             {
                 TypeMatch lhs_rhs_match = this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components,
-                    TypeMatching.Create(allowSlicing: true).WithIgnoredMutability( true));
+                    TypeMatching.Create(duckTyping: false, allowSlicing: true).WithIgnoredMutability(true));
 
                 if (lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute))
                     // checking if x (of String) is Object does not make sense

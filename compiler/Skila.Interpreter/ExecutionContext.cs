@@ -22,6 +22,9 @@ namespace Skila.Interpreter
         public ObjectData ThisArgument { get; set; }
         public ObjectData[] FunctionArguments { get; set; }
         public IReadOnlyList<IEntityInstance> TemplateArguments { get; set; }
+
+        public TemplateTranslation Translation { get; set; }
+
         internal Heap Heap { get; }
         public RoutineRegistry Routines { get; }
         internal TypeRegistry TypeRegistry { get; }

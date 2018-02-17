@@ -165,6 +165,9 @@ namespace Skila.Language
         {
             if (this.HasConst && this.HasMutable)
                 ctx.AddError(ErrorCode.ConflictingModifier, this);
+
+            if (!ctx.Env.Options.AllowProtocols && this.HasProtocol)
+                ctx.AddError(ErrorCode.DisabledProtocols, this);
         }
     }
 

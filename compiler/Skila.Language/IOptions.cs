@@ -28,6 +28,8 @@ namespace Skila.Language
         // like for example field declarations with omitted typename, non-strict mode is not for promoting bad looking code
         // but rather to lower learning curve and allow beginners to start in more "open" environment
         bool RelaxedMode { get; }
+        // currently we consider protocols (and thus has-constraints) as obsolete features, so by default they are disabled
+        bool AllowProtocols { get; }
     }
 
     public static class IOptionsExtension

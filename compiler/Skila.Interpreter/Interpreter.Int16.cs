@@ -35,7 +35,8 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_int = arg.NativeInt16;
 
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int + arg_int))
+                Int16 value = (Int16)checked(this_int + arg_int);
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value)
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
@@ -47,7 +48,8 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_int = arg.NativeInt16;
 
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, this_int + arg_int)
+                Int16 value1 = (Int16)(this_int + arg_int);
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value1)
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
@@ -59,7 +61,8 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_int = arg.NativeInt16;
 
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int * arg_int))
+                Int16 value2 = (Int16)checked(this_int * arg_int);
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value2)
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
@@ -69,7 +72,8 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var this_int = thisValue.NativeInt16;
                 var arg_int = arg.NativeInt16;
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, checked(this_int - arg_int))
+                Int16 value3 = (Int16)checked(this_int - arg_int);
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value3)
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;

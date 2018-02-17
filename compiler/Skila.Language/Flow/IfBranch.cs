@@ -78,11 +78,6 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 4442)
-                {
-                    ;
-                }
-
                 this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
 
                 if (!this.branches.Any(it => it.IsElse))
@@ -121,6 +116,11 @@ namespace Skila.Language.Flow
 
         private bool computeLowestCommonAncestor(ComputationContext ctx, ref IEntityInstance eval, ref IEntityInstance aggregate)
         {
+            if (this.DebugId.Id == 28)
+            {
+                ;
+            }
+
             if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
             {
                 return false;
@@ -133,11 +133,11 @@ namespace Skila.Language.Flow
             {
                 foreach (IEvaluable part in new IEvaluable[] { Body, Next })
                 {
-                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, TypeMatching.Create(allowSlicing: false)) == TypeMatch.No)
+                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)) == TypeMatch.No)
                     {
                         return false;
                     }
-                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, TypeMatching.Create(allowSlicing: false)) == TypeMatch.No)
+                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)) == TypeMatch.No)
                     {
                         return false;
                     }

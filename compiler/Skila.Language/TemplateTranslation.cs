@@ -19,9 +19,38 @@ namespace Skila.Language
 
         public static readonly TemplateTranslation Empty = new TemplateTranslation(new Dictionary<TemplateParameter, IEntityInstance>());
 
+        public static TemplateTranslation Create(EntityInstance instance, IEnumerable<IEntityInstance> arguments)
+        {
+            if (arguments==null || !arguments.Any())
+                return instance.Translation;
+
+            Dictionary<TemplateParameter, IEntityInstance> dict = instance.Translation.table.ToDictionary(it => it.Key, it => it.Value);
+
+            // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
+            IReadOnlyList<TemplateParameter> parameters = instance.Target.Name.Parameters;
+            if (parameters.Any() && parameters.Count != arguments.Count())
+                throw new NotImplementedException();
+
+            bool trans = false;
+            foreach (var pair in parameters.SyncZip(arguments.Select(it => it)))
+            {
+                if (dict[pair.Item1] != pair.Item2)
+                {
+                    dict[pair.Item1] = pair.Item2;
+                    trans = true;
+                }
+            }
+
+            if (trans)
+                return new TemplateTranslation(dict);
+            else
+                return instance.Translation;
+        }
+
         public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments = null)
         {
-            var dict = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
+            Dictionary<TemplateParameter, IEntityInstance> dict;
+            dict = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
 
             foreach (TemplateDefinition template in entity.EnclosingScopesToRoot().WhereType<TemplateDefinition>())
             {
@@ -78,7 +107,7 @@ namespace Skila.Language
             return new TemplateTranslation(dict);
         }
 
-        internal static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
+        public static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
         {
             if (basic == null)
                 return overlay;

@@ -147,7 +147,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",null,Int64Literal.Create("1")),
                     VariableDeclaration.CreateStatement("b",null,Int64Literal.Create("2")),
-                    VariableDeclaration.CreateStatement("c",null,DoubleLiteral.Create("1")),
+                    VariableDeclaration.CreateStatement("c",null,RealLiteral.Create("1")),
                     VariableDeclaration.CreateStatement("x",null,
                         FunctionCall.Create(NameReference.Create("a",NameFactory.GetTypeFunctionName))),
                     VariableDeclaration.CreateStatement("y",null,

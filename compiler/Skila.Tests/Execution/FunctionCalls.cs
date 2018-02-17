@@ -13,6 +13,40 @@ namespace Skila.Tests.Execution
     public class FunctionCalls
     {
         [TestMethod]
+        public IInterpreter StoringSequenceAsSequence()
+        {
+            // todo: add analogous test with storing iterable as sequence
+            
+            // yes, this test seems like pointless thing but it is important nevertheless because
+            // we have to check if conversion does NOT happen
+            var env = Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                            FunctionArgument.Create(NatLiteral.Create("2"))),
+                        EntityModifier.Reassignable),
+                    ExpressionFactory.InitializeIndexable("x",Int64Literal.Create("-6"),Int64Literal.Create("8")),
+                    // conversion should NOT happen
+                    VariableDeclaration.CreateStatement("stored",null,
+                        FunctionCall.Create( NameFactory.StoreFunctionReference(),NameReference.Create("x"))),
+                    Return.Create(ExpressionFactory.Ternary(IsSame.Create("x","stored"),Nat8Literal.Create("2"),Nat8Literal.Create("7")))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter OptionalNoLimitsVariadicFunction()
         {
             var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });

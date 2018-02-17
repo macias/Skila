@@ -218,7 +218,11 @@ namespace Skila.Language.Expressions
         }
         public static IExpression IncBy(string name, string addName)
         {
-            return Assignment.CreateStatement(NameReference.Create(name), Add(NameReference.Create(name), NameReference.Create(addName)));
+            return IncBy(name, NameReference.Create(addName));
+        }
+        public static IExpression IncBy(string name, IExpression factor)
+        {
+            return Assignment.CreateStatement(NameReference.Create(name), Add(NameReference.Create(name), factor));
         }
         public static IExpression Mul(IExpression lhs, IExpression rhs)
         {

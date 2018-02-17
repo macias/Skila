@@ -85,7 +85,9 @@ namespace Skila.Language
         public const string RegexContainsFunctionName = "contains";
         public const string RegexMatchFunctionName = "match";
 
-        public const string DoubleTypeName = "Double";
+        public const string RealTypeName = "Real";
+        public const string Real64TypeName = "Real64";
+        public const string Real32TypeName = "Real32";
         public const string ThisVariableName = "this";
         public const string ItTypeName = "It";
         public const string BaseVariableName = "base";
@@ -145,6 +147,7 @@ namespace Skila.Language
         public const string OptionValue = "Value";
 
         public const string SpreadFunctionName = "spread";
+        public const string StoreFunctionName = "store";
         public const string ConvertFunctionName = "to";
         public const string InitConstructorName = "init";
         public const string ZeroConstructorName = "zero";
@@ -282,6 +285,10 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), SpreadFunctionName);
         }
+        public static NameReference StoreFunctionReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), StoreFunctionName);
+        }
         public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
@@ -368,7 +375,7 @@ namespace Skila.Language
             return NameReference.Create(MutabilityFlag.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference ObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference IObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, IObjectTypeName);
         }
@@ -435,9 +442,13 @@ namespace Skila.Language
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.RegexTypeName);
         }
-        public static NameReference DoubleTypeReference()
+        public static NameReference RealTypeReference()
         {
-            return NameReference.Create(NameReference.Root, NameFactory.DoubleTypeName);
+            return NameReference.Create(NameReference.Root, NameFactory.RealTypeName);
+        }
+        public static NameReference Real64TypeReference()
+        {
+            return NameReference.Create(NameReference.Root, NameFactory.Real64TypeName);
         }
         public static NameReference PointerTypeReference(INameReference name)
         {

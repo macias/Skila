@@ -64,8 +64,8 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.Create("f",
                      NameFactory.UnitTypeReference(),
                         Block.CreateStatement())
-                        .Parameters(FunctionParameter.Create("a", NameFactory.DoubleTypeReference(), ExpressionReadMode.CannotBeRead),
-                            FunctionParameter.Create("b", NameFactory.DoubleTypeReference(), ExpressionReadMode.CannotBeRead))));
+                        .Parameters(FunctionParameter.Create("a", NameFactory.RealTypeReference(), ExpressionReadMode.CannotBeRead),
+                            FunctionParameter.Create("b", NameFactory.RealTypeReference(), ExpressionReadMode.CannotBeRead))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
                     .Modifier(EntityModifier.Base)
@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                         Block.CreateStatement(
                             // unlike C++ this method is seen as regular overload
                             FunctionCall.Create(NameReference.CreateThised("f"),
-                                DoubleLiteral.Create("2.14"),DoubleLiteral.Create("3.17"))))));
+                                RealLiteral.Create("2.14"),RealLiteral.Create("3.17"))))));
 
             var resolver = NameResolver.Create(env);
 
@@ -360,9 +360,9 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                env.Int64Type.InstanceOf, env.DoubleType.InstanceOf, out IEntityInstance common);
+                env.Int64Type.InstanceOf, env.Real64Type.InstanceOf, out IEntityInstance common);
             Assert.IsTrue(found);
-            Assert.AreEqual(env.IObjectType.InstanceOf, common);
+            Assert.AreEqual(env.ComparableType.InstanceOf, common);
 
             return resolver;
         }
@@ -499,7 +499,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.PointerTypeReference(NameFactory.ObjectTypeReference()))
+                    NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                     .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                 .Modifier(EntityModifier.Interface));
 

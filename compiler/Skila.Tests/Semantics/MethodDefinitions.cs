@@ -22,8 +22,8 @@ namespace Skila.Tests.Semantics
             var func_def = FunctionBuilder.Create(
                 NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
                 ExpressionReadMode.OptionalUse,
-                NameFactory.DoubleTypeReference(),
-                Block.CreateStatement(new[] { Return.Create(DoubleLiteral.Create("3.3")) }));
+                NameFactory.RealTypeReference(),
+                Block.CreateStatement(new[] { Return.Create(RealLiteral.Create("3.3")) }));
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo").With(func_def));
 
@@ -49,9 +49,9 @@ namespace Skila.Tests.Semantics
                     })))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.DoubleTypeReference(),
+                    NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {
-                        Return.Create(DoubleLiteral.Create("3.3"))
+                        Return.Create(RealLiteral.Create("3.3"))
                     }))
                     .Modifier(EntityModifier.Base)));
 
@@ -77,10 +77,10 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.DoubleTypeReference(),
+                    NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {
                         constructor_call,
-                        Return.Create(DoubleLiteral.Create("3.3"))
+                        Return.Create(RealLiteral.Create("3.3"))
                     }))
                     .Modifier(EntityModifier.Base)));
 

@@ -20,6 +20,7 @@ namespace Skila.Interpreter
     {
 #if DEBUG
         public DebugId DebugId { get; }
+        private const int debugTraceId = -1;
 #endif
 
         internal static Task<ObjectData> CreateEmptyAsync(ExecutionContext ctx, IEntityInstance typeInstance)
@@ -127,6 +128,7 @@ namespace Skila.Interpreter
         public Int64 NativeInt64 => this.PlainValue.Cast<Int64>();
         public UInt64 NativeNat64 => this.PlainValue.Cast<UInt64>();
         public byte NativeNat8 => this.PlainValue.Cast<byte>();
+        public double NativeReal64 => this.PlainValue.Cast<double>();
 
         public UInt64 NativeNat => this.NativeNat64;
 
@@ -196,7 +198,7 @@ namespace Skila.Interpreter
         private ObjectData()
         {
             this.DebugId = new DebugId(typeof(ObjectData));
-            if (this.DebugId.Id==77)
+            if (this.DebugId.Id== debugTraceId)
             {
                 ;
             }
@@ -227,7 +229,7 @@ namespace Skila.Interpreter
 
         public override string ToString()
         {
-            return $"{this.RunTimeTypeInstance}";
+            return this.isFreed ? $"The object is disposed, id: {this.DebugId.Id}": $"{this.RunTimeTypeInstance}";
         }
 
         public ObjectData DereferencedOnce()
@@ -247,7 +249,7 @@ namespace Skila.Interpreter
             return self;
         }
 
-        internal bool Free(ExecutionContext ctx,ObjectData passingOut, bool destroy, string callInfo)
+        internal bool Free(ExecutionContext ctx,ObjectData passingOut,bool isPassingOut, bool destroy, string callInfo)
         {
             if (this.DebugId.Id == 182254)
             {
@@ -260,37 +262,39 @@ namespace Skila.Interpreter
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryRelease(ctx, field.Value, passingOut, callInfo: $"field of {callInfo}");
-            }
-
-            bool host_disposed = false;
-            if (this.data.IsNative)
-            {
-                if (this.PlainValue is IDisposable d)
-                {
-                    d.Dispose();
-                    host_disposed = true;
-                }
-
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut,isPassingOut, reason: RefCountDecReason.FreeField, callInfo: $"{callInfo}");
             }
 
             if (this.PlainValue is Chunk chunk)
             {
                 for (UInt64 i = 0; i != chunk.Count; ++i)
-                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut, callInfo: $"chunk elem of {callInfo}");
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut,isPassingOut, reason: RefCountDecReason.FreeChunkElem, callInfo: $"{callInfo}");
             }
 
-            this.setData(null);
+            bool host_disposed = false;
 
             if (destroy)
+            {
+                if (this.data.IsNative)
+                {
+                    if (this.PlainValue is IDisposable d)
+                    {
+                        d.Dispose();
+                        host_disposed = true;
+                    }
+
+                }
+
+                this.setData(null);
                 this.isFreed = true;
+            }
 
             return host_disposed;
         }
 
         private void setData(Data data)
         {
-            if (this.DebugId.Id==77)
+            if (this.DebugId.Id== debugTraceId)
             {
                 ;
             }

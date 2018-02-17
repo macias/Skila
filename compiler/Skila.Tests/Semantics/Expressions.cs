@@ -90,7 +90,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCastingToSet()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true });
             var root_ns = env.Root;
 
             NameReferenceUnion type_set = NameReferenceUnion.Create(
@@ -102,7 +102,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.UnitTypeReference(),
 
                 Block.CreateStatement(new[] {
-                    VariableDeclaration.CreateStatement("x", NameFactory.ObjectTypeReference(), Undef.Create()),
+                    VariableDeclaration.CreateStatement("x", NameFactory.IObjectTypeReference(), Undef.Create()),
                     VariableDeclaration.CreateStatement("c", null,ExpressionFactory.DownCast(NameReference.Create("x"), type_set)),
                     ExpressionFactory.Readout("c"),
             })));
@@ -194,9 +194,9 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), new[] {
                     FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
-                NameFactory.DoubleTypeReference(),
+                NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {
-                    Return.Create(DoubleLiteral.Create("3.3")) })));
+                    Return.Create(RealLiteral.Create("3.3")) })));
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
             var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));

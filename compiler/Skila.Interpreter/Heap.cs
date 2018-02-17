@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
+using Skila.Language.Entities;
 
 namespace Skila.Interpreter
 {
@@ -19,7 +20,8 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private const int debugTraceId = 59 ;
+        private const int debugTraceId = -1;
+        private int debugActionCount = 0;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
         private int hostDisposables;
@@ -45,7 +47,9 @@ namespace Skila.Interpreter
             }
 
             if (obj.DebugId.Id == debugTraceId)
-                Console.WriteLine($"Allocating object");
+            {
+                print(0, 0, "", "Allocating object");
+            }
 
             lock (this.threadLock)
             {
@@ -55,18 +59,19 @@ namespace Skila.Interpreter
 
         internal bool TryRelease(ExecutionContext ctx, ObjectData releasingObject,
             // the object which is passed out of the block 
-            ObjectData passingOutObject, string callInfo)
+            ObjectData passingOutObject, bool isPassingOut,RefCountDecReason reason, string callInfo)
         {
-            bool is_passing_out_now = releasingObject == passingOutObject;
+            if (releasingObject == passingOutObject)
+                isPassingOut = true;
 
             if (!ctx.Env.IsPointerOfType(releasingObject.RunTimeTypeInstance))
             {
-                if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance) && !is_passing_out_now)
+                if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance))
                 {
                     if (releasingObject.DebugId.Id == debugTraceId)
-                        Console.WriteLine($"VAL-DEL{(is_passing_out_now ? "/OUT" : "")} {callInfo}");
+                        print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}", callInfo);
                     // removing valued-objects
-                    freeObjectData(ctx, releasingObject, passingOutObject, false, $"as value {callInfo}");
+                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, false, $"as value {callInfo}");
                 }
                 return false;
             }
@@ -92,31 +97,52 @@ namespace Skila.Interpreter
                 if (count < 0)
                     throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-                if (count == 0 && !is_passing_out_now)
+                if (count == 0 && !isPassingOut)
                 {
                     this.refCounts.Remove(releasingObject);
-                    freeObjectData(ctx, releasingObject, passingOutObject, true, callInfo);
+                    freeObjectData(ctx, releasingObject, passingOutObject,isPassingOut, true, callInfo);
                 }
                 else
                     this.refCounts[releasingObject] = count;
             }
 
             if (releasingObject.DebugId.Id == debugTraceId)
-                Console.WriteLine($"DEC{(is_passing_out_now ? "/OUT" : "")} {count}  {callInfo}");
+            {
+                if (debugActionCount == 15)
+                {
+                    ;
+                }
+                print(count, -1, $"DEC{(isPassingOut ? "/OUT" : "")}", $"{reason} {callInfo}");
+            }
 
             return true;
         }
 
-        private void freeObjectData(ExecutionContext ctx, ObjectData obj, ObjectData passingOut, bool destroy, string callInfo)
+        private void freeObjectData(ExecutionContext ctx, ObjectData obj, ObjectData passingOut, bool isPassingOut, bool destroy, string callInfo)
         {
             lock (this.threadLock)
             {
-                if (obj.Free(ctx, passingOut, destroy, callInfo))
+                if (obj.Free(ctx, passingOut, isPassingOut, destroy, callInfo))
                     --this.hostDisposables;
             }
         }
 
-        internal bool TryInc(ExecutionContext ctx, ObjectData pointerObject, string callInfo)
+        internal bool TryIncWithNested(ExecutionContext ctx, ObjectData objData, RefCountIncReason reason, string callInfo)
+        {
+            if (ctx.Env.IsPointerOfType(objData.RunTimeTypeInstance))
+                return TryInc(ctx, objData, reason, callInfo);
+            else if (!ctx.Env.IsReferenceOfType(objData.RunTimeTypeInstance))
+            {
+                foreach (KeyValuePair<VariableDeclaration, ObjectData> field in objData.Fields)
+                {
+                    ctx.Heap.TryIncWithNested(ctx, field.Value, reason: RefCountIncReason.IncField, callInfo: callInfo);
+                }
+            }
+
+            return false;
+        }
+
+        internal bool TryInc(ExecutionContext ctx, ObjectData pointerObject, RefCountIncReason reason, string callInfo)
         {
             if (!ctx.Env.IsPointerOfType(pointerObject.RunTimeTypeInstance))
                 return false;
@@ -144,7 +170,7 @@ namespace Skila.Interpreter
                 {
                     ;
                 }
-                Console.WriteLine($"INC {count} {callInfo}");
+                print(count, +1, "INC", $"{reason} {callInfo}");
             }
 
             return true;
@@ -161,5 +187,16 @@ namespace Skila.Interpreter
                 lock (this.threadLock)
                     ++this.hostDisposables;
         }
+        private void print(int count, int change, string operation, string comment)
+        {
+            if (debugActionCount == 14)
+            {
+                ;
+            }
+            string color = (change == 0 ? "black" : change > 0 ? "green" : "red");
+            int margin = count;
+            Console.WriteLine($"<p style=\"color: {color}; padding-left:{margin * 2}em\">{debugActionCount++} <b>{operation} {count}</b> {comment}</p>");
+        }
+
     }
 }

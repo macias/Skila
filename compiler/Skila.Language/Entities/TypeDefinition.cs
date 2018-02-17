@@ -25,7 +25,7 @@ namespace Skila.Language.Entities
         public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
             return new TypeDefinition(EntityModifier.Interface,
-                false, name, null, new[] { NameFactory.ObjectTypeReference() },
+                false, name, null, new[] { NameFactory.IObjectTypeReference() },
                 features: null,
                 typeParameter: null);
         }
@@ -34,14 +34,14 @@ namespace Skila.Language.Entities
         public static TypeDefinition CreateTypeParameter(TemplateParameter typeParameter)
         {
             EntityModifier modifier = typeParameter.Constraint.Modifier;
-            if (typeParameter.Constraint.Functions.Any())
+            if (typeParameter.Constraint.HasFunctions.Any())
                 modifier |= EntityModifier.Protocol;
             else
                 modifier |= EntityModifier.Base | EntityModifier.Interface;
             if (!modifier.HasConst)
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
-                typeParameter.Constraint.InheritsNames, typeParameter.Constraint.Functions,
+                typeParameter.Constraint.InheritsNames, typeParameter.Constraint.HasFunctions,
                 typeParameter);
         }
 

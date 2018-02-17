@@ -220,7 +220,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Hi")
                 .Modifier(EntityModifier.HeapOnly)
-                .Parents(NameFactory.ObjectTypeReference()));
+                .Parents(NameFactory.IObjectTypeReference()));
 
             var decl = VariableDeclaration.CreateStatement("bar", NameReference.Create("Hi"),
                 Undef.Create());

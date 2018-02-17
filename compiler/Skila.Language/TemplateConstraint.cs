@@ -15,11 +15,11 @@ namespace Skila.Language
         public static TemplateConstraint Create(
             NameReference name,
             EntityModifier constraintModifier,
-            IEnumerable<FunctionDefinition> functions,
+            IEnumerable<FunctionDefinition> hasFunctions,
             IEnumerable<NameReference> inherits,
             IEnumerable<NameReference> baseOf)
         {
-            return new TemplateConstraint(name, constraintModifier, functions, inherits, baseOf);
+            return new TemplateConstraint(name, constraintModifier, hasFunctions, inherits, baseOf);
         }
         public static TemplateConstraint Create(
             string name,
@@ -36,7 +36,7 @@ namespace Skila.Language
         public EntityModifier Modifier { get; }
         public IReadOnlyCollection<NameReference> InheritsNames { get; }
         public IReadOnlyCollection<NameReference> BaseOfNames { get; }
-        public IReadOnlyCollection<FunctionDefinition> Functions { get; }
+        public IReadOnlyCollection<FunctionDefinition> HasFunctions { get; }
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
@@ -45,7 +45,7 @@ namespace Skila.Language
         private TemplateConstraint(
             NameReference name,
             EntityModifier constraintModifier,
-            IEnumerable<FunctionDefinition> functions,
+            IEnumerable<FunctionDefinition> hasFunctions,
             IEnumerable<NameReference> inherits,
             IEnumerable<NameReference> baseOf)
         {
@@ -54,7 +54,7 @@ namespace Skila.Language
 
             this.Name = name;
             this.Modifier = constraintModifier ?? EntityModifier.None;
-            this.Functions = (functions ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
+            this.HasFunctions = (hasFunctions ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.InheritsNames = (inherits ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
             this.BaseOfNames = (baseOf ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
 
@@ -74,7 +74,7 @@ namespace Skila.Language
                     =>
                 {
                     TypeMatch match = it.Evaluation.Components.MatchesTarget(ctx, base_of.Evaluation.Components, 
-                        TypeMatching.Create(allowSlicing: true));
+                        TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
                     return match == TypeMatch.Same || match == TypeMatch.Substitute;
                 }))
                     ctx.AddError(ErrorCode.ConstraintConflictingTypeHierarchy, base_of);

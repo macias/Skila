@@ -15,6 +15,33 @@ namespace Skila.Tests.Semantics
     public class Templates
     {
         [TestMethod]
+        public IErrorReporter ErrorDisabledProtocols()
+        {
+            // just testing if disabling protocols (default) option really works
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),
+                ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference());
+
+            FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
+                TemplateParametersBuffer.Create().Add("T").Values),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(), Block.CreateStatement())
+                .Constraints(ConstraintBuilder.Create("T").Has(func_constraint)));
+
+            var resolver = NameResolver.Create(env);
+
+            TypeDefinition template_type = func.NestedTypes().Single();
+            EntityModifier type_modifier = template_type.Modifier;
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.DisabledProtocols, type_modifier));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter PassingTraitAsIncorrectInterface()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -339,7 +366,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPassingReferenceAsTypeArgument()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
@@ -372,7 +399,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
@@ -404,7 +431,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("part",
@@ -437,7 +464,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingConstConstraint()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mut").Modifier(EntityModifier.Mutable));
@@ -465,7 +492,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingTypesConstraint()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
@@ -496,7 +523,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHasConstraint()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true });
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration(NameDefinition.Create("getMe"),

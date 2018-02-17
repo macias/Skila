@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TraitFunctionCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -46,13 +46,21 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallInterface()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true, DebugThrowOnError = true });
         }
+
         [TestMethod]
         public IInterpreter DuckVirtualCallProtocol()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
+            return duckVirtualCall(new Options()
+            {
+                AllowProtocols = true,
+                InterfaceDuckTyping = false,
+                DebugThrowOnError = true,
+                AllowInvalidMainResult = true
+            });
         }
+
         private IInterpreter duckVirtualCall(IOptions options)
         {
             var env = Environment.Create(options);
@@ -99,12 +107,19 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckDeepVirtualCallInterface()
         {
-            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
+            return duckDeepVirtualCall(new Options() { DebugThrowOnError = true, InterfaceDuckTyping = true, AllowInvalidMainResult = true });
         }
+
         [TestMethod]
         public IInterpreter DuckDeepVirtualCallProtocol()
         {
-            return duckDeepVirtualCall(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
+            return duckDeepVirtualCall(new Options()
+            {
+                InterfaceDuckTyping = false,
+                AllowProtocols = true,
+                DebugThrowOnError = true,
+                AllowInvalidMainResult = true
+            });
         }
 
         private IInterpreter duckDeepVirtualCall(IOptions options)
@@ -164,15 +179,23 @@ namespace Skila.Tests.Execution
 
             return interpreter;
         }
+
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseInterface()
         {
-            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true });
+            return duckVirtualCallWithGenericBase(new Options() { DebugThrowOnError = true, InterfaceDuckTyping = true, AllowInvalidMainResult = true });
         }
+
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseProtocol()
         {
-            return duckVirtualCallWithGenericBase(new Options() { InterfaceDuckTyping = false, AllowInvalidMainResult = true });
+            return duckVirtualCallWithGenericBase(new Options()
+            {
+                AllowProtocols = true,
+                InterfaceDuckTyping = false,
+                DebugThrowOnError = true,
+                AllowInvalidMainResult = true
+            });
         }
 
         private IInterpreter duckVirtualCallWithGenericBase(IOptions options)

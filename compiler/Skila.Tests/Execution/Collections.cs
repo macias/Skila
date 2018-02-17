@@ -144,9 +144,10 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    // let t *ITuple<Int,Int,Int> = (6,-2)
+                    // let t ITuple<*PointA,*PointA,*PointA> = (6,-2)
                     VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.PointerTypeReference("PointA"),
+                        NameFactory.TupleTypeReference(
+                            NameFactory.PointerTypeReference("PointA"),
                             NameFactory.PointerTypeReference("PointA"),
                             // todo: use sink
                             NameFactory.PointerTypeReference("PointA")),
@@ -158,9 +159,9 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("6")),
                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("-2")))),
 
+                    // var array = new *PointB[3,-5];
                     VariableDeclaration.CreateStatement("array",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference("PointB")))),
-
                     ExpressionFactory.InitializeIndexable("array",
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("3")),
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("-5"))),

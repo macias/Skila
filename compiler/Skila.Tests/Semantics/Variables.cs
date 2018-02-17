@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInvalidVariable()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("3"), modifier: EntityModifier.Public);
@@ -42,7 +42,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     Assignment.CreateStatement(NameReference.Sink(),
                         VariableDeclaration.CreateExpression("result", NameFactory.Int64TypeReference(),initValue: Undef.Create())),
@@ -66,7 +66,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("3")),
                     assignment,
@@ -83,7 +83,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCompoundDefaultValue()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true, AllowProtocols = true });
             var root_ns = env.Root;
 
             var decl = root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameReferenceUnion.Create(
@@ -102,19 +102,19 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter VariableBinding()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var decl_1 = VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create(), modifier: EntityModifier.Public);
+            var decl_1 = VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create(), modifier: EntityModifier.Public);
             root_ns.AddNode(decl_1);
             var var_1_ref = NameReference.Create("x");
-            var decl_2 = root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(),
+            var decl_2 = root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealTypeReference(),
                 var_1_ref, modifier: EntityModifier.Public));
 
             var resolver = NameResolver.Create(env);
             Assert.AreEqual(1, decl_1.TypeName.Binding().Matches.Count);
-            Assert.AreEqual(env.DoubleType, decl_1.TypeName.Binding().Match.Target);
+            Assert.AreEqual(env.Real64Type, decl_1.TypeName.Binding().Match.Target);
 
             Assert.AreEqual(1, var_1_ref.Binding.Matches.Count);
             Assert.AreEqual(decl_1, var_1_ref.Binding.Match.Target);
@@ -129,8 +129,8 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create()));
-            root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.DoubleTypeReference(), NameReference.Create("x"),
+            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create()));
+            root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealTypeReference(), NameReference.Create("x"),
                 modifier: EntityModifier.Public));
             var x_ref = NameReference.Create("x");
             root_ns.AddNode(VariableDeclaration.CreateStatement("z", NameFactory.Int64TypeReference(), x_ref,
@@ -151,7 +151,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var var_x = VariableDeclaration.CreateStatement("x", NameFactory.DoubleTypeReference(), Undef.Create());
+            var var_x = VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create());
             var var_y = VariableDeclaration.CreateStatement("y", null, NameReference.Create("x"));
             var var_z = VariableDeclaration.CreateStatement("z", null, null);
 
@@ -159,7 +159,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new[] {
                     var_x,
                     var_y,
@@ -173,7 +173,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeAndValue, var_z));
 
-            Assert.AreEqual(env.DoubleType.InstanceOf, var_y.Evaluation.Components);
+            Assert.AreEqual(env.Real64Type.InstanceOf, var_y.Evaluation.Components);
 
             return resolver;
         }
@@ -189,19 +189,19 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("t", NameFactory.Int64TypeReference(), Variadic.None,
                     null,isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.OptionalUse,
-                NameFactory.DoubleTypeReference(),
+                NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {
-                    Return.Create(DoubleLiteral.Create("3.3"))
+                    Return.Create(RealLiteral.Create("3.3"))
                 })));
 
             // x *IFunction<Int,Double> = foo
             root_ns.AddNode(VariableDeclaration.CreateStatement("x",
-                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.Int64TypeReference(), NameFactory.DoubleTypeReference())),
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.Int64TypeReference(), NameFactory.RealTypeReference())),
                 initValue: NameReference.Create("foo"), modifier: EntityModifier.Public));
             var foo_ref = NameReference.Create("foo");
             // y *IFunction<Double,Int> = foo
             VariableDeclaration decl = VariableDeclaration.CreateStatement("y",
-                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.DoubleTypeReference(), NameFactory.Int64TypeReference())),
+                NameFactory.PointerTypeReference(NameReference.Create(NameFactory.IFunctionTypeName, NameFactory.RealTypeReference(), NameFactory.Int64TypeReference())),
                 initValue: foo_ref, modifier: EntityModifier.Public);
             root_ns.AddNode(decl);
 
@@ -238,7 +238,7 @@ namespace Skila.Tests.Semantics
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     loop,
                 })));

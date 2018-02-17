@@ -24,15 +24,16 @@ namespace Skila.Tests
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
+            //new Semantics.Interfaces().DuckTypingInterfaces();
             //new Semantics.Inheritance().ErrorEnumCrossInheritance();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
-            new Semantics.Mutability().ErrorCastingWithMutabilityChange();
+            //new Semantics.Mutability().ErrorCastingWithMutabilityChange();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
-            //new Semantics.Templates().ErrorCallingTraitMethodOnHost();
-            //new Semantics.TypeMatchingTest().ErrorTestingValueType();
+            //new Semantics.Templates().ErrorDisabledProtocols();
+            //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
@@ -40,16 +41,16 @@ namespace Skila.Tests
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
-            //new Execution.Inheritance().InheritingEnums();
-            // new Execution.Interfaces().TraitFunctionCall();
+            new Execution.FunctionCalls().StoringSequenceAsSequence();
+            //new Execution.Inheritance().TypeUnion();
+            //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().DateDayOfWeek();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().Indexer();
-            //new Execution.Templates().CheckingHostTraitRuntimeType();
-            //new Execution.Text().RegexContains();
+            //new Execution.Templates().HasConstraintWithValue();
+            //new Execution.Text().TODO_RegexMatch();
 
             //if (false)
             {
@@ -62,7 +63,7 @@ namespace Skila.Tests
 
             Console.WriteLine();
 
-           // if (false)
+            // if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
@@ -96,6 +97,7 @@ namespace Skila.Tests
                 .Where(it => it.GetCustomAttributes<TestClassAttribute>().Any())
                 .Where(it => it.Namespace.EndsWith(@namespace))
                 .OrderBy(it => it.Name))
+            //.OrderByDescending(it => it.Name))
             {
                 missed_atrr.AddRange(runTest<T>(type, ref total, ref failed, reported_errors));
             }

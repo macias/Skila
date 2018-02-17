@@ -100,9 +100,9 @@ namespace Skila.Language.Flow
                         }
                         else if (entity is VariableDeclaration decl)
                         {
-                            throw new NotImplementedException();
-                            //if (!this.Expr.TargetsCurrentInstanceMember(out IMember dummy))
-                            //  ctx.AddError(ErrorCode.EscapingReference, this.Expr);
+                            // todo: this is incorrect, we need to add lifetime control, in this case we return local variable
+                            // but the source of this variable could be local (error) or external (like function parameter -- OK)
+                            ;
                         }
                         else if (this.Expr is FunctionCall call)
                         {

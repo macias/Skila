@@ -68,6 +68,7 @@
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Entities\Alias.cs" />
+    <Compile Include="Expressions\Literals\Real64Literal.cs" />
     <Compile Include="Expressions\Literals\Int16Literal.cs" />
     <Compile Include="Expressions\Literals\IntLiteral.cs" />
     <Compile Include="Expressions\Literals\NatLiteral.cs" />
@@ -119,7 +120,7 @@
     <Compile Include="Semantics\ErrorManager.cs" />
     <Compile Include="Expressions\Alloc.cs" />
     <Compile Include="Expressions\AddressOf.cs" />
-    <Compile Include="Expressions\Literals\DoubleLiteral.cs" />
+    <Compile Include="Expressions\Literals\RealLiteral.cs" />
     <Compile Include="Extensions\EntityInstanceExtension.cs" />
     <Compile Include="ReportCollector.cs" />
     <Compile Include="IErrorReporter.cs" />
@@ -222,6 +223,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Documentation\Errors.md" />
+    <None Include="Documentation\DuckTyping.md" />
     <None Include="Documentation\Properties.md" />
     <None Include="Documentation\Mutability.md" />
     <None Include="Documentation\Processing.md" />

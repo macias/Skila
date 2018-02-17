@@ -229,15 +229,15 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
-            var dead_return = Return.Create(DoubleLiteral.Create("3.3"));
+            var dead_return = Return.Create(RealLiteral.Create("3.3"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] {
                     FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
-                NameFactory.DoubleTypeReference(),
+                NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {
-                    Return.Create(DoubleLiteral.Create("3.3")),
+                    Return.Create(RealLiteral.Create("3.3")),
                     dead_return
                 })));
 
@@ -325,13 +325,13 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() {});
             var root_ns = env.Root;
 
-            var dead_return = Return.Create(DoubleLiteral.Create("3.3"));
+            var dead_return = Return.Create(RealLiteral.Create("3.3"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"),
                 new[] { FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
                     usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.ReadRequired,
-                NameFactory.DoubleTypeReference(),
+                NameFactory.RealTypeReference(),
                 Block.CreateStatement()));
 
             var resolver = NameResolver.Create(env);
@@ -368,7 +368,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var cond = BoolLiteral.CreateTrue();
-            var str_literal = DoubleLiteral.Create("3.3");
+            var str_literal = RealLiteral.Create("3.3");
             var int_literal = Int64Literal.Create("5");
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal },
@@ -391,7 +391,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var cond = BoolLiteral.CreateTrue();
-            var str_literal = DoubleLiteral.Create("3.3");
+            var str_literal = RealLiteral.Create("3.3");
 
             var if_ctrl = IfBranch.CreateIf(cond, new[] { str_literal });
 
@@ -411,7 +411,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            var str_literal = DoubleLiteral.Create("3.3");
+            var str_literal = RealLiteral.Create("3.3");
 
             var if_ctrl = IfBranch.CreateIf(str_literal, new[] { Int64Literal.Create("5") },
                 IfBranch.CreateElse(new[] { Int64Literal.Create("5") }));
@@ -432,7 +432,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
-            var str_literal = DoubleLiteral.Create("3.3");
+            var str_literal = RealLiteral.Create("3.3");
 
             var loop = Loop.CreateFor(init: new[] { VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("5")) },
                 condition: str_literal,

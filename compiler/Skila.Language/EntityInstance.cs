@@ -262,7 +262,7 @@ namespace Skila.Language
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
-                if (TypeMatch.No == TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(allowSlicing: true)))
+                if (TypeMatch.No == TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true)))
                     return ConstraintMatch.InheritsViolation;
             }
 
@@ -283,7 +283,7 @@ namespace Skila.Language
 
             foreach (EntityInstance constraint_base in param.Constraint.TranslateBaseOf(closedTemplate))
             {
-                if (!arg_bases.Any(it => TypeMatch.No != constraint_base.MatchesTarget(ctx, it, TypeMatching.Create(allowSlicing: true))))
+                if (!arg_bases.Any(it => TypeMatch.No != constraint_base.MatchesTarget(ctx, it, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true))))
                     return ConstraintMatch.BaseViolation;
             }
 
