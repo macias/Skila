@@ -114,5 +114,6 @@
         CannotUseValueExpression = 110,
         MainFunctionInvalidResultType = 111,
         DisabledProtocols = 112,
+        CannotAssignCustomProperty = 113,
     }
 }

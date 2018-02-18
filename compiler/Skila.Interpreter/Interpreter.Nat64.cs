@@ -10,6 +10,10 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
+        private Task<ObjectData> createNat64Async(ExecutionContext ctx,UInt64 value)
+        {
+            return ObjectData.CreateInstanceAsync(ctx,ctx.Env.Nat64Type.InstanceOf, value);
+        }
         private async Task<ExecValue> executeNativeNat64FunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
         {
             if (func == ctx.Env.Nat64ParseStringFunction)
@@ -90,7 +94,7 @@ namespace Skila.Interpreter
             }
             else if (func.IsDefaultInitConstructor())
             {
-                thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (UInt64)0).ConfigureAwait(false));
+                thisValue.Assign(await createNat64Async(ctx, 0UL).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
             else if (func.IsCopyInitConstructor())

@@ -131,7 +131,7 @@ namespace Skila.Language.Entities
                 // another constructor call. Instead get the init step and reuse it, this time
                 // with given field directly, for example
                 // x = Foo()
-                // translatates to
+                // translates to
                 // x = (__this__ = alloc Foo ; __this__.init() ; __this__)
                 // so we rip off the init step and replace the object, which results in
                 // x.init()

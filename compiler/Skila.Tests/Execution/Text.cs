@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
-//        [TestMethod]
-        public IInterpreter TODO_RegexMatch()
+        [TestMethod]
+        public IInterpreter RegexMatch()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
@@ -33,7 +33,7 @@ namespace Skila.Tests.Execution
                       VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2016-04-14")),
                       VariableDeclaration.CreateStatement("matches",null,
                         FunctionCall.Create(NameReference.Create("re",NameFactory.RegexMatchFunctionName),NameReference.Create("s"))),
-                      ExpressionFactory.AssertEqual(Int64Literal.Create("3"),
+                      ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
                             FunctionCall.Create(NameReference.Create("matches",NameFactory.IterableCount))),
 
                     Return.Create(Int64Literal.Create("7"))

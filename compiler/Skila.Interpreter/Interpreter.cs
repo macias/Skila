@@ -177,7 +177,7 @@ namespace Skila.Interpreter
             if (!ifBranch.IsElse)
             {
                 ExecValue cond = await ExecutedAsync(ifBranch.Condition, ctx).ConfigureAwait(false);
-                if (cond.Mode == DataMode.Return)
+                if (cond.Mode != DataMode.Expression)
                     return cond;
 
                 cond_obj = cond.ExprValue.TryDereferenceOnce(ifBranch, ifBranch.Condition);
@@ -226,7 +226,7 @@ namespace Skila.Interpreter
             if (result.Mode == DataMode.Throw)
             {
                 // todo: print the stacktrace, dump memory, etc etc etc
-                if (!ctx.Heap.TryRelease(ctx, result.ThrowValue, passingOutObject: null,isPassingOut:false, reason: RefCountDecReason.ReleaseExceptionFromMain, callInfo: ""))
+                if (!ctx.Heap.TryRelease(ctx, result.ThrowValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.ReleaseExceptionFromMain, callInfo: ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 result = ExecValue.CreateThrow(null); // this is to return something for Tests
             }
@@ -343,7 +343,7 @@ namespace Skila.Interpreter
 
         private static void exitScope(ExecutionContext ctx, IScope scope, ExecValue result)
         {
-            if (scope.DebugId.Id==777)
+            if (scope.DebugId.Id == 777)
             {
                 ;
             }
@@ -357,7 +357,7 @@ namespace Skila.Interpreter
                     ;
                 }
 
-                ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj, isPassingOut:false, reason: RefCountDecReason.UnwindingStack,
+                ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj, isPassingOut: false, reason: RefCountDecReason.UnwindingStack,
                     callInfo: $"elem: {bindable_obj.Item1}, scope: {scope}");
             }
         }
@@ -423,7 +423,10 @@ namespace Skila.Interpreter
                 return ExecValue.CreateReturn(null);
             else
             {
-                ObjectData obj = (await ExecutedAsync(ret.Expr, ctx).ConfigureAwait(false)).ExprValue;
+                ExecValue exec_value = await ExecutedAsync(ret.Expr, ctx).ConfigureAwait(false);
+                if (exec_value.Mode == DataMode.Throw)
+                    return exec_value;
+                ObjectData obj = exec_value.ExprValue;
                 obj = prepareExitData(ctx, ret, obj);
                 return ExecValue.CreateReturn(obj);
             }
@@ -532,7 +535,10 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Spawn spawn)
         {
-            CallInfo call_info = await prepareFunctionCallAsync(spawn.Call, ctx).ConfigureAwait(false);
+            Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(spawn.Call, ctx).ConfigureAwait(false);
+            if (call_prep.Is<ExecValue>())
+                return call_prep.As<ExecValue>();
+            CallInfo call_info = call_prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
             var ctx_clone = ctx.Clone();
@@ -547,24 +553,17 @@ namespace Skila.Interpreter
             {
                 ;
             }
-            CallInfo call_info = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
+            Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
+            if (call_prep.Is<ExecValue>())
+                return call_prep.As<ExecValue>();
+            CallInfo call_info = call_prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
 
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
             if (ret.Mode == DataMode.Throw)
                 return ret;
-            ObjectData ret_value = ret.RetValue;
-
-            if (ret_value == null)
-            {
-                ObjectData unit_obj = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.UnitType.InstanceOf).ConfigureAwait(false);
-                ret_value = unit_obj.Fields.Single().Value;
-            }
-            else
-            {
-                ret_value = handleCallResult(ctx, call, ret_value);
-            }
+            ObjectData ret_value = await handleCallResultAsync(ctx, call, ret.RetValue).ConfigureAwait(false);
 
             return ExecValue.CreateExpression(ret_value);
         }
@@ -580,7 +579,11 @@ namespace Skila.Interpreter
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            ObjectData this_ref = await prepareThisAsync(ctx, this_context, $"prop-get {name}").ConfigureAwait(false);
+            ExecValue this_exec = await ExecutedAsync(this_context, ctx).ConfigureAwait(false);
+            if (this_exec.Mode == DataMode.Throw)
+                return this_exec;
+            ObjectData this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"prop-get {name}").ConfigureAwait(false);
+
             ObjectData this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
 
             SetupFunctionCallData(ref ctx, null, this_ref, null);
@@ -588,24 +591,25 @@ namespace Skila.Interpreter
             FunctionDefinition getter = getTargetFunction(ctx, this_value, this_context.Evaluation, prop.Getter);
             ExecValue ret = await ExecutedAsync(getter, ctx).ConfigureAwait(false);
 
-            ObjectData ret_value = ret.RetValue;
+            if (ret.Mode == DataMode.Throw)
+                return ret;
 
-            if (ret_value != null)
-            {
-                ret_value = handleCallResult(ctx, name, ret_value);
-            }
+            ObjectData ret_value = await handleCallResultAsync(ctx, name, ret.RetValue).ConfigureAwait(false);
 
             return ExecValue.CreateExpression(ret_value);
         }
 
-        private async Task callPropertySetterAsync(ExecutionContext ctx, NameReference name, IExpression value, ObjectData rhsValue)
+        private async Task<ExecValue> callPropertySetterAsync(ExecutionContext ctx, NameReference name, IExpression value, ObjectData rhsValue)
         {
             Property prop = name.Binding.Match.Target.Cast<Property>();
             IExpression this_context = name.GetContext(prop.Setter);
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            ObjectData this_ref = await prepareThisAsync(ctx, this_context, $"prop-set {name}").ConfigureAwait(false);
+            ExecValue this_exec = await ExecutedAsync(this_context, ctx).ConfigureAwait(false);
+            if (this_exec.Mode == DataMode.Throw)
+                return this_exec;
+            ObjectData this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"prop-set {name}").ConfigureAwait(false);
 
             rhsValue = prepareArgument(ctx, rhsValue);
             SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, new ObjectData[] { rhsValue });
@@ -614,37 +618,47 @@ namespace Skila.Interpreter
 
             if (ret.RetValue != null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
+
+            ObjectData ret_value = await handleCallResultAsync(ctx, name, ret.RetValue).ConfigureAwait(false);
+
+            return ExecValue.CreateExpression(ret_value);
         }
 
         private async Task<ObjectData> prepareThisAsync(ExecutionContext ctx, IExpression thisExpr, string callName)
         {
             ExecValue this_exec = await ExecutedAsync(thisExpr, ctx).ConfigureAwait(false);
-            ObjectData this_ref = this_exec.ExprValue;
-
+            return await prepareThisAsync(ctx, this_exec.ExprValue, callName).ConfigureAwait(false);
+        }
+        private async Task<ObjectData> prepareThisAsync(ExecutionContext ctx, ObjectData thisObject, string callName)
+        {
             // if "this" is a value (legal at this point) we have add a reference to it because every function
             // expect to get either reference or pointer to this instance
-            if (!ctx.Env.IsPointerLikeOfType(this_ref.RunTimeTypeInstance))
+            if (!ctx.Env.IsPointerLikeOfType(thisObject.RunTimeTypeInstance))
             {
-                this_ref = await this_ref.ReferenceAsync(ctx).ConfigureAwait(false);
+                thisObject = await thisObject.ReferenceAsync(ctx).ConfigureAwait(false);
             }
-            else if (ctx.Env.Dereference(this_ref.RunTimeTypeInstance, out IEntityInstance dummy) > 1)
-                this_ref = this_ref.TryDereferenceAnyOnce(ctx.Env);
+            else if (ctx.Env.Dereference(thisObject.RunTimeTypeInstance, out IEntityInstance dummy) > 1)
+                thisObject = thisObject.TryDereferenceAnyOnce(ctx.Env);
 
-            ctx.Heap.TryInc(ctx, this_ref, RefCountIncReason.FuncCallPrepareThis, $"{thisExpr}->{callName}");
+            ctx.Heap.TryInc(ctx, thisObject, RefCountIncReason.FuncCallPrepareThis, $"{callName}");
 
-            return this_ref;
+            return thisObject;
         }
-        private async Task<CallInfo> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
+        private async Task<Variant<object, ExecValue, CallInfo>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
             if (call.DebugId.Id == 297)
             {
                 ;
             }
+
             ObjectData this_ref;
             ObjectData this_value;
             if (call.Resolution.MetaThisArgument != null)
             {
-                this_ref = await prepareThisAsync(ctx, call.Resolution.MetaThisArgument.Expression, $"call {call}").ConfigureAwait(false);
+                ExecValue this_exec = await ExecutedAsync(call.Resolution.MetaThisArgument.Expression, ctx).ConfigureAwait(false);
+                if (this_exec.Mode == DataMode.Throw)
+                    return new Variant<object, ExecValue, CallInfo>(this_exec);
+                this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"call {call}").ConfigureAwait(false);
                 this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
             }
             else
@@ -653,60 +667,89 @@ namespace Skila.Interpreter
                 this_value = null;
             }
 
-            var args = new ObjectData[call.Resolution.TargetFunction.Parameters.Count];
-            foreach (var param in call.Resolution.TargetFunction.Parameters)
-            {
-                IReadOnlyCollection<FunctionArgument> arguments = call.Resolution.GetArguments(param.Index).StoreReadOnly();
-                if (!arguments.Any())
-                    continue;
-
-                if (arguments.Count == 1)
-                {
-                    FunctionArgument arg = arguments.Single();
-                    ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
-                    ObjectData arg_obj = arg_exec.ExprValue;
-                    if (arg_obj.TryDereferenceMany(ctx.Env, arg, arg, out ObjectData dereferenced))
-                        arg_obj = dereferenced;
-
-                    ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"{arg} for {call.Resolution.TargetFunction}");
-                    arg_obj = prepareArgument(ctx, arg_obj);
-
-                    args[param.Index] = arg_obj;
-                }
-                else
-                {
-                    // preparing arguments to be passed as one for variadic parameter
-                    var chunk = new ObjectData[arguments.Count];
-                    int i = 0;
-                    foreach (FunctionArgument arg in arguments)
-                    {
-                        ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
-                        ObjectData arg_obj = arg_exec.ExprValue.TryDereferenceOnce(arg, arg);
-                        ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"{arg}\\{i} for {call.Resolution.TargetFunction}");
-
-                        chunk[i] = arg_obj;
-                        ++i;
-                    }
-
-                    ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { param.ElementTypeName.Evaluation.Components }, MutabilityFlag.ConstAsSource, null),
-                        chunk).ConfigureAwait(false);
-                    args[param.Index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
-                }
-            }
-
             FunctionDefinition target_func = getTargetFunction(ctx, this_value, call.Resolution.MetaThisArgument?.Evaluation,
                 call.Resolution.TargetFunction);
 
             if (target_func == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
+            ObjectData[] arguments;
+
+            {
+                var args_buffer = new List<ObjectData>[call.Resolution.TargetFunction.Parameters.Count];
+                foreach (var param in call.Resolution.TargetFunction.Parameters)
+                {
+                    args_buffer[param.Index] = new List<ObjectData>();
+
+                    foreach (FunctionArgument arg in call.Resolution.GetArguments(param.Index))
+                    {
+                        ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
+                        ObjectData arg_obj = arg_exec.ExprValue;
+                        if (arg_obj.TryDereferenceMany(ctx.Env, arg, arg, out ObjectData dereferenced))
+                            arg_obj = dereferenced;
+                        args_buffer[param.Index].Add(arg_obj);
+                    }
+                }
+
+                arguments = await prepareArguments(ctx, call.Resolution.TargetFunction, args_buffer).ConfigureAwait(false);
+            }
+
             var result = new CallInfo(target_func);
 
             SetupFunctionCallData(ref result, call.Name.TemplateArguments.Select(it => it.Evaluation.Components),
-                this_ref, args);
+                this_ref, arguments);
 
-            return result;
+            return new Variant<object, ExecValue, CallInfo>(result);
+        }
+
+        private async Task<ObjectData[]> prepareArguments(ExecutionContext ctx, FunctionDefinition targetFunc,
+            IEnumerable<IReadOnlyCollection<ObjectData>> argumentsData)
+        {
+            // here we create chunks for variadic arguments, we modify ref counts, etc.
+
+            var arguments_repacked = new ObjectData[targetFunc.Parameters.Count];
+
+            int index = -1;
+            foreach (var args_group in argumentsData)
+            {
+                ++index;
+
+                if (!args_group.Any())
+                {
+                    ;
+                }
+                else if (args_group.Count == 1)
+                {
+                    ObjectData arg_obj = args_group.Single();
+
+                    ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"arg for {targetFunc}");
+                    arg_obj = prepareArgument(ctx, arg_obj);
+
+                    arguments_repacked[index] = arg_obj;
+                }
+                else
+                {
+                    // preparing arguments to be passed as one for variadic parameter
+                    var chunk = new ObjectData[args_group.Count];
+                    int i = 0;
+                    foreach (ObjectData arg_obj in args_group)
+                    {
+                        ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"arg\\{i} for {targetFunc}");
+
+                        chunk[i] = arg_obj;
+                        ++i;
+                    }
+
+                    ObjectData chunk_obj = await createChunk(ctx,
+                        ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
+                        MutabilityFlag.ConstAsSource, null),
+                        chunk).ConfigureAwait(false);
+
+                    arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
+                }
+            }
+
+            return arguments_repacked;
         }
 
         private static ObjectData prepareArgument(ExecutionContext ctx, ObjectData argument)
@@ -887,6 +930,7 @@ namespace Skila.Interpreter
 
             if (assign.Lhs.IsSink())
             {
+                ;
             }
             else
             {
@@ -897,15 +941,27 @@ namespace Skila.Interpreter
                 ExecValue lhs;
                 ObjectData rhs_obj = hackyDereference(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
 
-                if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property)
+                if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property prop)
                 {
-                    await callPropertySetterAsync(ctx, assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj).ConfigureAwait(false);
+                    if (prop.Setter != null)
+                        await callPropertySetterAsync(ctx, assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj).ConfigureAwait(false);
+                    else if (prop.Getter.Modifier.HasAutoGenerated)
+                    {
+                        // we are inside constructor, we have auto-getter so we assign to its field directly, it is legal
+                        VariableDeclaration field = prop.Fields.Single();
+                        ExecValue lhs_prefix = await ExecutedAsync(name_ref.Prefix, ctx).ConfigureAwait(false);
+                        ObjectData prefix_val = lhs_prefix.ExprValue.TryDereferenceAnyOnce(ctx.Env);
+                        ObjectData lhs_val = prefix_val.GetField(field);
+                        lhs_val.Assign(rhs_obj);
+                    }
+                    else
+                        throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
                 }
                 else
                 {
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
 
-                    ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null,isPassingOut:false, reason: RefCountDecReason.AssignmentLhsDrop,
+                    ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.AssignmentLhsDrop,
                         callInfo: $"{assign}");
 
                     lhs.ExprValue.Assign(rhs_obj);
@@ -958,22 +1014,27 @@ namespace Skila.Interpreter
             return obj;
         }
 
-        private ObjectData handleCallResult(ExecutionContext ctx, IExpression node, ObjectData retValue)
+        private async Task<ObjectData> handleCallResultAsync(ExecutionContext ctx, IExpression node, ObjectData retValue)
         {
             if (node.DebugId.Id == 278)
             {
                 ;
             }
 
-            if (node.DereferencedCount_LEGACY > 0)
+            if (retValue == null) // valid, internally function "returns" void as in C, on call we replace it with Unit
+            {
+                ObjectData unit_obj = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.UnitType.InstanceOf).ConfigureAwait(false);
+                retValue = unit_obj.Fields.Single().Value;
+            }
+            else if (node.DereferencedCount_LEGACY > 0)
             {
                 ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
                 temp = temp.Copy();
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null,isPassingOut:false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
                 retValue = temp;
             }
             else
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null,isPassingOut:false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
 
             return retValue;
 

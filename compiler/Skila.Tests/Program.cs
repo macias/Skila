@@ -31,7 +31,7 @@ namespace Skila.Tests
             //new Semantics.Mutability().ErrorCastingWithMutabilityChange();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-            //new Semantics.Properties().ErrorAlteringReadOnlyProperty();
+            //new Semantics.Properties().ErrorSettingCustomGetter();
             //new Semantics.Templates().ErrorDisabledProtocols();
             //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
@@ -41,7 +41,7 @@ namespace Skila.Tests
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            new Execution.FunctionCalls().StoringSequenceAsSequence();
+            //new Execution.FunctionCalls().StoringSequenceAsSequence();
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
@@ -50,7 +50,7 @@ namespace Skila.Tests
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().Indexer();
             //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Text().TODO_RegexMatch();
+            new Execution.Text().RegexMatch();
 
             //if (false)
             {

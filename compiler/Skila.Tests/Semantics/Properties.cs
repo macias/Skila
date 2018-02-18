@@ -13,6 +13,32 @@ namespace Skila.Tests.Semantics
     public class Properties
     {
         [TestMethod]
+        public IErrorReporter ErrorSettingCustomGetter()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            // we can assign property using getter (only in constructor) but getter has to be auto-generated, 
+            // here it is custom code, thus it is illegal
+            IExpression assign = Assignment.CreateStatement(NameReference.CreateThised("x"), IntLiteral.Create("3"));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
+                .With(PropertyBuilder.Create("x", NameFactory.IntTypeReference())
+                    .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                    assign
+                    ))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotAssignCustomProperty, assign));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorGetterOverridesNothing()
         {
             var env = Language.Environment.Create(new Options());
@@ -37,7 +63,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningRValue()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -72,7 +98,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringGetter()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -104,7 +130,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMultipleAccessors()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
@@ -127,7 +153,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAlteringReadOnlyProperty()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -141,7 +167,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("notimportant"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
-                
+
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p", NameReference.Create("Point"), Undef.Create()),
                     assignment,

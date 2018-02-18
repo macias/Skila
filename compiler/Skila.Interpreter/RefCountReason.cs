@@ -10,7 +10,8 @@
         FuncCallPrepareThis,
         DeclAssign,
         FileLine,
-        IncField
+        IncField,
+        BuildingRegexCaptures
     }
 
     internal enum RefCountDecReason
@@ -21,6 +22,7 @@
         AssignmentLhsDrop,
         FreeChunkElem,
         FreeField,
-        DropOnCallResult
+        DropOnCallResult,
+        BuildingRegexCaptures
     }
 }

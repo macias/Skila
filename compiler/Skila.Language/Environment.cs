@@ -74,6 +74,8 @@ namespace Skila.Language
 
         public TypeDefinition CaptureType { get; }
         public TypeDefinition MatchType { get; }
+        public Property MatchCapturesProperty { get; }
+        public FunctionDefinition MatchConstructor { get; }
         public TypeDefinition RegexType { get; }
         public FunctionDefinition RegexContainsFunction { get; }
         public FunctionDefinition RegexMatchFunction { get; }
@@ -101,7 +103,7 @@ namespace Skila.Language
         public FunctionDefinition ChunkAtSet { get; }
 
         public TypeDefinition ArrayType { get; }
-
+        public FunctionDefinition ArrayDefaultConstructor { get; }
         public TypeDefinition ISequenceType { get; }
         public TypeDefinition IIterableType { get; }
         public TypeDefinition IIteratorType { get; }
@@ -263,7 +265,11 @@ namespace Skila.Language
             }
 
             this.CaptureType = this.TextNamespace.AddNode(createCapture());
-            this.MatchType = this.TextNamespace.AddNode(createMatch());
+            {
+                this.MatchType = this.TextNamespace.AddNode(createMatch(out Property match_captures_prop,out FunctionDefinition match_cons));
+                this.MatchCapturesProperty = match_captures_prop;
+                this.MatchConstructor = match_cons;
+            }
             {
                 this.RegexType = this.TextNamespace.AddNode(createRegex(
                     out VariableDeclaration pattern,
@@ -304,7 +310,10 @@ namespace Skila.Language
                 this.ChunkCount = chunk_count.Cast<FunctionDefinition>();
             }
 
-            this.ArrayType = this.CollectionsNamespace.AddNode(createArray());
+            {
+                this.ArrayType = this.CollectionsNamespace.AddNode(createArray(out FunctionDefinition array_def_cons));
+                this.ArrayDefaultConstructor = array_def_cons;
+            }
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
@@ -510,15 +519,19 @@ namespace Skila.Language
                     ;
         }
 
-        private TypeDefinition createMatch()
+        private TypeDefinition createMatch(out Property matchCapturesProp,out FunctionDefinition matchConstructor)
         {
-            return TypeBuilder.Create(NameFactory.MatchTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCountFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
+            Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.SizeTypeReference(),
+                Undef.Create());
+            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCountFieldName, NameFactory.SizeTypeReference(),
+                Undef.Create());
+            matchCapturesProp = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
                     NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), MutabilityFlag.ForceConst)),
-                        Undef.Create()))
-                .With(ExpressionFactory.BasicConstructor(new[] {
+                        Undef.Create());
+
+            // using constructor with direct initialization of the fields, not properties (no setters anyway)
+            matchConstructor = ExpressionFactory.BasicConstructor(               
+                new[] {
                         NameFactory.MatchIndexFieldName,
                         NameFactory.MatchCountFieldName,
                         NameFactory.MatchCapturesFieldName
@@ -528,7 +541,12 @@ namespace Skila.Language
                         NameFactory.SizeTypeReference(),
                         NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(),
                             MutabilityFlag.ForceConst))
-                    }))
+                    });
+            return TypeBuilder.Create(NameFactory.MatchTypeName)
+                .With(index_prop)
+                .With(count_prop)
+                .With(matchCapturesProp)
+                .With(matchConstructor)
                     ;
         }
 
@@ -726,7 +744,7 @@ namespace Skila.Language
                  .With(map_func);
         }
 
-        private static TypeDefinition createArray()
+        private static TypeDefinition createArray(out FunctionDefinition defaultConstructor)
         {
             const string elem_type = "ART";
             const string data_field = "data";
@@ -779,6 +797,12 @@ namespace Skila.Language
                             ));
 
             const string elem_name = "arr_cc_elem";
+            defaultConstructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        // this.data = new Chunk<ART>(1);
+                        Assignment.CreateStatement(NameReference.CreateThised(data_field),
+                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                NatLiteral.Create("1")))
+                        ));
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .Modifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
                     .Parents(NameFactory.IIndexableTypeReference(elem_type))
@@ -790,12 +814,7 @@ namespace Skila.Language
                     .With(count_property)
 
                     // default constructor
-                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
-                        // this.data = new Chunk<ART>(1);
-                        Assignment.CreateStatement(NameReference.CreateThised(data_field),
-                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
-                                NatLiteral.Create("1")))
-                        )))
+                    .With(defaultConstructor)
 
                     // copy constructor
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
