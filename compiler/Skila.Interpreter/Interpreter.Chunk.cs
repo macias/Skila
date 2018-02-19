@@ -70,7 +70,7 @@ namespace Skila.Interpreter
                 ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
                 var idx = idx_obj.NativeNat64;
                 Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                ctx.Heap.TryRelease(ctx, chunk[idx], passingOutObject: null,isPassingOut: false, reason: RefCountDecReason.ReplacingChunkElem, callInfo: "");
+                ctx.Heap.TryRelease(ctx, chunk[idx], passingOutObject: null,isPassingOut: false, reason: RefCountDecReason.ReplacingChunkElem, comment: "");
                 ObjectData arg_ref_object = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
                 // indexer takes reference to element
                 if (!arg_ref_object.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_val))

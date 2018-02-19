@@ -13,6 +13,60 @@ namespace Skila.Tests.Execution
     public class Library
     {
         [TestMethod]
+        public IInterpreter RealDividingByZeroWithoutNaNs()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(5.0)),
+                    VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(0.0)),
+                    ExpressionFactory.Readout(ExpressionFactory.Divide("a","b")),
+                    Return.Create(Nat8Literal.Create("2"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(DataMode.Throw, result.Mode);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter RealNotANumber()
+        {
+            // at this point Skila adheres to the standard but maybe should raise an exception for every NaN
+            // and this way remove them from the language (similarly to null pointers)
+            // https://stackoverflow.com/questions/5394424/causes-for-nan-in-c-application-that-do-no-raise-a-floating-point-exception
+            // https://stackoverflow.com/questions/2941611/can-i-make-gcc-tell-me-when-a-calculation-results-in-nan-or-inf-at-runtime
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("a",null,Real64Literal.Create(double.NaN)),
+                    VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(double.NaN)),
+                    Return.Create(ExpressionFactory.Ternary(ExpressionFactory.IsEqual("a","b"),
+                        Nat8Literal.Create("15"),Nat8Literal.Create("2")))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter DateDayOfWeek()
         {
             var env = Environment.Create(new Options() { AllowInvalidMainResult = true });

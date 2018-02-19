@@ -5,11 +5,127 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using NaiveLanguageTools.Common;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
+        private async Task<ExecValue?> numComparisonAsync<T>(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
+            where T : IComparable
+        {
+            var this_num = thisValue.PlainValue.Cast<T>();
+
+            if (func.Name.Name == NameFactory.EqualOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = this_num.Equals(arg_num);
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.NotEqualOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = !this_num.Equals(arg_num);
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.LessOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = this_num.CompareTo(arg_num) < 0;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.LessEqualOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = this_num.CompareTo(arg_num) <= 0;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.GreaterOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = this_num.CompareTo(arg_num) > 0;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.GreaterEqualOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_num = arg.PlainValue.Cast<T>();
+                bool cmp = this_num.CompareTo(arg_num) >= 0;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components,
+                    cmp).ConfigureAwait(false));
+                return result;
+            }
+
+            return null;
+        }
+
+        private async Task<ExecValue> createObject(ExecutionContext ctx,
+            bool onHeap, // false -> create regular value
+            IEntityInstance typename,
+            FunctionDefinition targetFunc,
+            IEnumerable<IEntityInstance> templateArguments,
+            params ObjectData[] arguments)
+        {
+            IEntityInstance outer_typename = typename;
+            if (onHeap)
+                outer_typename = ctx.Env.Reference(typename, MutabilityFlag.ConstAsSource, null, viaPointer: true);
+            ObjectData this_object = await allocObjectAsync(ctx, typename, outer_typename, null).ConfigureAwait(false);
+
+            // it is local variable so we need to inc ref count
+            bool incremented = ctx.Heap.TryInc(ctx, this_object, RefCountIncReason.StoringLocalPointer, "");
+
+            ExecValue ret = await callNonVariadicFunctionDirectly(ctx, targetFunc, templateArguments,
+                this_object, arguments).ConfigureAwait(false);
+
+            if (incremented)
+                ctx.Heap.TryRelease(ctx, this_object, this_object, false, RefCountDecReason.DroppingLocalPointer, "");
+
+            if (ret.Mode == DataMode.Throw)
+                return ret;
+            else
+                return ExecValue.CreateExpression(this_object);
+        }
+
+        private async Task<ExecValue> callNonVariadicFunctionDirectly(ExecutionContext ctx, FunctionDefinition targetFunc,
+            IEnumerable<IEntityInstance> templateArguments,
+            ObjectData thisValue, params ObjectData[] arguments)
+        {
+            // btw. arguments have to be given in exact order as parameters go
+
+            if (targetFunc.Parameters.Any(it => it.IsVariadic))
+                throw new Exception($"{ExceptionCode.SourceInfo()}");
+
+            ObjectData this_ref = await prepareThisAsync(ctx, thisValue, $"{targetFunc}").ConfigureAwait(false);
+            ObjectData[] args = await prepareArguments(ctx, targetFunc,
+                // that is why this function does not handle variadic, it assumes single argument per parameter
+                arguments.Select(it => new[] { it }).ToArray()
+                ).ConfigureAwait(false);
+            SetupFunctionCallData(ref ctx, templateArguments, this_ref, args);
+            ExecValue ret = await ExecutedAsync(targetFunc, ctx).ConfigureAwait(false);
+            return ret;
+        }
+
         private async Task<ExecValue> executeNativeFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
         {
             TypeDefinition owner_type = func.ContainingType();
@@ -66,7 +182,17 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var this_int = this_value.NativeNat;
                 var arg_int = arg.NativeNat;
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components, this_int == arg_int).ConfigureAwait(false));
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, 
+                    func.ResultTypeName.Evaluation.Components, this_int == arg_int).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.NotEqualOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var this_int = this_value.NativeNat;
+                var arg_int = arg.NativeNat;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
+                    func.ResultTypeName.Evaluation.Components, this_int != arg_int).ConfigureAwait(false));
                 return result;
             }
             else if (func.Name.Name == NameFactory.ConvertFunctionName)

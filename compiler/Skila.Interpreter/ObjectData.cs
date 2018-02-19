@@ -186,7 +186,7 @@ namespace Skila.Interpreter
                 else if (this.primaryParentType != null)
                     return this.primaryParentType.GetField(entity);
                 else
-                    throw new Exception("Internal error -- no such field");
+                    throw new Exception($"Internal error -- no such field {entity.Name} {ExceptionCode.SourceInfo()}");
             }
 
             public override string ToString()
@@ -262,13 +262,13 @@ namespace Skila.Interpreter
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryRelease(ctx, field.Value, passingOut,isPassingOut, reason: RefCountDecReason.FreeField, callInfo: $"{callInfo}");
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut,isPassingOut, reason: RefCountDecReason.FreeField, comment: $"{callInfo}");
             }
 
             if (this.PlainValue is Chunk chunk)
             {
                 for (UInt64 i = 0; i != chunk.Count; ++i)
-                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut,isPassingOut, reason: RefCountDecReason.FreeChunkElem, callInfo: $"{callInfo}");
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut,isPassingOut, reason: RefCountDecReason.FreeChunkElem, comment: $"{callInfo}");
             }
 
             bool host_disposed = false;

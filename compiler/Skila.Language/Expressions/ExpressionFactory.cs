@@ -27,6 +27,8 @@ namespace Skila.Language.Expressions
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                             Block.CreateStatement(
+                          IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(),NameReference.Create("cmp")),
+                                new[] { Return.Create(BoolLiteral.CreateTrue()) }),
                           // let obj = cmp cast? Self
                           VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
                             NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
@@ -60,6 +62,8 @@ namespace Skila.Language.Expressions
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
                                             ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
                                             Block.CreateStatement(
+                          IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),
+                                new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
                                 NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
@@ -228,6 +232,14 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.MulOperator), FunctionArgument.Create(rhs));
         }
+        public static IExpression Divide(string lhs, string rhs)
+        {
+            return Divide(NameReference.Create(lhs), NameReference.Create(rhs));
+        }
+        public static IExpression Divide(IExpression lhs, IExpression rhs)
+        {
+            return FunctionCall.Create(NameReference.Create(lhs, NameFactory.DivideOperator), FunctionArgument.Create(rhs));
+        }
         public static IExpression Sub(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.SubOperator), FunctionArgument.Create(rhs));
@@ -247,6 +259,10 @@ namespace Skila.Language.Expressions
         public static IExpression IsEqual(IExpression lhs, IExpression rhs)
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.EqualOperator), FunctionArgument.Create(rhs));
+        }
+        public static IExpression IsEqual(string lhs, string rhs)
+        {
+            return IsEqual(NameReference.Create(lhs), NameReference.Create(rhs));
         }
         public static IExpression IsGreaterEqual(IExpression lhs, IExpression rhs)
         {
@@ -291,9 +307,12 @@ namespace Skila.Language.Expressions
             return AssertTrue(IsEqual(expected, actual));
         }
 
-        public static IExpression AssertOptionValue(IExpression option)
+        public static IExpression AssertOptionValue(IExpression option,bool hasValue = true)
         {
-            return AssertTrue(optionHasValue(option));
+            IExpression condition = optionHasValue(option);
+            if (!hasValue)
+                condition = Not(condition);
+            return AssertTrue(condition);
         }
 
         public static IExpression Ternary(IExpression condition, IExpression then, IExpression otherwise)

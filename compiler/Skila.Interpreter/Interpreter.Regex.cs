@@ -5,29 +5,12 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Skila.Language;
 using Skila.Language.Extensions;
+using NaiveLanguageTools.Common;
 
 namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private async Task<ExecValue> callNonVariadicFunctionDirectly(ExecutionContext ctx,FunctionDefinition targetFunc, 
-            IEnumerable<IEntityInstance> templateArguments,
-            ObjectData thisValue,params ObjectData[] arguments)
-        {
-            // btw. arguments have to be given in exact order as parameters go
-
-            if (targetFunc.Parameters.Any(it => it.IsVariadic))
-                throw new Exception($"{ExceptionCode.SourceInfo()}");
-
-            ObjectData this_ref = await prepareThisAsync(ctx, thisValue, $"{targetFunc}").ConfigureAwait(false);
-            ObjectData[] args = await prepareArguments(ctx, targetFunc, 
-                // that is why this function does not handle variadic, it assumes single argument per parameter
-                arguments.Select(it =>  new[] { it }).ToArray()
-                ).ConfigureAwait(false);
-            SetupFunctionCallData(ref ctx, templateArguments, this_ref, args);
-            ExecValue ret = await ExecutedAsync(targetFunc, ctx).ConfigureAwait(false);
-            return ret;
-        }
         private async Task<ExecValue> executeNativeRegexFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
         {
@@ -57,15 +40,15 @@ namespace Skila.Interpreter
                 ObjectData pattern_val = pattern_obj.DereferencedOnce();
                 string pattern = pattern_val.NativeString;
 
-                System.Text.RegularExpressions.MatchCollection matches = new System.Text.RegularExpressions.Regex(pattern)
-                    .Matches(arg_str);
+                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(pattern);
+                System.Text.RegularExpressions.MatchCollection matches = regex.Matches(arg_str);
 
                 var elements = new List<ObjectData>();
-                for (int i = 0; i < matches.Count; ++i)
+                for (int match_idx = 0; match_idx < matches.Count; ++match_idx)
                 {
-                    System.Text.RegularExpressions.Match match = matches[i];
-                    ObjectData index_val = await createNat64Async(ctx, (UInt64)match.Index).ConfigureAwait(false);
-                    ObjectData length_val = await createNat64Async(ctx, (UInt64)match.Length).ConfigureAwait(false);
+                    System.Text.RegularExpressions.Match match = matches[match_idx];
+                    ObjectData match_index_val = await createNat64Async(ctx, (UInt64)match.Index).ConfigureAwait(false);
+                    ObjectData match_length_val = await createNat64Async(ctx, (UInt64)match.Length).ConfigureAwait(false);
 
                     ObjectData array_captures_ptr;
 
@@ -73,33 +56,69 @@ namespace Skila.Interpreter
                         if (!ctx.Env.DereferencedOnce(ctx.Env.MatchCapturesProperty.TypeName.Evaluation.Components,
                             out IEntityInstance array_captures_type, out bool dummy))
                             throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
-                        IEntityInstance array_elem_type = array_captures_type.Cast<EntityInstance>().TemplateArguments.Single();
-                        array_captures_ptr = await allocObjectAsync(ctx, array_captures_type,
-                            ctx.Env.MatchCapturesProperty.TypeName.Evaluation.Components, null).ConfigureAwait(false);
 
-                        // it is local variable so we need to inc ref count
-                        ctx.Heap.TryInc(ctx, array_captures_ptr, RefCountIncReason.BuildingRegexCaptures, "");
+                        ExecValue ret = await createObject(ctx, true, array_captures_type, ctx.Env.ArrayDefaultConstructor, null)
+                            .ConfigureAwait(false);
 
-                        ExecValue ret = await callNonVariadicFunctionDirectly(ctx, ctx.Env.ArrayDefaultConstructor, null, 
-                            array_captures_ptr).ConfigureAwait(false);
-
-                        if (ret.Mode != DataMode.Return)
+                        if (ret.Mode == DataMode.Throw)
                             return ret;
+
+                        array_captures_ptr = ret.ExprValue;
+                        ctx.Heap.TryInc(ctx, array_captures_ptr, RefCountIncReason.StoringLocalPointer, "");
+
+                        // skipping implicit "everything" group
+                        for (int grp_idx = 1; grp_idx < match.Groups.Count; ++grp_idx)
+                        {
+                            System.Text.RegularExpressions.Group group = match.Groups[grp_idx];
+                            string group_name = regex.GroupNameFromNumber(grp_idx);
+                            if (group_name == $"{grp_idx}") // hack for anonymous captures
+                                group_name = null;
+
+                            for (int cap_idx = 0; cap_idx < group.Captures.Count; ++cap_idx)
+                            {
+                                System.Text.RegularExpressions.Capture cap = group.Captures[cap_idx];
+
+                                ObjectData cap_index_val = await createNat64Async(ctx, (UInt64)cap.Index).ConfigureAwait(false);
+                                ObjectData cap_length_val = await createNat64Async(ctx, (UInt64)cap.Length).ConfigureAwait(false);
+                                ObjectData cap_opt_name_val;
+                                {
+                                    Option<ObjectData> opt_group_name_obj;
+                                    if (group_name != null)
+                                    {
+                                        ObjectData str_ptr = await createStringAsync(ctx, group_name).ConfigureAwait(false);
+                                        opt_group_name_obj = new Option<ObjectData>(str_ptr);
+                                    }
+                                    else
+                                        opt_group_name_obj = new Option<ObjectData>();
+
+                                    IEntityInstance opt_cap_type = ctx.Env.CaptureConstructor.Parameters.Last().TypeName.Evaluation.Components;
+                                    cap_opt_name_val = await createOption(ctx, opt_cap_type, opt_group_name_obj).ConfigureAwait(false);
+                                }
+                                ExecValue capture_obj_exec = await createObject(ctx, false, ctx.Env.CaptureType.InstanceOf,
+                                    ctx.Env.CaptureConstructor, null, cap_index_val, cap_length_val, cap_opt_name_val).ConfigureAwait(false);
+                                if (capture_obj_exec.Mode == DataMode.Throw)
+                                    return capture_obj_exec;
+                                ObjectData capture_ref = await capture_obj_exec.ExprValue.ReferenceAsync(ctx).ConfigureAwait(false);
+
+                                ExecValue append_exec = await callNonVariadicFunctionDirectly(ctx, ctx.Env.ArrayAppendFunction, null,
+                                    array_captures_ptr, capture_ref).ConfigureAwait(false);
+                                if (append_exec.Mode == DataMode.Throw)
+                                    return append_exec;
+                            }
+                        }
+
                     }
                     ObjectData match_val;
                     {
-                        match_val = await allocObjectAsync(ctx, ctx.Env.MatchType.InstanceOf,
-                            ctx.Env.MatchType.InstanceOf, null).ConfigureAwait(false);
+                        ExecValue ret = await createObject(ctx, false, ctx.Env.MatchType.InstanceOf,
+                                ctx.Env.MatchConstructor, null, match_index_val, match_length_val, array_captures_ptr).ConfigureAwait(false);
+                        ctx.Heap.TryRelease(ctx, array_captures_ptr, null, false, RefCountDecReason.DroppingLocalPointer, "");
 
-                        ExecValue ret = await callNonVariadicFunctionDirectly(ctx,ctx.Env.MatchConstructor, null, match_val,
-                             index_val, length_val ,  array_captures_ptr).ConfigureAwait(false);
-
-                        if (ret.Mode != DataMode.Return)
+                        if (ret.Mode == DataMode.Throw)
                             return ret;
-                    }
 
-                    // cleaning current scope, so we need to get rid of this local "variable"
-                    ctx.Heap.TryRelease(ctx, array_captures_ptr, null, false, RefCountDecReason.BuildingRegexCaptures, "");
+                        match_val = ret.ExprValue;
+                    }
 
                     elements.Add(match_val);
                 }

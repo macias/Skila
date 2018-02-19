@@ -30,6 +30,7 @@ namespace Skila.Language
         bool RelaxedMode { get; }
         // currently we consider protocols (and thus has-constraints) as obsolete features, so by default they are disabled
         bool AllowProtocols { get; }
+        bool AllowRealMagic { get; } // nans + infinity
     }
 
     public static class IOptionsExtension

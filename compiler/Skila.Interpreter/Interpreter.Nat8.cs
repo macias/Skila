@@ -78,15 +78,6 @@ namespace Skila.Interpreter
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
             }
-            else if (func.Name.Name == NameFactory.EqualOperator)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                var this_int = thisValue.NativeNat8;
-                var arg_int = arg.NativeNat8;
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    this_int == arg_int).ConfigureAwait(false));
-                return result;
-            }
             else if (func.IsDefaultInitConstructor())
             {
                 thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (byte)0).ConfigureAwait(false));
@@ -116,7 +107,13 @@ namespace Skila.Interpreter
                 return result;
             }
             else
-                throw new NotImplementedException($"Function {func} is not implemented");
+            {
+                ExecValue? result = await numComparisonAsync<byte>(ctx, func, thisValue).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
+                else
+                    throw new NotImplementedException($"Function {func} is not implemented");
+            }
         }
     }
 }

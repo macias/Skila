@@ -9,7 +9,13 @@ namespace Skila.Interpreter
     {
         private readonly ObjectData[] data;
 
-        public UInt64 Count => (UInt64)this.data.Length;
+        public UInt64 Count
+        {
+            get
+            {
+                return (UInt64)this.data.Length;
+            }
+        }
 
         public ObjectData this[UInt64 idx]
         {

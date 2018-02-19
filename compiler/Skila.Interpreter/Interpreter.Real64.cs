@@ -78,6 +78,29 @@ namespace Skila.Interpreter
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
             }
+            else if (func.Name.Name == NameFactory.DivideOperator)
+            {
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var this_int = thisValue.NativeReal64;
+                var arg_int = arg.NativeReal64;
+                double value = checked(this_int / arg_int);
+                if (!ctx.Env.Options.AllowRealMagic && (double.IsNaN(value) || double.IsInfinity(value)))
+                {
+                    ExecValue exec_cons = await createObject(ctx, ctx.Env.ExceptionType.Modifier.HasHeapOnly,
+                                           ctx.Env.ExceptionType.InstanceOf, ctx.Env.ExceptionType.DefaultConstructor(), null).ConfigureAwait(false);
+                    if (exec_cons.Mode == DataMode.Throw)
+                        return exec_cons;
+                    if (ctx.Env.ExceptionType.Modifier.HasHeapOnly)
+                        ctx.Heap.TryInc(ctx, exec_cons.ExprValue, RefCountIncReason.ThrowingException, "");
+                    return ExecValue.CreateThrow(exec_cons.ExprValue);
+                }
+
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value)
+                    .ConfigureAwait(false);
+                ExecValue result = ExecValue.CreateReturn(res_value);
+                return result;
+            }
+            // keep it for NaNs (as long as they part of the language)
             else if (func.Name.Name == NameFactory.EqualOperator)
             {
                 var this_int = thisValue.NativeReal64;
@@ -86,6 +109,16 @@ namespace Skila.Interpreter
                 var arg_int = arg.NativeReal64;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
                     this_int == arg_int).ConfigureAwait(false));
+                return result;
+            }
+            else if (func.Name.Name == NameFactory.NotEqualOperator)
+            {
+                var this_int = thisValue.NativeReal64;
+
+                ObjectData arg = ctx.FunctionArguments.Single();
+                var arg_int = arg.NativeReal64;
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
+                    this_int != arg_int).ConfigureAwait(false));
                 return result;
             }
             else if (func.IsDefaultInitConstructor())
@@ -106,26 +139,14 @@ namespace Skila.Interpreter
                 thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (Double)arg_val).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
-            else if (func.Name.Name == NameFactory.ComparableCompare)
-            {
-                ObjectData arg = ctx.FunctionArguments.Single();
-                var this_int = thisValue.NativeReal64;
-                var arg_int = arg.NativeReal64;
-
-                ObjectData ordering_type = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.OrderingType.InstanceOf).ConfigureAwait(false);
-                ObjectData ordering_value;
-                if (this_int < arg_int)
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingLess);
-                else if (this_int > arg_int)
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingGreater);
-                else
-                    ordering_value = ordering_type.GetField(ctx.Env.OrderingEqual);
-
-                ExecValue result = ExecValue.CreateReturn(ordering_value);
-                return result;
-            }
             else
-                throw new NotImplementedException($"Function {func} is not implemented");
+            {
+                ExecValue? result = await numComparisonAsync<double>(ctx, func, thisValue).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
+                else
+                    throw new NotImplementedException($"Function {func} is not implemented");
+            }
         }
     }
 }

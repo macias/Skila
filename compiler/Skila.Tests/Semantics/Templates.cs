@@ -253,7 +253,7 @@ namespace Skila.Tests.Semantics
             // instance of the called function
             Assert.IsTrue(call.Resolution.TargetFunctionInstance.Translation.Translate(template_param,
                 out IEntityInstance common_instance));
-            Assert.AreEqual(resolver.Context.Env.IObjectType.InstanceOf, common_instance);
+            Assert.AreEqual(resolver.Context.Env.IEquatableType.InstanceOf, common_instance);
 
             return resolver;
         }

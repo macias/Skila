@@ -14,6 +14,8 @@ namespace Skila.Tests
 {
     class Program
     {
+        private static int testOffset = 0;
+        private static int testIndex;
 
         public static void Main()
         {
@@ -25,14 +27,14 @@ namespace Skila.Tests
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
             //new Semantics.Interfaces().DuckTypingInterfaces();
-            //new Semantics.Inheritance().ErrorEnumCrossInheritance();
+            //new Semantics.Inheritance().LowestCommonAncestorBoolInt();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorCastingWithMutabilityChange();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorSettingCustomGetter();
-            //new Semantics.Templates().ErrorDisabledProtocols();
+           // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
             //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -45,7 +47,7 @@ namespace Skila.Tests
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
-            //new Execution.Library().DateDayOfWeek();
+            //new Execution.Library().RealDividingByZeroWithoutNaNs();
             //new Execution.Objects().UsingEnums();
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().Indexer();
@@ -55,7 +57,7 @@ namespace Skila.Tests
             //if (false)
             {
                 double start = Stopwatch.GetTimestamp();
-                int count = runTest<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
+                int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
                 double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
                 Console.WriteLine($"Semantics time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
@@ -66,7 +68,7 @@ namespace Skila.Tests
             // if (false)
             {
                 double start = Stopwatch.GetTimestamp();
-                int count = runTest<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
+                int count = runTests<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
 
                 double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
                 Console.WriteLine($"Interpretation time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
@@ -79,13 +81,22 @@ namespace Skila.Tests
                     Console.WriteLine(s);
             }
 
+            if (testOffset != 0)
+            {
+                var fc = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine();
+                Console.WriteLine("NOT ALL TESTS WERE CHECKED!");
+                Console.ForegroundColor = fc;
+            }
+
             Console.Write("\a"); // beep
 
             if (System.Diagnostics.Debugger.IsAttached)
                 Console.ReadLine();
         }
 
-        private static int runTest<T>(string @namespace, bool checkErrorCoverage)
+        private static int runTests<T>(string @namespace, bool checkErrorCoverage)
             where T : class
         {
             HashSet<ErrorCode> reported_errors = checkErrorCoverage ? new HashSet<ErrorCode>() : null;
@@ -97,9 +108,8 @@ namespace Skila.Tests
                 .Where(it => it.GetCustomAttributes<TestClassAttribute>().Any())
                 .Where(it => it.Namespace.EndsWith(@namespace))
                 .OrderBy(it => it.Name))
-            //.OrderByDescending(it => it.Name))
             {
-                missed_atrr.AddRange(runTest<T>(type, ref total, ref failed, reported_errors));
+                missed_atrr.AddRange(runTests<T>(type, ref total, ref failed, reported_errors));
             }
 
             if (checkErrorCoverage)
@@ -159,50 +169,54 @@ namespace Skila.Tests
             return total;
         }
 
-        private static IEnumerable<string> runTest<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
+        private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
             where T : class
         {
+            var miss_attr = new List<string>();
+
             int init_fails = failed;
 
-            var miss_attr = new List<string>();
             object test = Activator.CreateInstance(type);
             foreach (System.Reflection.MethodInfo method in test.GetType()
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .OrderBy(it => it.Name))
             {
                 ++total;
-
-                try
+                if (testIndex >= testOffset)
                 {
-                    if (!method.GetCustomAttributes(typeof(TestMethodAttribute), false).Any())
-                        miss_attr.Add(type.Name + "." + method.Name);
-                    else
+                    try
                     {
-                        string test_name = $"{type.Name}.{method.Name}";
-                        Console.Write(test_name);
-                        // this is not just dumb casting -- it checks if the given test returns the expected object
-                        // so for example, semantic test is not mixed with interpretation test
-                        T result = method.Invoke(test, new object[] { }).Cast<T>();
-                        if (result == null)
-                            throw new Exception("Internal error");
-                        if (result is IErrorReporter reporter)
-                            errors.AddRange(reporter.Errors.Select(it => it.Code));
-                        ClearWrite(test_name);
-                    }
+                        if (!method.GetCustomAttributes(typeof(TestMethodAttribute), false).Any())
+                            miss_attr.Add(type.Name + "." + method.Name);
+                        else
+                        {
+                            string test_name = $"{type.Name}.{method.Name} ({testIndex})";
+                            Console.Write(test_name);
+                            // this is not just dumb casting -- it checks if the given test returns the expected object
+                            // so for example, semantic test is not mixed with interpretation test
+                            T result = method.Invoke(test, new object[] { }).Cast<T>();
+                            if (result == null)
+                                throw new Exception("Internal error");
+                            if (result is IErrorReporter reporter)
+                                errors.AddRange(reporter.Errors.Select(it => it.Code));
+                            ClearWrite(test_name);
+                        }
 
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(" FAILED: " + ex.InnerException.StackTrace.Split('\n').FirstOrDefault());
+                        ++failed;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(" FAILED: " + ex.InnerException.StackTrace.Split('\n').FirstOrDefault());
-                    ++failed;
-                }
+
+                ++testIndex;
             }
 
             if (init_fails == failed)
             {
                 Console.WriteLine($"{type.Name} passed.");
             }
-
             return miss_attr;
         }
 

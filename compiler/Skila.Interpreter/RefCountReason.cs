@@ -11,7 +11,8 @@
         DeclAssign,
         FileLine,
         IncField,
-        BuildingRegexCaptures
+        StoringLocalPointer,
+        ThrowingException
     }
 
     internal enum RefCountDecReason
@@ -23,6 +24,6 @@
         FreeChunkElem,
         FreeField,
         DropOnCallResult,
-        BuildingRegexCaptures
+        DroppingLocalPointer
     }
 }

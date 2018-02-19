@@ -73,6 +73,7 @@ namespace Skila.Language
         public FunctionDefinition StringCountGetter { get; }
 
         public TypeDefinition CaptureType { get; }
+        public FunctionDefinition CaptureConstructor { get; }
         public TypeDefinition MatchType { get; }
         public Property MatchCapturesProperty { get; }
         public FunctionDefinition MatchConstructor { get; }
@@ -104,6 +105,8 @@ namespace Skila.Language
 
         public TypeDefinition ArrayType { get; }
         public FunctionDefinition ArrayDefaultConstructor { get; }
+        public FunctionDefinition ArrayAppendFunction { get; }
+
         public TypeDefinition ISequenceType { get; }
         public TypeDefinition IIterableType { get; }
         public TypeDefinition IIteratorType { get; }
@@ -184,7 +187,7 @@ namespace Skila.Language
 
 
             {
-                this.Int16Type = this.Root.AddNode(createNumXType(NameFactory.Int16TypeName,
+                this.Int16Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Int16TypeName,
                     Int16Literal.Create($"{Int16.MinValue}"),
                     Int16Literal.Create($"{Int16.MaxValue}"),
                     out FunctionDefinition parse_string));
@@ -196,7 +199,7 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                this.Int64Type = this.Root.AddNode(createNumXType(NameFactory.Int64TypeName,
+                this.Int64Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Int64TypeName,
                     Int64Literal.Create($"{Int64.MinValue}"),
                     Int64Literal.Create($"{Int64.MaxValue}"),
                     out FunctionDefinition parse_string,
@@ -206,7 +209,7 @@ namespace Skila.Language
                 this.Int64ParseStringFunction = parse_string;
             }
             {
-                this.Nat8Type = this.Root.AddNode(createNumXType(NameFactory.Nat8TypeName,
+                this.Nat8Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Nat8TypeName,
                     Nat8Literal.Create($"{byte.MinValue}"),
                     Nat8Literal.Create($"{byte.MaxValue}"),
                     out FunctionDefinition parse_string));
@@ -218,7 +221,7 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                this.Nat64Type = this.Root.AddNode(createNumXType(NameFactory.Nat64TypeName,
+                this.Nat64Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Nat64TypeName,
                    Nat64Literal.Create($"{UInt64.MinValue}"),
                    Nat64Literal.Create($"{UInt64.MaxValue}"),
                    out FunctionDefinition parse_string,
@@ -239,7 +242,8 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                this.Real64Type = this.Root.AddNode(createNumXType(NameFactory.Real64TypeName,
+                this.Real64Type = this.Root.AddNode(createRealType(options.AllowRealMagic,
+                    NameFactory.Real64TypeName,
                    Real64Literal.Create(Double.MinValue),
                    Real64Literal.Create(Double.MaxValue),
                    out FunctionDefinition parse_string,
@@ -264,9 +268,12 @@ namespace Skila.Language
                 this.FileExists = exists;
             }
 
-            this.CaptureType = this.TextNamespace.AddNode(createCapture());
             {
-                this.MatchType = this.TextNamespace.AddNode(createMatch(out Property match_captures_prop,out FunctionDefinition match_cons));
+                this.CaptureType = this.TextNamespace.AddNode(createCapture(out FunctionDefinition cap_cons));
+                this.CaptureConstructor = cap_cons;
+            }
+            {
+                this.MatchType = this.TextNamespace.AddNode(createMatch(out Property match_captures_prop, out FunctionDefinition match_cons));
                 this.MatchCapturesProperty = match_captures_prop;
                 this.MatchConstructor = match_cons;
             }
@@ -311,8 +318,10 @@ namespace Skila.Language
             }
 
             {
-                this.ArrayType = this.CollectionsNamespace.AddNode(createArray(out FunctionDefinition array_def_cons));
+                this.ArrayType = this.CollectionsNamespace.AddNode(createArray(out FunctionDefinition array_def_cons,
+                    out FunctionDefinition append));
                 this.ArrayDefaultConstructor = array_def_cons;
+                this.ArrayAppendFunction = append;
             }
 
             this.IEquatableType = this.SystemNamespace.AddBuilder(
@@ -364,17 +373,7 @@ namespace Skila.Language
             this.CollectionsNamespace.AddNode(createConcat1());
             this.CollectionsNamespace.AddNode(createConcat3());
 
-            this.BoolType = Root.AddBuilder(TypeBuilder.Create(NameFactory.BoolTypeName)
-                .Modifier(EntityModifier.Native)
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
-                    Block.CreateStatement()))
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                    Block.CreateStatement())
-                    .Modifier(EntityModifier.Native))
-                .Parents(NameFactory.IObjectTypeReference()));
+            this.BoolType = Root.AddNode(createBool());
 
             {
                 FunctionDefinition count_getter;
@@ -496,44 +495,46 @@ namespace Skila.Language
                 .Modifier(EntityModifier.HeapOnly);
         }
 
-        private TypeDefinition createCapture()
+        private TypeDefinition createCapture(out FunctionDefinition captureConstructor)
         {
-            return TypeBuilder.Create(NameFactory.CaptureTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureCountFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
-                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst)), Undef.Create()))
-                .With(ExpressionFactory.BasicConstructor(new[] {
+            captureConstructor = ExpressionFactory.BasicConstructor(new[] {
                         NameFactory.CaptureIndexFieldName,
-                        NameFactory.CaptureCountFieldName,
-                        NameFactory.CaptureIdFieldName,
+                        NameFactory.CaptureLengthFieldName,
+                  //      NameFactory.CaptureIdFieldName,
                         NameFactory.CaptureNameFieldName
                     },
                     new[] {
                         NameFactory.SizeTypeReference(),
                         NameFactory.SizeTypeReference(),
-                        NameFactory.SizeTypeReference(),
+                    //    NameFactory.SizeTypeReference(),
                         NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst))
-                    }))
+                    });
+
+            return TypeBuilder.Create(NameFactory.CaptureTypeName)
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureLengthFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                //.With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
+                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst)), Undef.Create()))
+                .With(captureConstructor)
                     ;
         }
 
-        private TypeDefinition createMatch(out Property matchCapturesProp,out FunctionDefinition matchConstructor)
+        private TypeDefinition createMatch(out Property matchCapturesProp, out FunctionDefinition matchConstructor)
         {
             Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.SizeTypeReference(),
                 Undef.Create());
-            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCountFieldName, NameFactory.SizeTypeReference(),
+            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchLengthFieldName, NameFactory.SizeTypeReference(),
                 Undef.Create());
             matchCapturesProp = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
                     NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), MutabilityFlag.ForceConst)),
                         Undef.Create());
 
             // using constructor with direct initialization of the fields, not properties (no setters anyway)
-            matchConstructor = ExpressionFactory.BasicConstructor(               
+            matchConstructor = ExpressionFactory.BasicConstructor(
                 new[] {
                         NameFactory.MatchIndexFieldName,
-                        NameFactory.MatchCountFieldName,
+                        NameFactory.MatchLengthFieldName,
                         NameFactory.MatchCapturesFieldName
                     },
                     new[] {
@@ -744,7 +745,7 @@ namespace Skila.Language
                  .With(map_func);
         }
 
-        private static TypeDefinition createArray(out FunctionDefinition defaultConstructor)
+        private static TypeDefinition createArray(out FunctionDefinition defaultConstructor, out FunctionDefinition append)
         {
             const string elem_type = "ART";
             const string data_field = "data";
@@ -754,13 +755,13 @@ namespace Skila.Language
                         .WithAutoSetter(EntityModifier.Private)
                         .WithAutoGetter(EntityModifier.Override);
 
-            PropertyMemberBuilder indexer_getter = PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(
+            PropertyMemberBuilder indexer_getter_builder = PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(
                             Return.Create(FunctionCall.Indexer(NameReference.CreateThised(data_field),
                                 NameFactory.IndexIndexerReference()))
                             ))
                             .Modifier(EntityModifier.Override);
 
-            FunctionDefinition append = FunctionBuilder.Create(NameFactory.AppendFunctionName, NameFactory.UnitTypeReference(),
+            append = FunctionBuilder.Create(NameFactory.AppendFunctionName, NameFactory.UnitTypeReference(),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("pos", null, NameReference.CreateThised(NameFactory.IterableCount)),
                                     // ++this.count;
@@ -780,7 +781,7 @@ namespace Skila.Language
                     NameFactory.ReferenceTypeReference(elem_type)))
                 .Modifier(EntityModifier.Mutable);
 
-            PropertyMemberBuilder indexer_setter = PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement(
+            PropertyMemberBuilder indexer_setter_builder = PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement(
                             // assert index<=this.count;
                             ExpressionFactory.AssertTrue(ExpressionFactory.IsLessEqual(NameFactory.IndexIndexerReference(),
                                 NameReference.CreateThised(NameFactory.IterableCount))),
@@ -803,7 +804,7 @@ namespace Skila.Language
                             ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
                                 NatLiteral.Create("1")))
                         ));
-            return TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
+            TypeDefinition result = TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .Modifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
                     .Parents(NameFactory.IIndexableTypeReference(elem_type))
 
@@ -830,8 +831,10 @@ namespace Skila.Language
 
                      .With(PropertyBuilder.CreateIndexer(NameFactory.ReferenceTypeReference(elem_type))
                         .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference()))
-                        .With(indexer_setter)
-                        .With(indexer_getter));
+                        .With(indexer_setter_builder,out IMember indexer_setter_func)
+                        .With(indexer_getter_builder));
+
+            return result;
         }
 
         private static TypeDefinition createChunk(out FunctionDefinition sizeConstructor,
@@ -879,7 +882,70 @@ namespace Skila.Language
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out atGetter));
         }
 
-        private static TypeDefinition createNumXType(string numTypeName, Literal minValue, Literal maxValue, out FunctionDefinition parseString,
+        private static TypeDefinition createRealType(bool allowNotANumber, string numTypeName, Literal minValue, Literal maxValue, out FunctionDefinition parseString,
+            params IMember[] extras)
+        {
+            TypeBuilder builder;
+            if (allowNotANumber)
+            {
+                VariableDeclaration nan = VariableDeclaration.CreateStatement(NameFactory.RealNanName, NameFactory.Real64TypeReference(), Real64Literal.Create(double.NaN),
+                    EntityModifier.Static | EntityModifier.Public);
+
+                // because of NaNs we cannot use IEquatable/IComparable, 
+                // x ==x for NaN gives false despite both sides not only are equal but they are identical
+                // https://stackoverflow.com/questions/1565164/what-is-the-rationale-for-all-comparisons-returning-false-for-ieee754-nan-values
+                builder = createCoreNumBuilder(numTypeName, minValue, maxValue, out parseString, extras.Concat(nan).ToArray());
+            }
+            else
+                builder = createFullNumBuilder(numTypeName, minValue, maxValue, out parseString, extras);
+
+            return builder
+               .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.DivideOperator),
+                   ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                   Block.CreateStatement())
+                   .Modifier(EntityModifier.Native)
+                   .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)));
+      }
+
+        private static TypeDefinition createBool()
+        {
+            return TypeBuilder.Create(NameFactory.BoolTypeName)
+                            .Parents(NameFactory.IEquatableTypeReference())
+                            .Modifier(EntityModifier.Native)
+                            .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
+                            .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
+                                new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
+                                Block.CreateStatement()))
+                            .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
+                                ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                Block.CreateStatement())
+                                .Modifier(EntityModifier.Native))
+
+                                .WithEquatableEquals()
+                                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                        Block.CreateStatement())
+                                    .Modifier(EntityModifier.Native)
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                            ;
+        }
+
+        private static TypeBuilder createFullNumBuilder(string numTypeName, Literal minValue, Literal maxValue, 
+            out FunctionDefinition parseString, params IMember[] extras)
+        {
+            return createCoreNumBuilder(numTypeName, minValue, maxValue, out parseString, extras)
+                            .Parents(NameFactory.ComparableTypeReference())
+                            .WithComparableCompare()
+                            .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
+                                ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                Block.CreateStatement())
+                                .Modifier(EntityModifier.Native)
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                            ;
+        }
+
+        private static TypeBuilder createCoreNumBuilder(string numTypeName, Literal minValue, Literal maxValue, 
+            out FunctionDefinition parseString,
             params IMember[] extras)
         {
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.ItTypeReference()),
@@ -889,7 +955,6 @@ namespace Skila.Language
 
             return TypeBuilder.Create(numTypeName)
                 .Modifier(EntityModifier.Native)
-                .Parents(NameFactory.IObjectTypeReference(), NameFactory.ComparableTypeReference())
                 .With(parseString)
                 .With(extras)
                 .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(),
@@ -925,9 +990,23 @@ namespace Skila.Language
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
 
-                .WithComparableCompare()
-                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
-                    ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.LessOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.LessEqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.GreaterOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.GreaterEqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
@@ -937,7 +1016,12 @@ namespace Skila.Language
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
-                ;
+                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotEqualOperator),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    Block.CreateStatement())
+                    .Modifier(EntityModifier.Native)
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    ;
         }
 
         private static TypeDefinition createChannelType()

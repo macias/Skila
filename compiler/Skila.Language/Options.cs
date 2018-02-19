@@ -26,6 +26,7 @@ namespace Skila.Language
         public bool MiniEnvironment { get; set; }
         public bool AllowInvalidMainResult { get; set; }
         public bool AllowProtocols { get; set; }
+        public bool AllowRealMagic { get; set; }
 
         public override string ToString()
         {

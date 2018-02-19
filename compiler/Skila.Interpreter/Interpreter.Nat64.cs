@@ -10,11 +10,13 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private Task<ObjectData> createNat64Async(ExecutionContext ctx,UInt64 value)
+        private Task<ObjectData> createNat64Async(ExecutionContext ctx, UInt64 value)
         {
-            return ObjectData.CreateInstanceAsync(ctx,ctx.Env.Nat64Type.InstanceOf, value);
+            return ObjectData.CreateInstanceAsync(ctx, ctx.Env.Nat64Type.InstanceOf, value);
         }
-        private async Task<ExecValue> executeNativeNat64FunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
+
+        private async Task<ExecValue> executeNativeNat64FunctionAsync(ExecutionContext ctx, FunctionDefinition func,
+            ObjectData thisValue)
         {
             if (func == ctx.Env.Nat64ParseStringFunction)
             {
@@ -82,16 +84,6 @@ namespace Skila.Interpreter
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;
             }
-            else if (func.Name.Name == NameFactory.EqualOperator)
-            {
-                var this_int = thisValue.NativeNat64;
-
-                ObjectData arg = ctx.FunctionArguments.Single();
-                var arg_int = arg.NativeNat64;
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    this_int == arg_int).ConfigureAwait(false));
-                return result;
-            }
             else if (func.IsDefaultInitConstructor())
             {
                 thisValue.Assign(await createNat64Async(ctx, 0UL).ConfigureAwait(false));
@@ -102,7 +94,7 @@ namespace Skila.Interpreter
                 thisValue.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);
             }
-            else if (func== ctx.Env.Nat64FromNat8Constructor)
+            else if (func == ctx.Env.Nat64FromNat8Constructor)
             {
                 ObjectData arg_obj = ctx.FunctionArguments.Single();
                 var arg_val = arg_obj.NativeNat8;
@@ -129,7 +121,13 @@ namespace Skila.Interpreter
                 return result;
             }
             else
-                throw new NotImplementedException($"Function {func} is not implemented");
+            {
+                ExecValue? result = await numComparisonAsync<UInt64>(ctx, func, thisValue).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
+                else
+                    throw new NotImplementedException($"Function {func} is not implemented");
+            }
         }
     }
 }

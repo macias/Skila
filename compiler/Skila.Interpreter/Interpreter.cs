@@ -226,7 +226,7 @@ namespace Skila.Interpreter
             if (result.Mode == DataMode.Throw)
             {
                 // todo: print the stacktrace, dump memory, etc etc etc
-                if (!ctx.Heap.TryRelease(ctx, result.ThrowValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.ReleaseExceptionFromMain, callInfo: ""))
+                if (!ctx.Heap.TryRelease(ctx, result.ThrowValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.ReleaseExceptionFromMain, comment: ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 result = ExecValue.CreateThrow(null); // this is to return something for Tests
             }
@@ -358,7 +358,7 @@ namespace Skila.Interpreter
                 }
 
                 ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj, isPassingOut: false, reason: RefCountDecReason.UnwindingStack,
-                    callInfo: $"elem: {bindable_obj.Item1}, scope: {scope}");
+                    comment: $"elem: {bindable_obj.Item1}, scope: {scope}");
             }
         }
 
@@ -400,10 +400,19 @@ namespace Skila.Interpreter
             return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.LiteralValue);
         }
 
-        private Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
-            return executeAllocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, literal.Evaluation.Components, literal.Value);
+            return ExecValue.CreateExpression(await createStringAsync(ctx,literal.Value).ConfigureAwait(false));
+        }
+
+        private Task<ObjectData> createStringAsync(ExecutionContext ctx, string value)
+        {
+            // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
+            return allocObjectAsync(ctx, 
+                ctx.Env.StringType.InstanceOf, 
+                ctx.Env.Reference(ctx.Env.StringType.InstanceOf, MutabilityFlag.ConstAsSource,null,viaPointer:true),
+                value);
         }
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Throw thrower)
@@ -658,6 +667,7 @@ namespace Skila.Interpreter
                 ExecValue this_exec = await ExecutedAsync(call.Resolution.MetaThisArgument.Expression, ctx).ConfigureAwait(false);
                 if (this_exec.Mode == DataMode.Throw)
                     return new Variant<object, ExecValue, CallInfo>(this_exec);
+
                 this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"call {call}").ConfigureAwait(false);
                 this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
             }
@@ -962,7 +972,7 @@ namespace Skila.Interpreter
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
 
                     ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.AssignmentLhsDrop,
-                        callInfo: $"{assign}");
+                        comment: $"{assign}");
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -1030,11 +1040,11 @@ namespace Skila.Interpreter
             {
                 ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
                 temp = temp.Copy();
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
                 retValue = temp;
             }
             else
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, callInfo: $"{node}");
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
 
             return retValue;
 

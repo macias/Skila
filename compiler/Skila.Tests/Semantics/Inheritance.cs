@@ -352,7 +352,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter LowestCommonAncestorDoubleInt()
+        public IErrorReporter LowestCommonAncestorBoolInt()
         {
             var env = Language.Environment.Create(new Options() {});
             var root_ns = env.Root;
@@ -360,9 +360,9 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                env.Int64Type.InstanceOf, env.Real64Type.InstanceOf, out IEntityInstance common);
+                env.Int64Type.InstanceOf, env.BoolType.InstanceOf, out IEntityInstance common);
             Assert.IsTrue(found);
-            Assert.AreEqual(env.ComparableType.InstanceOf, common);
+            Assert.AreEqual(env.IEquatableType.InstanceOf, common);
 
             return resolver;
         }

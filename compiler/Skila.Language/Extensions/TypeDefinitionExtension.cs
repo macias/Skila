@@ -15,8 +15,14 @@ namespace Skila.Language.Extensions
         }
         public static bool HasDefaultConstructor(this TypeDefinition @this)
         {
-            return @this.NestedFunctions.Where(it => it.IsDefaultInitConstructor()).Any();
+            return DefaultConstructor(@this) != null;
         }
+
+        public static FunctionDefinition DefaultConstructor(this TypeDefinition @this)
+        {
+            return @this.NestedFunctions.Where(it => it.IsDefaultInitConstructor()).FirstOrDefault();
+        }
+
         public static IEnumerable<FunctionDefinition> InvokeFunctions(this TypeDefinition @this)
         {
             return @this.NestedFunctions.Where(it => it.Name.Name == NameFactory.LambdaInvoke);
@@ -33,7 +39,7 @@ namespace Skila.Language.Extensions
                 FunctionDefinition derived_func = derivedFunctions
                     .FirstOrDefault(dfunc => FunctionDefinitionExtension.IsDerivedOf(ctx, dfunc, base_func, baseInstance));
 
-               result.Add(new FunctionDerivation(base_func, derived_func));
+                result.Add(new FunctionDerivation(base_func, derived_func));
             }
 
             return result;

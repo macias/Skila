@@ -70,15 +70,16 @@ namespace Skila.Language
         public const string SaturdayDayOfWeekTypeName = "saturday";
 
         public const string CaptureIndexFieldName = "index";
-        public const string CaptureCountFieldName = "count";
+        public const string CaptureLengthFieldName = "length";
         public const string CaptureIdFieldName = "id";
         public const string CaptureNameFieldName = "name";
 
         public const string NumMinValueName = "minValue";
         public const string NumMaxValueName = "maxValue";
+        public const string RealNanName = "nan";
 
         public const string MatchIndexFieldName = "index";
-        public const string MatchCountFieldName = "count";
+        public const string MatchLengthFieldName = "length";
         public const string MatchCapturesFieldName = "captures";
 
         public const string RegexPatternFieldName = "pattern";
@@ -105,6 +106,7 @@ namespace Skila.Language
         public const string AddOverflowOperator = "+®";
         public const string AddOperator = "+";
         public const string MulOperator = "*";
+        public const string DivideOperator = "/";
         public const string SubOperator = "-";
         public const string EqualOperator = "==";
         public const string NotEqualOperator = "!=";
@@ -114,7 +116,8 @@ namespace Skila.Language
         public const string LessEqualOperator = "<=";
         public const string NotOperator = "not";
 
-        public const string PropertyIndexerName = "at";
+        public const string AtFunctionName = "at";
+        public const string PropertyIndexerName = AtFunctionName;
         public const string IterableCount = "count";
         public const string IteratorGet = "get";
         public const string IteratorNext = "next";

@@ -48,7 +48,7 @@ namespace Skila.Interpreter
 
             if (obj.DebugId.Id == debugTraceId)
             {
-                print(0, 0, "", "Allocating object");
+                print(0, 0, "", $"Allocating object {obj}");
             }
 
             lock (this.threadLock)
@@ -59,7 +59,7 @@ namespace Skila.Interpreter
 
         internal bool TryRelease(ExecutionContext ctx, ObjectData releasingObject,
             // the object which is passed out of the block 
-            ObjectData passingOutObject, bool isPassingOut,RefCountDecReason reason, string callInfo)
+            ObjectData passingOutObject, bool isPassingOut,RefCountDecReason reason, string comment)
         {
             if (releasingObject == passingOutObject)
                 isPassingOut = true;
@@ -69,9 +69,9 @@ namespace Skila.Interpreter
                 if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance))
                 {
                     if (releasingObject.DebugId.Id == debugTraceId)
-                        print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}", callInfo);
+                        print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}", comment);
                     // removing valued-objects
-                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, false, $"as value {callInfo}");
+                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, false, $"as value {comment}");
                 }
                 return false;
             }
@@ -100,7 +100,7 @@ namespace Skila.Interpreter
                 if (count == 0 && !isPassingOut)
                 {
                     this.refCounts.Remove(releasingObject);
-                    freeObjectData(ctx, releasingObject, passingOutObject,isPassingOut, true, callInfo);
+                    freeObjectData(ctx, releasingObject, passingOutObject,isPassingOut, true, comment);
                 }
                 else
                     this.refCounts[releasingObject] = count;
@@ -112,7 +112,7 @@ namespace Skila.Interpreter
                 {
                     ;
                 }
-                print(count, -1, $"DEC{(isPassingOut ? "/OUT" : "")}", $"{reason} {callInfo}");
+                print(count, -1, $"DEC{(isPassingOut ? "/OUT" : "")}", $"{reason} {comment}");
             }
 
             return true;
@@ -142,7 +142,7 @@ namespace Skila.Interpreter
             return false;
         }
 
-        internal bool TryInc(ExecutionContext ctx, ObjectData pointerObject, RefCountIncReason reason, string callInfo)
+        internal bool TryInc(ExecutionContext ctx, ObjectData pointerObject, RefCountIncReason reason, string comment)
         {
             if (!ctx.Env.IsPointerOfType(pointerObject.RunTimeTypeInstance))
                 return false;
@@ -170,7 +170,7 @@ namespace Skila.Interpreter
                 {
                     ;
                 }
-                print(count, +1, "INC", $"{reason} {callInfo}");
+                print(count, +1, "INC", $"{reason} {comment}");
             }
 
             return true;
