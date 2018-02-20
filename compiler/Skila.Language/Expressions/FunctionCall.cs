@@ -162,7 +162,7 @@ namespace Skila.Language.Expressions
             if (this.mode != CallMode.Constructor && this.Resolution.TargetFunction.IsAnyConstructor())
                 ctx.AddError(ErrorCode.ConstructorCallFromFunctionBody, this);
 
-            if (this.Name.Binding.Match.Target is FunctionDefinition binding_func)
+            if (!ctx.Env.Options.AllowNamedSelf && this.Name.Binding.Match.Target is FunctionDefinition binding_func)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                 if (this.Name.Name != NameFactory.SelfFunctionName && binding_func == func)
@@ -267,7 +267,7 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId.Id == 297)
+                    if (this.DebugId.Id == 140)
                     {
                         ;
                     }
@@ -397,7 +397,7 @@ namespace Skila.Language.Expressions
                         weight.Penalty += 1;
                     // prefer concrete type over generic one (foo(Int) better than foo<T>(T))
                     // note we use untranslated param evaluation here to achieve this effect
-                    if (!param.Evaluation.Components.IsSame(arg.Evaluation.Components, jokerMatchesAll: true))
+                    if (!param.Evaluation.Components.IsExactlySame(arg.Evaluation.Components, jokerMatchesAll: true))
                         weight.Penalty += 2;
 
                     // prefer exact match instead more general match (Int->Int is better than Int->Object)

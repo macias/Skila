@@ -221,9 +221,9 @@ namespace Skila.Language
         {
             return NameReference.Create(ThisVariableName);
         }
-        public static NameReference ItTypeReference()
+        public static NameReference ItTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(ItTypeName);
+            return NameReference.Create(mutability,ItTypeName);
         }
         public static NameReference BoolTypeReference()
         {
@@ -264,9 +264,9 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), DateTypeName);
         }
-        public static NameReference IEquatableTypeReference()
+        public static NameReference IEquatableTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(SystemNamespaceReference(), IEquatableTypeName);
+            return NameReference.Create(mutability, SystemNamespaceReference(), IEquatableTypeName);
         }
         public static NameReference ChannelTypeReference(string templateParamName)
         {
@@ -412,9 +412,9 @@ namespace Skila.Language
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName);
         }
-        public static NameReference ComparableTypeReference()
+        public static NameReference ComparableTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
-            return NameReference.Create(SystemNamespaceReference(), NameFactory.ComparableTypeName);
+            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.ComparableTypeName);
         }
         public static NameReference OrderingTypeReference()
         {
@@ -470,11 +470,11 @@ namespace Skila.Language
             return ReferenceTypeReference(NameReference.Create(name));
         }
 
-        internal static INameReference ShouldBeThisTypeReference(string typeName)
+        internal static INameReference ShouldBeThisTypeReference(string typeName,MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
         {
             // todo: Skila1 supported the notion of dynamic "this type", Skila-3 should also have it
             // so once we have time to do it this method will help us fast track all the use cases to replace
-            return NameReference.Create(typeName);
+            return NameReference.Create(mutability, typeName);
         }
     }
 }

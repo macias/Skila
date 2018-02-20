@@ -152,7 +152,7 @@ namespace Skila.Language
                 return false;
             if (!EntityBareNameComparer.Instance.Equals(this.Name, other.Name))
                 return false;
-            if (this.TypeName.Evaluation.Components.IsSame(other.TypeName.Evaluation.Components, jokerMatchesAll: true))
+            if (this.TypeName.Evaluation.Components.IsExactlySame(other.TypeName.Evaluation.Components, jokerMatchesAll: true))
                 return false;
 
             return true;

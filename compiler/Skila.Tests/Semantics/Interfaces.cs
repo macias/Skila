@@ -143,12 +143,14 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("X"));
 
             IExpression init_value = ExpressionFactory.StackConstructor(NameReference.Create("X"));
+            // even with duck typing we cannot make the assigment because slicing is forbidden in all cases
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value);
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value),
+                    decl,
                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
                 })));

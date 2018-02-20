@@ -19,14 +19,14 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+             new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
-            //new Semantics.Interfaces().DuckTypingInterfaces();
+           // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
             //new Semantics.Inheritance().LowestCommonAncestorBoolInt();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
@@ -40,19 +40,19 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ImplicitClosureWithValue();
-            //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
+            //new Execution.Collections().AccessingTuple();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().StoringSequenceAsSequence();
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
-            //new Execution.Library().RealDividingByZeroWithoutNaNs();
-            //new Execution.Objects().UsingEnums();
+            //new Execution.Library().RealNotANumber();
+            //new Execution.Objects().PassingSelfTypeCheck();
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().Indexer();
             //new Execution.Templates().HasConstraintWithValue();
-            new Execution.Text().RegexMatch();
+            //new Execution.Text().TODO_RegexMatchWithNamedCaptures();
 
             //if (false)
             {

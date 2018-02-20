@@ -118,6 +118,10 @@ namespace Skila.Language.Entities
             Block body)
             : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
         {
+            if (this.DebugId.Id==662)
+            {
+                ;
+            }
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
             this.Parameters = parameters.Indexed().StoreReadOnlyList();

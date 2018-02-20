@@ -30,7 +30,7 @@ namespace Skila.Language
         bool IsStrictDescendantOf(ComputationContext ctx, EntityInstance ancestor);
         bool IsStrictAncestorOf(ComputationContext ctx, IEntityInstance descendant);
 
-        bool IsSame(IEntityInstance other, bool jokerMatchesAll);
+        bool IsExactlySame(IEntityInstance other, bool jokerMatchesAll);
         // checks if types are distinct from each other for function overloading validation
         bool IsOverloadDistinctFrom(IEntityInstance other);
 

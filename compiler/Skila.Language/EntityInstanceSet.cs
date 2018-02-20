@@ -38,12 +38,12 @@ namespace Skila.Language
         protected abstract bool hasSymmetricRelation(IEntityInstance other,
             Func<IEntityInstance, IEntityInstance, bool> relation);
 
-        public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
+        public bool IsExactlySame(IEntityInstance other, bool jokerMatchesAll)
         {
             if (!jokerMatchesAll)
                 return this == other;
 
-            return hasSymmetricRelation(other, (a, b) => a.IsSame(b, jokerMatchesAll));
+            return hasSymmetricRelation(other, (a, b) => a.IsExactlySame(b, jokerMatchesAll));
         }
         public IEntityInstance TranslationOf(IEntityInstance openTemplate, ref bool translated, TemplateTranslation closedTranslation)
         {

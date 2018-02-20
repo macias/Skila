@@ -213,7 +213,7 @@ namespace Skila.Language
         {
             return target.MatchesInput(ctx, this, matching);
         }
-        public bool IsSame(IEntityInstance other, bool jokerMatchesAll)
+        public bool IsExactlySame(IEntityInstance other, bool jokerMatchesAll)
         {
             if (!jokerMatchesAll)
                 return this == other;
@@ -224,7 +224,7 @@ namespace Skila.Language
             }
             var other_entity = other as EntityInstance;
             if (other_entity == null)
-                return other.IsSame(this, jokerMatchesAll);
+                return other.IsExactlySame(this, jokerMatchesAll);
 
             if (this.IsJoker || other_entity.IsJoker)
                 return true;
@@ -237,7 +237,7 @@ namespace Skila.Language
 
             for (int i = 0; i < this.TemplateArguments.Count; ++i)
             {
-                if (!other_entity.TemplateArguments[i].IsSame(this.TemplateArguments[i], jokerMatchesAll))
+                if (!other_entity.TemplateArguments[i].IsExactlySame(this.TemplateArguments[i], jokerMatchesAll))
                     return false;
             }
 
@@ -301,7 +301,7 @@ namespace Skila.Language
             switch (matching.Position)
             {
                 case VarianceMode.None:
-                    return this.IsSame(input, jokerMatchesAll: true) ? TypeMatch.Same : TypeMatch.No;
+                    return this.IsExactlySame(input, jokerMatchesAll: true) ? TypeMatch.Same : TypeMatch.No;
                 case VarianceMode.In:
                     return TypeMatcher.Matches(ctx, this, input, matching);
                 case VarianceMode.Out:

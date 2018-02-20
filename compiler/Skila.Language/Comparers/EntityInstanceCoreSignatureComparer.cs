@@ -22,7 +22,7 @@ namespace Skila.Language.Comparers
                 return false;
 
             foreach (var ab in x.TemplateArguments.Zip(y.TemplateArguments, (a, b) => Tuple.Create(a, b)))
-                if (!ab.Item1.IsSame(ab.Item2, jokerMatchesAll: false))
+                if (!ab.Item1.IsExactlySame(ab.Item2, jokerMatchesAll: false))
                     return false;
 
             return true;

@@ -27,17 +27,17 @@ namespace Skila.Language.Expressions
             return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                             Block.CreateStatement(
-                          IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(),NameReference.Create("cmp")),
+                          IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),
                                 new[] { Return.Create(BoolLiteral.CreateTrue()) }),
                           // let obj = cmp cast? Self
                           VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
+                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityFlag.Neutral)))),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference()))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference( MutabilityFlag.Neutral)))));
         }
         public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
         {
@@ -66,13 +66,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference()))),
+                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference( MutabilityFlag.Neutral)))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference()))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference( MutabilityFlag.Neutral)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -307,7 +307,7 @@ namespace Skila.Language.Expressions
             return AssertTrue(IsEqual(expected, actual));
         }
 
-        public static IExpression AssertOptionValue(IExpression option,bool hasValue = true)
+        public static IExpression AssertOptionValue(IExpression option, bool hasValue = true)
         {
             IExpression condition = optionHasValue(option);
             if (!hasValue)

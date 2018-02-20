@@ -174,7 +174,10 @@ namespace Skila.Interpreter
             if (func.IsInitConstructor()
                 && func.Parameters.Count == 1 && func.Parameters.Single().Name.Name == NameFactory.EnumConstructorParameter)
             {
-                this_value.Assign(ctx.FunctionArguments.Single());
+                ObjectData arg_obj = ctx.FunctionArguments.Single();
+                // changing runtime type from some kind enum (Nat/Int) to truly enum
+                ObjectData enum_obj = await  ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, arg_obj.PlainValue).ConfigureAwait(false);
+                this_value.Assign(enum_obj);
                 return ExecValue.CreateReturn(null);
             }
             else if (func.Name.Name == NameFactory.EqualOperator)

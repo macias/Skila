@@ -92,7 +92,7 @@ namespace Skila.Language
         public VariableDeclaration OrderingLess { get; }
         public VariableDeclaration OrderingEqual { get; }
         public VariableDeclaration OrderingGreater { get; }
-        public TypeDefinition ComparableType { get; }
+        public TypeDefinition IComparableType { get; }
         public TypeDefinition IObjectType { get; }
         public FunctionDefinition IObjectGetTypeFunction { get; }
 
@@ -187,7 +187,7 @@ namespace Skila.Language
 
 
             {
-                this.Int16Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Int16TypeName,
+                this.Int16Type = this.Root.AddBuilder(createNumFullBuilder(NameFactory.Int16TypeName,
                     Int16Literal.Create($"{Int16.MinValue}"),
                     Int16Literal.Create($"{Int16.MaxValue}"),
                     out FunctionDefinition parse_string));
@@ -199,7 +199,7 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                this.Int64Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Int64TypeName,
+                this.Int64Type = this.Root.AddBuilder(createNumFullBuilder(NameFactory.Int64TypeName,
                     Int64Literal.Create($"{Int64.MinValue}"),
                     Int64Literal.Create($"{Int64.MaxValue}"),
                     out FunctionDefinition parse_string,
@@ -209,7 +209,7 @@ namespace Skila.Language
                 this.Int64ParseStringFunction = parse_string;
             }
             {
-                this.Nat8Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Nat8TypeName,
+                this.Nat8Type = this.Root.AddBuilder(createNumFullBuilder(NameFactory.Nat8TypeName,
                     Nat8Literal.Create($"{byte.MinValue}"),
                     Nat8Literal.Create($"{byte.MaxValue}"),
                     out FunctionDefinition parse_string));
@@ -221,7 +221,7 @@ namespace Skila.Language
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
-                this.Nat64Type = this.Root.AddBuilder(createFullNumBuilder(NameFactory.Nat64TypeName,
+                this.Nat64Type = this.Root.AddBuilder(createNumFullBuilder(NameFactory.Nat64TypeName,
                    Nat64Literal.Create($"{UInt64.MinValue}"),
                    Nat64Literal.Create($"{UInt64.MaxValue}"),
                    out FunctionDefinition parse_string,
@@ -324,21 +324,7 @@ namespace Skila.Language
                 this.ArrayAppendFunction = append;
             }
 
-            this.IEquatableType = this.SystemNamespace.AddBuilder(
-                TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
-                    .Modifier(EntityModifier.Interface)
-                    .Parents(NameFactory.IObjectTypeReference())
-                    .With(FunctionBuilder.Create(NameFactory.NotEqualOperator, ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
-                        Block.CreateStatement(new[] {
-                            Return.Create(ExpressionFactory.Not(
-                                ExpressionFactory.IsEqual(NameFactory.ThisReference(),NameReference.Create("cmp"))))
-                        }))
-                            .Parameters(FunctionParameter.Create("cmp",
-                                NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName)))))
-                    .With(FunctionBuilder.CreateDeclaration(NameFactory.EqualOperator, NameFactory.BoolTypeReference())
-                        .Modifier(EntityModifier.Pinned)
-                            .Parameters(FunctionParameter.Create("cmp",
-                                NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName))))));
+            this.IEquatableType = this.SystemNamespace.AddNode(createIEquatableType());
 
             this.DayOfWeek = this.SystemNamespace.AddBuilder(TypeBuilder.CreateEnum(NameFactory.DayOfWeekTypeName)
                 .With(EnumCaseBuilder.Create(NameFactory.SundayDayOfWeekTypeName,
@@ -388,7 +374,7 @@ namespace Skila.Language
             this.OrderingEqual = this.OrderingType.NestedFields.Single(it => it.Name.Name == NameFactory.OrderingEqual);
             this.OrderingGreater = this.OrderingType.NestedFields.Single(it => it.Name.Name == NameFactory.OrderingGreater);
 
-            this.ComparableType = this.SystemNamespace.AddNode(createComparableType());
+            this.IComparableType = this.SystemNamespace.AddNode(createIComparableType());
 
 
             this.ChannelType = this.ConcurrencyNamespace.AddNode(createChannelType());
@@ -426,6 +412,24 @@ namespace Skila.Language
                 this.iTupleTypes.ForEach(it => this.CollectionsNamespace.AddNode(it));
                 this.CollectionsNamespace.AddBuilder(factory_builder);
             }
+        }
+
+        private static TypeDefinition createIEquatableType()
+        {
+            return TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
+                                .Modifier(EntityModifier.Interface)
+                                .Parents(NameFactory.IObjectTypeReference())
+                                .With(FunctionBuilder.Create(NameFactory.NotEqualOperator, ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                    Block.CreateStatement(new[] {
+                            Return.Create(ExpressionFactory.Not(
+                                ExpressionFactory.IsEqual(NameFactory.ThisReference(),NameReference.Create("cmp"))))
+                                    }))
+                                        .Parameters(FunctionParameter.Create("cmp",
+                                            NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName, MutabilityFlag.Neutral)))))
+                                .With(FunctionBuilder.CreateDeclaration(NameFactory.EqualOperator, NameFactory.BoolTypeReference())
+                                    .Modifier(EntityModifier.Pinned)
+                                        .Parameters(FunctionParameter.Create("cmp",
+                                            NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName, MutabilityFlag.Neutral)))));
         }
 
         private FunctionDefinition createStore()
@@ -592,8 +596,25 @@ namespace Skila.Language
 
             return TypeBuilder.Create(NameFactory.StringTypeName)
                                 .Modifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
-                                .Parents(NameFactory.IObjectTypeReference())
-                                .With(count_property);
+                                .Parents(NameFactory.IObjectTypeReference(),NameFactory.IEquatableTypeReference())
+                                .With(count_property)
+
+                        .WithEquatableEquals()
+                        .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+                            ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                            Block.CreateStatement())
+                            .Modifier(EntityModifier.Native)
+                            .Parameters(FunctionParameter.Create("cmp",
+                                NameFactory.ReferenceTypeReference(NameFactory.ItTypeReference(MutabilityFlag.Neutral)),
+                                ExpressionReadMode.CannotBeRead)))
+                        .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotEqualOperator),
+                            ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                            Block.CreateStatement())
+                            .Modifier(EntityModifier.Native)
+                            .Parameters(FunctionParameter.Create("cmp", 
+                                NameFactory.ReferenceTypeReference( NameFactory.ItTypeReference( MutabilityFlag.Neutral)),
+                                ExpressionReadMode.CannotBeRead)))
+                                ;
         }
 
         private TypeDefinition createFile(out FunctionDefinition readLines, out FunctionDefinition exists)
@@ -894,10 +915,10 @@ namespace Skila.Language
                 // because of NaNs we cannot use IEquatable/IComparable, 
                 // x ==x for NaN gives false despite both sides not only are equal but they are identical
                 // https://stackoverflow.com/questions/1565164/what-is-the-rationale-for-all-comparisons-returning-false-for-ieee754-nan-values
-                builder = createCoreNumBuilder(numTypeName, minValue, maxValue, out parseString, extras.Concat(nan).ToArray());
+                builder = createNumCoreBuilder(numTypeName, minValue, maxValue, out parseString, extras.Concat(nan).ToArray());
             }
             else
-                builder = createFullNumBuilder(numTypeName, minValue, maxValue, out parseString, extras);
+                builder = createNumFullBuilder(numTypeName, minValue, maxValue, out parseString, extras);
 
             return builder
                .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.DivideOperator),
@@ -926,25 +947,25 @@ namespace Skila.Language
                                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                         Block.CreateStatement())
                                     .Modifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                             ;
         }
 
-        private static TypeBuilder createFullNumBuilder(string numTypeName, Literal minValue, Literal maxValue, 
+        private static TypeBuilder createNumFullBuilder(string numTypeName, Literal minValue, Literal maxValue, 
             out FunctionDefinition parseString, params IMember[] extras)
         {
-            return createCoreNumBuilder(numTypeName, minValue, maxValue, out parseString, extras)
+            return createNumCoreBuilder(numTypeName, minValue, maxValue, out parseString, extras)
                             .Parents(NameFactory.ComparableTypeReference())
                             .WithComparableCompare()
                             .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
                                 ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
                                 Block.CreateStatement())
                                 .Modifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference( MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                             ;
         }
 
-        private static TypeBuilder createCoreNumBuilder(string numTypeName, Literal minValue, Literal maxValue, 
+        private static TypeBuilder createNumCoreBuilder(string numTypeName, Literal minValue, Literal maxValue, 
             out FunctionDefinition parseString,
             params IMember[] extras)
         {
@@ -994,33 +1015,33 @@ namespace Skila.Language
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference( MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.LessEqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.GreaterOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.GreaterEqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
 
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotEqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement())
                     .Modifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityFlag.Neutral), ExpressionReadMode.CannotBeRead)))
                     ;
         }
 
@@ -1092,13 +1113,13 @@ namespace Skila.Language
                             .With(valueConstructor);
         }
 
-        private static TypeDefinition createComparableType()
+        private static TypeDefinition createIComparableType()
         {
             var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingEqualReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference())));
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference( MutabilityFlag.Neutral ))));
 
             var gt = FunctionBuilder.Create(NameFactory.GreaterOperator, NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
@@ -1127,7 +1148,7 @@ namespace Skila.Language
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.ComparableCompare, NameFactory.OrderingTypeReference())
                     .Modifier(EntityModifier.Pinned)
                     .Parameters(FunctionParameter.Create("cmp",
-                        NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.ComparableTypeName)))))
+                        NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.ComparableTypeName, MutabilityFlag.Neutral)))))
                 .WithEquatableEquals(EntityModifier.Final)
                 .With(eq)
                 .With(gt)
@@ -1344,15 +1365,15 @@ namespace Skila.Language
 
         public bool IsUnitType(IEntityInstance typeInstance)
         {
-            return typeInstance.IsSame(this.UnitType.InstanceOf, jokerMatchesAll: false);
+            return typeInstance.IsExactlySame(this.UnitType.InstanceOf, jokerMatchesAll: false);
         }
         public bool IsIntType(IEntityInstance typeInstance)
         {
-            return typeInstance.IsSame(this.Int64Type.InstanceOf, jokerMatchesAll: false);
+            return typeInstance.IsExactlySame(this.Int64Type.InstanceOf, jokerMatchesAll: false);
         }
         public bool IsNatType(IEntityInstance typeInstance)
         {
-            return typeInstance.IsSame(this.Nat64Type.InstanceOf, jokerMatchesAll: false);
+            return typeInstance.IsExactlySame(this.Nat64Type.InstanceOf, jokerMatchesAll: false);
         }
         public bool IsOfUnitType(INameReference typeName)
         {

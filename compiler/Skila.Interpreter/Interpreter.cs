@@ -496,15 +496,24 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IsType isType)
         {
-            ObjectData lhs_obj = (await ExecutedAsync(isType.Lhs, ctx).ConfigureAwait(false)).ExprValue;
+            ExecValue lhs_exec = await ExecutedAsync(isType.Lhs, ctx).ConfigureAwait(false);
+            if (lhs_exec.Mode != DataMode.Expression)
+                return lhs_exec;
+            ObjectData lhs_obj = lhs_exec.ExprValue;
             bool dummy = false;
             // todo: make something more intelligent with computation context
             IEntityInstance rhs_typename = isType.RhsTypeName.Evaluation.Components.TranslateThrough(ref dummy, ctx.Translation);
-            TypeMatch match = lhs_obj.RunTimeTypeInstance.MatchesTarget(ComputationContext.CreateBare(ctx.Env),
-                rhs_typename,
-                TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+            if (isType.DebugId.Id==8)
+            {
+                ;
+            }
+            bool result = IsType.MatchTypes(ComputationContext.CreateBare(ctx.Env), lhs_obj.RunTimeTypeInstance, rhs_typename);
+            if (!result)
+            {
+                ;
+            }
             return ExecValue.CreateExpression(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.BoolType.InstanceOf,
-                match.HasFlag(TypeMatch.Same) || match.HasFlag(TypeMatch.Substitute)).ConfigureAwait(false));
+                result).ConfigureAwait(false));
         }
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IsSame isSame)

@@ -211,7 +211,7 @@ namespace Skila.Language.Extensions
 
             {
                 IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
-                if (!derivedFunc.ResultTypeName.Evaluation.Components.IsSame(base_result_type, jokerMatchesAll: true))
+                if (!derivedFunc.ResultTypeName.Evaluation.Components.IsExactlySame(base_result_type, jokerMatchesAll: true))
                     return false;
 
             }

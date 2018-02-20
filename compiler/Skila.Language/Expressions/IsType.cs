@@ -26,6 +26,10 @@ namespace Skila.Language.Expressions
         private IsType(IExpression lhs, INameReference rhsTypeName)
             : base(ExpressionReadMode.ReadRequired)
         {
+            if (this.DebugId.Id==8)
+            {
+                ;
+            }
             this.Lhs = lhs;
             this.RhsTypeName = rhsTypeName;
 
@@ -48,6 +52,12 @@ namespace Skila.Language.Expressions
                 this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf);
         }
 
+        public static bool MatchTypes(ComputationContext ctx,IEntityInstance lhsTypeInstance,IEntityInstance rhsTypeInstance)
+        {
+            TypeMatch lhs_rhs_match = lhsTypeInstance.MatchesTarget(ctx, rhsTypeInstance,
+                    TypeMatching.Create(duckTyping: false, allowSlicing: true).WithIgnoredMutability(true));
+            return lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute);
+        }
         public override void Validate(ComputationContext ctx)
         {
             base.Validate(ctx);
@@ -58,10 +68,7 @@ namespace Skila.Language.Expressions
             }
             if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
             {
-                TypeMatch lhs_rhs_match = this.Lhs.Evaluation.Components.MatchesTarget(ctx, this.RhsTypeName.Evaluation.Components,
-                    TypeMatching.Create(duckTyping: false, allowSlicing: true).WithIgnoredMutability(true));
-
-                if (lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute))
+                if (MatchTypes(ctx, this.Lhs.Evaluation.Components, this.RhsTypeName.Evaluation.Components))
                     // checking if x (of String) is Object does not make sense
                     ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
                 else

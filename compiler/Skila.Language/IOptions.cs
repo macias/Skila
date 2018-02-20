@@ -23,6 +23,7 @@ namespace Skila.Language
         bool DebugThrowOnError { get; } // useful when adding new test
         bool MiniEnvironment { get; }
         bool AllowInvalidMainResult { get; }
+        bool AllowEmptyFieldTypeNames { get; }
 
         // in non-strict (relaxed) mode programs does not change the meaning they are simply more sloppy written
         // like for example field declarations with omitted typename, non-strict mode is not for promoting bad looking code
@@ -31,6 +32,7 @@ namespace Skila.Language
         // currently we consider protocols (and thus has-constraints) as obsolete features, so by default they are disabled
         bool AllowProtocols { get; }
         bool AllowRealMagic { get; } // nans + infinity
+        bool AllowNamedSelf { get; }
     }
 
     public static class IOptionsExtension

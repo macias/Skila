@@ -56,7 +56,7 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
-            if (input.DebugId.Id == 12494 && target.DebugId.Id == 12498)
+            if (input.DebugId.Id == 5151 && target.DebugId.Id == 5049)
             {
                 ;
             }
@@ -66,9 +66,6 @@ namespace Skila.Language
 
             if (!target.Target.IsType() || !input.Target.IsType())
                 return TypeMatch.No;
-
-            if (input.IsSame(target, jokerMatchesAll: true))
-                return TypeMatch.Same;
 
             {
                 IEnumerable<FunctionDefinition> in_conv = target.TargetType.ImplicitInConverters().StoreReadOnly();
@@ -154,38 +151,33 @@ namespace Skila.Language
                 matching.AllowSlicing = true;
 
 
-            if (input.DebugId.Id == 12494 && target.DebugId.Id == 12498)
+            if (input.DebugId.Id == 37 && target.DebugId.Id == 5376)
             {
                 ;
             }
 
+            MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
             if (matching.AllowSlicing)
             {
-                MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
-
                 IEnumerable<TypeAncestor> input_family = new[] { new TypeAncestor(input, 0) }
                     .Concat(input.Inheritance(ctx).OrderedTypeAncestorsIncludingObject
                     // enum substitution works in reverse so we have to exclude these from here
                     .Where(it => !it.AncestorInstance.TargetType.Modifier.HasEnum));
+
                 foreach (TypeAncestor inherited_input in input_family)
                 {
-                    bool match = templateMatches(ctx, inherited_input.AncestorInstance, target, matching);
-                    if (match)
-                    {
-                        // we cannot shove mutable type in disguise as immutable one, consider such scenario
-                        // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
-                        // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
-                        // this would be disastrous when working concurrently (see more in Documentation/Mutability)
-
-                        MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
-                        if (!matching.IgnoreMutability
-                            && !MutabilityMatches(input_mutability, target_mutability))
-                            return TypeMatch.Mismatched(mutability: true);
-                        else if (input == target)
-                            return TypeMatch.Same;
-                        else
-                            return TypeMatch.Substituted(inherited_input.Distance);
-                    }
+                    if (matchTypes(ctx, input_mutability, inherited_input.AncestorInstance, target, matching, inherited_input.Distance, out TypeMatch match))
+                        return match;
+                }
+            }
+            // when slicing is disabled we can compare try to substitute only the same type
+            else if (input.Target == target.Target)
+            {
+                if (matchTypes(ctx, input_mutability, input, target, matching, distance: 0, match: out TypeMatch match))
+                {
+                    if (match != TypeMatch.Same && match != TypeMatch.No)
+                        throw new Exception($"Internal exception {match}");
+                    return match;
                 }
             }
 
@@ -222,6 +214,40 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
+        private static bool matchTypes(ComputationContext ctx, MutabilityFlag input_mutability, EntityInstance input, EntityInstance target,
+            TypeMatching matching, int distance, out TypeMatch match)
+        {
+            bool is_matched = templateMatches(ctx, input, target, matching);
+            if (is_matched)
+            {
+                // we cannot shove mutable type in disguise as immutable one, consider such scenario
+                // user could create const wrapper over "*Object" (this is immutable type) and then create its instance
+                // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
+                // this would be disastrous when working concurrently (see more in Documentation/Mutability)
+
+                MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
+                if (!matching.IgnoreMutability
+                    && !MutabilityMatches(input_mutability, target_mutability))
+                {
+                    match = TypeMatch.Mismatched(mutability: true);
+                    return true;
+                }
+                else if (distance == 0 && input.Target == target.Target)
+                {
+                    match = TypeMatch.Same;
+                    return true;
+                }
+                else
+                {
+                    match = TypeMatch.Substituted(distance);
+                    return true;
+                }
+            }
+
+            match = TypeMatch.No;
+            return false;
+        }
+
         internal static bool MutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
         {
             switch (inputMutability)
@@ -256,18 +282,10 @@ namespace Skila.Language
             {
                 // please note that unlike normal type matching we reversed the types, in enum you can
                 // pass base type as descendant!
-                bool match = templateMatches(ctx, inherited_target.AncestorInstance, input, matching);
-
-                if (match)
+                if (matchTypes(ctx, target_mutability, inherited_target.AncestorInstance, input, matching, inherited_target.Distance,
+                    out TypeMatch match))
                 {
-                    MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
-                    if (!matching.IgnoreMutability
-                        && !MutabilityMatches(target_mutability, input_mutability))
-                        return TypeMatch.Mismatched(mutability: true);
-                    else if (input == target)
-                        return TypeMatch.Same;
-                    else
-                        return TypeMatch.Substituted(inherited_target.Distance);
+                    return match;
                 }
             }
 

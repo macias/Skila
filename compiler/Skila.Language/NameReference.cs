@@ -40,17 +40,23 @@ namespace Skila.Language
         {
             return Create(overrideMutability, null, name, arguments);
         }
-        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name, params INameReference[] arguments)
+        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name, 
+            params INameReference[] arguments)
         {
             return new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
+        }
+        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name,
+            IEnumerable<INameReference> arguments,EntityInstance target)
+        {
+            var result = new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
+            if (target != null)
+                result.Binding.Set(new[] { target });
+            return result;
         }
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target)
         {
-            var result = new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
-            if (target != null)
-                result.Binding.Set(new[] { target });
-            return result;
+            return Create(MutabilityFlag.ConstAsSource, prefix, name, arguments, target);
         }
 
         public static NameReference CreateBaseInitReference()

@@ -222,13 +222,14 @@ namespace Skila.Language
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
-                if (arg.DebugId.Id == 339)
+                if (arg.DebugId.Id == 61)
                 {
                     ;
                 }
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
-                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, 
+                    TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
 
                 int idx = this.argParamMapping[arg.Index];
                 // in case of variadic parameter several arguments hit the same param, so their type matching can be different
