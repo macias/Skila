@@ -105,7 +105,7 @@ namespace Skila.Language.Entities
 
         public IExpression DetachFieldInitialization()
         {
-            if (this.DebugId.Id == 3191)
+            if (this.DebugId.Id == 297)
             {
                 ;
             }
@@ -125,7 +125,7 @@ namespace Skila.Language.Entities
             {
                 this.initValue.DetachFrom(this);
 
-                FunctionCall init;
+                IExpression init;
 
                 // if the init value is constructor call, there is no point in creating around it
                 // another constructor call. Instead get the init step and reuse it, this time
@@ -135,16 +135,19 @@ namespace Skila.Language.Entities
                 // x = (__this__ = alloc Foo ; __this__.init() ; __this__)
                 // so we rip off the init step and replace the object, which results in
                 // x.init()
-                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization)
+                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization 
+                    // do not use this optimization for heap objects!
+                    && !block.HeapInitialization)
                 {
-                    init = block.InitializationStep;
-                    init.DetachFrom(block);
+                    FunctionCall cons_call = block.InitializationStep;
+                    cons_call.DetachFrom(block);
 
-                    init.Name.ReplacePrefix(fieldReference());
+                    cons_call.Name.ReplacePrefix(fieldReference());
+                    init = cons_call;
                 }
                 else
                 {
-                    init = CreateFieldInitCall(this.initValue);
+                    init = Assignment.CreateStatement(fieldReference(), this.initValue);
                 }
 
                 this.initValue = null;

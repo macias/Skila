@@ -88,7 +88,7 @@
         VarianceForbiddenPosition = 84,
         MutableFunctionInImmutableType = 85,
         PropertySetterInImmutableType = 86,
-        AlteringInstanceInImmutableMethod = 87,
+        AlteringCurrentInImmutableMethod = 87,
         CallingMutableFromImmutableMethod = 88,
         HeapRequirementChangedOnOverride = 89,
         CallingHeapFunctionWithValue = 90,

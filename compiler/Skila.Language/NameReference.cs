@@ -636,7 +636,7 @@ namespace Skila.Language
         }
         public bool IsLValue(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 7255)
+            if (this.DebugId.Id == 174)
             {
                 ;
             }
@@ -647,7 +647,9 @@ namespace Skila.Language
             }
 
             if (!(this.Binding.Match.Target is IEntityVariable))
-                return false;
+            {
+                return (this.Binding.Match.Target is TypeContainerDefinition);
+            }
 
             if (this.Prefix != null)
                 return this.Prefix.IsLValue(ctx);

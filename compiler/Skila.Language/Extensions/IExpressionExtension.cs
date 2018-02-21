@@ -26,7 +26,7 @@ namespace Skila.Language.Extensions
             }
         }
 
-        public static bool TargetsCurrentInstanceMember(this IExpression expr,out IMember member)
+        public static bool TargetsCurrentInstanceMember(this IExpression expr, out IMember member)
         {
             member = expr.TryGetTargetEntity<IMember>(out NameReference name_ref);
             if (member != null && (name_ref.HasThisPrefix || name_ref.HasBasePrefix
@@ -34,6 +34,22 @@ namespace Skila.Language.Extensions
                 return true;
             else
                 return false;
+        }
+
+        public static bool TargetsCurrentTypeMember(this IExpression expr, out IMember member)
+        {
+            member = expr.TryGetTargetEntity<IMember>(out NameReference name_ref);
+            if (member != null)
+            {
+                if ((name_ref.HasThisPrefix || name_ref.HasBasePrefix
+                    || (name_ref.Prefix == null && member.Owner == expr.EnclosingScope<TypeDefinition>())))
+                    return true;
+                // hitting static member
+                else if (member.Modifier.HasStatic && member.Owner == expr.EnclosingScope<TypeDefinition>())
+                    return true;
+            }
+
+            return false;
         }
 
         public static bool IsValue(this IExpression @this, IOptions options)

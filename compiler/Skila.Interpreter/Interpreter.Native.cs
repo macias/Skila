@@ -125,6 +125,13 @@ namespace Skila.Interpreter
             ExecValue ret = await ExecutedAsync(targetFunc, ctx).ConfigureAwait(false);
             return ret;
         }
+        private Task<ExecValue> createOption(ExecutionContext ctx, IEntityInstance optionType, Option<ObjectData> option)
+        {
+            return createObject(ctx, false, optionType,
+                option.HasValue ? ctx.Env.OptionValueConstructor : ctx.Env.OptionEmptyConstructor,
+                null,
+                option.HasValue ? new[] { option.Value } : new ObjectData[] { });
+        }
 
         private async Task<ExecValue> executeNativeFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
         {
@@ -176,7 +183,7 @@ namespace Skila.Interpreter
             {
                 ObjectData arg_obj = ctx.FunctionArguments.Single();
                 // changing runtime type from some kind enum (Nat/Int) to truly enum
-                ObjectData enum_obj = await  ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, arg_obj.PlainValue).ConfigureAwait(false);
+                ObjectData enum_obj = await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, arg_obj.PlainValue).ConfigureAwait(false);
                 this_value.Assign(enum_obj);
                 return ExecValue.CreateReturn(null);
             }
@@ -185,7 +192,7 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var this_int = this_value.NativeNat;
                 var arg_int = arg.NativeNat;
-                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx, 
+                ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components, this_int == arg_int).ConfigureAwait(false));
                 return result;
             }
@@ -258,10 +265,14 @@ namespace Skila.Interpreter
                 {
                 }
 
-                Option<ObjectData> lines_obj;
+                Option<ObjectData> opt_lines_obj;
+                ObjectData chunk_ptr;
 
                 if (lines == null)
-                    lines_obj = new Option<ObjectData>();
+                {
+                    chunk_ptr = null;
+                    opt_lines_obj = new Option<ObjectData>();
+                }
                 else
                 {
                     IEntityInstance string_ptr_instance;
@@ -271,25 +282,31 @@ namespace Skila.Interpreter
                         string_ptr_instance = iterable_str_ptr_instance.Cast<EntityInstance>().TemplateArguments.Single();
                     }
 
-                    var chunk = new ObjectData[lines.Length];
+                    var lines_obj = new ObjectData[lines.Length];
                     int i = 0;
                     foreach (string s in lines)
                     {
-                        ObjectData s_ptr = await allocObjectAsync(ctx, ctx.Env.StringType.InstanceOf, string_ptr_instance, s).ConfigureAwait(false);
+                        ObjectData s_ptr = await createStringAsync(ctx, s).ConfigureAwait(false);
                         if (!ctx.Heap.TryInc(ctx, s_ptr, RefCountIncReason.FileLine, $"{filepath}"))
                             throw new Exception($"{ExceptionCode.SourceInfo()}");
 
-                        chunk[i] = s_ptr;
+                        lines_obj[i] = s_ptr;
                         ++i;
                     }
 
-                    ObjectData chunk_ptr = await createChunkOnHeap(ctx, string_ptr_instance, chunk).ConfigureAwait(false);
+                    chunk_ptr = await createChunkOnHeap(ctx, string_ptr_instance, lines_obj).ConfigureAwait(false);
 
-                    lines_obj = new Option<ObjectData>(chunk_ptr);
+                    opt_lines_obj = new Option<ObjectData>(chunk_ptr);
                 }
 
 
-                ObjectData result = await createOption(ctx, func.ResultTypeName.Evaluation.Components, lines_obj).ConfigureAwait(false);
+                ExecValue opt_exec = await createOption(ctx, func.ResultTypeName.Evaluation.Components, opt_lines_obj).ConfigureAwait(false);
+                if (chunk_ptr != null)
+                    ctx.Heap.TryRelease(ctx, chunk_ptr, null, false, RefCountDecReason.DroppingLocalPointer, "");
+
+                if (opt_exec.IsThrow)
+                    return opt_exec;
+                ObjectData result = opt_exec.ExprValue;
                 return ExecValue.CreateReturn(result);
             }
             else if (func == ctx.Env.FileExists)
@@ -340,7 +357,10 @@ namespace Skila.Interpreter
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
                 EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: MutabilityFlag.ConstAsSource,
                     translation: null);
-                ObjectData result = await createOption(ctx, option_type, received).ConfigureAwait(false);
+                ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
+                if (opt_exec.IsThrow)
+                    return opt_exec;
+                ObjectData result = opt_exec.ExprValue;
 
                 // at this point Skila option is initialized so we can return it
 

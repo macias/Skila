@@ -452,6 +452,10 @@ namespace Skila.Language.Entities
 
         private bool createZeroConstructor(bool isStatic)
         {
+            if (this.DebugId.Id==667)
+            {
+                ;
+            }
             IEnumerable<VariableDeclaration> focus_fields = this.AllNestedFields
                 .Where(it => it.Modifier.HasStatic == isStatic);
 

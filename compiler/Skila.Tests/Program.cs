@@ -19,7 +19,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-             new Semantics.CompilerProtection().Environment();
+            // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -40,7 +40,7 @@ namespace Skila.Tests
             //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ImplicitClosureWithValue();
-            //new Execution.Collections().AccessingTuple();
+            //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
             //new Execution.FunctionCalls().StoringSequenceAsSequence();
@@ -50,11 +50,11 @@ namespace Skila.Tests
             //new Execution.Library().RealNotANumber();
             //new Execution.Objects().PassingSelfTypeCheck();
             //new Execution.Pointers().StackChunkWithBasicPointers();
-            //new Execution.Properties().Indexer();
+            //new Execution.Properties().AutoPropertiesWithPointers();
             //new Execution.Templates().HasConstraintWithValue();
             //new Execution.Text().TODO_RegexMatchWithNamedCaptures();
 
-            //if (false)
+            if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);

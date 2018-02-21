@@ -20,6 +20,7 @@ namespace Skila.Interpreter
         }
 
         public DataMode Mode { get; }
+        public bool IsThrow => this.Mode == DataMode.Throw;
         private readonly ObjectData value;
 
         public ObjectData RetValue

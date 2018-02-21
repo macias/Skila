@@ -64,6 +64,7 @@ namespace Skila.Language.Expressions
         private readonly Func<Block, ExpressionReadMode> readModeCalc;
 
         // applies only for initialization block
+        public bool HeapInitialization => this.instructions[0].Cast<VariableDeclaration>().InitValue.Cast<Alloc>().UseHeap;
         public FunctionCall InitializationStep => this.instructions[1].Cast<FunctionCall>();
 
         private static Block constructor(Purpose purpose, ExpressionReadMode readMode, Func<Block, ExpressionReadMode> readModeCalc,

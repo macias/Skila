@@ -92,7 +92,10 @@ namespace Skila.Interpreter
                                         opt_group_name_obj = new Option<ObjectData>();
 
                                     IEntityInstance opt_cap_type = ctx.Env.CaptureConstructor.Parameters.Last().TypeName.Evaluation.Components;
-                                    cap_opt_name_val = await createOption(ctx, opt_cap_type, opt_group_name_obj).ConfigureAwait(false);
+                                    ExecValue opt_exec = await createOption(ctx, opt_cap_type, opt_group_name_obj).ConfigureAwait(false);
+                                    if (opt_exec.IsThrow)
+                                        return opt_exec;
+                                    cap_opt_name_val = opt_exec.ExprValue;
                                 }
                                 ExecValue capture_obj_exec = await createObject(ctx, false, ctx.Env.CaptureType.InstanceOf,
                                     ctx.Env.CaptureConstructor, null, cap_index_val, cap_length_val, cap_opt_name_val).ConfigureAwait(false);
@@ -123,7 +126,8 @@ namespace Skila.Interpreter
                     elements.Add(match_val);
                 }
 
-                ExecValue result = ExecValue.CreateReturn(await createChunkOnHeap(ctx, ctx.Env.MatchType.InstanceOf, elements).ConfigureAwait(false));
+                ObjectData heap_chunk = await createChunkOnHeap(ctx, ctx.Env.MatchType.InstanceOf, elements).ConfigureAwait(false);
+                ExecValue result = ExecValue.CreateReturn(heap_chunk);
                 return result;
             }
             else

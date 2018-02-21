@@ -48,7 +48,7 @@ namespace Skila.Interpreter
 
             if (obj.DebugId.Id == debugTraceId)
             {
-                print(0, 0, "", $"Allocating object {obj}");
+                print(0, 0, "ALLOC", $"Allocating object",$"{obj}");
             }
 
             lock (this.threadLock)
@@ -59,7 +59,7 @@ namespace Skila.Interpreter
 
         internal bool TryRelease(ExecutionContext ctx, ObjectData releasingObject,
             // the object which is passed out of the block 
-            ObjectData passingOutObject, bool isPassingOut,RefCountDecReason reason, string comment)
+            ObjectData passingOutObject, bool isPassingOut, RefCountDecReason reason, string comment)
         {
             if (releasingObject == passingOutObject)
                 isPassingOut = true;
@@ -69,7 +69,7 @@ namespace Skila.Interpreter
                 if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance))
                 {
                     if (releasingObject.DebugId.Id == debugTraceId)
-                        print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}", comment);
+                        print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}",$"{reason}", comment);
                     // removing valued-objects
                     freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, false, $"as value {comment}");
                 }
@@ -100,7 +100,7 @@ namespace Skila.Interpreter
                 if (count == 0 && !isPassingOut)
                 {
                     this.refCounts.Remove(releasingObject);
-                    freeObjectData(ctx, releasingObject, passingOutObject,isPassingOut, true, comment);
+                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, true, comment);
                 }
                 else
                     this.refCounts[releasingObject] = count;
@@ -112,30 +112,31 @@ namespace Skila.Interpreter
                 {
                     ;
                 }
-                print(count, -1, $"DEC{(isPassingOut ? "/OUT" : "")}", $"{reason} {comment}");
+                print(count, -1, $"DEC{(isPassingOut ? "/OUT" : "")}", $"{reason}",comment);
             }
 
             return true;
         }
 
-        private void freeObjectData(ExecutionContext ctx, ObjectData obj, ObjectData passingOut, bool isPassingOut, bool destroy, string callInfo)
+        private void freeObjectData(ExecutionContext ctx, ObjectData obj, ObjectData passingOut, bool isPassingOut, bool destroy,
+            string comment)
         {
             lock (this.threadLock)
             {
-                if (obj.Free(ctx, passingOut, isPassingOut, destroy, callInfo))
+                if (obj.Free(ctx, passingOut, isPassingOut, destroy, comment))
                     --this.hostDisposables;
             }
         }
 
-        internal bool TryIncWithNested(ExecutionContext ctx, ObjectData objData, RefCountIncReason reason, string callInfo)
+        internal bool TryIncWithNested(ExecutionContext ctx, ObjectData objData, RefCountIncReason reason, string comment)
         {
             if (ctx.Env.IsPointerOfType(objData.RunTimeTypeInstance))
-                return TryInc(ctx, objData, reason, callInfo);
+                return TryInc(ctx, objData, reason, comment);
             else if (!ctx.Env.IsReferenceOfType(objData.RunTimeTypeInstance))
             {
                 foreach (KeyValuePair<VariableDeclaration, ObjectData> field in objData.Fields)
                 {
-                    ctx.Heap.TryIncWithNested(ctx, field.Value, reason: RefCountIncReason.IncField, callInfo: callInfo);
+                    ctx.Heap.TryIncWithNested(ctx, field.Value, RefCountIncReason.IncField, comment);
                 }
             }
 
@@ -170,7 +171,7 @@ namespace Skila.Interpreter
                 {
                     ;
                 }
-                print(count, +1, "INC", $"{reason} {comment}");
+                print(count, +1, "INC", $"{reason}",comment);
             }
 
             return true;
@@ -187,7 +188,7 @@ namespace Skila.Interpreter
                 lock (this.threadLock)
                     ++this.hostDisposables;
         }
-        private void print(int count, int change, string operation, string comment)
+        private void print(int count, int change, string operation, string reason,string comment)
         {
             if (debugActionCount == 14)
             {
@@ -195,7 +196,7 @@ namespace Skila.Interpreter
             }
             string color = (change == 0 ? "black" : change > 0 ? "green" : "red");
             int margin = count;
-            Console.WriteLine($"<p style=\"color: {color}; padding-left:{margin * 2}em\">{debugActionCount++} <b>{operation} {count}</b> {comment}</p>");
+            Console.WriteLine($"<p style=\"padding-left:{margin * 2}em\"><span style=\"color: {color};\">{debugActionCount++} <b>{operation} {count}</b></span> {reason} <i>{comment}</i></p>");
         }
 
     }

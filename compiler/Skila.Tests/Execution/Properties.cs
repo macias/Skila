@@ -187,5 +187,44 @@ namespace Skila.Tests.Execution
 
             return interpreter;
         }
+
+        [TestMethod]
+        public IInterpreter AutoPropertiesWithPointers()
+        {
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
+                .With(Property.Create("x", NameFactory.PointerTypeReference(  NameFactory.Nat8TypeReference()),
+                    new[] { Property.CreateAutoField(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),  Nat8Literal.Create("1")), 
+                        EntityModifier.Reassignable) },
+                    new[] { Property.CreateAutoGetter(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference())) },
+                    new[] { Property.CreateAutoSetter(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference())) }
+                )));
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    // p = Point() // p.x is initialized with 1
+                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    // p.x = 1+p.x
+                    Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
+                    ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),
+                     FunctionCall.Create(NameReference.Create( Nat8Literal.Create("1"), NameFactory.AddOperator),
+                     FunctionArgument.Create(NameReference.Create("p","x"))))),
+                    // return p.x
+                    Return.Create(NameReference.Create("p","x"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
     }
 }

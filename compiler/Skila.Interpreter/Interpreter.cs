@@ -403,15 +403,15 @@ namespace Skila.Interpreter
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
-            return ExecValue.CreateExpression(await createStringAsync(ctx,literal.Value).ConfigureAwait(false));
+            return ExecValue.CreateExpression(await createStringAsync(ctx, literal.Value).ConfigureAwait(false));
         }
 
         private Task<ObjectData> createStringAsync(ExecutionContext ctx, string value)
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
-            return allocObjectAsync(ctx, 
-                ctx.Env.StringType.InstanceOf, 
-                ctx.Env.Reference(ctx.Env.StringType.InstanceOf, MutabilityFlag.ConstAsSource,null,viaPointer:true),
+            return allocObjectAsync(ctx,
+                ctx.Env.StringType.InstanceOf,
+                ctx.Env.Reference(ctx.Env.StringType.InstanceOf, MutabilityFlag.ConstAsSource, null, viaPointer: true),
                 value);
         }
 
@@ -503,7 +503,7 @@ namespace Skila.Interpreter
             bool dummy = false;
             // todo: make something more intelligent with computation context
             IEntityInstance rhs_typename = isType.RhsTypeName.Evaluation.Components.TranslateThrough(ref dummy, ctx.Translation);
-            if (isType.DebugId.Id==8)
+            if (isType.DebugId.Id == 8)
             {
                 ;
             }
@@ -581,63 +581,32 @@ namespace Skila.Interpreter
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
             if (ret.Mode == DataMode.Throw)
                 return ret;
-            ObjectData ret_value = await handleCallResultAsync(ctx, call, ret.RetValue).ConfigureAwait(false);
+            ObjectData ret_value = await handleCallResultAsync(ctx, call, ret.RetValue, propertyCall: false).ConfigureAwait(false);
 
             return ExecValue.CreateExpression(ret_value);
         }
 
-        private async Task<ExecValue> callPropertyGetterAsync(ExecutionContext ctx, NameReference name)
+        private async Task<ExecValue> callPropertyAccessorAsync(ExecutionContext ctx, NameReference name, 
+            Accessor accessor,
+             params ObjectData[] arguments)
         {
-            if (name.DebugId.Id == 2611)
-            {
-                ;
-            }
             Property prop = name.Binding.Match.Target.Cast<Property>();
-            IExpression this_context = name.GetContext(prop.Getter);
+            IExpression this_context = name.GetContext(prop.Get(accessor));
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
             ExecValue this_exec = await ExecutedAsync(this_context, ctx).ConfigureAwait(false);
             if (this_exec.Mode == DataMode.Throw)
                 return this_exec;
-            ObjectData this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"prop-get {name}").ConfigureAwait(false);
+            ObjectData this_value = this_exec.ExprValue.TryDereferenceAnyOnce(ctx.Env);
 
-            ObjectData this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
+            FunctionDefinition prop_func = getTargetFunction(ctx, this_value, this_context.Evaluation, prop.Get(accessor));
+            ExecValue ret = await callNonVariadicFunctionDirectly(ctx, prop_func, null, this_value, arguments).ConfigureAwait(false);
 
-            SetupFunctionCallData(ref ctx, null, this_ref, null);
-
-            FunctionDefinition getter = getTargetFunction(ctx, this_value, this_context.Evaluation, prop.Getter);
-            ExecValue ret = await ExecutedAsync(getter, ctx).ConfigureAwait(false);
-
-            if (ret.Mode == DataMode.Throw)
-                return ret;
-
-            ObjectData ret_value = await handleCallResultAsync(ctx, name, ret.RetValue).ConfigureAwait(false);
-
-            return ExecValue.CreateExpression(ret_value);
-        }
-
-        private async Task<ExecValue> callPropertySetterAsync(ExecutionContext ctx, NameReference name, IExpression value, ObjectData rhsValue)
-        {
-            Property prop = name.Binding.Match.Target.Cast<Property>();
-            IExpression this_context = name.GetContext(prop.Setter);
-            if (this_context == null)
+            if (accessor== Accessor.Setter && ret.RetValue != null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
-            ExecValue this_exec = await ExecutedAsync(this_context, ctx).ConfigureAwait(false);
-            if (this_exec.Mode == DataMode.Throw)
-                return this_exec;
-            ObjectData this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"prop-set {name}").ConfigureAwait(false);
-
-            rhsValue = prepareArgument(ctx, rhsValue);
-            SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_ref, new ObjectData[] { rhsValue });
-
-            ExecValue ret = await ExecutedAsync(prop.Setter, ctx).ConfigureAwait(false);
-
-            if (ret.RetValue != null)
-                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
-
-            ObjectData ret_value = await handleCallResultAsync(ctx, name, ret.RetValue).ConfigureAwait(false);
+            ObjectData ret_value = await handleCallResultAsync(ctx, name, ret.RetValue, propertyCall: true).ConfigureAwait(false);
 
             return ExecValue.CreateExpression(ret_value);
         }
@@ -658,7 +627,7 @@ namespace Skila.Interpreter
             else if (ctx.Env.Dereference(thisObject.RunTimeTypeInstance, out IEntityInstance dummy) > 1)
                 thisObject = thisObject.TryDereferenceAnyOnce(ctx.Env);
 
-            ctx.Heap.TryInc(ctx, thisObject, RefCountIncReason.FuncCallPrepareThis, $"{callName}");
+            ctx.Heap.TryInc(ctx, thisObject, RefCountIncReason.PrepareThis, $"{callName}");
 
             return thisObject;
         }
@@ -677,7 +646,7 @@ namespace Skila.Interpreter
                 if (this_exec.Mode == DataMode.Throw)
                     return new Variant<object, ExecValue, CallInfo>(this_exec);
 
-                this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"call {call}").ConfigureAwait(false);
+                this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"{call}").ConfigureAwait(false);
                 this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
             }
             else
@@ -740,10 +709,7 @@ namespace Skila.Interpreter
                 else if (args_group.Count == 1)
                 {
                     ObjectData arg_obj = args_group.Single();
-
-                    ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"arg for {targetFunc}");
-                    arg_obj = prepareArgument(ctx, arg_obj);
-
+                    ctx.Heap.TryIncWithNested(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"for `{targetFunc}`");
                     arguments_repacked[index] = arg_obj;
                 }
                 else
@@ -751,10 +717,10 @@ namespace Skila.Interpreter
                     // preparing arguments to be passed as one for variadic parameter
                     var chunk = new ObjectData[args_group.Count];
                     int i = 0;
-                    foreach (ObjectData arg_obj in args_group)
+                    foreach (ObjectData arg_obj_elem in args_group)
                     {
-                        ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.FuncCallArgPreparation, $"arg\\{i} for {targetFunc}");
-
+                        ObjectData arg_obj = arg_obj_elem;
+                        ctx.Heap.TryIncWithNested(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"{i} for `{targetFunc}`");
                         chunk[i] = arg_obj;
                         ++i;
                     }
@@ -769,18 +735,6 @@ namespace Skila.Interpreter
             }
 
             return arguments_repacked;
-        }
-
-        private static ObjectData prepareArgument(ExecutionContext ctx, ObjectData argument)
-        {
-            if (!ctx.Env.IsPointerLikeOfType(argument.RunTimeTypeInstance))
-            {
-                // since we passing argument by value we need to make a copy, 
-                // because otherwise unwinding the stack would destroy the original
-                argument = argument.Copy();
-            }
-
-            return argument;
         }
 
         internal static void SetupFunctionCallData<T>(ref T ctx,
@@ -890,14 +844,14 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, NameReference name)
         {
-            if (name.DebugId.Id == 3459)
+            if (name.DebugId.Id == 8693)
             {
                 ;
             }
             IEntity target = name.Binding.Match.Target;
 
             if (target is Property)
-                return await callPropertyGetterAsync(ctx, name).ConfigureAwait(false);
+                return await callPropertyAccessorAsync(ctx, name, Accessor.Getter).ConfigureAwait(false);
 
             if (name.Prefix != null)
             {
@@ -958,14 +912,18 @@ namespace Skila.Interpreter
                     ;
                 }
                 ExecValue lhs;
-                ObjectData rhs_obj = hackyDereference(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
 
                 if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property prop)
                 {
                     if (prop.Setter != null)
-                        await callPropertySetterAsync(ctx, assign.Lhs.Cast<NameReference>(), assign.RhsValue, rhs_obj).ConfigureAwait(false);
+                    {
+                        ObjectData rhs_obj = hackyDereference(rhs_val.ExprValue, assign, assign.RhsValue);
+                        await callPropertyAccessorAsync(ctx, assign.Lhs.Cast<NameReference>(), Accessor.Setter, rhs_obj).ConfigureAwait(false);
+                    }
                     else if (prop.Getter.Modifier.HasAutoGenerated)
                     {
+                        ObjectData rhs_obj = hackyDereferenceWithRefInc(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
+
                         // we are inside constructor, we have auto-getter so we assign to its field directly, it is legal
                         VariableDeclaration field = prop.Fields.Single();
                         ExecValue lhs_prefix = await ExecutedAsync(name_ref.Prefix, ctx).ConfigureAwait(false);
@@ -978,6 +936,8 @@ namespace Skila.Interpreter
                 }
                 else
                 {
+                    ObjectData rhs_obj = hackyDereferenceWithRefInc(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
+
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
 
                     ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.AssignmentLhsDrop,
@@ -1007,7 +967,7 @@ namespace Skila.Interpreter
                     return rhs_val;
             }
 
-            ObjectData rhs_obj = hackyDereference(ctx, rhs_val.ExprValue, decl, decl.InitValue);
+            ObjectData rhs_obj = hackyDereferenceWithRefInc(ctx, rhs_val.ExprValue, decl, decl.InitValue);
 
             ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
@@ -1020,20 +980,51 @@ namespace Skila.Interpreter
             return rhs_val;
         }
 
-        private static ObjectData hackyDereference(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr)
+        private static ObjectData hackyDereferenceWithRefInc(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr)
+        {
+            // todo: clean it up -- currently function call perform its own, custom, derefencing so when getting value from some
+            // expression we need to check if this was function call or not, remove this mess
+
+            obj = hackyDereference(obj, parentExpr, childExpr);
+
+            return hackyRefInc(ctx, obj, parentExpr);
+        }
+
+        private static ObjectData hackyDereference(ObjectData obj, IExpression parentExpr, IExpression childExpr)
         {
             // todo: clean it up -- currently function call perform its own, custom, derefencing so when getting value from some
             // expression we need to check if this was function call or not, remove this mess
 
             if (!(childExpr is FunctionCall))
                 obj = obj.TryDereferenceOnce(parentExpr, childExpr);
+            return obj;
+        }
 
-            ctx.Heap.TryIncWithNested(ctx, obj, RefCountIncReason.DeclAssign, $"{parentExpr}");
+        private static ObjectData hackyRefInc(ExecutionContext ctx, ObjectData obj, IExpression parentExpr)
+        {
+            RefCountIncReason reason;
+            string lhs;
+            if (parentExpr is Assignment assign)
+            {
+                reason = RefCountIncReason.Assignment;
+                lhs = $"{assign.Lhs}";
+            }
+            else if (parentExpr is VariableDeclaration decl)
+            {
+                reason = RefCountIncReason.Declaration;
+                lhs = $"{decl.Name}";
+            }
+            else
+                throw new Exception($"{ExceptionCode.SourceInfo()}");
+
+            ctx.Heap.TryIncWithNested(ctx, obj, reason, $"`{lhs}` in `{parentExpr.EnclosingScope<FunctionDefinition>()}`");
 
             return obj;
         }
 
-        private async Task<ObjectData> handleCallResultAsync(ExecutionContext ctx, IExpression node, ObjectData retValue)
+        private async Task<ObjectData> handleCallResultAsync(ExecutionContext ctx, IExpression node, ObjectData retValue,
+            // not really full function call semantics
+            bool propertyCall)
         {
             if (node.DebugId.Id == 278)
             {
@@ -1049,37 +1040,17 @@ namespace Skila.Interpreter
             {
                 ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
                 temp = temp.Copy();
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
+                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false,
+                    reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
                 retValue = temp;
+                if (propertyCall)
+                    retValue = await retValue.ReferenceAsync(ctx).ConfigureAwait(false);
             }
             else
                 ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
 
             return retValue;
 
-        }
-
-        private async Task<ObjectData> createOption(ExecutionContext ctx, IEntityInstance optionType, Option<ObjectData> option)
-        {
-            // allocate memory for Skila option (on stack)
-            ObjectData result = await ObjectData.CreateEmptyAsync(ctx, optionType).ConfigureAwait(false);
-
-            // we need to call constructor for it, which takes a reference as "this"
-            ObjectData this_obj = await result.ReferenceAsync(ctx).ConfigureAwait(false);
-            if (option.HasValue)
-            {
-                SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, new[] { option.Value });
-
-                await ExecutedAsync(ctx.Env.OptionValueConstructor, ctx).ConfigureAwait(false);
-            }
-            else
-            {
-                SetupFunctionCallData(ref ctx, ctx.TemplateArguments, this_obj, null);
-
-                await ExecutedAsync(ctx.Env.OptionEmptyConstructor, ctx).ConfigureAwait(false);
-            }
-
-            return result;
         }
 
     }

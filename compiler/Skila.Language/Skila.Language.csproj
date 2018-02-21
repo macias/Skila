@@ -68,6 +68,7 @@
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Entities\Alias.cs" />
+    <Compile Include="Entities\Accessor.cs" />
     <Compile Include="Expressions\Literals\Real64Literal.cs" />
     <Compile Include="Expressions\Literals\Int16Literal.cs" />
     <Compile Include="Expressions\Literals\IntLiteral.cs" />
@@ -224,6 +225,7 @@
   <ItemGroup>
     <None Include="Documentation\Errors.md" />
     <None Include="Documentation\DuckTyping.md" />
+    <None Include="Documentation\Memory.md" />
     <None Include="Documentation\Properties.md" />
     <None Include="Documentation\Mutability.md" />
     <None Include="Documentation\Processing.md" />

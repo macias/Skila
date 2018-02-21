@@ -31,7 +31,10 @@ namespace Skila.Interpreter
                 else
                     int_obj = new Option<ObjectData>();
 
-                ObjectData result = await createOption(ctx, func.ResultTypeName.Evaluation.Components, int_obj).ConfigureAwait(false);
+                ExecValue opt_exec = await createOption(ctx, func.ResultTypeName.Evaluation.Components, int_obj).ConfigureAwait(false);
+                if (opt_exec.IsThrow)
+                    return opt_exec;
+                ObjectData result = opt_exec.ExprValue;
                 return ExecValue.CreateReturn(result);
             }
             else if (func.Name.Name == NameFactory.AddOperator)

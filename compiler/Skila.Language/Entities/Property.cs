@@ -234,5 +234,14 @@ namespace Skila.Language.Entities
             ;
         }
 
+        public FunctionDefinition Get(Accessor accessor)
+        {
+            switch (accessor)
+            {
+                case Accessor.Getter: return this.Getter;
+                case Accessor.Setter: return this.Setter;
+                default: throw new Exception();
+            }
+        }
     }
 }
