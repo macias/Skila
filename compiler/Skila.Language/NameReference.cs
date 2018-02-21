@@ -448,7 +448,7 @@ namespace Skila.Language
         }
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 7677)
+            if (this.DebugId.Id == 8643)
             {
                 ;
             }
@@ -513,12 +513,20 @@ namespace Skila.Language
                 IEntity binding_target = this.Binding.Match.Target;
                 if (binding_target.Modifier.HasPrivate)
                 {
+                    if (this.DebugId.Id == 8643)
+                    {
+                        ;
+                    }
+
                     // if the access to entity is private and it is overriden entity it means we have Non-Virtual Interface pattern
                     // as we should forbid access to such entity
                     // this condition checks only if disallow opening access from private to protected/public during derivation
-                    if (binding_target.Modifier.HasOverride
-                        // this is classic check if we are targeting types in current scope
-                        || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>()))
+
+                    // the only exception is calling base function 
+                    // (we don't break into the logic of NVI, just making the chain of overrides) 
+                    if (!this.IsSuperReference && (binding_target.Modifier.HasOverride
+                        // testing whether we are targeting current type
+                        || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>())))
                     {
                         ctx.AddError(ErrorCode.AccessForbidden, this);
                     }

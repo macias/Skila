@@ -33,6 +33,7 @@ namespace Skila.Language
         bool AllowProtocols { get; }
         bool AllowRealMagic { get; } // nans + infinity
         bool AllowNamedSelf { get; }
+        bool AtomicPrimitivesMutable { get; }
     }
 
     public static class IOptionsExtension

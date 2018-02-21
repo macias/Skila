@@ -41,6 +41,7 @@ namespace Skila.Language
         public bool AllowInvalidMainResult { get; set; }
         public bool AllowProtocols { get; set; }
         public bool AllowRealMagic { get; set; }
+        public bool AtomicPrimitivesMutable { get; set; }
 
         public override string ToString()
         {

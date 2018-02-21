@@ -27,7 +27,7 @@ namespace Skila.Tests
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
            // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-            //new Semantics.Inheritance().LowestCommonAncestorBoolInt();
+            new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
             //new Semantics.Mutability().ErrorCastingWithMutabilityChange();
@@ -52,7 +52,7 @@ namespace Skila.Tests
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().AutoPropertiesWithPointers();
             //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Text().RegexMatchWithNamedCaptures();
+            //new Execution.Text().RegexMatchWithLimits();
 
            //if (false)
             {
