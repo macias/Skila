@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
-        //[TestMethod]
-        public IInterpreter TODO_RegexMatchWithNamedCaptures()
+        [TestMethod]
+        public IInterpreter RegexMatchWithNamedCaptures()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;

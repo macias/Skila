@@ -134,7 +134,7 @@ namespace Skila.Interpreter
                 thisValue.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);
             }
-            else if (func== ctx.Env.Real64FromNat8Constructor)
+            else if (func == ctx.Env.Real64FromNat8Constructor)
             {
                 ObjectData arg_obj = ctx.FunctionArguments.Single();
                 var arg_val = arg_obj.NativeNat8;

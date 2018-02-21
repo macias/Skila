@@ -225,7 +225,7 @@
   <ItemGroup>
     <None Include="Documentation\Errors.md" />
     <None Include="Documentation\DuckTyping.md" />
-    <None Include="Documentation\Memory.md" />
+    <None Include="Documentation\GarbageCollection.md" />
     <None Include="Documentation\Properties.md" />
     <None Include="Documentation\Mutability.md" />
     <None Include="Documentation\Processing.md" />

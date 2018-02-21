@@ -451,7 +451,7 @@ namespace Skila.Interpreter
 
             {
                 FunctionDefinition debug_func = exit.EnclosingScope<FunctionDefinition>();
-                ctx.Heap.TryInc(ctx, objData, RefCountIncReason.PrepareExitData, $"{exit} from {debug_func}");
+                ctx.Heap.TryIncPointer(ctx, objData, RefCountIncReason.PrepareExitData, $"{exit} from {debug_func}");
             }
             return objData;
         }
@@ -709,7 +709,7 @@ namespace Skila.Interpreter
                 else if (args_group.Count == 1)
                 {
                     ObjectData arg_obj = args_group.Single();
-                    ctx.Heap.TryIncWithNested(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"for `{targetFunc}`");
+                    ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"for `{targetFunc}`");
                     arguments_repacked[index] = arg_obj;
                 }
                 else
@@ -720,7 +720,7 @@ namespace Skila.Interpreter
                     foreach (ObjectData arg_obj_elem in args_group)
                     {
                         ObjectData arg_obj = arg_obj_elem;
-                        ctx.Heap.TryIncWithNested(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"{i} for `{targetFunc}`");
+                        ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"{i} for `{targetFunc}`");
                         chunk[i] = arg_obj;
                         ++i;
                     }
@@ -940,8 +940,9 @@ namespace Skila.Interpreter
 
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
 
-                    ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.AssignmentLhsDrop,
-                        comment: $"{assign}");
+                    ctx.Heap.TryRelease(ctx, lhs.ExprValue, passingOutObject: null, isPassingOut: false, 
+                        reason: RefCountDecReason.AssignmentLhsDrop,
+                        comment: $"{assign.Lhs}");
 
                     lhs.ExprValue.Assign(rhs_obj);
                 }
@@ -1017,7 +1018,7 @@ namespace Skila.Interpreter
             else
                 throw new Exception($"{ExceptionCode.SourceInfo()}");
 
-            ctx.Heap.TryIncWithNested(ctx, obj, reason, $"`{lhs}` in `{parentExpr.EnclosingScope<FunctionDefinition>()}`");
+            ctx.Heap.TryInc(ctx, obj, reason, $"`{lhs}` in `{parentExpr.EnclosingScope<FunctionDefinition>()}`");
 
             return obj;
         }

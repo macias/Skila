@@ -198,7 +198,7 @@ namespace Skila.Interpreter
         private ObjectData()
         {
             this.DebugId = new DebugId(typeof(ObjectData));
-            if (this.DebugId.Id== debugTraceId)
+            if (this.DebugId.Id == debugTraceId)
             {
                 ;
             }
@@ -229,7 +229,7 @@ namespace Skila.Interpreter
 
         public override string ToString()
         {
-            return this.isFreed ? $"The object is disposed, id: {this.DebugId.Id}": $"{this.RunTimeTypeInstance}";
+            return this.isFreed ? $"The object is disposed, id: {this.DebugId.Id}" : $"{this.RunTimeTypeInstance}";
         }
 
         public ObjectData DereferencedOnce()
@@ -249,7 +249,8 @@ namespace Skila.Interpreter
             return self;
         }
 
-        internal bool Free(ExecutionContext ctx,ObjectData passingOut,bool isPassingOut, bool destroy, string callInfo)
+        internal bool Free(ExecutionContext ctx, ObjectData passingOut, bool isPassingOut, RefCountDecReason reason,
+            bool destroy, string comment)
         {
             if (this.DebugId.Id == 182254)
             {
@@ -262,13 +263,15 @@ namespace Skila.Interpreter
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryRelease(ctx, field.Value, passingOut,isPassingOut, reason: RefCountDecReason.FreeField, comment: $"{callInfo}");
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut, isPassingOut, reason | RefCountDecReason.FreeField, 
+                    comment: $"{comment}");
             }
 
             if (this.PlainValue is Chunk chunk)
             {
                 for (UInt64 i = 0; i != chunk.Count; ++i)
-                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut,isPassingOut, reason: RefCountDecReason.FreeChunkElem, comment: $"{callInfo}");
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut, isPassingOut, reason | RefCountDecReason.FreeChunkElem, 
+                        comment: $"{comment}");
             }
 
             bool host_disposed = false;
@@ -294,7 +297,7 @@ namespace Skila.Interpreter
 
         private void setData(Data data)
         {
-            if (this.DebugId.Id== debugTraceId)
+            if (this.DebugId.Id == debugTraceId)
             {
                 ;
             }
@@ -331,7 +334,7 @@ namespace Skila.Interpreter
             else
                 return this;
         }
-        internal ObjectData TryDereferenceAnyMany(Language.Environment env,int count)
+        internal ObjectData TryDereferenceAnyMany(Language.Environment env, int count)
         {
             ObjectData self = this;
             for (int i = 0; i < count; ++i)
@@ -347,9 +350,9 @@ namespace Skila.Interpreter
             out ObjectData dereferenced)
         {
             int deref_count = dereferencedCount(parentExpr, childExpr);
-            if (deref_count>0)
+            if (deref_count > 0)
             {
-                dereferenced = this.TryDereferenceAnyMany(env,deref_count);
+                dereferenced = this.TryDereferenceAnyMany(env, deref_count);
                 return true;
             }
             else
@@ -360,7 +363,7 @@ namespace Skila.Interpreter
         }
         internal ObjectData TryDereferenceOnce(IExpression parentExpr, IExpression childExpr)
         {
-            if (dereferencedCount(parentExpr, childExpr)>0)
+            if (dereferencedCount(parentExpr, childExpr) > 0)
             {
                 return this.DereferencedOnce();
             }

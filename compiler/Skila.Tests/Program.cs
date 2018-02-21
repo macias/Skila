@@ -52,9 +52,9 @@ namespace Skila.Tests
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().AutoPropertiesWithPointers();
             //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Text().TODO_RegexMatchWithNamedCaptures();
+            //new Execution.Text().RegexMatchWithNamedCaptures();
 
-            if (false)
+           //if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);

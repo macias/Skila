@@ -1,4 +1,4 @@
-﻿## Memory
+﻿## Garbage Collection
 
 The requirement is all resources like files, sockets are released right away
 when they are not longer used. Initially it meant that RC GC should be used.

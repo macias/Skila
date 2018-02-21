@@ -11,7 +11,7 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private static async Task<ObjectData> createChunkOnHeap(ExecutionContext ctx, IEntityInstance elementType, 
+        private static async Task<ObjectData> createChunkOnHeap(ExecutionContext ctx, IEntityInstance elementType,
             IEnumerable<ObjectData> elements)
         {
             ObjectData chunk_obj = await createChunk(ctx,
@@ -20,7 +20,7 @@ namespace Skila.Interpreter
             ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
                 ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityFlag.ConstAsSource, null, viaPointer: true),
                 chunk_obj).ConfigureAwait(false);
-            if (!ctx.Heap.TryInc(ctx, chunk_ptr,RefCountIncReason.IncChunkOnHeap,  ""))
+            if (!ctx.Heap.TryInc(ctx, chunk_ptr, RefCountIncReason.IncChunkOnHeap, ""))
                 throw new Exception($"{ExceptionCode.SourceInfo()}");
 
             return chunk_ptr;
@@ -70,12 +70,12 @@ namespace Skila.Interpreter
                 ObjectData idx_obj = ctx.GetArgument(func, NameFactory.IndexIndexerParameter);
                 var idx = idx_obj.NativeNat64;
                 Chunk chunk = this_value.PlainValue.Cast<Chunk>();
-                ctx.Heap.TryRelease(ctx, chunk[idx], passingOutObject: null,isPassingOut: false, reason: RefCountDecReason.ReplacingChunkElem, comment: "");
+                ctx.Heap.TryRelease(ctx, chunk[idx], passingOutObject: null, isPassingOut: false, reason: RefCountDecReason.ReplacingChunkElem, comment: "");
                 ObjectData arg_ref_object = ctx.GetArgument(func, NameFactory.PropertySetterValueParameter);
                 // indexer takes reference to element
                 if (!arg_ref_object.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_val))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
-                if (!ctx.Heap.TryInc(ctx, arg_val, RefCountIncReason.SettingChunkElem, ""))
+                if (!ctx.Heap.TryIncPointer(ctx, arg_val, RefCountIncReason.SettingChunkElem, ""))
                     arg_val = arg_val.Copy();
                 chunk[idx] = arg_val;
                 return ExecValue.CreateReturn(null);

@@ -11,16 +11,19 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
-        private async Task<ExecValue?> numComparisonAsync<T>(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
+        private static async Task<ExecValue?> equalityTestAsync<T>(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue,
+            bool heapArguments)
             where T : IComparable
         {
-            var this_num = thisValue.PlainValue.Cast<T>();
+            var this_native = thisValue.PlainValue.Cast<T>();
 
             if (func.Name.Name == NameFactory.EqualOperator)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
-                var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = this_num.Equals(arg_num);
+                if (heapArguments)
+                    arg = arg.DereferencedOnce();
+                var arg_native = arg.PlainValue.Cast<T>();
+                bool cmp = this_native.Equals(arg_native);
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
@@ -29,18 +32,33 @@ namespace Skila.Interpreter
             else if (func.Name.Name == NameFactory.NotEqualOperator)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
-                var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = !this_num.Equals(arg_num);
+                if (heapArguments)
+                    arg = arg.DereferencedOnce();
+                var arg_native = arg.PlainValue.Cast<T>();
+                bool cmp = !this_native.Equals(arg_native);
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
                 return result;
             }
-            else if (func.Name.Name == NameFactory.LessOperator)
+
+            return null;
+        }
+
+        private async Task<ExecValue?> numComparisonAsync<T>(ExecutionContext ctx, FunctionDefinition func, ObjectData thisValue)
+            where T : IComparable
+        {
+            var eq_result = await equalityTestAsync<T>(ctx, func, thisValue, heapArguments: false).ConfigureAwait(false);
+            if (eq_result.HasValue)
+                return eq_result;
+
+            var this_native = thisValue.PlainValue.Cast<T>();
+
+            if (func.Name.Name == NameFactory.LessOperator)
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = this_num.CompareTo(arg_num) < 0;
+                bool cmp = this_native.CompareTo(arg_num) < 0;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
@@ -50,7 +68,7 @@ namespace Skila.Interpreter
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = this_num.CompareTo(arg_num) <= 0;
+                bool cmp = this_native.CompareTo(arg_num) <= 0;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
@@ -60,7 +78,7 @@ namespace Skila.Interpreter
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = this_num.CompareTo(arg_num) > 0;
+                bool cmp = this_native.CompareTo(arg_num) > 0;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
@@ -70,7 +88,7 @@ namespace Skila.Interpreter
             {
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var arg_num = arg.PlainValue.Cast<T>();
-                bool cmp = this_num.CompareTo(arg_num) >= 0;
+                bool cmp = this_native.CompareTo(arg_num) >= 0;
                 ExecValue result = ExecValue.CreateReturn(await ObjectData.CreateInstanceAsync(ctx,
                     func.ResultTypeName.Evaluation.Components,
                     cmp).ConfigureAwait(false));
@@ -231,17 +249,25 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
         }
 
-        private static async Task<ExecValue> executeNativeStringFunctionAsync(ExecutionContext ctx, FunctionDefinition func, ObjectData this_value)
+        private static async Task<ExecValue> executeNativeStringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
+            ObjectData thisValue)
         {
+            string this_native = thisValue.NativeString;
+
             if (func == ctx.Env.StringCountGetter)
             {
-                string native_object = this_value.NativeString;
                 ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    (UInt64)native_object.Length).ConfigureAwait(false);
+                    (UInt64)this_native.Length).ConfigureAwait(false);
                 return ExecValue.CreateReturn(result);
             }
             else
-                throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
+            {
+                ExecValue? result = await equalityTestAsync<string>(ctx, func, thisValue, heapArguments: true).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
+                else
+                    throw new NotImplementedException($"Function {func} is not implemented");
+            }
         }
 
         private async Task<ExecValue> executeNativeFileFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
