@@ -156,7 +156,7 @@ namespace Skila.Language
                 ;
             }
 
-            MutabilityFlag input_mutability = input.MutabilityOfType(ctx);
+            TypeMutability input_mutability = input.MutabilityOfType(ctx);
             if (matching.AllowSlicing)
             {
                 IEnumerable<TypeAncestor> input_family = new[] { new TypeAncestor(input, 0) }
@@ -214,7 +214,7 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
-        private static bool matchTypes(ComputationContext ctx, MutabilityFlag input_mutability, EntityInstance input, EntityInstance target,
+        private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability, EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
             bool is_matched = templateMatches(ctx, input, target, matching);
@@ -225,9 +225,9 @@ namespace Skila.Language
                 // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
                 // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
-                MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
+                TypeMutability target_mutability = target.MutabilityOfType(ctx);
                 if (!matching.IgnoreMutability
-                    && !MutabilityMatches(input_mutability, target_mutability))
+                    && !MutabilityMatches(inputMutability, target_mutability))
                 {
                     match = TypeMatch.Mismatched(mutability: true);
                     return true;
@@ -248,21 +248,21 @@ namespace Skila.Language
             return false;
         }
 
-        internal static bool MutabilityMatches(MutabilityFlag inputMutability, MutabilityFlag targetMutability)
+        internal static bool MutabilityMatches(TypeMutability inputMutability, TypeMutability targetMutability)
         {
             switch (inputMutability)
             {
-                case MutabilityFlag.DualConstMutable: return true;
+                case TypeMutability.DualConstMutable: return true;
 
-                case MutabilityFlag.ForceConst:
-                case MutabilityFlag.ConstAsSource:
-                    return targetMutability != MutabilityFlag.ForceMutable && targetMutability != MutabilityFlag.GenericUnknownMutability;
+                case TypeMutability.Const:
+                case TypeMutability.ConstAsSource:
+                    return targetMutability != TypeMutability.Mutable && targetMutability != TypeMutability.GenericUnknownMutability;
 
-                case MutabilityFlag.ForceMutable:
-                case MutabilityFlag.GenericUnknownMutability:
-                    return targetMutability != MutabilityFlag.ConstAsSource && targetMutability != MutabilityFlag.ForceConst;
+                case TypeMutability.Mutable:
+                case TypeMutability.GenericUnknownMutability:
+                    return targetMutability != TypeMutability.ConstAsSource && targetMutability != TypeMutability.Const;
 
-                case MutabilityFlag.Neutral: return targetMutability == MutabilityFlag.Neutral;
+                case TypeMutability.Neutral: return targetMutability == TypeMutability.Neutral;
 
                 default: throw new NotImplementedException();
             }
@@ -276,7 +276,7 @@ namespace Skila.Language
 
             EntityInstance target = targets.First().AncestorInstance;
 
-            MutabilityFlag target_mutability = target.MutabilityOfType(ctx);
+            TypeMutability target_mutability = target.MutabilityOfType(ctx);
 
             foreach (TypeAncestor inherited_target in targets)
             {
@@ -339,7 +339,7 @@ namespace Skila.Language
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
-                result = ctx.Env.Reference(result, MutabilityFlag.ConstAsSource, null, via_pointer);
+                result = ctx.Env.Reference(result, MutabilityOverride.NotGiven, null, via_pointer);
             return result != null;
         }
 

@@ -2,29 +2,43 @@
 
 namespace Skila.Language
 {
-    public enum MutabilityFlag
+    public enum MutabilityOverride
     {
-        ConstAsSource,
+        NotGiven,
+
+        // todo: remove this
         Neutral,
+
         ForceMutable,
         ForceConst,
         GenericUnknownMutability,
         DualConstMutable, // for literals
     }
 
-
-    public static class MutabilityFlagExtension
+    public enum TypeMutability
     {
-        public static string StringPrefix(this MutabilityFlag flag)
+        // todo: remove this
+        ConstAsSource,
+
+        Neutral,
+        Mutable,
+        Const,
+        GenericUnknownMutability,
+        DualConstMutable, // for literals
+    }
+
+    public static class MutabilityOverrideExtension
+    {
+        public static string StringPrefix(this MutabilityOverride flag)
         {
             switch (flag)
             {
-                case MutabilityFlag.DualConstMutable: return $"dual ";
-                case MutabilityFlag.ForceConst: return $"fconst ";
-                case MutabilityFlag.ForceMutable: return $"mut ";
-                case MutabilityFlag.Neutral: return $"neut ";
-                case MutabilityFlag.ConstAsSource: return "";
-                case MutabilityFlag.GenericUnknownMutability: return "g ";
+                case MutabilityOverride.DualConstMutable: return $"dual ";
+                case MutabilityOverride.ForceConst: return $"fconst ";
+                case MutabilityOverride.ForceMutable: return $"mut ";
+                case MutabilityOverride.Neutral: return $"neut ";
+                case MutabilityOverride.NotGiven: return "";
+                case MutabilityOverride.GenericUnknownMutability: return "g ";
                 default: throw new Exception();
             }
 

@@ -221,9 +221,9 @@ namespace Skila.Language
         {
             return NameReference.Create(ThisVariableName);
         }
-        public static NameReference ItTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ItTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return NameReference.Create(mutability,ItTypeName);
+            return NameReference.Create(mutability, ItTypeName);
         }
         public static NameReference BoolTypeReference()
         {
@@ -264,7 +264,7 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), DateTypeName);
         }
-        public static NameReference IEquatableTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference IEquatableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), IEquatableTypeName);
         }
@@ -292,17 +292,17 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), StoreFunctionName);
         }
-        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference IIndexableTypeReference(string templateParamName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIteratorTypeReference(INameReference templateTypeName)
+        public static NameReference IIteratorTypeReference(INameReference templateTypeName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return NameReference.Create(CollectionsNamespaceReference(), IIteratorTypeName, templateTypeName);
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), IIteratorTypeName, templateTypeName);
         }
-        public static NameReference IIteratorTypeReference(string templateTypeName)
+        public static NameReference IIteratorTypeReference(string templateTypeName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return IIteratorTypeReference(NameReference.Create(templateTypeName));
+            return IIteratorTypeReference(NameReference.Create(templateTypeName), mutability);
         }
         public static NameReference IndexIteratorTypeReference(INameReference templateTypeName)
         {
@@ -317,25 +317,25 @@ namespace Skila.Language
             return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
         }
         public static NameReference IIndexableTypeReference(INameReference templateTypeName,
-            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+            MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
         public static NameReference IIterableTypeReference(string templateParamName,
-            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+            MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return IIterableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
         public static NameReference IIterableTypeReference(NameReference templateParamName,
-            MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+            MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
@@ -349,11 +349,11 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
         }
-        public static NameReference ArrayTypeReference(string templateParamName, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ArrayTypeReference(string templateParamName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return ArrayTypeReference(NameReference.Create(templateParamName), mutability);
         }
-        public static NameReference ArrayTypeReference(INameReference templateParamName, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ArrayTypeReference(INameReference templateParamName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), ArrayTypeName, templateParamName);
         }
@@ -375,10 +375,10 @@ namespace Skila.Language
         }
         public static NameReference ITupleMutableTypeReference(params INameReference[] templateParamNames)
         {
-            return NameReference.Create(MutabilityFlag.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
+            return NameReference.Create(MutabilityOverride.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference IObjectTypeReference(MutabilityFlag overrideMutability = MutabilityFlag.ConstAsSource)
+        public static NameReference IObjectTypeReference(MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, IObjectTypeName);
         }
@@ -404,15 +404,15 @@ namespace Skila.Language
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
-        public static NameReference StringPointerTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference StringPointerTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameFactory.PointerTypeReference(StringTypeReference(mutability));
         }
-        public static NameReference StringTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference StringTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName);
         }
-        public static NameReference ComparableTypeReference(MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference ComparableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.ComparableTypeName);
         }
@@ -420,7 +420,7 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
-        public static NameReference OptionTypeReference(INameReference name, MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        public static NameReference OptionTypeReference(INameReference name, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }
@@ -470,7 +470,7 @@ namespace Skila.Language
             return ReferenceTypeReference(NameReference.Create(name));
         }
 
-        internal static INameReference ShouldBeThisTypeReference(string typeName,MutabilityFlag mutability = MutabilityFlag.ConstAsSource)
+        internal static INameReference ShouldBeThisTypeReference(string typeName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             // todo: Skila1 supported the notion of dynamic "this type", Skila-3 should also have it
             // so once we have time to do it this method will help us fast track all the use cases to replace

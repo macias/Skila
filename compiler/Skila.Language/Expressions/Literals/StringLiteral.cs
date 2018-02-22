@@ -14,7 +14,7 @@ namespace Skila.Language.Expressions.Literals
         }
 
         private StringLiteral(string value)
-            : base(value, NameFactory.StringPointerTypeReference( MutabilityFlag.DualConstMutable))
+            : base(value, NameFactory.StringPointerTypeReference( MutabilityOverride.DualConstMutable))
         {
         }
     }

@@ -19,7 +19,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            // new Semantics.CompilerProtection().Environment();
+             //new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -27,10 +27,10 @@ namespace Skila.Tests
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
            // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-            new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
+            //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
-            //new Semantics.Mutability().ErrorCastingWithMutabilityChange();
+           // new Semantics.Mutability().ErrorAbusingForcedConst();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorSettingCustomGetter();
@@ -39,11 +39,11 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-            //new Execution.Closures().ImplicitClosureWithValue();
+            //new Execution.Closures().TODO_ClosureRecursiveCall();
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            //new Execution.FunctionCalls().StoringSequenceAsSequence();
+            new Execution.FunctionCalls().LambdaRecursiveCall();
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();

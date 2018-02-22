@@ -15,7 +15,7 @@ namespace Skila.Language.Entities
     // to make sure there will be no problem in defining and passing this data
     // when user defines fancy parameters for indexer
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
+    public sealed partial class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
     {
         public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, Block body)
@@ -157,7 +157,7 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
                 translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -168,7 +168,7 @@ namespace Skila.Language.Entities
             return result;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability, 
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability, 
             TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);

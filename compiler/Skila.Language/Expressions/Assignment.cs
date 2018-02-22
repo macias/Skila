@@ -195,8 +195,8 @@ namespace Skila.Language.Expressions
                             // pass const instance (of mutable type) as neutral instance (aliasing const instance)
                             // and then call mutable method making "const" guarantee invalid
 
-                            MutabilityFlag this_mutability = name_ref.Prefix.Evaluation.Components.MutabilityOfType(ctx);
-                            if (this_mutability != MutabilityFlag.ForceMutable)
+                            TypeMutability this_mutability = name_ref.Prefix.Evaluation.Components.MutabilityOfType(ctx);
+                            if (this_mutability != TypeMutability.Mutable)
                                 ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
                         }
                     }

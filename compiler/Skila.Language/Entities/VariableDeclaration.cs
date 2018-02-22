@@ -49,7 +49,7 @@ namespace Skila.Language.Entities
             this.TypeName = typeName;
             this.initValue = initValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityFlag.ConstAsSource,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
                 translation: TemplateTranslation.Create(this)));
 
             this.closures = new List<TypeDefinition>();
@@ -87,7 +87,7 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability,
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
             TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
@@ -229,11 +229,11 @@ namespace Skila.Language.Entities
             }
             else
             {
-                MutabilityFlag mutability = this_eval.MutabilityOfType(ctx);
-                if (mutability == MutabilityFlag.DualConstMutable)
+                TypeMutability mutability = this_eval.MutabilityOfType(ctx);
+                if (mutability == TypeMutability.DualConstMutable)
                 {
-                    this_eval = this_eval.Rebuild(ctx, MutabilityFlag.ForceMutable);
-                    this_aggregate = this_aggregate.Rebuild(ctx, MutabilityFlag.ForceMutable).Cast<EntityInstance>();
+                    this_eval = this_eval.Rebuild(ctx, MutabilityOverride.ForceMutable);
+                    this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceMutable).Cast<EntityInstance>();
                 }
             }
 
@@ -244,7 +244,8 @@ namespace Skila.Language.Entities
             {
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                if (this.Evaluation.Components.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+                TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
+                if (mutability!= TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
             }
         }

@@ -34,19 +34,19 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityFlag.ConstAsSource, prefix, name, arguments, isRoot: false);
+            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, isRoot: false);
         }
-        public static NameReference Create(MutabilityFlag overrideMutability, string name, params INameReference[] arguments)
+        public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
         {
             return Create(overrideMutability, null, name, arguments);
         }
-        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name, 
+        public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
             return new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
         }
-        public static NameReference Create(MutabilityFlag overrideMutability, IExpression prefix, string name,
-            IEnumerable<INameReference> arguments,EntityInstance target)
+        public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
+            IEnumerable<INameReference> arguments, EntityInstance target)
         {
             var result = new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
             if (target != null)
@@ -56,7 +56,7 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target)
         {
-            return Create(MutabilityFlag.ConstAsSource, prefix, name, arguments, target);
+            return Create(MutabilityOverride.NotGiven, prefix, name, arguments, target);
         }
 
         public static NameReference CreateBaseInitReference()
@@ -81,7 +81,7 @@ namespace Skila.Language
 
         bool INameReference.IsBindingComputed => this.Binding.IsComputed;
 
-        public MutabilityFlag OverrideMutability { get; }
+        public MutabilityOverride OverrideMutability { get; }
         public bool IsRoot { get; }
         public IExpression Prefix { get; private set; }
         public string Name { get; }
@@ -99,7 +99,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityFlag.ConstAsSource, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), isRoot: true);
 
         public int DereferencingCount { get; set; }
@@ -114,7 +114,7 @@ namespace Skila.Language
         private bool isPropertyIndexerCallReference => this.Owner is FunctionCall call && call.Callee == this && call.IsIndexer;
 
         private NameReference(
-            MutabilityFlag overrideMutability,
+            MutabilityOverride overrideMutability,
             IExpression prefix,
             string name,
             IEnumerable<INameReference> templateArguments,
@@ -197,11 +197,11 @@ namespace Skila.Language
 
                 if (this.Prefix != null)
                 {
-                    MutabilityFlag prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
-                    if (prefix_mutability == MutabilityFlag.ForceConst)
+                    TypeMutability prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
+                    if (prefix_mutability == TypeMutability.Const)
                     {
-                        eval = eval.Rebuild(ctx, prefix_mutability);
-                        aggregate = aggregate.Rebuild(ctx, prefix_mutability).Cast<EntityInstance>();
+                        eval = eval.Rebuild(ctx, MutabilityOverride.ForceConst);
+                        aggregate = aggregate.Rebuild(ctx, MutabilityOverride.ForceConst).Cast<EntityInstance>();
                     }
                 }
             }
@@ -254,7 +254,7 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id== 870)
+            if (this.DebugId.Id == 870)
             {
                 ;
             }
@@ -578,7 +578,7 @@ namespace Skila.Language
                 if (this.EnclosingScopesToRoot().Contains(template))
                 {
                     bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == MutabilityFlag.ConstAsSource);
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == TypeMutability.ConstAsSource);
 
                     // don't report errors for covariant types which are used in immutable template types
                     if (!covariant_in_immutable &&
@@ -633,11 +633,15 @@ namespace Skila.Language
                 throw new Exception("Internal error (if it is callable why is not wrapped into closure already)");
 
             TypeDefinition target_type = callTarget.CastFunction().ContainingType();
-            FunctionDefinition current_function = this.EnclosingScope<FunctionDefinition>();
-            if (target_type != null && target_type == current_function.ContainingType())
+            if (target_type != null)
             {
-                NameReference implicit_this = current_function.GetThisNameReference();
-                return implicit_this;
+                FunctionDefinition current_function = this.EnclosingScope<FunctionDefinition>();
+                TypeDefinition current_type = current_function.ContainingType();
+                if (target_type == current_type)
+                {
+                    NameReference implicit_this = current_function.GetThisNameReference();
+                    return implicit_this;
+                }
             }
 
             return null;

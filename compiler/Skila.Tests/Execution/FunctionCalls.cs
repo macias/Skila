@@ -16,7 +16,7 @@ namespace Skila.Tests.Execution
         public IInterpreter StoringSequenceAsSequence()
         {
             // todo: add analogous test with storing iterable as sequence
-            
+
             // yes, this test seems like pointless thing but it is important nevertheless because
             // we have to check if conversion does NOT happen
             var env = Language.Environment.Create(new Options() { });
@@ -52,7 +52,7 @@ namespace Skila.Tests.Execution
             var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create("provider",NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+            root_ns.AddBuilder(FunctionBuilder.Create("provider", NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("x", null,
                         ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
@@ -78,7 +78,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(), 
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(),
                     FunctionCall.Create(NameReference.Create("provider")), isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -156,7 +156,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2,null), null, isNameRequired: false)));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, null), null, isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),

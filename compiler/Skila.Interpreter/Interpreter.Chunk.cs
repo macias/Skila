@@ -15,10 +15,10 @@ namespace Skila.Interpreter
             IEnumerable<ObjectData> elements)
         {
             ObjectData chunk_obj = await createChunk(ctx,
-                ctx.Env.ChunkType.GetInstance(new[] { elementType }, MutabilityFlag.ConstAsSource, null),
+                ctx.Env.ChunkType.GetInstance(new[] { elementType }, MutabilityOverride.NotGiven, null),
                 elements.ToArray()).ConfigureAwait(false);
             ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
-                ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityFlag.ConstAsSource, null, viaPointer: true),
+                ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityOverride.NotGiven, null, viaPointer: true),
                 chunk_obj).ConfigureAwait(false);
             if (!ctx.Heap.TryInc(ctx, chunk_ptr, RefCountIncReason.IncChunkOnHeap, ""))
                 throw new Exception($"{ExceptionCode.SourceInfo()}");

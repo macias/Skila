@@ -63,7 +63,7 @@ namespace Skila.Language
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
         private readonly IReadOnlyList<IEntityInstance> templateArguments;
 
-        public FunctionArgument MetaThisArgument { get; private set; } // null for regular functions (not-methods)
+        public FunctionArgument MetaThisArgument { get; } // null for regular functions (not-methods)
         public EvaluationInfo Evaluation => this.translatedResultEvaluation;
 
         private CallResolution(ComputationContext ctx,
@@ -228,7 +228,7 @@ namespace Skila.Language
                 }
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
-                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval, 
+                TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval,
                     TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
 
                 int idx = this.argParamMapping[arg.Index];

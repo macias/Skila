@@ -14,7 +14,8 @@ namespace Skila.Language.Builders
                  Block body,
                  params FunctionParameter[] parameters)
         {
-            FunctionBuilder builder = FunctionBuilder.Create(NameDefinition.Create(NameFactory.LambdaInvoke), ExpressionReadMode.ReadRequired, result, body);
+            FunctionBuilder builder = FunctionBuilder.Create(NameDefinition.Create(NameFactory.LambdaInvoke), 
+                ExpressionReadMode.ReadRequired, result, body);
             if (parameters.Any())
                 builder.Parameters(parameters);
             return builder;

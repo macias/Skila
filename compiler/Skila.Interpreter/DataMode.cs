@@ -1,9 +1,13 @@
 ﻿namespace Skila.Interpreter
 {
-    public enum DataMode
+    public partial struct ExecValue
     {
-        Expression,
-        Return,
-        Throw
+        private enum DataMode
+        {
+            Expression,
+            Return,
+            Throw,
+            Recall
+        }
     }
 }

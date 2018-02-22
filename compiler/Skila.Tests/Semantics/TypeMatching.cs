@@ -185,7 +185,7 @@ namespace Skila.Tests.Semantics
                 ExpressionFactory.Readout(is_type_ref)
                 ))
                 .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceTypeReference(
-                    NameFactory.ISequenceTypeReference("G", overrideMutability: MutabilityFlag.Neutral)))));
+                    NameFactory.ISequenceTypeReference("G", overrideMutability: MutabilityOverride.Neutral)))));
 
             var resolver = NameResolver.Create(env);
 

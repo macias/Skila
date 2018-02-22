@@ -60,7 +60,7 @@ namespace Skila.Interpreter
                         ExecValue ret = await createObject(ctx, true, array_captures_type, ctx.Env.ArrayDefaultConstructor, null)
                             .ConfigureAwait(false);
 
-                        if (ret.Mode == DataMode.Throw)
+                        if (ret.IsThrow)
                             return ret;
 
                         array_captures_ptr = ret.ExprValue;
@@ -99,13 +99,13 @@ namespace Skila.Interpreter
                                 }
                                 ExecValue capture_obj_exec = await createObject(ctx, false, ctx.Env.CaptureType.InstanceOf,
                                     ctx.Env.CaptureConstructor, null, cap_index_val, cap_length_val, cap_opt_name_val).ConfigureAwait(false);
-                                if (capture_obj_exec.Mode == DataMode.Throw)
+                                if (capture_obj_exec.IsThrow)
                                     return capture_obj_exec;
                                 ObjectData capture_ref = await capture_obj_exec.ExprValue.ReferenceAsync(ctx).ConfigureAwait(false);
 
                                 ExecValue append_exec = await callNonVariadicFunctionDirectly(ctx, ctx.Env.ArrayAppendFunction, null,
                                     array_captures_ptr, capture_ref).ConfigureAwait(false);
-                                if (append_exec.Mode == DataMode.Throw)
+                                if (append_exec.IsThrow)
                                     return append_exec;
                             }
                         }
@@ -117,7 +117,7 @@ namespace Skila.Interpreter
                                 ctx.Env.MatchConstructor, null, match_index_val, match_length_val, array_captures_ptr).ConfigureAwait(false);
                         ctx.Heap.TryRelease(ctx, array_captures_ptr, null, false, RefCountDecReason.DroppingLocalPointer, "");
 
-                        if (ret.Mode == DataMode.Throw)
+                        if (ret.IsThrow)
                             return ret;
 
                         match_val = ret.ExprValue;

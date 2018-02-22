@@ -37,14 +37,14 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("x",
 
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(MutabilityFlag.Neutral)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(MutabilityOverride.Neutral)),
                         Undef.Create()),
                     VariableDeclaration.CreateStatement("c", null, bad_cast),
                     ExpressionFactory.Readout("c"),
 
                     VariableDeclaration.CreateStatement("ok", null,
                         ExpressionFactory.DownCast(NameReference.Create("x"),
-                            NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral, "Alien")))),
+                            NameFactory.PointerTypeReference(NameReference.Create(MutabilityOverride.Neutral, "Alien")))),
                     ExpressionFactory.Readout("ok")
             )));
 
@@ -83,7 +83,7 @@ namespace Skila.Tests.Semantics
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f", "m"), Undef.Create());
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("f",
-                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mangler")),
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityOverride.ForceConst, "Mangler")),
                     Undef.Create(),
                     EntityModifier.Public))
                  .With(FunctionBuilder.Create("testing", NameFactory.UnitTypeReference(),
@@ -124,7 +124,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("f",
-                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mangler")),
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityOverride.ForceConst, "Mangler")),
                     Undef.Create(),
                     EntityModifier.Public))
                     );
@@ -149,7 +149,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("f",
-                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.ForceConst, "Mutator", NameReference.Create("Stone"))),
+                    NameFactory.PointerTypeReference(NameReference.Create(MutabilityOverride.ForceConst, "Mutator", NameReference.Create("Stone"))),
                     Undef.Create(),
                     EntityModifier.Public))
                     );
@@ -174,7 +174,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         // this is ok, we are assigning literal here
                         VariableDeclaration.CreateStatement("x",
-                            NameFactory.StringPointerTypeReference(MutabilityFlag.ForceConst), StringLiteral.Create("hi"), EntityModifier.Reassignable),
+                            NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst), StringLiteral.Create("hi"), EntityModifier.Reassignable),
                         VariableDeclaration.CreateStatement("a", null, StringLiteral.Create("no")),
                         // this is not ok, we are assigning mutable to const
                         Assignment.CreateStatement(NameReference.Create("x"), rhs_value),
@@ -233,7 +233,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     // we can assign both mutable and immutable to neutral
                     VariableDeclaration.CreateStatement("x",
-                        NameFactory.PointerTypeReference(NameReference.Create(MutabilityFlag.Neutral, "Elka")),
+                        NameFactory.PointerTypeReference(NameReference.Create(MutabilityOverride.Neutral, "Elka")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Elka"))),
                     call,
                     assignment
@@ -307,7 +307,7 @@ namespace Skila.Tests.Semantics
             Return ret = Return.Create(NameReference.Create("coll"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("laundering", "T", VarianceMode.None),
                new[] { FunctionParameter.Create("coll",
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability:  MutabilityFlag.ForceMutable))) },
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability:  MutabilityOverride.ForceMutable))) },
                ExpressionReadMode.ReadRequired,
                NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                Block.CreateStatement(new IExpression[] {
@@ -342,11 +342,11 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     // we can assign both mutable and immutable to neutral
                     VariableDeclaration.CreateStatement("x",
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityFlag.Neutral)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityOverride.Neutral)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
                     ExpressionFactory.Readout("x"),
                     VariableDeclaration.CreateStatement("y",
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityFlag.Neutral)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityOverride.Neutral)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
                     ExpressionFactory.Readout("y"),
             })));
@@ -378,13 +378,13 @@ namespace Skila.Tests.Semantics
 
                 Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityFlag.Neutral)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityOverride.Neutral)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
                     VariableDeclaration.CreateStatement("xx",
                         NameFactory.PointerTypeReference(NameReference.Create("Mutant")),init_value_x),
                     ExpressionFactory.Readout("xx"),
                     VariableDeclaration.CreateStatement("y",
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityFlag.Neutral)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference( MutabilityOverride.Neutral)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
                     VariableDeclaration.CreateStatement("yy",
                         NameFactory.PointerTypeReference(NameReference.Create("Untouchable")),init_value_y),
@@ -421,7 +421,7 @@ namespace Skila.Tests.Semantics
                     ExpressionFactory.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
                     VariableDeclaration.CreateStatement("y",
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(overrideMutability: MutabilityFlag.ForceMutable)),
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(overrideMutability: MutabilityOverride.ForceMutable)),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
                     ExpressionFactory.Readout("y"),
             })));

@@ -378,13 +378,13 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
             }
 
-            if (this.InstanceOf.MutabilityOfType(ctx) != MutabilityFlag.ForceMutable)
+            if (this.InstanceOf.MutabilityOfType(ctx) != TypeMutability.Mutable)
             {
                 // the above check is more than checking just a flag
                 // for template types the mutability depends on parameter constraints
                 foreach (NameReference parent in this.ParentNames)
                 {
-                    if (parent.Evaluation.Components.MutabilityOfType(ctx) == MutabilityFlag.ForceMutable)
+                    if (parent.Evaluation.Components.MutabilityOfType(ctx) == TypeMutability.Mutable)
                         ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
                 }
             }
@@ -399,10 +399,10 @@ namespace Skila.Language.Entities
                     {
                         ;
                     }
-                    MutabilityFlag field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
-                    if (field_eval_mutability != MutabilityFlag.ConstAsSource
-                        && field_eval_mutability != MutabilityFlag.GenericUnknownMutability
-                        && field_eval_mutability != MutabilityFlag.ForceConst)
+                    TypeMutability field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
+                    if (field_eval_mutability != TypeMutability.ConstAsSource
+                        && field_eval_mutability != TypeMutability.GenericUnknownMutability
+                        && field_eval_mutability != TypeMutability.Const)
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions

@@ -51,7 +51,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
                     NameFactory.BoolTypeReference(),
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse())))
-                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityFlag.Neutral, "Tiny"), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityOverride.Neutral, "Tiny"), ExpressionReadMode.CannotBeRead)))
                     );
 
             root_ns.AddBuilder(TypeBuilder.Create("Rich")
@@ -60,7 +60,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
                     NameFactory.BoolTypeReference(),
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
-                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityFlag.Neutral, "Rich"), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityOverride.Neutral, "Rich"), ExpressionReadMode.CannotBeRead)))
                     );
 
 
@@ -103,7 +103,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
                     NameFactory.BoolTypeReference(),
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
-                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityFlag.Neutral, "Tiny"), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityOverride.Neutral, "Tiny"), ExpressionReadMode.CannotBeRead)))
                     );
 
             root_ns.AddBuilder(TypeBuilder.Create("Rich")
@@ -112,7 +112,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
                     NameFactory.BoolTypeReference(),
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateTrue())))
-                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityFlag.Neutral, "Rich"), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", NameReference.Create(MutabilityOverride.Neutral, "Rich"), ExpressionReadMode.CannotBeRead)))
                     );
 
 
@@ -135,7 +135,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(DataMode.Throw, result.Mode);
+            Assert.IsTrue(result.IsThrow);
 
             return interpreter;
         }
@@ -207,7 +207,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(DataMode.Throw, result.Mode);
+            Assert.IsTrue(result.IsThrow);
 
             return interpreter;
         }

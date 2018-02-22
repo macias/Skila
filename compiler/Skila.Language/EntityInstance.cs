@@ -25,7 +25,7 @@ namespace Skila.Language
         }
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
-            IEnumerable<INameReference> arguments, MutabilityFlag overrideMutability)
+            IEnumerable<INameReference> arguments, MutabilityOverride overrideMutability)
         {
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
@@ -37,13 +37,13 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityFlag.ConstAsSource, translation: TemplateTranslation.Empty);
+            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public MutabilityFlag OverrideMutability => this.Core.OverrideMutability;
+        public MutabilityOverride OverrideMutability => this.Core.OverrideMutability;
 
         public EntityInstanceCore Core { get; }
 
@@ -255,7 +255,7 @@ namespace Skila.Language
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
-            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != TypeMutability.ConstAsSource)
                 return ConstraintMatch.ConstViolation;
 
 
@@ -345,12 +345,12 @@ namespace Skila.Language
 
         }
 
-        public EntityInstance Build(MutabilityFlag mutability)
+        public EntityInstance Build(MutabilityOverride mutability)
         {
             return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
         }
 
-        internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityFlag overrideMutability)
+        internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityOverride overrideMutability)
         {
             TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
 

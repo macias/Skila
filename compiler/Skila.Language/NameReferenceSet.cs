@@ -94,7 +94,7 @@ namespace Skila.Language
             }
 
             if (hasReference || hasPointer)
-                aggregate_instance = ctx.Env.Reference(aggregate_instance, MutabilityFlag.ConstAsSource,
+                aggregate_instance = ctx.Env.Reference(aggregate_instance, MutabilityOverride.NotGiven,
                     translation: null, viaPointer: hasPointer);
 
             return aggregate_instance;

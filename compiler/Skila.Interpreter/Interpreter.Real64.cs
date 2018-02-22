@@ -91,7 +91,7 @@ namespace Skila.Interpreter
                 {
                     ExecValue exec_cons = await createObject(ctx, ctx.Env.ExceptionType.Modifier.HasHeapOnly,
                                            ctx.Env.ExceptionType.InstanceOf, ctx.Env.ExceptionType.DefaultConstructor(), null).ConfigureAwait(false);
-                    if (exec_cons.Mode == DataMode.Throw)
+                    if (exec_cons.IsThrow)
                         return exec_cons;
                     if (ctx.Env.ExceptionType.Modifier.HasHeapOnly)
                         ctx.Heap.TryInc(ctx, exec_cons.ExprValue, RefCountIncReason.ThrowingException, "");

@@ -1,7 +1,6 @@
 ﻿using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
-using Skila.Language.Extensions;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
 using System;
@@ -93,10 +92,10 @@ namespace Skila.Language.Extensions
                     .With(cons)
                     .With(this_field);
 
-                MutabilityFlag mutability = thisObject.Evaluation.Components.MutabilityOfType(ctx);
-                if (mutability == MutabilityFlag.ForceMutable)
+                TypeMutability mutability = thisObject.Evaluation.Components.MutabilityOfType(ctx);
+                if (mutability == TypeMutability.Mutable)
                     closure_builder.Modifier(EntityModifier.Mutable);
-                else if (mutability != MutabilityFlag.ConstAsSource)
+                else if (mutability != TypeMutability.ConstAsSource)
                     throw new NotImplementedException();
             }
 

@@ -325,7 +325,7 @@ namespace Skila.Tests.Execution
                     // https://msdn.microsoft.com/en-us/library/3y21t6y4(v=vs.110).aspx#Anchor_3
                     VariableDeclaration.CreateStatement("partNumbers", null,
                         ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.StringPointerTypeReference(
-                            MutabilityFlag.ForceConst)), NatLiteral.Create("5"))),
+                            MutabilityOverride.ForceConst)), NatLiteral.Create("5"))),
                     ExpressionFactory.InitializeIndexable("partNumbers",
                         StringLiteral.Create("1298-673-4192"), // pass
                         StringLiteral.Create("A08Z-931-468A"), // pass

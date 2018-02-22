@@ -60,8 +60,8 @@ namespace Skila.Language.Expressions
             }
 
             // we can do whatever but we cannot shake off the const/neutral off
-            MutabilityFlag lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
-            MutabilityFlag rhs_mutability = this.RhsTypeName.Evaluation.Components.MutabilityOfType(ctx);
+            TypeMutability lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
+            TypeMutability rhs_mutability = this.RhsTypeName.Evaluation.Components.MutabilityOfType(ctx);
             if (!TypeMatcher.MutabilityMatches(lhs_mutability, rhs_mutability))
                 ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
         }

@@ -311,7 +311,7 @@ namespace Skila.Interpreter
         internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance },
-                overrideMutability: MutabilityFlag.ConstAsSource, translation: null), this);
+                overrideMutability: MutabilityOverride.NotGiven, translation: null), this);
         }
 
         internal bool TryDereferenceAnyOnce(Language.Environment env, out ObjectData dereferenced)

@@ -15,7 +15,7 @@ namespace Skila.Language
     public sealed class EntityInstanceCore 
     {
         public static EntityInstanceCore RAW_CreateUnregistered(IEntity target, IEnumerable<IEntityInstance> arguments,
-            MutabilityFlag overrideMutability)
+            MutabilityOverride overrideMutability)
         {
             return new EntityInstanceCore(target, arguments, overrideMutability);
         }
@@ -28,7 +28,7 @@ namespace Skila.Language
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public MutabilityFlag OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
+        public MutabilityOverride OverrideMutability { get; } // we use bool flag instead full EntityModifer because so far we don't have other modifiers
 
         public IEntity Target { get; }
         public TypeDefinition TargetType => this.Target.CastType();
@@ -40,7 +40,7 @@ namespace Skila.Language
 
         public bool IsTypeImplementation => this.Target.IsType() && this.TargetType.IsTypeImplementation;
 
-        private EntityInstanceCore(IEntity target, IEnumerable<IEntityInstance> arguments, MutabilityFlag overrideMutability)
+        private EntityInstanceCore(IEntity target, IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability)
         {
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");

@@ -58,9 +58,15 @@ namespace Skila.Interpreter
         public override string ToString()
         {
             IReadOnlyList<ILocalBindable> keys = this.bag.Keys.StoreReadOnlyList();
-            string result = keys.Select(it => it.Name.ToString()).Join(", ");
-            if (keys.Count > 10)
-                result += " ...";
+            string result;
+            if (keys.Count == 0)
+                result = "<empty>";
+            else
+            {
+                result = keys.Select(it => it.Name.ToString()).Join(", ");
+                if (keys.Count > 10)
+                    result += " ...";
+            }
             return result;
         }
     }

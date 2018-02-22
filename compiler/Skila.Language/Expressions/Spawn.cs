@@ -44,11 +44,11 @@ namespace Skila.Language.Expressions
                 this.Evaluation = ctx.Env.UnitEvaluation;
 
                 foreach (FunctionArgument arg in this.Call.Arguments)
-                    if (arg.Evaluation.Components.MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+                    if (arg.Evaluation.Components.MutabilityOfType(ctx) != TypeMutability.ConstAsSource)
                         ctx.AddError(ErrorCode.CannotSpawnWithMutableArgument, arg);
 
                 if (this.Call.Resolution.MetaThisArgument != null
-                    && this.Call.Resolution.MetaThisArgument.Evaluated(ctx).MutabilityOfType(ctx) != MutabilityFlag.ConstAsSource)
+                    && this.Call.Resolution.MetaThisArgument.Evaluated(ctx).MutabilityOfType(ctx) != TypeMutability.ConstAsSource)
                     ctx.AddError(ErrorCode.CannotSpawnOnMutableContext, this.Call.Callee);
 
             }

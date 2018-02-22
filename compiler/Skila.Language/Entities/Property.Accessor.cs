@@ -1,8 +1,11 @@
 ﻿namespace Skila.Language.Entities
 {
-    public enum Accessor
+    public sealed partial class Property
     {
-        Getter,
-        Setter
+        public enum Accessor
+        {
+            Getter,
+            Setter
+        }
     }
 }

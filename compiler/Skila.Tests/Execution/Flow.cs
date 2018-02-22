@@ -40,7 +40,7 @@ namespace Skila.Tests.Execution
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(DataMode.Throw, result.Mode);
+            Assert.IsTrue(result.IsThrow);
 
             return interpreter;
         }

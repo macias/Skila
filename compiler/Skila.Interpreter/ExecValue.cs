@@ -1,16 +1,21 @@
-﻿using System;
+﻿using NaiveLanguageTools.Common;
+using System;
 
 namespace Skila.Interpreter
 {
-    public struct ExecValue
+    public partial struct ExecValue
     {
         public static ExecValue UndefinedExpression { get; } = new ExecValue(DataMode.Expression, null);
 
-        public static ExecValue CreateReturn(ObjectData value)
+        internal static ExecValue CreateRecall(CallInfo callInfo)
+        {
+            return new ExecValue(DataMode.Recall, callInfo);
+        }
+        internal static ExecValue CreateReturn(ObjectData value)
         {
             return new ExecValue(DataMode.Return, value);
         }
-        public static ExecValue CreateExpression(ObjectData value)
+        internal static ExecValue CreateExpression(ObjectData value)
         {
             return new ExecValue(DataMode.Expression, value);
         }
@@ -19,17 +24,21 @@ namespace Skila.Interpreter
             return new ExecValue(DataMode.Throw, value);
         }
 
-        public DataMode Mode { get; }
-        public bool IsThrow => this.Mode == DataMode.Throw;
-        private readonly ObjectData value;
+        private readonly DataMode mode;
+        public bool IsThrow => this.mode == DataMode.Throw;
+        public bool IsRecall => this.mode == DataMode.Recall;
+        public bool IsReturn => this.mode == DataMode.Return;
+        public bool IsExpression => this.mode == DataMode.Expression;
+        private readonly Variant<object, ObjectData, CallInfo> value;
+        private ObjectData valueObjectData => this.value.As<ObjectData>();
 
         public ObjectData RetValue
         {
             get
             {
-                if (this.Mode != DataMode.Return)
-                    throw new Exception($"Current mode {this.Mode} {ExceptionCode.SourceInfo()}");
-                return value;
+                if (this.mode != DataMode.Return)
+                    throw new Exception($"Current mode {this.mode} {ExceptionCode.SourceInfo()}");
+                return valueObjectData;
             }
         }
 
@@ -37,9 +46,9 @@ namespace Skila.Interpreter
         {
             get
             {
-                if (this.Mode != DataMode.Expression)
-                    throw new Exception($"Current mode {this.Mode} {ExceptionCode.SourceInfo()}");
-                return value;
+                if (this.mode != DataMode.Expression)
+                    throw new Exception($"Current mode {this.mode} {ExceptionCode.SourceInfo()}");
+                return valueObjectData;
             }
         }
 
@@ -47,21 +56,31 @@ namespace Skila.Interpreter
         {
             get
             {
-                if (this.Mode != DataMode.Throw)
-                    throw new Exception($"Current mode {this.Mode} {ExceptionCode.SourceInfo()}");
-                return value;
+                if (this.mode != DataMode.Throw)
+                    throw new Exception($"Current mode {this.mode} {ExceptionCode.SourceInfo()}");
+                return valueObjectData;
             }
         }
 
-        private ExecValue(DataMode mode, ObjectData value)
+        internal CallInfo RecallData
         {
-            this.Mode = mode;
-            this.value = value;
+            get
+            {
+                if (!this.IsRecall)
+                    throw new Exception($"Current mode {this.mode} {ExceptionCode.SourceInfo()}");
+                return value.As<CallInfo>();
+            }
+        }
+
+        private ExecValue(DataMode mode, object value)
+        {
+            this.mode = mode;
+            this.value = new Variant<object, ObjectData, CallInfo>(value);
         }
 
         public override string ToString()
         {
-            return $"{Mode} {value}";
+            return $"{mode} {value}";
         }
 
     }

@@ -31,13 +31,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(BoolLiteral.CreateTrue()) }),
                           // let obj = cmp cast? Self
                           VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityFlag.Neutral)))),
+                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityOverride.Neutral)))),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference( MutabilityFlag.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference( MutabilityOverride.Neutral)))));
         }
         public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
         {
@@ -66,13 +66,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference( MutabilityFlag.Neutral)))),
+                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference( MutabilityOverride.Neutral)))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference( MutabilityFlag.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference( MutabilityOverride.Neutral)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
