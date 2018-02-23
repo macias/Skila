@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Closures
     {
-//        [TestMethod]
-        public IInterpreter TODO_ClosureRecursiveCall()
+        [TestMethod]
+        public IInterpreter ClosureRecursiveCall()
         {
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;

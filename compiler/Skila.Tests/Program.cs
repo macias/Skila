@@ -39,11 +39,11 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-            //new Execution.Closures().TODO_ClosureRecursiveCall();
+            new Execution.Closures().ClosureRecursiveCall();
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            new Execution.FunctionCalls().LambdaRecursiveCall();
+            new Execution.FunctionCalls().RecursiveCall();
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();

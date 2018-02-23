@@ -289,7 +289,9 @@ namespace Skila.Language
             else if (this.Prefix == null)
             {
                 if (this.Name == NameFactory.SelfFunctionName)
+                {
                     return new[] { this.EnclosingScope<FunctionDefinition>().InstanceOf };
+                }
                 else if (this.Name == NameFactory.ItTypeName)
                 {
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
@@ -631,6 +633,11 @@ namespace Skila.Language
 
             if (!callTarget.IsFunction())
                 throw new Exception("Internal error (if it is callable why is not wrapped into closure already)");
+
+            // it does NOT compute context in case of recall on lambda/closure, this is not by design
+            // we noticed it is not really need (at least so far) and fixing it here would need more changes
+            // than single check when building binaries/executing code, 
+            // all it takes is check if we have recall and if yes, preserve `this`
 
             TypeDefinition target_type = callTarget.CastFunction().ContainingType();
             if (target_type != null)

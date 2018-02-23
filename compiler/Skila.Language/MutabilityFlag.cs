@@ -20,7 +20,7 @@ namespace Skila.Language
         // todo: remove this
         ConstAsSource,
 
-        Neutral,
+        ReadOnly,
         Mutable,
         Const,
         GenericUnknownMutability,

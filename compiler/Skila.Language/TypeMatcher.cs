@@ -262,7 +262,7 @@ namespace Skila.Language
                 case TypeMutability.GenericUnknownMutability:
                     return targetMutability != TypeMutability.ConstAsSource && targetMutability != TypeMutability.Const;
 
-                case TypeMutability.Neutral: return targetMutability == TypeMutability.Neutral;
+                case TypeMutability.ReadOnly: return targetMutability == TypeMutability.ReadOnly;
 
                 default: throw new NotImplementedException();
             }

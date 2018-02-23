@@ -664,27 +664,43 @@ namespace Skila.Interpreter
             }
 
             ObjectData this_ref;
-            ObjectData this_value;
-            if (call.Resolution.MetaThisArgument != null)
-            {
-                ExecValue this_exec = await ExecutedAsync(call.Resolution.MetaThisArgument.Expression, ctx).ConfigureAwait(false);
-                if (this_exec.IsThrow)
-                    return new Variant<object, ExecValue, CallInfo>(this_exec);
+            FunctionDefinition target_func;
 
-                this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"{call}").ConfigureAwait(false);
-                this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
+            if (call.IsRecall)
+            {
+                // this is a speedup, but above all it is a solution for recurent closure calls which are NOT resolved
+                // in regard to this meta-parameter in compile time
+                if (ctx.ThisArgument == null)
+                    this_ref = null;
+                else
+                    this_ref = await prepareThisAsync(ctx, ctx.ThisArgument, $"{call}").ConfigureAwait(false);
+                target_func = call.Resolution.TargetFunction;
             }
             else
             {
-                this_ref = null;
-                this_value = null;
+                ObjectData this_value;
+
+                if (call.Resolution.MetaThisArgument != null)
+                {
+                    ExecValue this_exec = await ExecutedAsync(call.Resolution.MetaThisArgument.Expression, ctx).ConfigureAwait(false);
+                    if (this_exec.IsThrow)
+                        return new Variant<object, ExecValue, CallInfo>(this_exec);
+
+                    this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"{call}").ConfigureAwait(false);
+                    this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
+                }
+                else
+                {
+                    this_ref = null;
+                    this_value = null;
+                }
+
+                target_func = getTargetFunction(ctx, this_value, call.Resolution.MetaThisArgument?.Evaluation,
+                    call.Resolution.TargetFunction);
+
+                if (target_func == null)
+                    throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
             }
-
-            FunctionDefinition target_func = getTargetFunction(ctx, this_value, call.Resolution.MetaThisArgument?.Evaluation,
-                call.Resolution.TargetFunction);
-
-            if (target_func == null)
-                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
             ObjectData[] arguments;
 

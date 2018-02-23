@@ -20,7 +20,7 @@ namespace Skila.Language
             this.escapingVariableToFieldMapping = new Dictionary<VariableDeclaration, VariableDeclaration>();
         }
 
-        internal VariableDeclaration HijackEscapingReference(VariableDeclaration localVariable)
+        internal IEntity HijackEscapingReference(VariableDeclaration localVariable)
         {
             // we replace here the escaping local variable (or rather variable that breaks lambda barrier)
             // with field of the type which soon will be created
@@ -30,7 +30,8 @@ namespace Skila.Language
             VariableDeclaration field;
             if (!this.escapingVariableToFieldMapping.TryGetValue(localVariable, out field))
             {
-                field = VariableDeclaration.CreateStatement(localVariable.Name.Name, localVariable.Evaluation.Components.NameOf, Undef.Create());
+                field = VariableDeclaration.CreateStatement(localVariable.Name.Name, localVariable.Evaluation.Components.NameOf,
+                    Undef.Create());
                 this.escapingVariableToFieldMapping.Add(localVariable, field);
             }
 

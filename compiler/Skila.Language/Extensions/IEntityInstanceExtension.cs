@@ -86,7 +86,7 @@ namespace Skila.Language.Extensions
         {
             Entities.IEntity target = instance.Target;
             if (!target.IsType()) // namespace
-                return TypeMutability.Neutral;
+                return TypeMutability.ReadOnly;
 
             if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
@@ -100,7 +100,7 @@ namespace Skila.Language.Extensions
                     case MutabilityOverride.ForceMutable: return TypeMutability.Mutable;
                     case MutabilityOverride.ForceConst: return TypeMutability.Const;
                     case MutabilityOverride.DualConstMutable: return TypeMutability.DualConstMutable;
-                    case MutabilityOverride.Neutral: return TypeMutability.Neutral;
+                    case MutabilityOverride.Neutral: return TypeMutability.ReadOnly;
                 }
 
                 if (target.Modifier.HasMutable)
