@@ -19,7 +19,7 @@ namespace Skila.Tests
 
         public static void Main()
         {
-             //new Semantics.CompilerProtection().Environment();
+             new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -39,11 +39,11 @@ namespace Skila.Tests
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
 
-            new Execution.Closures().ClosureRecursiveCall();
+            //new Execution.Closures().ClosureRecursiveCall();
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
             //new Execution.Concurrency().SingleMessage();
             //new Execution.Flow().ThrowingException();
-            new Execution.FunctionCalls().RecursiveCall();
+            //new Execution.FunctionCalls().RecursiveCall();
             //new Execution.Inheritance().TypeUnion();
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();

@@ -445,7 +445,13 @@ namespace Skila.Interpreter
                 return ExecValue.CreateReturn(null);
             else
             {
-                if (ret.Expr is FunctionCall call && call.IsRecall) // Tail Call Optimization
+                // https://stackoverflow.com/questions/7563981/why-isnt-g-tail-call-optimizing-while-gcc-is
+                // http://www.drdobbs.com/tackling-c-tail-calls/184401756
+                // todo: when time permits fix reference passing (check if local argument is passed by reference, if yes, disable TCO)
+                // currently TCO is implemented naively and incorrectly (thus commented out)
+                // it does not handle passing references to current stack (100% legal), 
+                // since stack is removed (with TCO) we get random behavior
+                /*if (ret.Expr is FunctionCall call && call.IsRecall) // Tail Call Optimization
                 {
                     Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
                     if (call_prep.Is<ExecValue>())
@@ -454,7 +460,7 @@ namespace Skila.Interpreter
 
                     return ExecValue.CreateRecall(call_info);
                 }
-                else
+                else*/
                 {
                     ExecValue exec_value = await ExecutedAsync(ret.Expr, ctx).ConfigureAwait(false);
                     if (exec_value.IsThrow)

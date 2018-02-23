@@ -255,9 +255,12 @@ namespace Skila.Language
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
-            if (param.Constraint.Modifier.HasConst && this.MutabilityOfType(ctx) != TypeMutability.ConstAsSource)
-                return ConstraintMatch.ConstViolation;
-
+            TypeMutability arg_mutability = this.MutabilityOfType(ctx);
+            if (param.Constraint.Modifier.HasConst
+                && arg_mutability != TypeMutability.Const && arg_mutability != TypeMutability.ConstAsSource)
+                return ConstraintMatch.MutabilityViolation;
+            else if (param.Constraint.Modifier.HasMutable && arg_mutability != TypeMutability.Mutable)
+                return ConstraintMatch.MutabilityViolation;
 
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))

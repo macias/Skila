@@ -54,7 +54,7 @@
     <Compile Include="ExecutionContext.cs" />
     <Compile Include="Chunk.cs" />
     <Compile Include="CallInfo.cs" />
-    <Compile Include="DataMode.cs" />
+    <Compile Include="ExecValue.DataMode.cs" />
     <Compile Include="ICallContext.cs" />
     <Compile Include="IInstanceValue.cs" />
     <Compile Include="ExceptionCode.cs" />

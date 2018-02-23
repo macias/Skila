@@ -378,14 +378,18 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.SealedTypeWithBaseMethod, func);
             }
 
-            if (this.InstanceOf.MutabilityOfType(ctx) != TypeMutability.Mutable)
             {
-                // the above check is more than checking just a flag
-                // for template types the mutability depends on parameter constraints
-                foreach (NameReference parent in this.ParentNames)
+                TypeMutability current_mutability = this.InstanceOf.MutabilityOfType(ctx);
+                if (current_mutability != TypeMutability.Mutable)
                 {
-                    if (parent.Evaluation.Components.MutabilityOfType(ctx) == TypeMutability.Mutable)
-                        ctx.AddError(ErrorCode.ImmutableInheritsMutable, parent);
+                    // the above check is more than checking just a flag
+                    // for template types the mutability depends on parameter constraints
+                    foreach (NameReference parent in this.ParentNames)
+                    {
+                        TypeMutability parent_mutability = parent.Evaluation.Components.MutabilityOfType(ctx);
+                        if (parent_mutability == TypeMutability.Mutable)
+                            ctx.AddError(ErrorCode.InheritanceMutabilityViolation, parent);
+                    }
                 }
             }
 

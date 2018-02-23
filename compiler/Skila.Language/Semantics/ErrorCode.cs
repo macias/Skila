@@ -42,7 +42,7 @@
         ReassignableFieldInImmutableType = 38,
         MutableFieldInImmutableType = 39,
         GlobalMutableVariable = 40,
-        ImmutableInheritsMutable = 41,
+        InheritanceMutabilityViolation = 41,
         ViolatedConstConstraint = 42,
         ViolatedBaseConstraint = 43,
         ViolatedInheritsConstraint = 44,

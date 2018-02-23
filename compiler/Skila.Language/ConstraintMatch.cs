@@ -3,7 +3,7 @@
     public enum ConstraintMatch
     {
         Yes,
-        ConstViolation,
+        MutabilityViolation,
         BaseViolation,
         InheritsViolation,
         MissingFunction,

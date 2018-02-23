@@ -472,7 +472,7 @@ namespace Skila.Language
             {
                 if (mismatch == ConstraintMatch.BaseViolation)
                     ctx.AddError(ErrorCode.ViolatedBaseConstraint, this);
-                else if (mismatch == ConstraintMatch.ConstViolation)
+                else if (mismatch == ConstraintMatch.MutabilityViolation)
                     ctx.AddError(ErrorCode.ViolatedConstConstraint, this);
                 else if (mismatch == ConstraintMatch.InheritsViolation)
                     ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
