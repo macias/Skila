@@ -10,9 +10,9 @@ namespace Skila.Language.Expressions
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Alloc : Expression
     {
-        internal static Alloc Create(NameReference innerTypename, bool useHeap)
+        internal static Alloc Create(NameReference innerTypename, Memory memory)
         {
-            return new Alloc(innerTypename, useHeap);
+            return new Alloc(innerTypename, memory);
         }
 
         private readonly NameReference outcomeTypeName;
@@ -22,12 +22,12 @@ namespace Skila.Language.Expressions
 
         public bool UseHeap { get; }
 
-        private Alloc(NameReference innerTypename,bool useHeap)
+        private Alloc(NameReference innerTypename,Memory memory)
             : base(ExpressionReadMode.ReadRequired)
         {
-            this.UseHeap = useHeap;
+            this.UseHeap = memory== Memory.Heap;
             this.InnerTypeName = innerTypename;
-            this.outcomeTypeName = useHeap? NameFactory.PointerTypeReference(innerTypename) : innerTypename;
+            this.outcomeTypeName = memory== Memory.Heap? NameFactory.PointerTypeReference(innerTypename) : innerTypename;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

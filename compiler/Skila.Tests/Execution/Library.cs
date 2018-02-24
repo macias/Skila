@@ -105,7 +105,7 @@ namespace Skila.Tests.Execution
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2")),
-                    VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(),ExpressionFactory.TryGetOptionValue(
+                    VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(),ExpressionFactory.GetOptionValue(
                         FunctionCall.Create(NameReference.Create( NameFactory.Int64TypeReference(),NameFactory.ParseFunctionName),
                             NameReference.Create("s"))
                         )),

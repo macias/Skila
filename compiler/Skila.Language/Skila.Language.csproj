@@ -77,6 +77,7 @@
     <Compile Include="Expressions\Literals\Nat64Literal.cs" />
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
+    <Compile Include="Memory.cs" />
     <Compile Include="TypeMatching.cs" />
     <Compile Include="MutabilityFlag.cs" />
     <Compile Include="Entities\IMember.cs" />

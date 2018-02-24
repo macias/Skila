@@ -151,12 +151,7 @@ namespace Skila.Language
             this.IObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.IObjectTypeName)
                 .With(IObjectGetTypeFunction));
 
-            this.UnitType = Root.AddBuilder(TypeBuilder.Create(NameFactory.UnitTypeName)
-    .Modifier(EntityModifier.Native)
-    .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
-        EntityModifier.Static | EntityModifier.Native))
-    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
-    .Parents(NameFactory.IObjectTypeReference()));
+            this.UnitType = Root.AddNode(createUnitType());
 
             this.UnitEvaluation = new EvaluationInfo(this.UnitType.InstanceOf);
 
@@ -187,7 +182,7 @@ namespace Skila.Language
 
 
             {
-                this.Int16Type = this.Root.AddBuilder(createNumFullBuilder(options,NameFactory.Int16TypeName,
+                this.Int16Type = this.Root.AddBuilder(createNumFullBuilder(options, NameFactory.Int16TypeName,
                     Int16Literal.Create($"{Int16.MinValue}"),
                     Int16Literal.Create($"{Int16.MaxValue}"),
                     out FunctionDefinition parse_string));
@@ -414,6 +409,16 @@ namespace Skila.Language
             }
         }
 
+        private static TypeDefinition createUnitType()
+        {
+            return TypeBuilder.Create(NameFactory.UnitTypeName)
+                .Modifier(EntityModifier.Native)
+                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
+                    EntityModifier.Static | EntityModifier.Native))
+                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
+                .Parents(NameFactory.IObjectTypeReference());
+        }
+
         private static TypeDefinition createIEquatableType()
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
@@ -487,7 +492,7 @@ namespace Skila.Language
                      FunctionCall.Create(NameReference.Create("coll", NameFactory.IterableCount))),
                    IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.Create("count"),
                         NameReference.Create("min")), new[] { ExpressionFactory.GenericThrow() }),
-                   IfBranch.CreateIf(ExpressionFactory.IsGreater(NameReference.Create("count"),
+                   IfBranch.CreateIf(ExpressionFactory.IsGreaterEqual(NameReference.Create("count"),
                         NameReference.Create("max")), new[] { ExpressionFactory.GenericThrow() }),
                                       Return.Create(NameReference.Create("coll"))
                 ));

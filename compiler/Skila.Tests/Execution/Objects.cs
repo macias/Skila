@@ -12,6 +12,53 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Objects
     {
+        //[TestMethod]
+        public IInterpreter TODO_OptionalAssignment()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DebugThrowOnError = true,
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("acc",null,Nat8Literal.Create("0"), EntityModifier.Reassignable),
+
+
+                    VariableDeclaration.CreateStatement("x",null,
+                        ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(),Nat8Literal.Create("3"))),
+                    VariableDeclaration.CreateStatement("y", null,
+                        ExpressionFactory.OptionEmpty(NameFactory.Nat8TypeReference())),
+
+                    VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+
+                    IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") }, new [] { NameReference.Create("x") }),
+                        ExpressionFactory.IncBy("acc",Nat8Literal.Create("2"))),
+                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") }, new[] { NameReference.Create("y") }),
+                        ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
+                    
+                    Assignment.CreateStatement(NameReference.Create("a"),Nat8Literal.Create("0")),
+                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"),NameReference.Create("b") }, new[] { NameReference.Create("x"),NameReference.Create("y") }),
+                        ExpressionFactory.IncBy("acc", Nat8Literal.Create("7"))),
+                    ExpressionFactory.AssertEqual(Nat8Literal.Create("0"),NameReference.Create("a")),
+
+                    Return.Create(NameReference.Create("acc"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
         [TestMethod]
         public IInterpreter OverflowAddition()
         {

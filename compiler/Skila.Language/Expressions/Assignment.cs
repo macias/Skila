@@ -60,7 +60,7 @@ namespace Skila.Language.Expressions
 
                 if (rhsValue.Count() == 1 && rhsValue.Single() is Spread spread)
                 {
-                    spread.RouteSetup(lhsExpr.Count(), lhsExpr.Count());
+                    spread.RouteSetup(lhsExpr.Count(), lhsExpr.Count()+1);
 
                     // let par = RHS 
                     code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null, spread));

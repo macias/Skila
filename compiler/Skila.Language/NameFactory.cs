@@ -169,6 +169,10 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, UnitTypeName);
         }
+        public static NameReference UnitValueReference()
+        {
+            return NameReference.Create(UnitTypeReference(), UnitValue);
+        }
 
         /*public static NameReference JokerTypeReference()
         {

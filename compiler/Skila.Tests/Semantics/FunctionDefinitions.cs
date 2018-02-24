@@ -161,10 +161,10 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
+            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             // the tail variadic parameter has to require name
-            var param2 = FunctionParameter.Create("y", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
+            var param2 = FunctionParameter.Create("y", NameFactory.Int64TypeReference(), Variadic.Create(), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { param1, param2 },
@@ -246,14 +246,14 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), 
-                new[] { FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(1,2),
+                new[] { FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(1,3),
                     null,isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) })));
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x",NameFactory.Int64TypeReference(),  Variadic.Create(3,4),
+                NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x",NameFactory.Int64TypeReference(),  Variadic.Create(3,5),
                     null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.RealTypeReference(),

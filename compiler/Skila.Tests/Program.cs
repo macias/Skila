@@ -19,22 +19,22 @@ namespace Skila.Tests
 
         public static void Main()
         {
-             new Semantics.CompilerProtection().Environment();
+           // new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
             //  new Semantics.Flow().ErrorReadingMixedIf();
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
-           // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
+            // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
             //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
             //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
             //new Semantics.MethodDefinitions().Basics();
-           // new Semantics.Mutability().ErrorAbusingForcedConst();
+            //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
             //new Semantics.NameResolution().NameAliasing();
             //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
             //new Semantics.Properties().ErrorSettingCustomGetter();
-           // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
+            // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
             //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
             //new Semantics.Variables().ErrorVariableNotUsed();
@@ -48,13 +48,13 @@ namespace Skila.Tests
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().RealNotANumber();
-            //new Execution.Objects().PassingSelfTypeCheck();
+           //new Execution.Objects().TODO_OptionalAssignment();
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().AutoPropertiesWithPointers();
             //new Execution.Templates().HasConstraintWithValue();
             //new Execution.Text().RegexMatchWithLimits();
 
-           //if (false)
+            //if (false)
             {
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);

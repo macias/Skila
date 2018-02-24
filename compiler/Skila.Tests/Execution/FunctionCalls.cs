@@ -117,7 +117,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 10), null, isNameRequired: false)));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -156,7 +156,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, null), null, isNameRequired: false)));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -234,7 +234,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 10), null, isNameRequired: false)));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -281,7 +281,7 @@ namespace Skila.Tests.Execution
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
                 }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, null), null, isNameRequired: false)));
+                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),

@@ -56,7 +56,7 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
-            if (input.DebugId.Id == 5151 && target.DebugId.Id == 5049)
+            if (input.DebugId.Id == 7632 && target.DebugId.Id == 7628)
             {
                 ;
             }

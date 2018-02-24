@@ -16,6 +16,70 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorTransitiveMutabilityTypeInheritance()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Alien")
+                .Modifier(EntityModifier.Mutable));
+
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Container", "CCC", VarianceMode.None))
+                .Modifier(EntityModifier.Base));
+
+            // we should get error here because the parent should evaluate to mutable type, and current one is non-mutable
+            NameReference parent_name = NameReference.Create("Container", NameReference.Create("Alien"));
+            root_ns.AddBuilder(TypeBuilder.Create("Done")
+                .Parents(parent_name));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InheritanceMutabilityViolation, parent_name));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorTransitiveMutabilityTypePassing()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(TypeBuilder.Create("Alien")
+                .Modifier(EntityModifier.Mutable));
+
+            // Option is a type which mutability is not decided until concrete type is given
+            // here we pass mutable type so it should evaluate into mutable one 
+            // and next it should create an error when passing to const type
+            VariableDeclaration decl_bad = VariableDeclaration.CreateStatement("x",
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(MutabilityOverride.ForceConst)),
+                        ExpressionFactory.OptionEmpty("Alien", Memory.Heap));
+
+            root_ns.AddBuilder(TypeBuilder.Create("Cool"));
+
+            VariableDeclaration decl_ok = VariableDeclaration.CreateStatement("y",
+                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference(MutabilityOverride.ForceConst)),
+                        ExpressionFactory.OptionEmpty("Cool", Memory.Heap));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(NameFactory.MainFunctionName, NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    decl_bad,
+                    ExpressionFactory.Readout("x"),
+                    decl_ok,
+                    ExpressionFactory.Readout("y"),
+                    Return.Create(Nat8Literal.Create("0"))
+                    )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, decl_bad.InitValue));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorCastingWithMutabilityChange()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
@@ -56,7 +120,6 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
-
 
         [TestMethod]
         public IErrorReporter ErrorAbusingForcedConst()
@@ -174,7 +237,8 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         // this is ok, we are assigning literal here
                         VariableDeclaration.CreateStatement("x",
-                            NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst), StringLiteral.Create("hi"), EntityModifier.Reassignable),
+                            NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst), StringLiteral.Create("hi"),
+                            EntityModifier.Reassignable),
                         VariableDeclaration.CreateStatement("a", null, StringLiteral.Create("no")),
                         // this is not ok, we are assigning mutable to const
                         Assignment.CreateStatement(NameReference.Create("x"), rhs_value),
@@ -435,7 +499,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorImmutableTypes()
+        public IErrorReporter ErrorImmutableTypeDefinition()
         {
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
@@ -461,7 +525,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter TransitiveMutability()
+        public IErrorReporter TransitiveMutabilityTypeDefinition()
         {
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
@@ -478,6 +542,7 @@ namespace Skila.Tests.Semantics
 
             return resolver;
         }
+
         [TestMethod]
         public IErrorReporter ErrorViolatingConstConstraint()
         {

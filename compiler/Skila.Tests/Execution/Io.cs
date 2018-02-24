@@ -25,9 +25,9 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("e",null,FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
+                    VariableDeclaration.CreateStatement("e", null, FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
                         NameFactory.FileExists), StringLiteral.Create(randomTextFilePath))),
-                    IfBranch.CreateIf(NameReference.Create("e"),new[] { Return.Create(Int64Literal.Create("2")) },
+                    IfBranch.CreateIf(NameReference.Create("e"), new[] { Return.Create(Int64Literal.Create("2")) },
                         IfBranch.CreateElse(new[] { Return.Create(Int64Literal.Create("-5")) }))
                 )));
 
@@ -50,15 +50,15 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat64TypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("lines",null,
-                        ExpressionFactory.TryGetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),NameFactory.FileReadLines),
+                    VariableDeclaration.CreateStatement("lines", null,
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(), NameFactory.FileReadLines),
                             StringLiteral.Create(randomTextFilePath)))),
                     // first line is "It was" (without quotes)
-                    VariableDeclaration.CreateStatement("first",null,
-                        FunctionCall.Create(NameReference.Create( "lines",NameFactory.PropertyIndexerName),NatLiteral.Create("0"))),
+                    VariableDeclaration.CreateStatement("first", null,
+                        FunctionCall.Create(NameReference.Create("lines", NameFactory.PropertyIndexerName), NatLiteral.Create("0"))),
                     // 6
-                    VariableDeclaration.CreateStatement("len",null,
-                        NameReference.Create("first",NameFactory.IterableCount)),
+                    VariableDeclaration.CreateStatement("len", null,
+                        NameReference.Create("first", NameFactory.IterableCount)),
                     Return.Create(NameReference.Create("len"))
                 )));
 

@@ -78,7 +78,7 @@ namespace Skila.Tests.Semantics
                     .Parameters(FunctionParameter.Create("x", parameter_typename, ExpressionReadMode.CannotBeRead))));
 
             FunctionParameter variadic_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
-                        Variadic.Create(2, 5), null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
+                        Variadic.Create(2, 6), null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             root_ns.AddBuilder(TypeBuilder.Create("HelloVariadic")
                 .Modifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())

@@ -457,9 +457,9 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null, false,
+            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(), null, false,
                 usageMode: ExpressionReadMode.CannotBeRead);
-            var param2 = FunctionParameter.Create("y", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
+            var param2 = FunctionParameter.Create("y", NameFactory.Int64TypeReference(), Variadic.Create(), null,
                 isNameRequired: true, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,
@@ -525,7 +525,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(0, null), null,
+            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 new[] { param1 },
@@ -552,7 +552,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
             var root_ns = env.Root;
 
-            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(3, 5), null,
+            var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(3, 6), null,
                 isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
             FunctionDefinition func_def = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("foo"),
                 ExpressionReadMode.OptionalUse,

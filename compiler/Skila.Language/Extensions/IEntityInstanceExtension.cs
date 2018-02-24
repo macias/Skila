@@ -60,7 +60,7 @@ namespace Skila.Language.Extensions
         private static TypeMutability mutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
             HashSet<IEntityInstance> visited)
         {
-            if (@this.DebugId.Id == 4936)
+            if (@this.DebugId.Id == 7632)
             {
                 ;
             }
@@ -108,6 +108,15 @@ namespace Skila.Language.Extensions
                     if (instance.TargetsTemplateParameter)
                         return TypeMutability.GenericUnknownMutability;
                     else
+                        return TypeMutability.Mutable;
+                }
+
+                foreach (IEntityInstance arg in instance.TemplateArguments)
+                {
+                    TypeMutability arg_mutability = arg.MutabilityOfType(ctx);
+                    if (arg_mutability != TypeMutability.Const 
+                        && arg_mutability != TypeMutability.ConstAsSource
+                        && arg_mutability!= TypeMutability.GenericUnknownMutability)
                         return TypeMutability.Mutable;
                 }
 

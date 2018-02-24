@@ -13,9 +13,17 @@ namespace Skila.Language.Flow
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class IfBranch : Node, IExpression, IExecutableScope
     {
+        public static IfBranch CreateIf(IExpression condition, IExpression body, IfBranch next = null)
+        {
+            return CreateIf(condition, new[] { body }, next);
+        }
         public static IfBranch CreateIf(IExpression condition, IEnumerable<IExpression> body, IfBranch next = null)
         {
             return new IfBranch(condition, body, next);
+        }
+        public static IfBranch CreateElse(IExpression body, IfBranch next = null)
+        {
+            return CreateElse(new[] { body }, next);
         }
         public static IfBranch CreateElse(IEnumerable<IExpression> body, IfBranch next = null)
         {

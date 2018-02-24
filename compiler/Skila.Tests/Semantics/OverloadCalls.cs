@@ -21,7 +21,7 @@ namespace Skila.Tests.Semantics
 
             FunctionDefinition func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("foo"), new[] { FunctionParameter.Create("x", NameFactory.Int64TypeReference(), 
-                    Variadic.Create(0,null), null, false, usageMode: ExpressionReadMode.CannotBeRead) },
+                    Variadic.Create(), null, false, usageMode: ExpressionReadMode.CannotBeRead) },
                 ExpressionReadMode.OptionalUse,
                 NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {

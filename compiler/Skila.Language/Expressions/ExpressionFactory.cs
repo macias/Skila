@@ -5,11 +5,65 @@ using System.Linq;
 using System;
 using NaiveLanguageTools.Common;
 using Skila.Language.Expressions.Literals;
+using System.Collections.Generic;
 
 namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static IExpression OptionalAssignment(IEnumerable<IExpression> lhsExpressions, IEnumerable<IExpression> rhsExpressions)
+        {
+            // todo: add support for spread
+            if (rhsExpressions.Count() != lhsExpressions.Count())
+                throw new NotImplementedException();
+
+            var names = new List<string>();
+            IExpression condition = null;
+            foreach (IExpression rhs in rhsExpressions)
+            {
+                string temp = AutoName.Instance.CreateNew("optassign");
+                names.Add(temp);
+
+                IExpression curr = optionHasValue(VariableDeclaration.CreateExpression(temp, null, rhs));
+                if (condition == null)
+                    condition = curr;
+                else
+                    condition = And(condition, curr);
+            }
+
+            var success_body = new List<IExpression>();
+            {
+
+                foreach (Tuple<IExpression, string> pair in lhsExpressions.SyncZip(names))
+                {
+                    IExpression lhs = pair.Item1;
+                    string temp = pair.Item2;
+
+                    success_body.Add(Assignment.CreateStatement(lhs, GetOptionValue(NameReference.Create(temp))));
+                }
+
+                success_body.Add(BoolLiteral.CreateTrue());
+            }
+
+            IfBranch result = IfBranch.CreateIf(condition,
+                    success_body,
+                    IfBranch.CreateElse(BoolLiteral.CreateFalse()));
+
+            return result;
+        }
+
+        public static IExpression OptionOf(INameReference typeName, IExpression value, Memory memory = Memory.Stack)
+        {
+            return Constructor(NameFactory.OptionTypeReference(typeName), memory, value);
+        }
+        public static IExpression OptionEmpty(string typeName, Memory memory = Memory.Stack)
+        {
+            return OptionEmpty(NameReference.Create(typeName), memory);
+        }
+        public static IExpression OptionEmpty(INameReference typeName, Memory memory = Memory.Stack)
+        {
+            return Constructor(NameFactory.OptionTypeReference(typeName), memory);
+        }
         public static FunctionDefinition BasicConstructor(string[] names, INameReference[] typenames)
         {
             return FunctionDefinition.CreateInitConstructor(EntityModifier.None,
@@ -37,7 +91,7 @@ namespace Skila.Language.Expressions
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference( MutabilityOverride.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference(MutabilityOverride.Neutral)))));
         }
         public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
         {
@@ -54,7 +108,7 @@ namespace Skila.Language.Expressions
 
                 // maybe in future it would be possible to dynamically cast to the actual type of other
                 // this would mean static dispatch to later calls
-                ExpressionFactory.TryGetOptionValue(ExpressionFactory.DownCast(NameReference.Create(paramName), currentTypeName))
+                ExpressionFactory.GetOptionValue(ExpressionFactory.DownCast(NameReference.Create(paramName), currentTypeName))
                 );
         }
         public static TypeBuilder WithComparableCompare(this TypeBuilder builder, EntityModifier modifier = null)
@@ -66,13 +120,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference( MutabilityOverride.Neutral)))),
+                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityOverride.Neutral)))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference( MutabilityOverride.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference(MutabilityOverride.Neutral)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -133,10 +187,14 @@ namespace Skila.Language.Expressions
             return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName), arguments);
 #else
             NameReference dummy;
-            return constructorCall(innerTypeName, out dummy, true, arguments);
+            return constructorCall(innerTypeName, out dummy, Memory.Heap, arguments);
 #endif
         }
 
+        public static IExpression Constructor(NameReference typeName, Memory memory)
+        {
+            return Constructor(typeName, memory, new FunctionArgument[] { });
+        }
         public static IExpression StackConstructor(NameReference typeName)
         {
             return StackConstructor(typeName, new FunctionArgument[] { });
@@ -151,7 +209,15 @@ namespace Skila.Language.Expressions
         }
         public static IExpression StackConstructor(string typeName, params IExpression[] arguments)
         {
-            return StackConstructor(NameReference.Create(typeName), arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return Constructor(typeName, Memory.Stack, arguments);
+        }
+        public static IExpression Constructor(string typeName, Memory memory, params IExpression[] arguments)
+        {
+            return Constructor(NameReference.Create(typeName), memory, arguments);
+        }
+        public static IExpression Constructor(NameReference typeName, Memory memory, params IExpression[] arguments)
+        {
+            return Constructor(typeName, memory, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
         public static IExpression Tuple(params IExpression[] arguments)
         {
@@ -173,26 +239,32 @@ namespace Skila.Language.Expressions
         {
             return StackConstructor(typeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
+        public static IExpression Constructor(NameReference typeName, Memory memory, params FunctionArgument[] arguments)
+        {
+            NameReference dummy;
+            return constructorCall(typeName, out dummy, memory, arguments);
+        }
         public static IExpression StackConstructor(NameReference typeName, params FunctionArgument[] arguments)
         {
             NameReference dummy;
-            return constructorCall(typeName, out dummy, false, arguments);
+            return constructorCall(typeName, out dummy, Memory.Stack, arguments);
         }
         public static IExpression StackConstructor(NameReference typeName, out NameReference constructorReference,
             params FunctionArgument[] arguments)
         {
-            return constructorCall(typeName, out constructorReference, false, arguments);
+            return constructorCall(typeName, out constructorReference, Memory.Stack, arguments);
         }
         private static IExpression constructorCall(NameReference typeName,
             // todo: hack, we don't have nice error translation from generic error to more specific one
             out NameReference constructorReference,
-            bool useHeap, params FunctionArgument[] arguments)
+            Memory memory,
+            params FunctionArgument[] arguments)
         {
             string local_this = AutoName.Instance.CreateNew("cons_obj");
             var var_ref = NameReference.Create(local_this);
             constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
 
-            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, useHeap));
+            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, memory));
             var init_call = FunctionCall.Constructor(constructorReference, arguments);
 
             return Block.CreateInitialization(
@@ -320,11 +392,6 @@ namespace Skila.Language.Expressions
             return IfBranch.CreateIf(condition, new[] { then }, IfBranch.CreateElse(new[] { otherwise }));
         }
 
-        public static IExpression TryGetOptionValue(IExpression option)
-        {
-            return OptionCoalesce(option, GenericThrow());
-        }
-
         public static IExpression OptionCoalesce(IExpression option, IExpression fallback)
         {
             string temp = AutoName.Instance.CreateNew("try_opt");
@@ -332,7 +399,7 @@ namespace Skila.Language.Expressions
             return Block.CreateExpression(new[] {
                 // todo: shouldn't it be a reference to option?
                 VariableDeclaration.CreateStatement(temp, null, option),
-                Ternary(optionHasValue(temp_ref), OptionValue(temp_ref), fallback)
+                Ternary(optionHasValue(temp_ref), GetOptionValue(temp_ref), fallback)
             });
         }
 
@@ -341,7 +408,7 @@ namespace Skila.Language.Expressions
             return NameReference.Create(option, NameFactory.OptionHasValue);
         }
 
-        public static NameReference OptionValue(IExpression option)
+        public static NameReference GetOptionValue(IExpression option)
         {
             return NameReference.Create(option, NameFactory.OptionValue);
         }

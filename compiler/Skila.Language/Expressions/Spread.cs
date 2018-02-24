@@ -55,11 +55,11 @@ namespace Skila.Language.Expressions
             if (this.prepared)
                 throw new Exception("Something wrong?");
 
-            RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.MaxLimit : (int?)null);
+            RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.Max1Limit : (int?)null);
             this.expr.Evaluated(ctx);
         }
 
-        internal void RouteSetup(int? minLimit, int? maxLimit)
+        internal void RouteSetup(int? minLimit, int? max1Limit)
         {
             if (this.prepared)
                 throw new Exception("Something wrong?");
@@ -67,10 +67,10 @@ namespace Skila.Language.Expressions
             this.prepared = true;
 
             this.expr.DetachFrom(this);
-            if (maxLimit.HasValue)
+            if (max1Limit.HasValue)
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
                     FunctionArgument.Create(NatLiteral.Create($"{minLimit}")),
-                    FunctionArgument.Create(NatLiteral.Create($"{maxLimit}")));
+                    FunctionArgument.Create(NatLiteral.Create($"{max1Limit}")));
             else
                 this.expr = FunctionCall.Create(NameFactory.SpreadFunctionReference(), FunctionArgument.Create(this.expr),
                     FunctionArgument.Create(NatLiteral.Create($"{minLimit}")));

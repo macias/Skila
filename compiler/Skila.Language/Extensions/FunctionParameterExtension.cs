@@ -19,7 +19,7 @@
             if (baseParam.IsVariadic)
             {
                 if (!baseParam.Variadic.IsWithinLimits(derivedParam.Variadic.MinLimit)
-                    || !baseParam.Variadic.IsWithinLimits(derivedParam.Variadic.MaxLimit))
+                    || !baseParam.Variadic.IsWithinLimits(derivedParam.Variadic.Max1Limit))
                     return false;
             }
 
@@ -43,7 +43,7 @@
             if (baseParam.IsVariadic)
             {
                 if (baseParam.Variadic.MinLimit!=derivedParam.Variadic.MinLimit
-                    || baseParam.Variadic.MaxLimit!=derivedParam.Variadic.MaxLimit)
+                    || baseParam.Variadic.Max1Limit!=derivedParam.Variadic.Max1Limit)
                     return false;
             }
 
