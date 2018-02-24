@@ -23,7 +23,7 @@ namespace Skila.Tests
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
-            //  new Semantics.Flow().ErrorReadingMixedIf();
+              //new Semantics.Flow().TODO_ErrorDeclarationsOnTheFly();
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
             // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -37,7 +37,7 @@ namespace Skila.Tests
             // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
             //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
-            //new Semantics.Variables().ErrorVariableNotUsed();
+            //new Semantics.Variables().IfScope();
 
             //new Execution.Closures().ClosureRecursiveCall();
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();

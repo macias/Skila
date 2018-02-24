@@ -34,7 +34,12 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, isRoot: false);
+            //@@@return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, isRoot: false);
+            return Create(prefix, name, ExpressionReadMode.ReadRequired, arguments);
+        }
+        public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
+        {
+            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments,readMode, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
         {
@@ -43,12 +48,12 @@ namespace Skila.Language
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
-            return new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
+            return new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target)
         {
-            var result = new NameReference(overrideMutability, prefix, name, arguments, isRoot: false);
+            var result = new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { target });
             return result;
@@ -100,14 +105,14 @@ namespace Skila.Language
         public bool IsSurfed { get; set; }
 
         public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, NameFactory.RootNamespace,
-            Enumerable.Empty<INameReference>(), isRoot: true);
+            Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
         public int DereferencingCount { get; set; }
         public int DereferencedCount_LEGACY { get; set; }
 
         public bool IsSuperReference => this.Name == NameFactory.SuperFunctionName;
 
-        public ExpressionReadMode ReadMode => ExpressionReadMode.ReadRequired;
+        public ExpressionReadMode ReadMode { get; }
 
         public bool IsSink => this.Arity == 0 && this.Prefix == null && this.Name == sink;
 
@@ -118,6 +123,7 @@ namespace Skila.Language
             IExpression prefix,
             string name,
             IEnumerable<INameReference> templateArguments,
+            ExpressionReadMode readMode,
             bool isRoot)
             : base()
         {
@@ -125,6 +131,7 @@ namespace Skila.Language
             {
                 ;
             }
+            this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
             this.Prefix = prefix;
@@ -497,14 +504,20 @@ namespace Skila.Language
                   }
               }*/
 
+
             if ((this.Owner as Assignment)?.Lhs != this)
             {
+                if (this.DebugId.Id == 8537)
+                {
+                    ;
+                }
                 if (ctx.ValAssignTracker != null
                     && !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl))
                 {
                     ctx.AddError(ErrorCode.VariableNotInitialized, this, decl);
                 }
             }
+
 
             trySetTargetUsage(this.Binding.Match);
 
@@ -613,7 +626,7 @@ namespace Skila.Language
             this_prefix?.DetachFrom(this);
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
-            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments, this.IsRoot);
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments,this.ReadMode, this.IsRoot);
             result.Binding.Set(new[] { target });
             return result;
         }

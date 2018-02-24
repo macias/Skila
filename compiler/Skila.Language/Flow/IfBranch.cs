@@ -39,6 +39,7 @@ namespace Skila.Language.Flow
         public ExpressionReadMode ReadMode => this.readMode.Value;
         public bool IsElse => this.Condition == null;
         private IExpression condition;
+        // anything declared in condition is visible in `then` and `else` branch, but not outside entire `if`
         public IExpression Condition => this.condition;
         public Block Body { get; }
         public IfBranch Next { get; }
@@ -46,7 +47,6 @@ namespace Skila.Language.Flow
         public IEnumerable<IExpression> localNodes => new IExpression[] { Condition, Body }.Where(it => it != null);
         public override IEnumerable<INode> OwnedNodes => localNodes.Concat(Next).Where(it => it != null);
         public ExecutionFlow Flow => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next);
-        // public ExecutionFlow Flow => ExecutionFlow.CreateFork(branches);
 
         public bool IsComputed => this.Evaluation != null;
         public int DereferencingCount { get; set; }
@@ -59,6 +59,8 @@ namespace Skila.Language.Flow
             this.condition = condition;
             // we have to postpone calculating read-mode because the last instruction can be function call
             // and it is resolved only after finding its target
+            if (!body.Any())//@@@
+                body = new[] { NameFactory.UnitTypeReference(ExpressionReadMode.OptionalUse) };
             this.Body = Block.Create((block) => block.Instructions.Last().ReadMode, body);
             this.Next = next;
 

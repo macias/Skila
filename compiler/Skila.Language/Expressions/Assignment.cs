@@ -14,6 +14,10 @@ namespace Skila.Language.Expressions
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Assignment : Expression, ILambdaTransfer
     {
+        public static IExpression CreateStatement(string lhs, string rhsValue)
+        {
+            return create(ExpressionReadMode.CannotBeRead, NameReference.Create(lhs), NameReference.Create(rhsValue));
+        }
         public static IExpression CreateStatement(IExpression lhs, IExpression rhsValue)
         {
             return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue);
@@ -60,7 +64,7 @@ namespace Skila.Language.Expressions
 
                 if (rhsValue.Count() == 1 && rhsValue.Single() is Spread spread)
                 {
-                    spread.RouteSetup(lhsExpr.Count(), lhsExpr.Count()+1);
+                    spread.RouteSetup(lhsExpr.Count(), lhsExpr.Count() + 1);
 
                     // let par = RHS 
                     code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null, spread));
@@ -121,7 +125,11 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = Lhs.ToString() + " = " + this.RhsValue.ToString();
+            string result = Lhs.ToString()
+                + " " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + " "
+                + this.RhsValue.ToString();
+            if (this.ReadMode == ExpressionReadMode.ReadRequired)
+                result = $"({result})";
             return result;
         }
 

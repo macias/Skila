@@ -58,9 +58,14 @@ namespace Skila.Language.Entities
         }
         public override string ToString()
         {
-            string result = $"{Name} {this.TypeName}";
+            string result = (this.Modifier.HasReassignable ? "var" : "let") + $" {Name} {this.TypeName}";
             if (this.InitValue != null)
-                result += $" = {this.InitValue}";
+            {
+                result += " " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + $" { this.InitValue}";
+            }
+            if (this.ReadMode == ExpressionReadMode.ReadRequired)
+                result = $"({result})";
+
             return result;
         }
 
@@ -135,7 +140,7 @@ namespace Skila.Language.Entities
                 // x = (__this__ = alloc Foo ; __this__.init() ; __this__)
                 // so we rip off the init step and replace the object, which results in
                 // x.init()
-                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization 
+                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization
                     // do not use this optimization for heap objects!
                     && !block.HeapInitialization)
                 {
@@ -177,7 +182,7 @@ namespace Skila.Language.Entities
             if (this.Evaluation != null)
                 return;
 
-            if (this.DebugId.Id ==  297)
+            if (this.DebugId.Id == 297)
             {
                 ;
             }
@@ -245,7 +250,7 @@ namespace Skila.Language.Entities
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
                 TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
-                if (mutability!= TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
+                if (mutability != TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
             }
         }

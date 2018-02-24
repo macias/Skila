@@ -38,10 +38,10 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
 
-                    IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") }, new [] { NameReference.Create("x") }),
-                        ExpressionFactory.IncBy("acc",Nat8Literal.Create("2"))),
-                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") }, new[] { NameReference.Create("y") }),
-                        ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
+                    //IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") }, new [] { NameReference.Create("x") }),
+                      //  ExpressionFactory.IncBy("acc",Nat8Literal.Create("2"))),
+                    //IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") }, new[] { NameReference.Create("y") }),
+                      //  ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
                     
                     Assignment.CreateStatement(NameReference.Create("a"),Nat8Literal.Create("0")),
                     IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"),NameReference.Create("b") }, new[] { NameReference.Create("x"),NameReference.Create("y") }),

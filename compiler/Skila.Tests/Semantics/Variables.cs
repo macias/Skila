@@ -1,12 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Skila.Language;
-using System.Linq;
 using Skila.Language.Expressions;
 using Skila.Language.Entities;
 using Skila.Language.Flow;
 using Skila.Language.Builders;
 using Skila.Language.Semantics;
-using Skila.Language.Extensions;
 using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Semantics
@@ -14,6 +12,44 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Variables
     {
+        [TestMethod]
+        public IErrorReporter IfScope()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            NameReference bad_ref = NameReference.Create("x");
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("testing"),
+                NameFactory.UnitTypeReference(),
+
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("b", NameFactory.BoolTypeReference(), Undef.Create(), EntityModifier.Reassignable),
+
+                    IfBranch.CreateIf(VariableDeclaration.CreateExpression("x", null, BoolLiteral.CreateTrue()),
+                        // x is in scope
+                        Assignment.CreateStatement("b", "x"),
+                        IfBranch.CreateElse(
+                            // x is in scope as well
+                            Assignment.CreateStatement("b", "x"))),
+
+                    // here x is not is the scope (is already removed)
+                    Assignment.CreateStatement(NameReference.Create("b"), bad_ref),
+                    ExpressionFactory.Readout("b")
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, bad_ref));
+
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorInvalidVariable()
         {

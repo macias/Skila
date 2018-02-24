@@ -24,7 +24,7 @@ namespace Skila.Language.Expressions
                 string temp = AutoName.Instance.CreateNew("optassign");
                 names.Add(temp);
 
-                IExpression curr = optionHasValue(VariableDeclaration.CreateExpression(temp, null, rhs));
+                IExpression curr = OptionHasValue(VariableDeclaration.CreateExpression(temp, null, rhs));
                 if (condition == null)
                     condition = curr;
                 else
@@ -381,7 +381,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression AssertOptionValue(IExpression option, bool hasValue = true)
         {
-            IExpression condition = optionHasValue(option);
+            IExpression condition = OptionHasValue(option);
             if (!hasValue)
                 condition = Not(condition);
             return AssertTrue(condition);
@@ -399,11 +399,11 @@ namespace Skila.Language.Expressions
             return Block.CreateExpression(new[] {
                 // todo: shouldn't it be a reference to option?
                 VariableDeclaration.CreateStatement(temp, null, option),
-                Ternary(optionHasValue(temp_ref), GetOptionValue(temp_ref), fallback)
+                Ternary(OptionHasValue(temp_ref), GetOptionValue(temp_ref), fallback)
             });
         }
 
-        private static NameReference optionHasValue(IExpression option)
+        public static NameReference OptionHasValue(IExpression option)
         {
             return NameReference.Create(option, NameFactory.OptionHasValue);
         }
