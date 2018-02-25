@@ -34,7 +34,6 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, params INameReference[] arguments)
         {
-            //@@@return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, isRoot: false);
             return Create(prefix, name, ExpressionReadMode.ReadRequired, arguments);
         }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
@@ -100,7 +99,8 @@ namespace Skila.Language
 
         public override IEnumerable<INode> OwnedNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
             .Concat(this.Prefix).Where(it => it != null);
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(Prefix);
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => this.flow.Value;
 
         public bool IsSurfed { get; set; }
 
@@ -140,6 +140,8 @@ namespace Skila.Language
             this.Binding = new Binding();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Prefix));
         }
 
         public override string ToString()

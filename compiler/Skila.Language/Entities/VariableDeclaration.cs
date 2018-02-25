@@ -34,7 +34,8 @@ namespace Skila.Language.Entities
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
             .Concat(closures);
-        public override ExecutionFlow Flow => ExecutionFlow.CreatePath(InitValue);
+        private readonly Lazy<ExecutionFlow> flow;
+        public override ExecutionFlow Flow => this.flow.Value;
         public EntityModifier Modifier { get; private set; }
 
         private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name,
@@ -55,6 +56,8 @@ namespace Skila.Language.Entities
             this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(InitValue));
         }
         public override string ToString()
         {

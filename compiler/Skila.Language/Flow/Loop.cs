@@ -58,7 +58,8 @@ namespace Skila.Language.Flow
         public IExpression PostCondition => this.postCondition;
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Name }.Concat(Init).Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
-        public ExecutionFlow Flow => ExecutionFlow.CreateLoop(Init.Concat(PreCondition), maybePath: Body, postMaybes: PostStep.Concat(PostCondition));
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => this.flow.Value;
 
         public bool IsComputed => this.Evaluation != null;
         public EvaluationInfo Evaluation { get; private set; }
@@ -89,6 +90,8 @@ namespace Skila.Language.Flow
             this.ReadMode = ExpressionReadMode.CannotBeRead; // todo: temporary state
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreateLoop(Init.Concat(PreCondition), thenPath: Body, postMaybes: PostStep.Concat(PostCondition)));
         }
 
         public override string ToString()

@@ -69,6 +69,7 @@
     <Compile Include="Data\ILayerDictionary.cs" />
     <Compile Include="Entities\Alias.cs" />
     <Compile Include="Entities\Property.Accessor.cs" />
+    <Compile Include="ExecutionPath.cs" />
     <Compile Include="Expressions\Literals\Real64Literal.cs" />
     <Compile Include="Expressions\Literals\Int16Literal.cs" />
     <Compile Include="Expressions\Literals\IntLiteral.cs" />

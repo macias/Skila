@@ -46,7 +46,8 @@ namespace Skila.Language.Flow
 
         public IEnumerable<IExpression> localNodes => new IExpression[] { Condition, Body }.Where(it => it != null);
         public override IEnumerable<INode> OwnedNodes => localNodes.Concat(Next).Where(it => it != null);
-        public ExecutionFlow Flow => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next);
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => flow.Value;
 
         public bool IsComputed => this.Evaluation != null;
         public int DereferencingCount { get; set; }
@@ -59,12 +60,14 @@ namespace Skila.Language.Flow
             this.condition = condition;
             // we have to postpone calculating read-mode because the last instruction can be function call
             // and it is resolved only after finding its target
-            if (!body.Any())//@@@
+            if (!body.Any())
                 body = new[] { NameFactory.UnitTypeReference(ExpressionReadMode.OptionalUse) };
             this.Body = Block.Create((block) => block.Instructions.Last().ReadMode, body);
             this.Next = next;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
         }
 
         public override string ToString()

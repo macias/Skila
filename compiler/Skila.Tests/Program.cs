@@ -19,11 +19,11 @@ namespace Skila.Tests
 
         public static void Main()
         {
-           // new Semantics.CompilerProtection().Environment();
+            //new Semantics.CompilerProtection().Environment();
             // new Semantics.Concurrency().ErrorSpawningMutables();
             // new Semantics.Exceptions().ErrorThrowingNonException();
             //  new Semantics.Expressions().ErrorIsSameOnValues();
-              //new Semantics.Flow().TODO_ErrorDeclarationsOnTheFly();
+            new Semantics.Flow().ErrorDoubleConditionalLoopInterruption();
             //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
             //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
             // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -37,7 +37,7 @@ namespace Skila.Tests
             // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
             //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
             //new Semantics.Types().ErrorInOutVariance();
-            //new Semantics.Variables().IfScope();
+            //new Semantics.Variables().ErrorVariableNotUsed();
 
             //new Execution.Closures().ClosureRecursiveCall();
             //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
@@ -48,7 +48,7 @@ namespace Skila.Tests
             //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
             //new Execution.Io().FileReadingLines();
             //new Execution.Library().RealNotANumber();
-           //new Execution.Objects().TODO_OptionalAssignment();
+            //new Execution.Objects().TODO_OptionalAssignment();
             //new Execution.Pointers().StackChunkWithBasicPointers();
             //new Execution.Properties().AutoPropertiesWithPointers();
             //new Execution.Templates().HasConstraintWithValue();

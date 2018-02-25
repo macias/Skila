@@ -1,5 +1,6 @@
 ﻿using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
+using Skila.Language.Expressions;
 using Skila.Language.Flow;
 using Skila.Language.Semantics;
 using System;
@@ -10,10 +11,10 @@ namespace Skila.Language.Extensions
 {
     public static partial class IEvaluableExtension
     {
-        private static void validateExecutionPath(INode node, IEnumerable<IEvaluable> path,
+        private static void validateExecutionPath(INode node, ExecutionPath path,
             ComputationContext ctx, ref ValidationData result)
         {
-            if (node.DebugId.Id == 259)
+            if (node is IfBranch && node.DebugId.Id == 203)
             {
                 ;
             }
@@ -37,7 +38,7 @@ namespace Skila.Language.Extensions
 
         public static ValidationData Validated(this INode node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 489)
+            if (node is IfBranch && node.DebugId.Id == 203)
             {
                 ;
             }
@@ -69,25 +70,28 @@ namespace Skila.Language.Extensions
             if (node is IExpression expr)
             {
 
-                if (node.DebugId.Id == 2678)
+                if (node is Loop && node.DebugId.Id == 5)
                 {
                     ;
                 }
 
                 TrackingState? track_state = ctx.ValAssignTracker?.StartFlow();
+                AssignmentTracker parent_tracker = ctx.ValAssignTracker;
 
                 validateExecutionPath(node, expr.Flow.AlwaysPath, ctx, ref result);
 
-                AssignmentTracker parent_tracker = ctx.ValAssignTracker;
-
-                if (expr.Flow.MaybePaths.Any())
+                if (expr.Flow.ForkMaybePaths.Any())
                 {
                     var branch_trackers = new List<AssignmentTracker>();
                     var branch_results = new List<ValidationData>();
 
-                    foreach (IEnumerable<IEvaluable> maybes in expr.Flow.MaybePaths)
+                    foreach (ExecutionPath maybes in expr.Flow.ForkMaybePaths)
                     {
                         ctx.ValAssignTracker = parent_tracker?.Clone();
+                        if (ctx.ValAssignTracker.DebugId.Id == 286)
+                        {
+                            ;
+                        }
                         ValidationData branch_result = result.Clone();
 
                         validateExecutionPath(node, maybes, ctx, ref branch_result);
@@ -97,7 +101,8 @@ namespace Skila.Language.Extensions
                         if (node is IAnchor loop)
                             branch_result.RemoveInterruptionFor(loop, isBreak: false);
 
-                        validateExecutionPath(node, expr.Flow.PostMaybes, ctx, ref branch_result);
+                        if (maybes == expr.Flow.ThenMaybePath && expr.Flow.ThenPostMaybes!=null)
+                            validateExecutionPath(node, expr.Flow.ThenPostMaybes, ctx, ref branch_result);
 
                         parent_tracker?.Import(ctx.ValAssignTracker);
 
@@ -119,6 +124,7 @@ namespace Skila.Language.Extensions
                 }
 
                 parent_tracker?.EndTracking(track_state.Value);
+                ctx.ValAssignTracker = parent_tracker; // restore original tracker
 
                 foreach (IExpression sub in expr.Flow.Enumerate)
                     validateReadingValues(sub, ctx);
@@ -142,6 +148,10 @@ namespace Skila.Language.Extensions
             if (evaluable != null)
                 evaluable.Validation = result;
 
+            if (node is Loop && node.DebugId.Id == 5)
+            {
+                ;
+            }
             if (node is IScope && ctx.ValAssignTracker != null)
             {
                 foreach (IEntityVariable decl in ctx.ValAssignTracker.RemoveLayer())

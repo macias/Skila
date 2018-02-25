@@ -35,7 +35,8 @@ namespace Skila.Language.Expressions
         private IExpression expression;
         public IExpression Expression => this.expression;
         public override IEnumerable<INode> OwnedNodes => new INode[] { Expression }.Concat(closures);
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(Expression);
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => this.flow.Value;
         private Option<int> index;
         public int Index
         {
@@ -63,6 +64,8 @@ namespace Skila.Language.Expressions
             this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expression));
         }
 
         internal void SetTargetParam(ComputationContext ctx, FunctionParameter param)

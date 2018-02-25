@@ -202,7 +202,10 @@ namespace Skila.Language.Semantics
 
         public IEnumerable<VariableDeclaration> RemoveLayer()
         {
-            return this.variables.PopLayer().Where(it => !it.Item2.IsRead && !it.Item2.IsCloned).Select(it => it.Item1);
+            IEnumerable<Tuple<VariableDeclaration, VariableInfo>> popped = this.variables.PopLayer();
+            return popped
+                .Where(it => !it.Item2.IsRead)
+                .Select(it => it.Item1);
         }
 
         internal void UpdateMode(ExecutionMode mode)

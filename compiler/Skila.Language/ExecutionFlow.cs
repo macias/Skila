@@ -8,16 +8,13 @@ namespace Skila.Language
 {
     public struct ExecutionFlow
     {
-        public static ExecutionFlow Empty { get; } = new ExecutionFlow(null, null);
+        public static ExecutionFlow Empty { get; } = new ExecutionFlow(null, null, null, null);
 
         internal static ExecutionFlow CreateFork(IExpression condition, IExpression thenBody, IExpression elseBranch)
         {
-            var maybes = new List<IEnumerable<IExpression>>(); 
-            if (thenBody != null)
-                maybes.Add(new[] { thenBody });
-            if (elseBranch!=null)
-                maybes.Add(new[] { elseBranch });
-            return new ExecutionFlow(new[] { condition }, null, maybes.ToArray());
+            return new ExecutionFlow(new[] { condition }, null,
+               thenMaybes: thenBody != null ? new[] { thenBody } : null,
+               elseMaybes: elseBranch != null ? new[] { elseBranch } : null);
         }
         internal static ExecutionFlow CreateElse(IExpression elseBody, IExpression nextBranch)
         {
@@ -25,48 +22,55 @@ namespace Skila.Language
             // in correct code "next" does not exist, but user could write incorrect code and we have to put it somewhere
             // again from else POV such branch is alternative, thus we put it as "maybe"
             if (nextBranch == null)
-                return new ExecutionFlow(always: new[] { elseBody }, postMaybes: null);
+                return new ExecutionFlow(always: new[] { elseBody }, thenPostMaybes: null, thenMaybes: null, elseMaybes: null);
             else
-                return new ExecutionFlow(always: new[] { elseBody }, postMaybes: null, maybes: new[] { nextBranch });
+                return new ExecutionFlow(always: new[] { elseBody }, thenPostMaybes: null, thenMaybes: new[] { nextBranch }, elseMaybes: null);
         }
         internal static ExecutionFlow CreateLoop(IEnumerable<IExpression> always,
-            IEnumerable<IExpression> maybePath, IEnumerable<IExpression> postMaybes)
+            IEnumerable<IExpression> thenPath, IEnumerable<IExpression> postMaybes)
         {
-            maybePath = maybePath.Where(it => it != null).StoreReadOnly();
+            thenPath = thenPath.Where(it => it != null).StoreReadOnly();
             postMaybes = postMaybes.Where(it => it != null).StoreReadOnly();
             always = always.Where(it => it != null).StoreReadOnly();
 
-            return new ExecutionFlow(always, postMaybes, maybePath);
+            return new ExecutionFlow(always, postMaybes, thenMaybes: thenPath, elseMaybes: null);
         }
         public static ExecutionFlow CreatePath(IEnumerable<IExpression> path)
         {
-            return new ExecutionFlow(path, null);
+            return new ExecutionFlow(path, thenPostMaybes: null, thenMaybes: null, elseMaybes: null);
         }
         public static ExecutionFlow CreatePath(params IExpression[] path)
         {
-            return new ExecutionFlow(path, null);
+            return new ExecutionFlow(path, thenPostMaybes: null, thenMaybes: null, elseMaybes: null);
         }
 
-        public IEnumerable<IExpression> Enumerate => AlwaysPath.Concat(MaybePaths.Flatten()).Concat(PostMaybes);
+        public IEnumerable<IExpression> Enumerate => AlwaysPath.Concat(ForkMaybePaths.Flatten())
+            .Concat(ThenPostMaybes ?? Enumerable.Empty<IExpression>());
 
 
-        public bool ExhaustiveMaybes { get; }
-        public IEnumerable<IExpression> AlwaysPath { get; }
-        // this is fork, not a sequence
-        public IReadOnlyCollection<IEnumerable<IExpression>> MaybePaths { get; }
+        public bool ExhaustiveMaybes => this.ThenMaybePath != null && this.ElseMaybePath != null;
+        public ExecutionPath AlwaysPath { get; }
+        public IEnumerable<ExecutionPath> ForkMaybePaths => new[] { ThenMaybePath, ElseMaybePath }.Where(it => it != null);
+        // please note the important property of the nested maybes, when you have
+        // if-then(1)-then(2)
+        // in such case when you get to "then(2)", "then(1)" is executed for sure
+        public ExecutionPath ThenMaybePath { get; }
+        public ExecutionPath ElseMaybePath { get; }
         // executed on loop-continue, but not break, post maybe follows first maybe path
-        public IEnumerable<IExpression> PostMaybes { get; }
+        public ExecutionPath ThenPostMaybes { get; }
 
         // we make always path exceptional to accomodate FunctionParameter type
-        public ExecutionFlow(IEnumerable<IExpression> always, IEnumerable<IExpression> postMaybes,
-            params IEnumerable<IExpression>[] maybes)
+        public ExecutionFlow(IEnumerable<IExpression> always, IEnumerable<IExpression> thenPostMaybes,
+            IEnumerable<IExpression> thenMaybes, IEnumerable<IExpression> elseMaybes)
         {
-            this.AlwaysPath = (always?.Where(it => it != null) ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
-            this.MaybePaths = (maybes ?? Enumerable.Empty<IEnumerable<IExpression>>()).StoreReadOnly();
-            this.PostMaybes = (postMaybes ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
-            if (this.MaybePaths.Count > 2)
-                throw new ArgumentException("We can have only two maybes max");
-            this.ExhaustiveMaybes = this.MaybePaths.Count != 1;
+            this.AlwaysPath = ExecutionPath.Create(always?.Where(it => it != null) ?? Enumerable.Empty<IExpression>());
+            this.ThenMaybePath = ExecutionPath.Create(thenMaybes);
+            this.ElseMaybePath = ExecutionPath.Create( elseMaybes);
+            this.ThenPostMaybes = ExecutionPath.Create(thenPostMaybes);
+
+            if (this.ThenPostMaybes != null && this.ElseMaybePath != null)
+                throw new NotImplementedException("With else we shouldn't have post-then");
+
         }
 
     }

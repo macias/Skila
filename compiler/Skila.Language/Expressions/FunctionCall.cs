@@ -115,7 +115,8 @@ namespace Skila.Language.Expressions
             .Concat(RequestedOutcomeTypeName)
             .Where(it => it != null)
             .Concat(closures);
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(Arguments);
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => this.flow.Value;
 
         public INameReference RequestedOutcomeTypeName { get; }
 
@@ -143,6 +144,8 @@ namespace Skila.Language.Expressions
             this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Arguments));
         }
         public override string ToString()
         {

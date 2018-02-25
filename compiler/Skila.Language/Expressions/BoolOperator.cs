@@ -34,18 +34,8 @@ namespace Skila.Language.Expressions
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, Rhs }.Where(it => it != null);
 
-        public override ExecutionFlow Flow
-        {
-            get
-            {
-                switch (this.Mode)
-                {
-                    case OpMode.And: return ExecutionFlow.CreateFork(Lhs, Rhs, null);
-                    case OpMode.Or: return ExecutionFlow.CreateFork(Lhs, null, Rhs);
-                    default: throw new InvalidOperationException();
-                }
-            }
-        }
+        private readonly Lazy<ExecutionFlow> flow;
+        public override ExecutionFlow Flow => this.flow.Value;
 
         private BoolOperator(OpMode mode, IExpression lhs, IExpression rhs)
             : base(ExpressionReadMode.ReadRequired)
@@ -55,6 +45,16 @@ namespace Skila.Language.Expressions
             this.rhs = rhs;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() =>
+            {
+                switch (this.Mode)
+                {
+                    case OpMode.And: return ExecutionFlow.CreateFork(Lhs, Rhs, null);
+                    case OpMode.Or: return ExecutionFlow.CreateFork(Lhs, null, Rhs);
+                    default: throw new InvalidOperationException();
+                }
+            });
         }
         public override string ToString()
         {

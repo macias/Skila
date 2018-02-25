@@ -87,7 +87,8 @@ namespace Skila.Language.Entities
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
         public ExpressionReadMode CallMode { get; private set; }
-        public ExecutionFlow Flow => ExecutionFlow.CreatePath(UserBody);
+        private readonly Lazy<ExecutionFlow> flow;
+        public ExecutionFlow Flow => this.flow.Value;
 
         internal LambdaTrap LambdaTrap { get; set; }
 
@@ -141,6 +142,7 @@ namespace Skila.Language.Entities
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
             this.constructionCompleted = true;
         }
 

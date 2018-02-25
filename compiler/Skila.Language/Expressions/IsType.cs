@@ -21,7 +21,8 @@ namespace Skila.Language.Expressions
         public INameReference RhsTypeName { get; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, RhsTypeName }.Where(it => it != null);
-        public override ExecutionFlow Flow => ExecutionFlow.CreatePath(Lhs);
+        private readonly Lazy<ExecutionFlow> flow;
+        public override ExecutionFlow Flow => this.flow.Value;
 
         private IsType(IExpression lhs, INameReference rhsTypeName)
             : base(ExpressionReadMode.ReadRequired)
@@ -34,6 +35,8 @@ namespace Skila.Language.Expressions
             this.RhsTypeName = rhsTypeName;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs));
         }
         public override string ToString()
         {

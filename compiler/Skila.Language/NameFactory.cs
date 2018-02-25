@@ -165,7 +165,7 @@ namespace Skila.Language
 
         public const string GetTypeFunctionName = "getType";
 
-        public static NameReference UnitTypeReference(ExpressionReadMode readMode = ExpressionReadMode.ReadRequired)//@@@
+        public static NameReference UnitTypeReference(ExpressionReadMode readMode = ExpressionReadMode.ReadRequired)
         {
             return NameReference.Create(NameReference.Root, UnitTypeName);
         }

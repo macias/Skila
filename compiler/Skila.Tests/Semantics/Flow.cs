@@ -93,7 +93,7 @@ namespace Skila.Tests.Semantics
 
                     // the point of this `if` is to introduce variable in condition is such way
                     // the is initialized without doubt
-                    if_branch1,  
+                    if_branch1,
 
                     // at this point our variable is gone, because `if` scope is removed
 
@@ -186,17 +186,18 @@ namespace Skila.Tests.Semantics
             var collector = new ReportCollector();
             // initially there was a bug in merging "if" branches with interruptions
             // to make sure it is gone, we run the test twice with reversed commands
-            foreach (bool reverse in new[] { false, true })
+            foreach (bool reverse_order in new[] { false, true })
             {
                 var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
                 var root_ns = env.Root;
 
                 NameReference var_ref = NameReference.Create("s");
-                LoopInterrupt break_loop = LoopInterrupt.CreateBreak("outer");
-                LoopInterrupt cont_loop = LoopInterrupt.CreateContinue();
+                LoopInterrupt break_outer_loop = LoopInterrupt.CreateBreak("outer");
+                LoopInterrupt cont_inner_loop = LoopInterrupt.CreateContinue();
 
-                var if_double_jump = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { reverse ? break_loop : cont_loop },
-                    IfBranch.CreateElse(new[] { reverse ? cont_loop : break_loop }));
+                var if_double_jump = IfBranch.CreateIf(BoolLiteral.CreateFalse(),
+                    new[] { reverse_order ? break_outer_loop : cont_inner_loop },
+                    IfBranch.CreateElse(new[] { reverse_order ? cont_inner_loop : break_outer_loop }));
                 IExpression unreachable_assign = Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("3"));
                 // we interrupt this loop with "continue", so step is reachable
                 var inner_loop = Loop.CreateFor(
@@ -217,6 +218,8 @@ namespace Skila.Tests.Semantics
                                                   Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m3")) },
                         body: new IExpression[] {
                         inner_loop,
+                        // this assigment is skipped when we jump out of this (outer) loop
+                        // or it is executed, in first case loop-step is not executed, in the second -- it is
                         Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("44")),
                         VariableDeclaration.CreateStatement("m2",null,NameReference.Create("s")),
                         Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m2"))
@@ -382,8 +385,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.AreEqual(ErrorCode.UnreachableCode, resolver.ErrorManager.Errors.Single().Code);
-            Assert.AreEqual(dead_step, resolver.ErrorManager.Errors.Single().Node);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.UnreachableCode, dead_step));
 
             return resolver;
         }

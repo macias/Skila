@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
+using System;
 
 namespace Skila.Language.Expressions
 {
@@ -22,7 +23,8 @@ namespace Skila.Language.Expressions
         public IExpression Rhs { get; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, Rhs }.Where(it => it != null);
-        public override ExecutionFlow Flow => ExecutionFlow.CreatePath(Lhs, Rhs);
+        private readonly Lazy<ExecutionFlow> flow;
+        public override ExecutionFlow Flow => this.flow.Value;
 
         private IsSame(IExpression lhs, IExpression rhs)
             : base(ExpressionReadMode.ReadRequired)
@@ -31,6 +33,8 @@ namespace Skila.Language.Expressions
             this.Rhs = rhs;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs, Rhs));
         }
         public override string ToString()
         {

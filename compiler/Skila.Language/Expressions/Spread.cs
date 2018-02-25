@@ -22,7 +22,8 @@ namespace Skila.Language.Expressions
         public IExpression Expr => this.expr;
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
-        public override ExecutionFlow Flow => ExecutionFlow.CreatePath(Expr);
+        private readonly Lazy<ExecutionFlow> flow;
+        public override ExecutionFlow Flow => this.flow.Value;
 
         private bool prepared;
 
@@ -32,6 +33,8 @@ namespace Skila.Language.Expressions
             this.expr = expr;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
+
+            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expr));
         }
         public override string ToString()
         {

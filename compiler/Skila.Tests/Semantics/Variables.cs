@@ -13,7 +13,7 @@ namespace Skila.Tests.Semantics
     public class Variables
     {
         [TestMethod]
-        public IErrorReporter IfScope()
+        public IErrorReporter ErrorIfScope()
         {
             var env = Environment.Create(new Options()
             {
