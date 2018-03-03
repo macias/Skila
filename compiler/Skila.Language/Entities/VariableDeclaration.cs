@@ -42,10 +42,6 @@ namespace Skila.Language.Entities
             INameReference typeName, IExpression initValue)
             : base(readMode)
         {
-            if (this.DebugId.Id == 59)
-            {
-                ;
-            }
             if (name == null)
                 throw new ArgumentNullException();
 
@@ -78,10 +74,6 @@ namespace Skila.Language.Entities
 
         public override bool AttachTo(INode owner)
         {
-            if (this.DebugId.Id == 123498)
-            {
-                ;
-            }
             if (!base.AttachTo(owner))
                 return false;
 
@@ -117,11 +109,6 @@ namespace Skila.Language.Entities
 
         public IExpression DetachFieldInitialization()
         {
-            if (this.DebugId.Id == 297)
-            {
-                ;
-            }
-
             if (this.InitValue.IsUndef())
                 return null;
 
@@ -181,18 +168,13 @@ namespace Skila.Language.Entities
                             this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(),
             // we have to give target for name, because this could be property field, and it is in scope
             // of a property not enclosed type, so from constructor such field is invisible
-                            this.InstanceOf);
+                            this.InstanceOf,isLocal:false);
         }
 
         public override void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation != null)
                 return;
-
-            if (this.DebugId.Id == 297)
-            {
-                ;
-            }
 
             this.TrapClosure(ctx, ref this.initValue);
 
@@ -346,10 +328,6 @@ namespace Skila.Language.Entities
 
         public void SetIsMemberUsed()
         {
-            if (this.DebugId.Id == 2965)
-            {
-                ;
-            }
             this.IsMemberUsed = true;
         }
 

@@ -20,10 +20,6 @@ namespace Skila.Language.Expressions.Literals
         private Int64Literal(string inputValue)
             : base(inputValue, NameFactory.Int64TypeReference())
         {
-            if (this.DebugId.Id== 2)
-            {
-                ;
-            }
             if (Int64.TryParse(inputValue, out Int64 result))
                 this.value = result;
             else

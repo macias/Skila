@@ -24,11 +24,6 @@ namespace Skila.Language
         }
         public void DetachFrom(INode owner)
         {
-            if (this.DebugId.Id == 123498)
-            {
-                ;
-            }
-
             if (this.Owner != owner || this.Owner == null)
                 return;
 
@@ -36,11 +31,6 @@ namespace Skila.Language
         }
         public virtual bool AttachTo(INode owner)
         {
-            if (this.DebugId.Id == 3183)
-            {
-                ;
-            }
-
             if (owner == null || this.Owner == owner)
                 return false;
             else if (this.Owner == null)

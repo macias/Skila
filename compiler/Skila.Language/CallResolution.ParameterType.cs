@@ -13,10 +13,6 @@ namespace Skila.Language
                 IEntityInstance objectInstance,
                 EntityInstance targetFunctionInstance)
             {
-                if (param.DebugId.Id == 711)
-                {
-                    ;
-                }
                 IEntityInstance elem_instance = orderedTranslatation(param.ElementTypeName.Evaluation.Components,
                     objectInstance, targetFunctionInstance);
 

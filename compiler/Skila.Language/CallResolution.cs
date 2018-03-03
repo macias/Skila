@@ -74,11 +74,6 @@ namespace Skila.Language
             List<int> argParamMapping,
             out bool success)
         {
-            if (argumentsProvider.DebugId.Id == 27281 && targetFunctionInstance.DebugId.Id == 128265)
-            {
-                ;
-            }
-
             success = true;
 
             this.MetaThisArgument = callContext.MetaThisArgument;
@@ -90,11 +85,6 @@ namespace Skila.Language
                 : this.TargetFunction.Name.Parameters.Select(it => EntityInstance.Joker)).StoreReadOnlyList();
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
-
-            if (this.DebugId.Id == 670)
-            {
-                ;
-            }
 
             IEntityInstance call_ctx_eval = callContext.Evaluation;
             if (call_ctx_eval != null)
@@ -222,10 +212,6 @@ namespace Skila.Language
         {
             foreach (FunctionArgument arg in this.Arguments)
             {
-                if (arg.DebugId.Id == 61)
-                {
-                    ;
-                }
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
                 TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval,
@@ -349,11 +335,6 @@ namespace Skila.Language
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 130076)
-            {
-                ;
-            }
-
             IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters;
 
             var template_param_inference = new Dictionary<TemplateParameter,
@@ -398,11 +379,6 @@ namespace Skila.Language
         {
             if (templateArguments.All(it => !it.IsJoker))
                 return templateArguments;
-
-            if (this.DebugId.Id == 71160)
-            {
-                ;
-            }
 
             EntityInstance closedTemplate = this.TargetFunctionInstance.Build(templateArguments,
                 this.TargetFunctionInstance.OverrideMutability);

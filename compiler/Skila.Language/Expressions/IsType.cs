@@ -27,10 +27,6 @@ namespace Skila.Language.Expressions
         private IsType(IExpression lhs, INameReference rhsTypeName)
             : base(ExpressionReadMode.ReadRequired)
         {
-            if (this.DebugId.Id==8)
-            {
-                ;
-            }
             this.Lhs = lhs;
             this.RhsTypeName = rhsTypeName;
 
@@ -65,10 +61,6 @@ namespace Skila.Language.Expressions
         {
             base.Validate(ctx);
 
-            if (this.DebugId.Id == 15)
-            {
-                ;
-            }
             if (this.RhsTypeName.Evaluation.Components is EntityInstance rhs_type)
             {
                 if (MatchTypes(ctx, this.Lhs.Evaluation.Components, this.RhsTypeName.Evaluation.Components))
@@ -76,10 +68,6 @@ namespace Skila.Language.Expressions
                     ctx.ErrorManager.AddError(ErrorCode.IsTypeOfKnownTypes, this);
                 else
                 {
-                    if (this.DebugId.Id == 2)
-                    {
-                        ;
-                    }
                     if (!TypeMatcher.InterchangeableTypes(ctx, this.Lhs.Evaluation.Components, this.RhsTypeName.Evaluation.Components))
                         ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, this);
 

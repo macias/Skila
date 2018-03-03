@@ -38,7 +38,7 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments,readMode, isRoot: false);
+            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
         {
@@ -50,17 +50,17 @@ namespace Skila.Language
             return new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
-            IEnumerable<INameReference> arguments, EntityInstance target)
+            IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
             var result = new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
-                result.Binding.Set(new[] { target });
+                result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
         }
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
-            EntityInstance target)
+            EntityInstance target, bool isLocal)
         {
-            return Create(MutabilityOverride.NotGiven, prefix, name, arguments, target);
+            return Create(MutabilityOverride.NotGiven, prefix, name, arguments, target, isLocal);
         }
 
         public static NameReference CreateBaseInitReference()
@@ -127,10 +127,6 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
-            if (this.DebugId.Id == 8556)
-            {
-                ;
-            }
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
@@ -169,11 +165,6 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 7864)
-            {
-                ;
-            }
-
             handleBinding(ctx);
 
             IEntityInstance eval;
@@ -191,7 +182,7 @@ namespace Skila.Language
 
         private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
         {
-            EntityInstance instance = this.Binding.Match;
+            EntityInstance instance = this.Binding.Match.Instance;
 
             if (instance.Target.IsTypeContainer())
             {
@@ -223,10 +214,6 @@ namespace Skila.Language
                 if (this.Prefix != null)
                 {
                     int dereferenced = computeDereferences(ctx, this.Prefix.Evaluation.Components);
-                    if (this.Prefix.DebugId.Id == 2572)
-                    {
-                        ;
-                    }
                     this.Prefix.DereferencedCount_LEGACY = dereferenced;
                     this.DereferencingCount = dereferenced;
                 }
@@ -234,12 +221,13 @@ namespace Skila.Language
             else
             {
                 ErrorCode errorCode = ErrorCode.ReferenceNotFound;
-                IEnumerable<EntityInstance> entities = computeBinding(ctx, ref errorCode);
+                IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
 
                 this.Binding.Set(entities
-                    .Select(it => EntityInstance.Create(ctx, it, this.TemplateArguments, this.OverrideMutability)));
+                    .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability), 
+                        it.IsLocal)));
 
-                if (this.Binding.Match.IsJoker && !this.IsSink
+                if (this.Binding.Match.Instance.IsJoker && !this.IsSink
                     // avoid cascade od errors, if prefix failed there is no point in reporting another error
                     && (this.Prefix == null || !this.Prefix.Evaluation.Components.IsJoker))
                 {
@@ -259,20 +247,16 @@ namespace Skila.Language
             return dereferenced;
         }
 
-        private IEnumerable<EntityInstance> computeBinding(ComputationContext ctx,
+        private IEnumerable<BindingMatch> computeBinding(ComputationContext ctx,
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 870)
-            {
-                ;
-            }
-            IEnumerable<EntityInstance> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
-            IEnumerable<EntityInstance> aliases = entities.Where(it => it.Target is Alias);
+            IEnumerable<BindingMatch> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
+            IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias);
             if (aliases.Any())
                 return aliases.SelectMany(it =>
                 {
-                    var alias = it.Target.Cast<Alias>();
+                    var alias = it.Instance.Target.Cast<Alias>();
                     alias.SetIsMemberUsed();
                     NameReference name_reference = alias.Replacement.Cast<NameReference>();
                     name_reference.Surfed(ctx);
@@ -282,58 +266,55 @@ namespace Skila.Language
                 return entities;
         }
 
-        private IEnumerable<EntityInstance> rawComputeBinding(ComputationContext ctx,
+        private IEnumerable<BindingMatch> rawComputeBinding(ComputationContext ctx,
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId.Id == 7864)
-            {
-                ;
-            }
-
             if (this.IsRoot)
             {
-                return new[] { ctx.Env.Root.InstanceOf };
+                return new[] { new BindingMatch(ctx.Env.Root.InstanceOf, isLocal: false) };
             }
             else if (this.Prefix == null)
             {
                 if (this.Name == NameFactory.SelfFunctionName)
                 {
-                    return new[] { this.EnclosingScope<FunctionDefinition>().InstanceOf };
+                    return new[] { new BindingMatch(this.EnclosingScope<FunctionDefinition>().InstanceOf, isLocal: false) };
                 }
                 else if (this.Name == NameFactory.ItTypeName)
                 {
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { enclosing_type.InstanceOf };
+                    return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
                 }
                 else if (this.Name == NameFactory.BaseVariableName)
                 {
                     TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { curr_type.Inheritance.GetTypeImplementationParent() };
+                    return new[] { new BindingMatch(curr_type.Inheritance.GetTypeImplementationParent(), isLocal: false) };
                 }
                 else if (this.IsSuperReference)
                 {
                     FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                     func = func.TryGetSuperFunction(ctx);
                     if (func == null)
-                        return Enumerable.Empty<EntityInstance>();
+                        return Enumerable.Empty<BindingMatch>();
                     else
-                        return new[] { func.InstanceOf };
+                        return new[] { new BindingMatch(func.InstanceOf, isLocal: false) };
                 }
                 else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
                 {
                     FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
                     FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
 
+                    bool is_local = true;
                     if (local_function != entity_function
                         // we often share nodes, like parameters in setter/getter, so this check is needed to exclude
                         // such "legal" cases
                         && local_function.EnclosingScopesToRoot().Contains(entity_function))
                     {
                         entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+                        is_local = false;
                     }
 
-                    return new[] { entity.InstanceOf };
+                    return new[] { new BindingMatch(entity.InstanceOf, isLocal: is_local) };
                 }
                 else
                 {
@@ -369,16 +350,11 @@ namespace Skila.Language
                         }
                     }
 
-                    return entities;
+                    return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
             }
             else
             {
-                if (this.DebugId.Id == 27425)
-                {
-                    ;
-                }
-
                 EntityFindMode find_mode = this.isPropertyIndexerCallReference
                     ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
 
@@ -386,9 +362,9 @@ namespace Skila.Language
                 if (this.Prefix is NameReference prefix_ref
                     // todo: make it nice, currently refering to base look like static reference
                     && prefix_ref.Name != NameFactory.BaseVariableName
-                    && prefix_ref.Binding.Match.Target.IsTypeContainer())
+                    && prefix_ref.Binding.Match.Instance.Target.IsTypeContainer())
                 {
-                    EntityInstance target_instance = prefix_ref.Binding.Match;
+                    EntityInstance target_instance = prefix_ref.Binding.Match.Instance;
                     IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this, find_mode);
 
                     if (entities.Any())
@@ -397,15 +373,10 @@ namespace Skila.Language
                     if (target_instance.Target is TypeDefinition typedef)
                         entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
-                    return entities;
+                    return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
                 else
                 {
-                    if (this.DebugId.Id == 27425)
-                    {
-                        ;
-                    }
-
                     int dereferenced = 0;
                     EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, out dereferenced);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
@@ -422,14 +393,10 @@ namespace Skila.Language
                     entities = filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName
                         || !it.Target.Modifier.HasStatic);
 
-                    if (this.Prefix.DebugId.Id == 2572)
-                    {
-                        ;
-                    }
                     this.Prefix.DereferencedCount_LEGACY = dereferenced;
                     this.DereferencingCount = dereferenced;
 
-                    return entities;
+                    return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
             }
         }
@@ -459,11 +426,6 @@ namespace Skila.Language
         }
         public void Validate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 8643)
-            {
-                ;
-            }
-
             ConstraintMatch mismatch = ConstraintMatch.Yes;
             this.Binding.Filter(instance =>
             {
@@ -507,16 +469,8 @@ namespace Skila.Language
               }*/
 
 
-            if (this.DebugId.Id== 24337)
-            {
-                ;
-            }
             if ((this.Owner as Assignment)?.Lhs != this)
             {
-                if (this.DebugId.Id == 8537)
-                {
-                    ;
-                }
                 if (ctx.ValAssignTracker != null
                     && !ctx.ValAssignTracker.TryCanRead(this, out VariableDeclaration decl))
                 {
@@ -525,20 +479,15 @@ namespace Skila.Language
             }
 
 
-            trySetTargetUsage(this.Binding.Match);
+            trySetTargetUsage(this.Binding.Match.Instance);
 
             if (this.IsSuperReference && this.EnclosingScope<FunctionDefinition>().Modifier.HasUnchainBase)
                 ctx.AddError(ErrorCode.SuperCallWithUnchainedBase, this);
 
             {
-                IEntity binding_target = this.Binding.Match.Target;
+                IEntity binding_target = this.Binding.Match.Instance.Target;
                 if (binding_target.Modifier.HasPrivate)
                 {
-                    if (this.DebugId.Id == 8643)
-                    {
-                        ;
-                    }
-
                     // if the access to entity is private and it is overriden entity it means we have Non-Virtual Interface pattern
                     // as we should forbid access to such entity
                     // this condition checks only if disallow opening access from private to protected/public during derivation
@@ -555,7 +504,7 @@ namespace Skila.Language
             }
 
             if (this.HasBasePrefix
-                && (!(this.Binding.Match.Target is global::Skila.Language.Entities.FunctionDefinition target_func)
+                && (!(this.Binding.Match.Instance.Target is global::Skila.Language.Entities.FunctionDefinition target_func)
                 // exclusion for constructors because it might be legal or not, but nevertheless
                 // both cases are handled elsewhere
                 || !target_func.IsAnyConstructor())
@@ -564,7 +513,7 @@ namespace Skila.Language
 
             {
                 if (this.Prefix == null && !this.HasThisPrefix
-                    && this.Binding.Match.Target is IMember member && !member.Modifier.HasStatic)
+                    && this.Binding.Match.Instance.Target is IMember member && !member.Modifier.HasStatic)
                 {
                     FunctionDefinition enclosing_func = this.EnclosingScope<FunctionDefinition>();
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
@@ -576,11 +525,11 @@ namespace Skila.Language
                 }
             }
 
-            if (this.Binding.Match.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
+            if (this.Binding.Match.Instance.Target is FunctionParameter param && param.UsageMode == ExpressionReadMode.CannotBeRead)
                 ctx.AddError(ErrorCode.CannotReadExpression, this);
 
             // todo: after reshaping escape analysis and associated reference types extend this to types as well
-            if (this.Binding.Match.Target is FunctionDefinition)
+            if (this.Binding.Match.Instance.Target is FunctionDefinition)
                 foreach (INameReference arg in this.TemplateArguments)
                     if (ctx.Env.IsReferenceOfType(arg.Evaluation.Components))
                         ctx.AddError(ErrorCode.ReferenceAsTypeArgument, arg);
@@ -590,7 +539,7 @@ namespace Skila.Language
         {
             // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
 
-            TypeDefinition typedef = this.Binding.Match.TargetType;
+            TypeDefinition typedef = this.Binding.Match.Instance.TargetType;
 
             if (typedef.IsTemplateParameter)
             {
@@ -626,14 +575,14 @@ namespace Skila.Language
             return __eval.Cast<EntityInstance>();
         }
 
-        public NameReference Recreate(IEnumerable<INameReference> arguments, EntityInstance target)
+        public NameReference Recreate(IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
             IExpression this_prefix = this.Prefix;
             this_prefix?.DetachFrom(this);
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
-            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments,this.ReadMode, this.IsRoot);
-            result.Binding.Set(new[] { target });
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments, this.ReadMode, this.IsRoot);
+            result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
         }
 
@@ -674,19 +623,15 @@ namespace Skila.Language
         }
         public bool IsLValue(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 174)
-            {
-                ;
-            }
 
             if (this.IsSink)
             {
                 return true;
             }
 
-            if (!(this.Binding.Match.Target is IEntityVariable))
+            if (!(this.Binding.Match.Instance.Target is IEntityVariable))
             {
-                return (this.Binding.Match.Target is TypeContainerDefinition);
+                return (this.Binding.Match.Instance.Target is TypeContainerDefinition);
             }
 
             if (this.Prefix != null)

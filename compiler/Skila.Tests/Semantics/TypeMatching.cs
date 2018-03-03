@@ -367,13 +367,13 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match,
+            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
                 TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.MatchesTarget(resolver.Context, abc_ref.Binding.Match,
+            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
                 TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match,
+            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match.Instance,
                 TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            TypeMatch match = tuple_abc_ref.Binding.Match.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match,
+            TypeMatch match = tuple_abc_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match.Instance,
                 TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
             Assert.AreNotEqual(TypeMatch.Same, match);
             Assert.AreNotEqual(TypeMatch.Substitute, match);
@@ -419,10 +419,10 @@ namespace Skila.Tests.Semantics
 
             // constraints are matched
             Assert.AreEqual(1, foo_deriv_ref.Binding.Matches.Count());
-            Assert.AreEqual(foo_type, foo_deriv_ref.Binding.Match.Target);
+            Assert.AreEqual(foo_type, foo_deriv_ref.Binding.Match.Instance.Target);
 
             Assert.AreEqual(1, tuple_basic_ref.Binding.Matches.Count());
-            Assert.AreEqual(tuple_type, tuple_basic_ref.Binding.Match.Target);
+            Assert.AreEqual(tuple_type, tuple_basic_ref.Binding.Match.Instance.Target);
 
             // failed on constraints 
             Assert.AreEqual(0, foo_basic_ref.Binding.Matches.Count());
@@ -431,7 +431,7 @@ namespace Skila.Tests.Semantics
 
             // constraints matching other constraints
             Assert.AreEqual(1, tuple_ok_type.ParentNames.Single().Binding.Matches.Count);
-            Assert.AreEqual(tuple_type, tuple_ok_type.ParentNames.Single().Binding.Match.Target);
+            Assert.AreEqual(tuple_type, tuple_ok_type.ParentNames.Single().Binding.Match.Instance.Target);
 
             Assert.AreEqual(0, tuple_bad_type.ParentNames.Single().Binding.Matches.Count);
 

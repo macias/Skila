@@ -121,10 +121,6 @@ namespace Skila.Language.Entities
             Block body)
             : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
         {
-            if (this.DebugId.Id== 665)
-            {
-                ;
-            }
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
@@ -198,11 +194,6 @@ namespace Skila.Language.Entities
         {
             // IMPORTANT: when function is attached to a type, the type is NOT fully constructed!
 
-            if (this.DebugId.Id == 3058)
-            {
-                ;
-            }
-
             bool result = base.AttachTo(parent);
 
             // property accessors will see owner type in second attach, when property is attached to type
@@ -219,7 +210,7 @@ namespace Skila.Language.Entities
             }
 
             // marking regular functions a static one will make further processing easier
-            if (!this.Modifier.HasStatic &&  parent is IEntity entity_parent && entity_parent.Modifier.HasStatic) 
+            if (!this.Modifier.HasStatic && parent is IEntity entity_parent && entity_parent.Modifier.HasStatic)
                 this.SetModifier(this.Modifier | EntityModifier.Static);
 
             if (!this.Modifier.IsAccessSet)
@@ -258,7 +249,7 @@ namespace Skila.Language.Entities
             {
                 this.thisNameReference = NameReference.Create(null, NameFactory.ThisVariableName, null,
                     //this,
-                    this.MetaThisParameter.InstanceOf);
+                    this.MetaThisParameter.InstanceOf, isLocal: true);
                 this.thisNameReference.AttachTo(this);
             }
 
@@ -296,7 +287,7 @@ namespace Skila.Language.Entities
                 this.ResultTypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx, VarianceMode.Out);
             }
 
-            if (!ctx.Env.Options.AllowInvalidMainResult && this==ctx.Env.MainFunction && this.ResultTypeName.Evaluation.Components != ctx.Env.Nat8Type.InstanceOf)
+            if (!ctx.Env.Options.AllowInvalidMainResult && this == ctx.Env.MainFunction && this.ResultTypeName.Evaluation.Components != ctx.Env.Nat8Type.InstanceOf)
                 ctx.AddError(ErrorCode.MainFunctionInvalidResultType, this.ResultTypeName);
 
             if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
@@ -336,10 +327,6 @@ namespace Skila.Language.Entities
 
         public override void Surf(ComputationContext ctx)
         {
-            if (this.DebugId.Id==1888)
-            {
-                ;
-            }
             base.Surf(ctx);
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))

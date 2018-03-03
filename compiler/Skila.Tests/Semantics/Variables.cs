@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
                             // x is in scope as well
                             Assignment.CreateStatement("b", "x"))),
 
-                    // here x is not is the scope (is already removed)
+                    // here x is not in the scope (is already removed)
                     Assignment.CreateStatement(NameReference.Create("b"), bad_ref),
                     ExpressionFactory.Readout("b")
                 )));
@@ -152,10 +152,10 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
             Assert.AreEqual(1, decl_1.TypeName.Binding().Matches.Count);
-            Assert.AreEqual(env.Real64Type, decl_1.TypeName.Binding().Match.Target);
+            Assert.AreEqual(env.Real64Type, decl_1.TypeName.Binding().Match.Instance.Target);
 
             Assert.AreEqual(1, var_1_ref.Binding.Matches.Count);
-            Assert.AreEqual(decl_1, var_1_ref.Binding.Match.Target);
+            Assert.AreEqual(decl_1, var_1_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -246,7 +246,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, foo_ref.Binding.Matches.Count);
-            Assert.AreEqual(func_def, foo_ref.Binding.Match.Target);
+            Assert.AreEqual(func_def, foo_ref.Binding.Match.Instance.Target);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, decl.InitValue));

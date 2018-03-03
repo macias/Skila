@@ -29,11 +29,6 @@ namespace Skila.Language
 
         protected override void compute(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 2629)
-            {
-                ;
-            }
-
             IEntityInstance eval = EntityInstanceUnion.Create(Names.Select(it => it.Evaluation.Components));
 
             // we need to get common members

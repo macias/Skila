@@ -126,11 +126,6 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 160)
-                {
-                    ;
-                }
-
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
                 if (func == null)
                     ctx.ErrorManager.AddError(ErrorCode.ReturnOutsideFunction, this);

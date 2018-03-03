@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using Skila.Language.Extensions;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Skila.Language
 {
+    [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class ExecutionPath : IEnumerable<IExpression>
     {
 #if DEBUG
@@ -41,7 +43,7 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return $"id: {this.DebugId.Id} with {this.path.Count} steps";
+            return $"{this.path.Count} steps";
         }
     }
 }

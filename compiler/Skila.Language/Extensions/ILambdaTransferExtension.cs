@@ -44,7 +44,7 @@ namespace Skila.Language.Extensions
 
             const string meta_this = "mThis";
 
-            FunctionDefinition function = funcReference.Binding.Match.Target.CastFunction();
+            FunctionDefinition function = funcReference.Binding.Match.Instance.Target.CastFunction();
 
             FunctionDefinition cons;
             NameReference func_field_ref;
@@ -68,7 +68,7 @@ namespace Skila.Language.Extensions
 
             IEnumerable<FunctionParameter> trans_parameters = function.Parameters.Select(pit =>
                            FunctionParameter.Create(pit.Name.Name, pit.TypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump)
-                               .TranslateThrough(funcReference.Binding.Match).NameOf));
+                               .TranslateThrough(funcReference.Binding.Match.Instance).NameOf));
             FunctionDefinition invoke = FunctionBuilder.Create(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
                 function.ResultTypeName,
                     Block.CreateStatement(new[] {
@@ -145,7 +145,7 @@ namespace Skila.Language.Extensions
             if (TrapLambdaClosure(node, ctx, ref source))
                 return;
 
-            if (source is NameReference name_ref && name_ref.Binding.Match.Target is FunctionDefinition func)
+            if (source is NameReference name_ref && name_ref.Binding.Match.Instance.Target is FunctionDefinition func)
             {
                 if (func.Name.Arity > 0 && !name_ref.TemplateArguments.Any())
                     ctx.AddError(ErrorCode.SelectingAmbiguousTemplateFunction, name_ref);

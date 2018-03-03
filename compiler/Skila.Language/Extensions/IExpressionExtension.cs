@@ -18,7 +18,7 @@ namespace Skila.Language.Extensions
             nameReference = expr as NameReference;
             if (nameReference != null)
             {
-                return nameReference.Binding.Match.Target as T;
+                return nameReference.Binding.Match.Instance.Target as T;
             }
             else
             {
@@ -58,7 +58,7 @@ namespace Skila.Language.Extensions
             // todo: make it nice, such exception is ugly
             if (nameReference?.Name == NameFactory.BaseVariableName)
                 return true;
-            IEntity entity = nameReference?.Binding.Match.Target;
+            IEntity entity = nameReference?.Binding.Match.Instance.Target;
             bool result = (entity == null || (!entity.IsType() && !entity.IsNamespace()));
             return result;
         }

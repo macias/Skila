@@ -27,56 +27,45 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionDefinition func)
         {
-            if (func.DebugId.Id == 665)
+            ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
+
+            if (ctx.ThisArgument != null)
             {
-                ;
+                ctx.LocalVariables.Add(func.MetaThisParameter, ctx.ThisArgument);
+                ObjectData this_value = ctx.ThisArgument.DereferencedOnce();
+                ctx.Translation = TemplateTranslation.Combine(ctx.Translation, this_value.RunTimeTypeInstance.Translation);
             }
 
-            //while (true)
             {
-                ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
-
-                if (ctx.ThisArgument != null)
+                for (int i = 0; i < func.Parameters.Count; ++i)
                 {
-                    ctx.LocalVariables.Add(func.MetaThisParameter, ctx.ThisArgument);
-                    ObjectData this_value = ctx.ThisArgument.DereferencedOnce();
-                    ctx.Translation = TemplateTranslation.Combine(ctx.Translation, this_value.RunTimeTypeInstance.Translation);
-                }
+                    FunctionParameter param = func.Parameters[i];
+                    ObjectData arg_data = ctx.FunctionArguments[i];
 
-                {
-                    for (int i = 0; i < func.Parameters.Count; ++i)
-                    {
-                        FunctionParameter param = func.Parameters[i];
-                        ObjectData arg_data = ctx.FunctionArguments[i];
+                    bool added;
+                    if (arg_data == null)
+                        added = ctx.LocalVariables.Add(param, (await ExecutedAsync(param.DefaultValue, ctx).ConfigureAwait(false)).ExprValue);
+                    else
+                        added = ctx.LocalVariables.Add(param, arg_data);
 
-                        bool added;
-                        if (arg_data == null)
-                            added = ctx.LocalVariables.Add(param, (await ExecutedAsync(param.DefaultValue, ctx).ConfigureAwait(false)).ExprValue);
-                        else
-                            added = ctx.LocalVariables.Add(param, arg_data);
+                    if (!added)
+                        throw new NotImplementedException();
+                }
+            }
 
-                        if (!added)
-                            throw new NotImplementedException();
-                    }
-                }
-
-                ExecValue exec_value;
-                if (func.IsNewConstructor())
-                {
-                    exec_value = await executeRegularFunctionAsync(func, ctx).ConfigureAwait(false);
-                }
-                // not all methods in plain types (like Int,Double) are native
-                // so we check just a function modifier
-                else if (func.Modifier.HasNative)
-                {
-                    exec_value = await executeNativeFunctionAsync(ctx, func).ConfigureAwait(false);
-                }
-                else
-                {
-                    exec_value = await executeRegularFunctionAsync(func, ctx).ConfigureAwait(false);
-                }
-
-                return exec_value;
+            if (func.IsNewConstructor())
+            {
+                return await executeRegularFunctionAsync(func, ctx).ConfigureAwait(false);
+            }
+            // not all methods in plain types (like Int,Double) are native
+            // so we check just a function modifier
+            else if (func.Modifier.HasNative)
+            {
+                return await executeNativeFunctionAsync(ctx, func).ConfigureAwait(false);
+            }
+            else
+            {
+                return await executeRegularFunctionAsync(func, ctx).ConfigureAwait(false);
             }
         }
 
@@ -94,11 +83,6 @@ namespace Skila.Interpreter
 
         private Task<ExecValue> executeAsync(ExecutionContext ctx, Block block)
         {
-            if (block.DebugId.Id == 161)
-            {
-                ;
-            }
-
             return executeAsync(ctx, block.Instructions);
         }
 
@@ -117,10 +101,6 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Loop loop)
         {
-            if (loop.DebugId.Id == 161)
-            {
-                ;
-            }
             ExecValue result = await executeAsync(ctx, loop.Init).ConfigureAwait(false);
             if (!result.IsExpression)
                 return result;
@@ -240,13 +220,8 @@ namespace Skila.Interpreter
         }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
         {
-            if (node.DebugId.Id == 1206)
-            {
-                ;
-            }
-
             if (this.debugMode)
-                Console.WriteLine($"[{node.DebugId.Id}:{node.GetType().Name}] {node}");
+                Console.WriteLine($"[{node.DebugId}:{node.GetType().Name}] {node}");
 
             while (true)
             {
@@ -356,20 +331,11 @@ namespace Skila.Interpreter
 
         private static void exitScope(ExecutionContext ctx, IScope scope, ExecValue result)
         {
-            if (scope.DebugId.Id == 777)
-            {
-                ;
-            }
             ObjectData out_obj = !result.IsExpression
                 || (scope is Block block && !block.IsRead) ? null : result.ExprValue;
 
             foreach (Tuple<ILocalBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
             {
-                if (bindable_obj.Item1.DebugId.Id == 5055)
-                {
-                    ;
-                }
-
                 ctx.Heap.TryRelease(ctx, bindable_obj.Item2, passingOutObject: out_obj, isPassingOut: false, reason: RefCountDecReason.UnwindingStack,
                     comment: $"elem: {bindable_obj.Item1}, scope: {scope}");
             }
@@ -437,10 +403,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Return ret)
         {
-            if (ret.DebugId.Id == 34)
-            {
-                ;
-            }
             if (ret.Expr == null)
                 return ExecValue.CreateReturn(null);
             else
@@ -528,10 +490,6 @@ namespace Skila.Interpreter
             bool dummy = false;
             // todo: make something more intelligent with computation context
             IEntityInstance rhs_typename = isType.RhsTypeName.Evaluation.Components.TranslateThrough(ref dummy, ctx.Translation);
-            if (isType.DebugId.Id == 8)
-            {
-                ;
-            }
             bool result = IsType.MatchTypes(ComputationContext.CreateBare(ctx.Env), lhs_obj.RunTimeTypeInstance, rhs_typename);
             if (!result)
             {
@@ -592,10 +550,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId.Id == 322)
-            {
-                ;
-            }
             Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
             if (call_prep.Is<ExecValue>())
                 return call_prep.As<ExecValue>();
@@ -615,7 +569,7 @@ namespace Skila.Interpreter
             Property.Accessor accessor,
              params ObjectData[] arguments)
         {
-            Property prop = name.Binding.Match.Target.Cast<Property>();
+            Property prop = name.Binding.Match.Instance.Target.Cast<Property>();
             IExpression this_context = name.GetContext(prop.Get(accessor));
             if (this_context == null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
@@ -658,11 +612,6 @@ namespace Skila.Interpreter
         }
         private async Task<Variant<object, ExecValue, CallInfo>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId.Id == 322)
-            {
-                ;
-            }
-
             ObjectData this_ref;
             FunctionDefinition target_func;
 
@@ -862,10 +811,6 @@ namespace Skila.Interpreter
                     if (thisValue.InheritanceVirtualTable.TryGetDerived(targetFunc, out FunctionDefinition derived))
                     {
                         targetFunc = derived;
-                        if (thisValue.RunTimeTypeInstance.TargetType.DebugId.Id == 213)
-                        {
-                            ;
-                        }
                     }
                     else
                     {
@@ -885,20 +830,16 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, NameReference name)
         {
-            if (name.DebugId.Id == 8693)
-            {
-                ;
-            }
-            IEntity target = name.Binding.Match.Target;
+            IEntity target = name.Binding.Match.Instance.Target;
 
             if (target is Property)
                 return await callPropertyAccessorAsync(ctx, name, Property.Accessor.Getter).ConfigureAwait(false);
 
             if (name.Prefix != null)
             {
-                if (name.Binding.Match.Target is TypeDefinition)
+                if (name.Binding.Match.Instance.Target is TypeDefinition)
                 {
-                    ObjectData type_object = await ctx.TypeRegistry.RegisterGetAsync(ctx, name.Binding.Match).ConfigureAwait(false);
+                    ObjectData type_object = await ctx.TypeRegistry.RegisterGetAsync(ctx, name.Binding.Match.Instance).ConfigureAwait(false);
                     return ExecValue.CreateExpression(type_object);
                 }
                 else
@@ -927,7 +868,7 @@ namespace Skila.Interpreter
             }
             else if (target is TypeDefinition typedef)
             {
-                ObjectData type_object = await ctx.TypeRegistry.RegisterGetAsync(ctx, name.Binding.Match).ConfigureAwait(false);
+                ObjectData type_object = await ctx.TypeRegistry.RegisterGetAsync(ctx, name.Binding.Match.Instance).ConfigureAwait(false);
                 return ExecValue.CreateExpression(type_object);
             }
             else
@@ -936,10 +877,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Assignment assign)
         {
-            if (assign.DebugId.Id == 285)
-            {
-                ;
-            }
             ExecValue rhs_val = await ExecutedAsync(assign.RhsValue, ctx).ConfigureAwait(false);
 
             if (assign.Lhs.IsSink())
@@ -948,13 +885,9 @@ namespace Skila.Interpreter
             }
             else
             {
-                if (assign.Lhs.DebugId.Id == 5871)
-                {
-                    ;
-                }
                 ExecValue lhs;
 
-                if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Target is Property prop)
+                if (assign.Lhs is NameReference name_ref && name_ref.Binding.Match.Instance.Target is Property prop)
                 {
                     if (prop.Setter != null)
                     {
@@ -994,11 +927,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, VariableDeclaration decl)
         {
-            if (decl.DebugId.Id == 289)
-            {
-                ;
-            }
-
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(await ObjectData.CreateEmptyAsync(ctx, decl.Evaluation.Aggregate).ConfigureAwait(false));
@@ -1013,11 +941,6 @@ namespace Skila.Interpreter
 
             ObjectData lhs_obj = rhs_obj.Copy();
             ctx.LocalVariables.Add(decl, lhs_obj);
-
-            if (decl.DebugId.Id == 352)
-            {
-                ;
-            }
 
             return rhs_val;
         }
@@ -1068,11 +991,6 @@ namespace Skila.Interpreter
             // not really full function call semantics
             bool propertyCall)
         {
-            if (node.DebugId.Id == 278)
-            {
-                ;
-            }
-
             if (retValue == null) // valid, internally function "returns" void as in C, on call we replace it with Unit
             {
                 retValue = await ObjectData.CreateInstanceAsync(ctx, ctx.Env.UnitType.InstanceOf, UnitLiteral.UnitValue).ConfigureAwait(false);

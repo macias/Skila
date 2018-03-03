@@ -81,20 +81,18 @@ namespace Skila.Language
 
             // the left side: target match (i.e. template inner parameter type) -> template
             // the right side: this -> template parameter -> name definition -> template
-            if (this.Name.Binding.Match.Target.Owner != this.Owner.Owner.Owner)
+            if (this.Name.Binding.Match.Instance.Target.Owner != this.Owner.Owner.Owner)
                 ctx.AddError(ErrorCode.MisplacedConstraint,this);
         }
 
         public IEnumerable<EntityInstance> TranslateInherits(EntityInstance closedTemplate)
         {
-            return InheritsNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
+            return InheritsNames.Select(it => it.Binding.Match.Instance)
                 .Select(it => it.TranslateThrough(closedTemplate));
         }
         public IEnumerable<EntityInstance> TranslateBaseOf(EntityInstance closedTemplate)
         {
-            return BaseOfNames.Select(it => it.Binding.Match)
-                .WhereType<EntityInstance>()
+            return BaseOfNames.Select(it => it.Binding.Match.Instance)
                 .Select(it => it.TranslateThrough(closedTemplate));
         }
 

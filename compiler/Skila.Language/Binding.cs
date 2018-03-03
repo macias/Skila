@@ -14,29 +14,25 @@ namespace Skila.Language
 #endif
 
         public bool IsComputed { get; private set; }
-        private IReadOnlyCollection<EntityInstance> matches;
-        public IReadOnlyCollection<EntityInstance> Matches => this.matches;
+        private IReadOnlyCollection<BindingMatch> matches;
+        public IReadOnlyCollection<BindingMatch> Matches => this.matches;
         public bool HasMatch => this.Matches.Count > 0;
 
-        public EntityInstance Match
+        public BindingMatch Match
         {
             get
             {
                 if (!this.IsComputed)
                     throw new InvalidOperationException();
-                return this.Matches.FirstOrDefault() ?? EntityInstance.Joker;
+                return this.Matches.Any() ? this.Matches.First() : BindingMatch.Joker;
             }
         }
 
         public Binding()
         {
         }
-        public void Set(IEnumerable<EntityInstance> matches)
+        public void Set(IEnumerable<BindingMatch> matches)
         {
-            if (this.debugId.Id == 4842)
-            {
-                ;
-            }
             this.matches = matches.StoreReadOnly();
             //if (this.Matches.Any(it => it.IsJoker))
             //   throw new ArgumentException("Cannot pass joker for binding.");
@@ -47,15 +43,11 @@ namespace Skila.Language
 
         public void SetNone()
         {
-            Set(Enumerable.Empty<EntityInstance>());
+            Set(Enumerable.Empty<BindingMatch>());
         }
         public void Filter(Func<EntityInstance, bool> matching)
         {
-            if (this.debugId.Id == 4842)
-            {
-                ;
-            }
-            this.matches = this.Matches.Where(matching).ToArray();
+            this.matches = this.Matches.Where(it => matching(it.Instance)).ToArray();
         }
         public override string ToString()
         {

@@ -78,10 +78,6 @@ namespace Skila.Language.Expressions
             get { return this.isRead.Value; }
             set
             {
-                if (this.DebugId.Id == 3131)
-                {
-                    ;
-                }
                 if (this.isRead.HasValue) throw new Exception("Internal error"); this.isRead = value;
             }
         }
@@ -129,11 +125,6 @@ namespace Skila.Language.Expressions
             IExpression callee, IEnumerable<FunctionArgument> arguments, NameReference requestedOutcomeType)
           : base()
         {
-            if (this.DebugId.Id == 323)
-            {
-                ;
-            }
-
             this.mode = mode;
             this.callee = callee;
             this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
@@ -198,11 +189,6 @@ namespace Skila.Language.Expressions
                 // pass const instance (of mutable type) as neutral instance (aliasing const instance)
                 // and then call mutable method making "const" guarantee invalid
 
-                if (this.DebugId.Id == 320)
-                {
-                    ;
-                }
-
                 TypeMutability this_mutability = this.Resolution.MetaThisArgument.Expression.Evaluation.Components.MutabilityOfType(ctx);
                 if (this_mutability != TypeMutability.Mutable && this.Resolution.TargetFunction.Modifier.HasMutable)
                     ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
@@ -222,11 +208,6 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 226)
-                {
-                    ;
-                }
-
                 // trap only lambdas, name reference is a call, not passing function around
                 // for example here trapping lambda into closure is necessary
                 // ((x) => x*x)()
@@ -243,7 +224,7 @@ namespace Skila.Language.Expressions
                     if (this.Callee.DereferencedCount_LEGACY > 0)
                         eval = __eval.Cast<EntityInstance>();
 
-                    if (!(this.Name.Binding.Match.Target is FunctionDefinition)
+                    if (!(this.Name.Binding.Match.Instance.Target is FunctionDefinition)
                          && eval.Target.Cast<TypeDefinition>().InvokeFunctions().Any())
                     {
                         // if we call a "closure", like my_closure() it is implicit calling "invoke"
@@ -255,10 +236,10 @@ namespace Skila.Language.Expressions
                 IEnumerable<EntityInstance> matches = this.Name.Binding.Matches
                     .Select(it =>
                     {
-                        if (it.Target.IsFunction())
-                            return it;
-                        else if (it.Target is Property prop)
-                            return prop.Getter?.InstanceOf?.TranslateThrough(it);
+                        if (it.Instance.Target.IsFunction())
+                            return it.Instance;
+                        else if (it.Instance.Target is Property prop)
+                            return prop.Getter?.InstanceOf?.TranslateThrough(it.Instance);
                         else
                             return null;
                     })
@@ -272,11 +253,6 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId.Id == 322)
-                    {
-                        ;
-                    }
-
                     IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.Target), targetFunctionInstance: it))
@@ -332,18 +308,14 @@ namespace Skila.Language.Expressions
                         {
                             NameReference this_name = this.Name;
                             this_name.DetachFrom(this);
-                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments, this.Resolution.TargetFunctionInstance);
+                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments, 
+                                this.Resolution.TargetFunctionInstance, this_name.Binding.Match.IsLocal);
                             this.callee.AttachTo(this);
 
                             this.Callee.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                             if (!this.Name.Binding.HasMatch)
                                 throw new Exception("We've just lost our binding, probably something wrong with template translations");
-                        }
-
-                        if (this.DebugId.Id == 228)
-                        {
-                            ;
                         }
 
                         this.Evaluation = this.Resolution.Evaluation;
@@ -454,7 +426,7 @@ namespace Skila.Language.Expressions
         private bool isRecall(out FunctionDefinition currentFunc, out FunctionDefinition targetFunc)
         {
             currentFunc = this.EnclosingScope<FunctionDefinition>();
-            targetFunc = this.Name.Binding.Match.Target as FunctionDefinition;
+            targetFunc = this.Name.Binding.Match.Instance.Target as FunctionDefinition;
             return currentFunc != null && targetFunc == currentFunc;
         }
 

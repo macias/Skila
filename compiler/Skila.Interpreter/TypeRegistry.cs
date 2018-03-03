@@ -38,11 +38,6 @@ namespace Skila.Interpreter
 
         private async Task<TaskCompletionSource<ObjectData>> registerAsync(ExecutionContext ctx, EntityInstance typeInstance)
         {
-            if (typeInstance.DebugId.Id == 3400)
-            {
-                ;
-            }
-
             TaskCompletionSource<ObjectData> type_entry;
             bool existing;
 
@@ -75,11 +70,6 @@ namespace Skila.Interpreter
                     Interpreter.SetupFunctionCallData(ref ctx, typeInstance.TemplateArguments, metaThis: null, functionArguments: null);
                     await ctx.Interpreter.ExecutedAsync(target.NestedFunctions.Single(it => it.IsZeroConstructor()
                         && it.Modifier.HasStatic), ctx).ConfigureAwait(false);
-
-                    if (typeInstance.DebugId.Id == 3400)
-                    {
-                        ;
-                    }
                 }
             }
 

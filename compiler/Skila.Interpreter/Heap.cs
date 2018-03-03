@@ -20,7 +20,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private const int debugTraceId = -1;
+        private readonly ValueTuple<int, int> debugTraceId = (-1, -1);
         private int debugActionCount = 0;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
@@ -41,12 +41,7 @@ namespace Skila.Interpreter
 
         internal void Allocate(ObjectData obj)
         {
-            if (obj.DebugId.Id == 8758)
-            {
-                ;
-            }
-
-            if (obj.DebugId.Id == debugTraceId)
+            if (obj.DebugId == debugTraceId)
             {
                 print(0, 0, "ALLOC", $"Allocating object", $"{obj}");
             }
@@ -68,7 +63,7 @@ namespace Skila.Interpreter
             {
                 if (!ctx.Env.IsReferenceOfType(releasingObject.RunTimeTypeInstance))
                 {
-                    if (releasingObject.DebugId.Id == debugTraceId)
+                    if (releasingObject.DebugId == debugTraceId)
                         print(0, -1, $"VAL-DEL{(isPassingOut ? " / OUT" : "")}", $"{reason}", comment);
                     // removing valued-objects
                     freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, reason, false, $"as value {comment}");
@@ -80,11 +75,6 @@ namespace Skila.Interpreter
             // todo: after adding nulls to Skila remove this condition
             if (releasingObject == null)
                 return false;
-
-            if (releasingObject.DebugId.Id == 183100)
-            {
-                ;
-            }
 
             int count;
 
@@ -100,13 +90,13 @@ namespace Skila.Interpreter
                 if (count == 0 && !isPassingOut)
                 {
                     this.refCounts.Remove(releasingObject);
-                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut,reason, true, comment);
+                    freeObjectData(ctx, releasingObject, passingOutObject, isPassingOut, reason, true, comment);
                 }
                 else
                     this.refCounts[releasingObject] = count;
             }
 
-            if (releasingObject.DebugId.Id == debugTraceId)
+            if (releasingObject.DebugId == debugTraceId)
             {
                 if (debugActionCount == 15)
                 {
@@ -153,10 +143,6 @@ namespace Skila.Interpreter
             if (pointerObject == null) // null pointer
                 return false;
 
-            if (pointerObject.DebugId.Id == 183067)
-            {
-            }
-
             int count;
 
             lock (this.threadLock)
@@ -165,7 +151,7 @@ namespace Skila.Interpreter
                 this.refCounts[pointerObject] = count;
             }
 
-            if (pointerObject.DebugId.Id == debugTraceId)
+            if (pointerObject.DebugId == debugTraceId)
             {
                 if (count == 4)
                 {
@@ -190,7 +176,7 @@ namespace Skila.Interpreter
         }
         private void print(int count, int change, string operation, string reason, string comment)
         {
-            if (debugActionCount == 7 || debugActionCount==8)
+            if (debugActionCount == 7 || debugActionCount == 8)
             {
                 ;
             }

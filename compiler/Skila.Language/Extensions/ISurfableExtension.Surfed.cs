@@ -12,11 +12,6 @@ namespace Skila.Language.Extensions
     {
         public static void Surfed(this ISurfable node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 2554)
-            {
-                ;
-            }
-
             if (node.IsSurfed)
                 return;
 

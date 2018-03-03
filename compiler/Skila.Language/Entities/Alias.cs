@@ -51,10 +51,6 @@ namespace Skila.Language.Entities
 
         public override bool AttachTo(INode owner)
         {
-            if (this.DebugId.Id == 123498)
-            {
-                ;
-            }
             if (!base.AttachTo(owner))
                 return false;
 
@@ -85,11 +81,6 @@ namespace Skila.Language.Entities
             if (this.Evaluation != null)
                 return;
 
-            if (this.DebugId.Id == 249)
-            {
-                ;
-            }
-
             IEntityInstance tn_eval = this.Replacement?.Evaluation?.Components;
 
             this.Evaluation = ctx.Env.UnitEvaluation;
@@ -102,10 +93,6 @@ namespace Skila.Language.Entities
 
         public void SetIsMemberUsed()
         {
-            if (this.DebugId.Id == 2965)
-            {
-                ;
-            }
             this.IsMemberUsed = true;
         }
 

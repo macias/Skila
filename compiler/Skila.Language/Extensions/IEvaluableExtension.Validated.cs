@@ -14,8 +14,12 @@ namespace Skila.Language.Extensions
         private static void validateExecutionPath(INode node, ExecutionPath path,
             ComputationContext ctx, ref ValidationData result)
         {
+            bool first = true;
             foreach (IEvaluable step in path)
             {
+                if (!first)
+                    ctx.ValAssignTracker?.ResetBranches();
+
                 if (!result.UnreachableCodeFound && result.IsTerminated)
                 {
                     result.UnreachableCodeFound = true;
@@ -25,6 +29,8 @@ namespace Skila.Language.Extensions
                 ValidationData val = Validated(step, ctx);
 
                 result.AddStep(val);
+
+                first = false;
             }
 
         }
@@ -49,10 +55,6 @@ namespace Skila.Language.Extensions
             {
                 if (node is VariableDeclaration decl)
                 {
-                    if (decl.DebugId.Id == 2548)
-                    {
-                        ;
-                    }
                     ctx.ValAssignTracker?.Add(decl);
                 }
             }
@@ -106,15 +108,8 @@ namespace Skila.Language.Extensions
                         branch_results.Add(branch_result);
                     }
 
-                    parent_tracker?.ImportVariables();
-
                     if (expr.Flow.ExhaustiveMaybes)
                         parent_tracker?.MergeAssignments();
-
-                    if (node.DebugId.Id == 234)
-                    {
-                        ;
-                    }
 
                     result.Combine(branch_results);
                 }
@@ -142,11 +137,6 @@ namespace Skila.Language.Extensions
 
             if (evaluable != null)
                 evaluable.Validation = result;
-
-            if (node is Loop && node.DebugId.Id == 5)
-            {
-                ;
-            }
 
             ctx.RemoveVisited(node);
 

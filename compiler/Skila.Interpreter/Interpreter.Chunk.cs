@@ -39,10 +39,6 @@ namespace Skila.Interpreter
             }
             else if (func == ctx.Env.ChunkResizeConstructor)
             {
-                if (this_value.DebugId.Id == 184694)
-                {
-                    ;
-                }
                 IEntityInstance elem_type = this_value.RunTimeTypeInstance.TemplateArguments.Single();
                 ObjectData size_obj = ctx.FunctionArguments[0];
                 var size = size_obj.NativeNat64;

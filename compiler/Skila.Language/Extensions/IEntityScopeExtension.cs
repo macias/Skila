@@ -43,9 +43,11 @@ namespace Skila.Language.Extensions
             IEnumerable<EntityInstance> entities = filterAvailableEntities(availableEntities(scope), scope, name, findMode);
             return findEntities(name, entities);
         }
-        public static IEnumerable<EntityInstance> FindEntities(this EntityInstance scopeInstance, ComputationContext ctx, NameReference name, EntityFindMode findMode)
+        public static IEnumerable<EntityInstance> FindEntities(this EntityInstance scopeInstance, ComputationContext ctx,
+            NameReference name, EntityFindMode findMode)
         {
-            IEnumerable<EntityInstance> entities = filterAvailableEntities(availableEntities(ctx, scopeInstance), scopeInstance.TargetTemplate, name, findMode);
+            IEnumerable<EntityInstance> available = availableEntities(ctx, scopeInstance);
+            IEnumerable<EntityInstance> entities = filterAvailableEntities(available, scopeInstance.TargetTemplate, name, findMode);
             return findEntities(name, entities);
         }
 

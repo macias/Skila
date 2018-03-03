@@ -377,14 +377,14 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(bar_type, bar_ref.Binding.Match.Target);
-            Assert.AreEqual(deriv_type, deriv_ref.Binding.Match.Target);
-            Assert.AreEqual(abc_type, abc_ref.Binding.Match.Target);
+            Assert.AreEqual(bar_type, bar_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(deriv_type, deriv_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(abc_type, abc_ref.Binding.Match.Instance.Target);
 
             bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
-                bar_ref.Binding.Match, deriv_ref.Binding.Match, out IEntityInstance common);
+                bar_ref.Binding.Match.Instance, deriv_ref.Binding.Match.Instance, out IEntityInstance common);
             Assert.IsTrue(found);
-            Assert.AreEqual(abc_ref.Binding.Match, common);
+            Assert.AreEqual(abc_ref.Binding.Match.Instance, common);
 
             return resolver;
         }
@@ -421,9 +421,9 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, parent_ref.Binding.Matches.Count());
-            Assert.AreEqual(foo_type, parent_ref.Binding.Match.Target);
+            Assert.AreEqual(foo_type, parent_ref.Binding.Match.Instance.Target);
             Assert.AreEqual(tuple_type.NestedTypes().Single(),
-                parent_ref.Binding.Match.TemplateArguments.Single().Target());
+                parent_ref.Binding.Match.Instance.TemplateArguments.Single().Target());
 
             return resolver;
         }

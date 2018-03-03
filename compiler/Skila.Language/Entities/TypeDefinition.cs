@@ -140,11 +140,6 @@ namespace Skila.Language.Entities
 
             }
 
-            if (this.DebugId.Id == 5252)
-            {
-                ;
-            }
-
             // base method -> derived (here) method
             var virtual_mapping = new VirtualTable(isPartial: false);
             foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsIncludingObject
@@ -182,17 +177,8 @@ namespace Skila.Language.Entities
                     .Where(it => it.Target.Modifier.HasPublic || it.Target.Modifier.HasProtected)
                     .Where(it => !(it.Target is FunctionDefinition func) || !func.IsAnyConstructor()))
                 {
-                    if (entity_instance.DebugId.Id == 3895)
-                    {
-                        ;
-                    }
                     EntityInstance translated = entity_instance.TranslateThrough(ancestor);
                     inherited_member_instances.Add(translated);
-                }
-
-                if (this.DebugId.Id == 1327)
-                {
-                    ;
                 }
 
                 foreach (FunctionDerivation deriv_info in TypeDefinitionExtension.PairDerivations(ctx, ancestor, all_nested_functions))
@@ -399,10 +385,6 @@ namespace Skila.Language.Entities
                 {
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    if (field.DebugId.Id == 249)
-                    {
-                        ;
-                    }
                     TypeMutability field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
                     if (field_eval_mutability != TypeMutability.ConstAsSource
                         && field_eval_mutability != TypeMutability.GenericUnknownMutability
@@ -430,10 +412,6 @@ namespace Skila.Language.Entities
 
         private void setupConstructors()
         {
-            if (this.DebugId.Id == 3181)
-            {
-                ;
-            }
             if (this.IsTemplateParameter || this.IsJoker || this.IsInterface || this.IsProtocol || this.IsTrait)
                 return;
 
@@ -456,10 +434,6 @@ namespace Skila.Language.Entities
 
         private bool createZeroConstructor(bool isStatic)
         {
-            if (this.DebugId.Id==667)
-            {
-                ;
-            }
             IEnumerable<VariableDeclaration> focus_fields = this.AllNestedFields
                 .Where(it => it.Modifier.HasStatic == isStatic);
 
@@ -549,10 +523,6 @@ namespace Skila.Language.Entities
 
         private bool computeAncestors(ComputationContext ctx, HashSet<TypeDefinition> visited)
         {
-            if (this.DebugId.Id == 662)
-            {
-                ;
-            }
             // we cannot use context visited, because it is only for direct use in Evaluated only
             if (this.IsInheritanceComputed)
                 return true;
@@ -604,11 +574,6 @@ namespace Skila.Language.Entities
 
             // now we have minimal parents
             parents.ExceptWith(ancestors.Keys);
-
-            if (this.DebugId.Id == 85)
-            {
-                ;
-            }
 
             // almost the exactly the order user gave, however
             // user could give incorrect order in respect to interface/implementation 

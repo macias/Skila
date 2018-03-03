@@ -14,6 +14,41 @@ namespace Skila.Tests.Semantics
     public class Flow
     {
         [TestMethod]
+        public IErrorReporter BranchedAssignmentTracking()
+        {
+            // this test was added when working on parallel assignments, it is simplified version of code
+            // which has at least 2 such assignments, when there was only 1 everything worked, but after 
+            // adding another one there was (incorrect) error reported that the second temporary variable was not initialized
+            // the cause for this error was the second `if-then` started tracking assignments after first `if-then` 
+
+            var env = Language.Environment.Create(new Options()
+            {
+                DebugThrowOnError = true,
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+
+                    IfBranch.CreateIf(VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
+                        ExpressionFactory.Readout(NameReference.Create("temp1"))),
+
+                    IfBranch.CreateIf(VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue()),
+                        ExpressionFactory.Readout(NameReference.Create("temp2")))
+
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter DeclarationsOnTheFly()
         {
             var env = Environment.Create(new Options()

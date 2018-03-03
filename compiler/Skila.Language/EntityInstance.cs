@@ -86,7 +86,7 @@ namespace Skila.Language
             this.Core = core;
             this.Translation = translation;
 
-            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf), target: this);
+            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf), target: this, isLocal: false);
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
 
@@ -117,10 +117,6 @@ namespace Skila.Language
 
         public IEntityInstance Evaluated(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 5612)
-            {
-                ;
-            }
             if (this.Evaluation == null)
             {
                 IEntityInstance eval = this.Target.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
@@ -172,12 +168,6 @@ namespace Skila.Language
             if (translation == null)
                 return this;
 
-            if (translation.DebugId.Id == 104)
-            {
-                ;
-            }
-
-
             if (this.TargetsTemplateParameter)
             {
                 if (translation.Translate(this.TemplateParameterTarget, out IEntityInstance trans))
@@ -220,10 +210,6 @@ namespace Skila.Language
             if (!jokerMatchesAll)
                 return this == other;
 
-            if (this.DebugId.Id == 2023)
-            {
-                ;
-            }
             var other_entity = other as EntityInstance;
             if (other_entity == null)
                 return other.IsExactlySame(this, jokerMatchesAll);
@@ -249,11 +235,6 @@ namespace Skila.Language
         public ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance closedTemplate,
             TemplateParameter param)
         {
-            if (this.DebugId.Id == 11139)
-            {
-                ;
-            }
-
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
@@ -267,7 +248,8 @@ namespace Skila.Language
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
-                if (TypeMatch.No == TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true)))
+                TypeMatch match = TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
+                if (TypeMatch.No == match)
                     return ConstraintMatch.InheritsViolation;
             }
 

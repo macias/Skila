@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Objects
     {
-        //[TestMethod]
-        public IInterpreter TODO_OptionalAssignment()
+        [TestMethod]
+        public IInterpreter OptionalAssignment()
         {
             var env = Language.Environment.Create(new Options()
             {
@@ -22,31 +22,39 @@ namespace Skila.Tests.Execution
             });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("acc",null,Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
 
 
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(),Nat8Literal.Create("3"))),
+                        ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("3"))),
                     VariableDeclaration.CreateStatement("y", null,
                         ExpressionFactory.OptionEmpty(NameFactory.Nat8TypeReference())),
 
                     VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
 
-                    //IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") }, new [] { NameReference.Create("x") }),
-                      //  ExpressionFactory.IncBy("acc",Nat8Literal.Create("2"))),
-                    //IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") }, new[] { NameReference.Create("y") }),
-                      //  ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
-                    
-                    Assignment.CreateStatement(NameReference.Create("a"),Nat8Literal.Create("0")),
-                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"),NameReference.Create("b") }, new[] { NameReference.Create("x"),NameReference.Create("y") }),
+                    // succesful assignment
+                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") }, 
+                        new [] { NameReference.Create("x") }),
+                            ExpressionFactory.IncBy("acc", Nat8Literal.Create("2"))),
+                    // failed assignment
+                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") }, 
+                        new[] { NameReference.Create("y") }),
+                            ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
+                            
+                    Assignment.CreateStatement(NameReference.Create("a"), Nat8Literal.Create("0")),
+                    // failed assignment (because the second of the nested assignments fails)
+                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"), NameReference.Create("b") },
+                        new[] { NameReference.Create("x"), NameReference.Create("y") }),
                         ExpressionFactory.IncBy("acc", Nat8Literal.Create("7"))),
-                    ExpressionFactory.AssertEqual(Nat8Literal.Create("0"),NameReference.Create("a")),
+                    // checking that the first nested assignment was not executed (it is all-or-nothing)
+                    ExpressionFactory.AssertEqual(Nat8Literal.Create("0"), NameReference.Create("a")),
+
+                    ExpressionFactory.Readout("b"),
 
                     Return.Create(NameReference.Create("acc"))
                 )));

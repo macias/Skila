@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Skila.Language</RootNamespace>
     <AssemblyName>Skila.Language</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -67,6 +67,7 @@
     <Compile Include="Data\LayerDictionary.Flat.cs" />
     <Compile Include="Data\LayerDictionary.cs" />
     <Compile Include="Data\ILayerDictionary.cs" />
+    <Compile Include="BindingMatch.cs" />
     <Compile Include="Entities\Alias.cs" />
     <Compile Include="Entities\Property.Accessor.cs" />
     <Compile Include="ExecutionPath.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Expressions\Literals\Nat64Literal.cs" />
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
+    <Compile Include="Extensions\EvaluationCall.cs" />
     <Compile Include="Memory.cs" />
     <Compile Include="Tools\Later.cs" />
     <Compile Include="TypeMatching.cs" />
@@ -132,7 +134,6 @@
     <Compile Include="Semantics\ExecutionMode.cs" />
     <Compile Include="Flow\ILoopInterrupt.cs" />
     <Compile Include="Semantics\ValidationData.LoopInterruptInfo.cs" />
-    <Compile Include="Semantics\AssignmentTracker.VariableState.cs" />
     <Compile Include="Builders\IBuilder.cs" />
     <Compile Include="Builders\FunctionBuilder.cs" />
     <Compile Include="Builders\TypeBuilder.cs" />

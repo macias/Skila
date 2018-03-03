@@ -46,10 +46,6 @@ namespace Skila.Language
 
         internal bool Add(ILocalBindable bindable)
         {
-            if (bindable is VariableDeclaration && bindable.DebugId.Id== 59)
-            {
-                ;
-            }
             bool result = this.bag.Add(bindable.Name, new LocalInfo(bindable));
             return result;
         }

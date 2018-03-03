@@ -92,10 +92,6 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
-                if (this.DebugId.Id == 205)
-                {
-                    ;
-                }
                 this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
 
                 if (!this.branches.Any(it => it.IsElse))
@@ -134,11 +130,6 @@ namespace Skila.Language.Flow
 
         private bool computeLowestCommonAncestor(ComputationContext ctx, ref IEntityInstance eval, ref IEntityInstance aggregate)
         {
-            if (this.DebugId.Id == 28)
-            {
-                ;
-            }
-
             if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
             {
                 return false;

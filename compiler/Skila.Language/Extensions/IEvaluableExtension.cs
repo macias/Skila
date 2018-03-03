@@ -10,10 +10,6 @@ namespace Skila.Language.Extensions
     {
         private static void validateReadingValues(IExpression node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 797)
-            {
-                ;
-            }
             var parent = node.Owner as IExpression;
             if (parent == null)
                 return;
@@ -55,15 +51,7 @@ namespace Skila.Language.Extensions
             if (source == null)
                 return true;
 
-            if (@this.DebugId.Id == 291)
-            {
-                ;
-            }
             IEntityInstance src_type = source.Evaluation.Components;
-            if (src_type.DebugId.Id == 7185 && targetTypeName.DebugId.Id == 4930)
-            {
-                ;
-            }
 
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
 

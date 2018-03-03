@@ -20,11 +20,11 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                new Semantics.CompilerProtection().Environment();
+                //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
-                new Semantics.Flow().DeclarationsOnTheFly();
+                // new Semantics.Flow().BranchedAssignmentTracking();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -35,10 +35,10 @@ namespace Skila.Tests
                 //new Semantics.NameResolution().NameAliasing();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
+                // new Semantics.Templates().ErrorCallingTraitMethodOnHost();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().ErrorInOutVariance();
-                //new Semantics.Variables().ErrorUnusedVariableWithinUsedExpression();
+               //new Semantics.Variables().TODO_OptionalAssignment();
 
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
@@ -49,7 +49,7 @@ namespace Skila.Tests
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
                 //new Execution.Io().FileReadingLines();
                 //new Execution.Library().RealNotANumber();
-                //new Execution.Objects().TODO_OptionalAssignment();
+                new Execution.Objects().OptionalAssignment();
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
@@ -58,7 +58,7 @@ namespace Skila.Tests
 
             // if (false)
             {
-                const double golden_standard = 1.26;
+                const double golden_standard = 1.29;
 
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);

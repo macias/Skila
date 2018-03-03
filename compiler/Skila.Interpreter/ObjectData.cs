@@ -35,10 +35,6 @@ namespace Skila.Interpreter
         }
         internal static Task<ObjectData> CreateTypeAsync(ExecutionContext ctx, IEntityInstance typeInstance)
         {
-            if (typeInstance.DebugId.Id == 652)
-            {
-                ;
-            }
             TypeDefinition type_def = typeInstance.Cast<EntityInstance>().TargetType;
             return constructorAsync(ctx, type_def.Modifier.HasNative, null, typeInstance, isStatic: true);
         }
@@ -198,17 +194,9 @@ namespace Skila.Interpreter
         private ObjectData()
         {
             this.DebugId = new DebugId(typeof(ObjectData));
-            if (this.DebugId.Id == debugTraceId)
-            {
-                ;
-            }
         }
         private ObjectData(Data data) : this()
         {
-            if (this.DebugId.Id == 9167)
-            {
-                ;
-            }
             this.data = data;
         }
 
@@ -229,7 +217,7 @@ namespace Skila.Interpreter
 
         public override string ToString()
         {
-            return this.isFreed ? $"The object is disposed, id: {this.DebugId.Id}" : $"{this.RunTimeTypeInstance}";
+            return this.isFreed ? $"The object is disposed, id: {this.DebugId}" : $"{this.RunTimeTypeInstance}";
         }
 
         public ObjectData DereferencedOnce()
@@ -252,11 +240,6 @@ namespace Skila.Interpreter
         internal bool Free(ExecutionContext ctx, ObjectData passingOut, bool isPassingOut, RefCountDecReason reason,
             bool destroy, string comment)
         {
-            if (this.DebugId.Id == 182254)
-            {
-                ;
-            }
-
             if (this.isFreed)
                 throw new ObjectDisposedException($"{this}");
 
@@ -297,10 +280,6 @@ namespace Skila.Interpreter
 
         private void setData(Data data)
         {
-            if (this.DebugId.Id == debugTraceId)
-            {
-                ;
-            }
             this.data = data;
         }
         internal ObjectData Copy()
@@ -385,15 +364,6 @@ namespace Skila.Interpreter
         {
             if (this.isFreed || source.isFreed)
                 throw new ObjectDisposedException($"{source}");
-
-            if (source.DebugId.Id == 2942 || source.DebugId.Id == 2938)
-            {
-                ;
-            }
-            if (this.DebugId.Id == 5421)
-            {
-                ;
-            }
 
             this.setData(new Data(source.data));
         }

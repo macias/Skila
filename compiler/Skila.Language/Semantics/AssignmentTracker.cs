@@ -8,13 +8,13 @@ using NaiveLanguageTools.Common;
 namespace Skila.Language.Semantics
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed partial class AssignmentTracker : INameRegistry
+    public sealed class AssignmentTracker : INameRegistry
     {
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId(typeof(AssignmentTracker));
 #endif
 
-        private readonly IDictionary<VariableDeclaration, VariableState> variables;
+        private readonly HashSet<VariableDeclaration> initializedVariables;
 
         private static IEqualityComparer<VariableDeclaration> variableDeclarationComparer;
         public AssignmentTracker ThenBranch { get; set; }
@@ -27,21 +27,13 @@ namespace Skila.Language.Semantics
         public AssignmentTracker()
         {
             // binding is done during evaluation, so now we can ignore shadowing option and use references in the dictionary
-            this.variables = new Dictionary<VariableDeclaration, VariableState>(comparer: variableDeclarationComparer);
-            if (this.DebugId.Id == 1669)
-            {
-                ;
-            }
+            this.initializedVariables = new HashSet<VariableDeclaration>(comparer: variableDeclarationComparer);
         }
 
         private AssignmentTracker(AssignmentTracker src)
         {
-            this.variables = new Dictionary<VariableDeclaration, VariableState>(src.variables, comparer: variableDeclarationComparer);
+            this.initializedVariables = new HashSet<VariableDeclaration>(src.initializedVariables, comparer: variableDeclarationComparer);
 
-            if (this.DebugId.Id == 1669)
-            {
-                ;
-            }
         }
 
         public AssignmentTracker Clone()
@@ -51,49 +43,33 @@ namespace Skila.Language.Semantics
 
         internal void Add(VariableDeclaration decl)
         {
-            if (decl.DebugId.Id == 819)
-            {
-                ;
-            }
-            this.variables.Add(decl, decl.InitValue != null ? VariableState.Assigned : VariableState.NotInitialized);
+            if (decl.InitValue != null)
+                this.initializedVariables.Add(decl);
         }
 
-        internal void ImportVariables()
+        internal void MergeAssignments()
         {
-            foreach (VariableDeclaration decl in new[] { ThenBranch, ElseBranch }
-                .Where(it => it != null)
-                .SelectMany(it => it.variables.Keys))
-            {
-                if (!this.variables.ContainsKey(decl))
-                    this.variables.Add(decl, VariableState.NotInitialized);
-            }
-        }
-
-        internal void MergeAssignments(params AssignmentTracker[] branches)
-        {
-            HashSet<VariableDeclaration> set = null;
+            HashSet<VariableDeclaration> set = ThenBranch?.initializedVariables;
             // first merge the branches
-            foreach (AssignmentTracker branch in new[] { ThenBranch, ElseBranch }.Where(it => it != null))
+            if (ElseBranch?.initializedVariables != null)
             {
-                IEnumerable<VariableDeclaration> locally_set = branch.variables
-                .Where(it => it.Value == VariableState.Assigned)
-                .Select(it => it.Key);
-
                 if (set == null)
-                    set = new HashSet<VariableDeclaration>(locally_set);
+                    set = ElseBranch.initializedVariables;
                 else
-                    set.IntersectWith(locally_set);
+                    // we will kill branches in the second, so we can mutate their variables sets
+                    set.IntersectWith(ElseBranch.initializedVariables);
             }
 
             // ... then merge the outcome with current tracker
             if (set != null)
-                foreach (VariableDeclaration decl in set)
-                {
-                    if (this.variables.ContainsKey(decl))
-                        this.variables[decl] = VariableState.Assigned;
-                }
+                this.initializedVariables.UnionWith(set);
 
             // since we merge both branches now it is time to kill them because we will represent state of variables as merges ones
+            ResetBranches();
+        }
+
+        public void ResetBranches()
+        {
             this.ThenBranch = null;
             this.ElseBranch = null;
         }
@@ -113,25 +89,22 @@ namespace Skila.Language.Semantics
             VariableDeclaration decl = lhs.TryGetTargetEntity<VariableDeclaration>(out NameReference dummy);
             if (decl != null)
             {
-                if (this.variables.ContainsKey(decl))
-                    this.variables[decl] = VariableState.Assigned;
+                this.initializedVariables.Add(decl);
             }
         }
 
         public bool TryCanRead(NameReference name, out VariableDeclaration varDeclaration)
         {
-            if (name.DebugId.Id == 2494)
-            {
-                ;
-            }
-            if (name.Binding.Match.Target is VariableDeclaration decl)
+            if (name.Binding.Match.Instance.Target is VariableDeclaration decl)
             {
                 varDeclaration = decl;
 
-                if (this.variables.TryGetValue(decl, out VariableState state))
+                if (this.initializedVariables.Contains(decl))
                 {
-                    return state != VariableState.NotInitialized;
+                    return true;
                 }
+                else if (name.Binding.Match.IsLocal)
+                    return false;
             }
             else
                 varDeclaration = null;
@@ -141,13 +114,15 @@ namespace Skila.Language.Semantics
 
         public bool CanRead(VariableDeclaration decl)
         {
-            VariableState state = this.variables[decl];
-            return state != VariableState.NotInitialized;
+            return this.initializedVariables.Contains(decl);
         }
 
         public override string ToString()
         {
-            return $"{variables.Count} entries, {variables.Count(it => it.Value != VariableState.NotInitialized)} assigned";
+            if (this.initializedVariables.Any())
+                return this.initializedVariables.Select(it => $"{it.Name}").Join(", ");
+            else
+                return "<empty>";
         }
 
     }

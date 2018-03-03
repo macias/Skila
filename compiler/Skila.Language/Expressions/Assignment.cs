@@ -157,11 +157,6 @@ namespace Skila.Language.Expressions
                 }
             }
 
-            if (this.DebugId.Id == 0)
-            {
-                ;
-            }
-
             {
                 IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
                 if (lhs_var != null)
@@ -212,10 +207,6 @@ namespace Skila.Language.Expressions
             }
 
 
-            if (this.DebugId.Id == 0)
-            {
-                ;
-            }
             if (!this.Lhs.IsLValue(ctx))
                 ctx.AddError(ErrorCode.AssigningRValue, this.Lhs);
 
@@ -223,10 +214,6 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId.Id == 285)
-            {
-                ;
-            }
             if (this.Evaluation == null)
             {
                 this.TrapClosure(ctx, ref this.rhsValue);

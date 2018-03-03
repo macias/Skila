@@ -36,10 +36,6 @@ namespace Skila.Language
 
             for (int i = 0; i < template.Name.Arity; ++i)
             {
-                if (input.DebugId.Id == 108975)
-                {
-                    ;
-                }
                 TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx,
                     target.TemplateArguments[i],
                     template.Name.Parameters[i].Variance,
@@ -56,11 +52,6 @@ namespace Skila.Language
 
         public static TypeMatch Matches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
         {
-            if (input.DebugId.Id == 7632 && target.DebugId.Id == 7628)
-            {
-                ;
-            }
-
             if (input.IsJoker || target.IsJoker)
                 return TypeMatch.Same;
 
@@ -75,10 +66,6 @@ namespace Skila.Language
                     IEntityInstance conv_type = func.Parameters.Single().TypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump).TranslateThrough(target);
                     if (target == conv_type) // preventing circular conversion check
                         continue;
-                    if (input.DebugId.Id == 1978 && target.DebugId.Id == 1996)
-                    {
-                        ;
-                    }
 
                     TypeMatch m = input.MatchesTarget(ctx, conv_type, matching.WithSlicing(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
@@ -136,10 +123,6 @@ namespace Skila.Language
                     IEntityInstance conv_type = func.ResultTypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump).TranslateThrough(input);
                     //if (target == conv_type) // preventing circular conversion check
                     //  continue;
-                    if (input.DebugId.Id == 1978 && target.DebugId.Id == 1996)
-                    {
-                        ;
-                    }
 
                     TypeMatch m = conv_type.MatchesTarget(ctx, target, matching.WithSlicing(conv_slicing_sub));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
@@ -150,11 +133,6 @@ namespace Skila.Language
             if (target.TargetType.AllowSlicedSubstitution)
                 matching.AllowSlicing = true;
 
-
-            if (input.DebugId.Id == 37 && target.DebugId.Id == 5376)
-            {
-                ;
-            }
 
             TypeMutability input_mutability = input.MutabilityOfType(ctx);
             if (matching.AllowSlicing)
@@ -384,11 +362,6 @@ namespace Skila.Language
         {
             if (closedTemplate == null || closedTemplate.IsJoker)
                 return ConstraintMatch.Yes;
-
-            if (closedTemplate.Target.DebugId.Id == 664)
-            {
-                ;
-            }
 
             return ArgumentsMatchConstraintsOf(ctx, closedTemplate.Target.Name.Parameters, closedTemplate);
         }

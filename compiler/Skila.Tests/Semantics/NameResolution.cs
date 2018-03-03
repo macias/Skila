@@ -352,7 +352,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Target);
+            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -369,7 +369,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Target);
+            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -405,7 +405,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Target);
+            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -424,7 +424,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(2, string_ref.Binding.Matches.Count());
-            Assert.IsTrue(string_ref.Binding.Matches.Any(it => it.Target == env.StringType));
+            Assert.IsTrue(string_ref.Binding.Matches.Any(it => it.Instance.Target == env.StringType));
 
             return resolver;
         }
@@ -448,13 +448,13 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, tuple_ref.Binding.Matches.Count());
-            Assert.AreEqual(tuple_type, tuple_ref.Binding.Match.Target);
+            Assert.AreEqual(tuple_type, tuple_ref.Binding.Match.Instance.Target);
             Assert.AreEqual(tuple_type.NestedTypes().Single(),
-                tuple_ref.Binding.Match.TemplateArguments.Single().Target());
+                tuple_ref.Binding.Match.Instance.TemplateArguments.Single().Target());
 
             Assert.AreEqual(1, tuple_abc_ref.Binding.Matches.Count());
-            Assert.AreEqual(tuple_type, tuple_abc_ref.Binding.Match.Target);
-            Assert.AreEqual(abc_type, tuple_abc_ref.Binding.Match.TemplateArguments.Single().Target());
+            Assert.AreEqual(tuple_type, tuple_abc_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(abc_type, tuple_abc_ref.Binding.Match.Instance.TemplateArguments.Single().Target());
 
             return resolver;
         }

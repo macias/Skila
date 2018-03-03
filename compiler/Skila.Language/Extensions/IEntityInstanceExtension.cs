@@ -56,10 +56,6 @@ namespace Skila.Language.Extensions
             // we have to use cache with visited types, because given type A can have a field of type A, 
             // which would lead to infinite checking
 
-            if (@this.DebugId.Id == 7632)
-            {
-                ;
-            }
             if (!visited.Add(@this))
                 return TypeMutability.ConstAsSource;
 

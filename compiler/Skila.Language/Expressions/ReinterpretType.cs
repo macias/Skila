@@ -57,11 +57,6 @@ namespace Skila.Language.Expressions
         {
             base.Validate(ctx);
 
-            if (this.DebugId.Id == 7)
-            {
-                ;
-            }
-
             // we can do whatever but we cannot shake off the const/neutral off
             TypeMutability lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
             TypeMutability rhs_mutability = this.RhsTypeName.Evaluation.Components.MutabilityOfType(ctx);

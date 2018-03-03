@@ -49,15 +49,15 @@ namespace Skila.Language
             return Name + parameters;
         }
 
-        public NameReference CreateNameReference(IExpression prefix, EntityInstance targetInstance = null)
+        public NameReference CreateNameReference(IExpression prefix, EntityInstance targetInstance, bool isLocal)
         {
             return NameReference.Create(prefix, this.Name,
-                this.Parameters.Select(it => NameReference.Create(it.Name)), targetInstance);
+                this.Parameters.Select(it => NameReference.Create(it.Name)), targetInstance, isLocal);
         }
-        public NameReference CreateNameReference(IExpression prefix, MutabilityOverride mutability, EntityInstance targetInstance = null)
+        public NameReference CreateNameReference(IExpression prefix, MutabilityOverride mutability)
         {
             return NameReference.Create(mutability, prefix, this.Name,
-                this.Parameters.Select(it => NameReference.Create(it.Name)), targetInstance);
+                this.Parameters.Select(it => NameReference.Create(it.Name)), target: null, isLocal: false);
         }
     }
 

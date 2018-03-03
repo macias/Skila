@@ -4,20 +4,11 @@ using Skila.Language.Semantics;
 using System.Linq;
 
 namespace Skila.Language.Extensions
-{
-    public enum EvaluationCall
-    {
-        Nested,
-        AdHocCrossJump
-    }
+{    
     public static partial class IEvaluableExtension
     {
         public static IEntityInstance Evaluated(this INode node, ComputationContext ctx, EvaluationCall evalCall)
         {
-            if (node.DebugId.Id == 3199)
-            {
-                ;
-            }
             var evaluable = node as IEvaluable;
 
             if (evaluable != null && evaluable.IsComputed)
@@ -52,10 +43,6 @@ namespace Skila.Language.Extensions
                     {
                         if (ctx.EvalLocalNames != null)
                         {
-                            if (node.DebugId.Id == 198)
-                            {
-                                ;
-                            }
                             if (!ctx.EvalLocalNames.Add(bindable))
                                 ctx.AddError(ErrorCode.NameAlreadyExists, bindable.Name);
                             else if (bindable.Name.Name == NameFactory.SelfFunctionName
