@@ -14,6 +14,114 @@ namespace Skila.Tests.Semantics
     public class Flow
     {
         [TestMethod]
+        public IErrorReporter ErrorExtendedAssignmentTracking()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            // this test is mimics how optional assignment works with conditions
+            // we have nested `if` which sends outside true/false depending if assigment was succesful
+            // our assign tracker should use that hint and detect which variables are initialized
+            NameReference not_initialized1 = NameReference.Create("n");
+            NameReference not_initialized2 = NameReference.Create("m");
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("n", NameFactory.BoolTypeReference(), null, EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("m", NameFactory.BoolTypeReference(), null, EntityModifier.Reassignable),
+
+                    // main if
+                    IfBranch.CreateIf(
+                    // mega condition
+                    IfBranch.CreateIf(
+                        ExpressionFactory.And(
+                        VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
+                        VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue())),
+                        new[]
+                        {
+                            Assignment.CreateStatement("n","temp1"),
+                            Assignment.CreateStatement("m","temp2"),
+                            BoolLiteral.CreateTrue(),
+                        },
+                        IfBranch.CreateElse(BoolLiteral.CreateFalse())),
+                    // -- end of mega condition
+                    ExpressionFactory.Nop,
+                    // in general we cannot guarantee we can read it in `else` branch
+                    IfBranch.CreateElse(ExpressionFactory.Readout(not_initialized1))),
+                    // -- end of main if
+
+                    // `else` branch is live, so `m` can be still uninitialized
+                    ExpressionFactory.Readout(not_initialized2)
+
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized2));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ExtendedAssignmentTracking()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DebugThrowOnError = true,
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            // this test is mimics how optional assignment works with conditions
+            // we have nested `if` which sends outside true/false depending if assigment was succesful
+            // our assign tracker should use that hint and detect which variables are initialized
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("a", NameFactory.BoolTypeReference(), null, EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("b", NameFactory.BoolTypeReference(), null, EntityModifier.Reassignable),
+
+                    // main if
+                    IfBranch.CreateIf(
+                    // mega condition
+                    IfBranch.CreateIf(
+                        ExpressionFactory.And(
+                        VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
+                        VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue())),
+                        new[]
+                        {
+                            Assignment.CreateStatement("a","temp1"),
+                            Assignment.CreateStatement("b","temp2"),
+                            BoolLiteral.CreateTrue(),
+                        },
+                        IfBranch.CreateElse(BoolLiteral.CreateFalse())),
+                    // -- end of mega condition
+                    ExpressionFactory.Readout("a"),
+                    // making `else` a dead branch
+                    IfBranch.CreateElse(ExpressionFactory.GenericThrow())),
+                    // -- end of main if
+
+                    // `b` is initialized because `else` is a thrower, so the only way is going through `then`
+                    // and `then` is activated only when all variables are initialized
+                    ExpressionFactory.Readout("b")
+
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter BranchedAssignmentTracking()
         {
             // this test was added when working on parallel assignments, it is simplified version of code

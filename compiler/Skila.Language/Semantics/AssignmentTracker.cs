@@ -56,16 +56,15 @@ namespace Skila.Language.Semantics
                 if (set == null)
                     set = ElseBranch.initializedVariables;
                 else
-                    // we will kill branches in the second, so we can mutate their variables sets
+                {
+                    set = new HashSet<VariableDeclaration>(set);
                     set.IntersectWith(ElseBranch.initializedVariables);
+                }
             }
 
             // ... then merge the outcome with current tracker
             if (set != null)
                 this.initializedVariables.UnionWith(set);
-
-            // since we merge both branches now it is time to kill them because we will represent state of variables as merges ones
-            ResetBranches();
         }
 
         public void ResetBranches()
@@ -114,7 +113,7 @@ namespace Skila.Language.Semantics
 
         public bool CanRead(VariableDeclaration decl)
         {
-            return this.initializedVariables.Contains(decl);
+            return decl.InitValue != null;
         }
 
         public override string ToString()

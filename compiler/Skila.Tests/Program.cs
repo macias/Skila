@@ -24,7 +24,7 @@ namespace Skila.Tests
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
-                // new Semantics.Flow().BranchedAssignmentTracking();
+                 //new Semantics.Flow().ErrorExtendedAssignmentTracking();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -43,13 +43,13 @@ namespace Skila.Tests
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
                 //new Execution.Concurrency().SingleMessage();
-                //new Execution.Flow().ThrowingException();
+                //new Execution.Flow().InitializationWithinOptionalAssignment();
                 //new Execution.FunctionCalls().RecursiveCall();
                 //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
                 //new Execution.Io().FileReadingLines();
                 //new Execution.Library().RealNotANumber();
-                new Execution.Objects().OptionalAssignment();
+                //new Execution.Objects().OptionalAssignment();
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
@@ -60,10 +60,11 @@ namespace Skila.Tests
             {
                 const double golden_standard = 1.29;
 
-                double start = Stopwatch.GetTimestamp();
-                int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
+                long min_ticks, max_ticks;
+                long start = Stopwatch.GetTimestamp();
+                int count = runTests<IErrorReporter>(nameof(Semantics),out min_ticks,out max_ticks, checkErrorCoverage: true);
 
-                reportTime("Semantics", start, count, golden_standard);
+                reportTime("Semantics", start, count, golden_standard, min_ticks, max_ticks);
             }
 
             Console.WriteLine();
@@ -72,10 +73,11 @@ namespace Skila.Tests
             {
                 const double golden_standard = 1.31;
 
-                double start = Stopwatch.GetTimestamp();
-                int count = runTests<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
+                long min_ticks, max_ticks;
+                long start = Stopwatch.GetTimestamp();
+                int count = runTests<IInterpreter>(nameof(Execution), out min_ticks, out max_ticks, checkErrorCoverage: false);
 
-                reportTime("Interpretation", start, count, golden_standard);
+                reportTime("Interpretation", start, count, golden_standard, min_ticks, max_ticks);
             }
 
             if (AssertReporter.Fails.Any())
@@ -100,13 +102,15 @@ namespace Skila.Tests
                 Console.ReadLine();
         }
 
-        private static void reportTime(string title, double start, int count, double goldenStandard)
+        private static void reportTime(string title, long start, int count, double goldenStandard,long minTicks,long maxTicks)
         {
-            double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
-            double avg = time / count;
-            Console.Write($"{title} time: {time.ToString("0.00")}s, average: {avg.ToString("0.00")}s, ");
+            double time_s = (Stopwatch.GetTimestamp() - start) *1.0 / Stopwatch.Frequency;
+            double avg_s = time_s / count;
+            double min_s = minTicks * 1.0 / Stopwatch.Frequency;
+            double max_s = maxTicks * 1.0 / Stopwatch.Frequency;
+            Console.Write($"{title} time: {time_s.ToString("0.00")}s, min: {min_s.ToString("0.00")}s, max: {max_s.ToString("0.00")}s, average: {avg_s.ToString("0.00")}s, ");
             const int rounding = 100;
-            int diff = (int)Math.Round((avg - goldenStandard)* rounding);
+            int diff = (int)Math.Round((avg_s - goldenStandard)* rounding);
 
             var fc = Console.ForegroundColor;
             if (diff > 2)
@@ -117,9 +121,12 @@ namespace Skila.Tests
             Console.ForegroundColor = fc;
         }
 
-        private static int runTests<T>(string @namespace, bool checkErrorCoverage)
+        private static int runTests<T>(string @namespace,out long minTicks,out long maxTicks, bool checkErrorCoverage)
             where T : class
         {
+            minTicks = long.MaxValue;
+            maxTicks = long.MinValue;
+
             HashSet<ErrorCode> reported_errors = checkErrorCoverage ? new HashSet<ErrorCode>() : null;
             var missed_atrr = new List<string>();
             int failed = 0;
@@ -130,7 +137,7 @@ namespace Skila.Tests
                 .Where(it => it.Namespace.EndsWith(@namespace))
                 .OrderBy(it => it.Name))
             {
-                missed_atrr.AddRange(runTests<T>(type, ref total, ref failed, reported_errors));
+                missed_atrr.AddRange(runTests<T>(type, ref total, ref failed,ref minTicks,ref maxTicks, reported_errors));
             }
 
             if (checkErrorCoverage)
@@ -190,7 +197,8 @@ namespace Skila.Tests
             return total;
         }
 
-        private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed, HashSet<ErrorCode> errors)
+        private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed,ref long minTicks,ref long maxTicks,
+            HashSet<ErrorCode> errors)
             where T : class
         {
             var miss_attr = new List<string>();
@@ -215,7 +223,11 @@ namespace Skila.Tests
                             Console.Write(test_name);
                             // this is not just dumb casting -- it checks if the given test returns the expected object
                             // so for example, semantic test is not mixed with interpretation test
+                            long start_ticks = Stopwatch.GetTimestamp();
                             T result = method.Invoke(test, new object[] { }).Cast<T>();
+                            long ticks = Stopwatch.GetTimestamp() - start_ticks;
+                            minTicks = Math.Min(minTicks, ticks);
+                            maxTicks = Math.Max(maxTicks, ticks);
                             if (result == null)
                                 throw new Exception("Internal error");
                             if (result is IErrorReporter reporter)

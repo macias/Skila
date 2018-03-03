@@ -395,7 +395,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression Ternary(IExpression condition, IExpression then, IExpression otherwise)
         {
-            return IfBranch.CreateIf(condition, new[] { then }, IfBranch.CreateElse(new[] { otherwise }));
+            return IfBranch.CreateIf(condition, then, IfBranch.CreateElse(otherwise));
         }
 
         public static IExpression OptionCoalesce(IExpression option, IExpression fallback)
