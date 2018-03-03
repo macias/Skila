@@ -11,6 +11,8 @@ namespace Skila.Language.Expressions
 {
     public static class ExpressionFactory
     {
+        public static IEnumerable<IExpression> Nop { get; } = Enumerable.Empty<IExpression>();
+
         public static IExpression OptionalAssignment(IEnumerable<IExpression> lhsExpressions, IEnumerable<IExpression> rhsExpressions)
         {
             // todo: add support for spread
@@ -327,6 +329,10 @@ namespace Skila.Language.Expressions
         public static IExpression And(IExpression lhs, IExpression rhs)
         {
             return BoolOperator.Create(BoolOperator.OpMode.And, lhs, rhs);
+        }
+        public static IExpression Or(IExpression lhs, IExpression rhs)
+        {
+            return BoolOperator.Create(BoolOperator.OpMode.Or, lhs, rhs);
         }
         public static IExpression IsEqual(IExpression lhs, IExpression rhs)
         {

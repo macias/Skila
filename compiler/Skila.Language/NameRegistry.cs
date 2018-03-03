@@ -6,32 +6,50 @@ using Skila.Language.Comparers;
 using Skila.Language.Data;
 using Skila.Language.Extensions;
 using Skila.Language.Entities;
+using Skila.Language.Expressions;
+using System;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameRegistry : INameRegistry
+    public sealed class NameRegistry : ILayeredNameRegistry
     {
         private readonly ILayerDictionary<ITemplateName, LocalInfo> bag;
+        private readonly Stack<IScope> scopes;
 
         public NameRegistry(bool shadowing)
         {
             this.bag = LayerDictionary.Create<ITemplateName, LocalInfo>(shadowing,EntityNameArityComparer.Instance);
+            this.scopes = new Stack<IScope>();
         }
 
         public void AddLayer(IScope scope)
         {
             if (scope != null)
+            {
                 this.bag.PushLayer();
+                this.scopes.Push(scope);
+            }
         }
 
-        internal IEnumerable<ILocalBindable> RemoveLayer()
+        internal IEnumerable<LocalInfo> RemoveLayer()
         {
-            return this.bag.PopLayer().Where(it => !it.Item2.Used).Select(it => it.Item2.Bindable);
+            this.scopes.Pop();
+            return this.bag.PopLayer().Select(it => it.Item2);
         }
+
+        public IScope LastLayer()
+        {
+            return this.scopes.Peek();
+        }
+
 
         internal bool Add(ILocalBindable bindable)
         {
+            if (bindable is VariableDeclaration && bindable.DebugId.Id== 59)
+            {
+                ;
+            }
             bool result = this.bag.Add(bindable.Name, new LocalInfo(bindable));
             return result;
         }
@@ -49,7 +67,13 @@ namespace Skila.Language
             value = info.Bindable as T;
             bool result = value != null;
             if (result)
+            {
                 info.Used = true;
+                if ((name.Owner as Assignment)?.Lhs != name)
+                {
+                    info.Read = true;
+                }
+            }
             return result;
         }
 

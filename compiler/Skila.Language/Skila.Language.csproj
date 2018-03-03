@@ -79,6 +79,7 @@
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="Memory.cs" />
+    <Compile Include="Tools\Later.cs" />
     <Compile Include="TypeMatching.cs" />
     <Compile Include="MutabilityFlag.cs" />
     <Compile Include="Entities\IMember.cs" />
@@ -128,12 +129,10 @@
     <Compile Include="ReportCollector.cs" />
     <Compile Include="IErrorReporter.cs" />
     <Compile Include="Semantics\ErrorPriority.cs" />
-    <Compile Include="Semantics\TrackingState.cs" />
     <Compile Include="Semantics\ExecutionMode.cs" />
     <Compile Include="Flow\ILoopInterrupt.cs" />
     <Compile Include="Semantics\ValidationData.LoopInterruptInfo.cs" />
     <Compile Include="Semantics\AssignmentTracker.VariableState.cs" />
-    <Compile Include="Semantics\AssignmentTracker.VariableInfo.cs" />
     <Compile Include="Builders\IBuilder.cs" />
     <Compile Include="Builders\FunctionBuilder.cs" />
     <Compile Include="Builders\TypeBuilder.cs" />
@@ -178,7 +177,7 @@
     <Compile Include="ExpressionReadMode.cs" />
     <Compile Include="IIndexed.cs" />
     <Compile Include="Expressions\FunctionArgument.cs" />
-    <Compile Include="Expressions\UnitValue.cs" />
+    <Compile Include="Expressions\Literals\UnitLiteral.cs" />
     <Compile Include="Expressions\Literals\Int64Literal.cs" />
     <Compile Include="Extensions\IExpressionExtension.cs" />
     <Compile Include="TypeInheritance.cs" />

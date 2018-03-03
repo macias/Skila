@@ -72,7 +72,7 @@ namespace Skila.Language
                 bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;
                 foreach (FunctionDefinition func in in_conv)
                 {
-                    IEntityInstance conv_type = func.Parameters.Single().TypeName.Evaluated(ctx).TranslateThrough(target);
+                    IEntityInstance conv_type = func.Parameters.Single().TypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump).TranslateThrough(target);
                     if (target == conv_type) // preventing circular conversion check
                         continue;
                     if (input.DebugId.Id == 1978 && target.DebugId.Id == 1996)
@@ -133,7 +133,7 @@ namespace Skila.Language
                 bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;
                 foreach (FunctionDefinition func in out_conv)
                 {
-                    IEntityInstance conv_type = func.ResultTypeName.Evaluated(ctx).TranslateThrough(input);
+                    IEntityInstance conv_type = func.ResultTypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump).TranslateThrough(input);
                     //if (target == conv_type) // preventing circular conversion check
                     //  continue;
                     if (input.DebugId.Id == 1978 && target.DebugId.Id == 1996)
@@ -202,7 +202,7 @@ namespace Skila.Language
 
                 // todo: at this it should be already evaluated, so constraints should be surfables
                 IEnumerable<IEntityInstance> base_of
-                    = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx));
+                    = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx, EvaluationCall.AdHocCrossJump));
 
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
                     .Concat(base_of.Select(it => new TypeAncestor(it.Cast<EntityInstance>(), 1))), matching);

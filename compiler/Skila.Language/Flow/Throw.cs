@@ -46,7 +46,7 @@ namespace Skila.Language.Flow
                 this.Evaluation = ctx.Env.UnitEvaluation;
 
                 NameReference req_typename = NameFactory.PointerTypeReference(NameFactory.ExceptionTypeReference());
-                IEntityInstance eval_typename = req_typename.Evaluated(ctx);
+                IEntityInstance eval_typename = req_typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                 this.DataTransfer(ctx, ref this.expr, eval_typename);
             }

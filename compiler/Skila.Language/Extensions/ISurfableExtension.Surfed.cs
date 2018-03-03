@@ -42,8 +42,6 @@ namespace Skila.Language.Extensions
             node.IsSurfed = true;
 
             ctx.RemoveVisited(node);
-
-            return;
         }
     }
 

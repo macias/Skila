@@ -13,8 +13,8 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Flow
     {
-        //[TestMethod]
-        public IErrorReporter TODO_DeclarationsOnTheFly()
+        [TestMethod]
+        public IErrorReporter DeclarationsOnTheFly()
         {
             var env = Environment.Create(new Options()
             {
@@ -36,23 +36,54 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), Undef.Create(), EntityModifier.Reassignable),
 
-
                     // if (x := 3) == 5 then a = x;
-                    /*IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
-                        VariableDeclaration.CreateExpression("xxx", null, IntLiteral.Create("3"))),
-                        Assignment.CreateStatement("a", "xxx")),*/
-                    /*
-                    // if (x := 3) == 5 and f() then a = x;
-                    IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                    IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                         VariableDeclaration.CreateExpression("x", null, IntLiteral.Create("3"))),
-                        FunctionCall.Create(NameReference.Create("f"))),
                         Assignment.CreateStatement("a", "x")),
-                        */
-                    // if f() and (x := 3) == 5 then a = x;
-                    IfBranch.CreateIf(ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
-                        ExpressionFactory.IsEqual(IntLiteral.Create("5"),
-                        VariableDeclaration.CreateExpression("xxx", null, IntLiteral.Create("3")))),
-                        Assignment.CreateStatement("a", "xxx")),
+
+                    // if (x := 3) == 5 then NOP else a = x;
+                    IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                        VariableDeclaration.CreateExpression("w", null, IntLiteral.Create("3"))),
+                        ExpressionFactory.Nop, IfBranch.CreateElse(Assignment.CreateStatement("a", "w"))),
+
+                       // if (y := 3) == 5 and f() then a = y;
+                       IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("y", null, IntLiteral.Create("3"))),
+                           FunctionCall.Create(NameReference.Create("f"))),
+                           Assignment.CreateStatement("a", "y")),
+
+                       // if (x := 3) == 5 and f() then NOP else a = x;
+                       IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("r", null, IntLiteral.Create("3"))),
+                           FunctionCall.Create(NameReference.Create("f"))),
+                           ExpressionFactory.Nop,
+                           IfBranch.CreateElse(Assignment.CreateStatement("a", "r"))),
+
+                       // if f() and (z := 3) == 5 then a = z;
+                       IfBranch.CreateIf(ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
+                           ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("z", null, IntLiteral.Create("3")))),
+                           Assignment.CreateStatement("a", "z")),
+
+                       // if (x := 3) == 5 or f() then NOP else a = x;
+                       IfBranch.CreateIf(ExpressionFactory.Or(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("u", null, IntLiteral.Create("3"))),
+                           FunctionCall.Create(NameReference.Create("f"))),
+                           ExpressionFactory.Nop,
+                           IfBranch.CreateElse(Assignment.CreateStatement("a", "u"))),
+
+                       // if (x := 3) == 5 or f() then a = x;
+                       IfBranch.CreateIf(ExpressionFactory.Or(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("q", null, IntLiteral.Create("3"))),
+                           FunctionCall.Create(NameReference.Create("f"))),
+                           Assignment.CreateStatement("a", "q")),
+
+                       // if f() or (x := 3) == 5 then a = x;
+                       IfBranch.CreateIf(ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
+                           ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           VariableDeclaration.CreateExpression("v", null, IntLiteral.Create("3")))),
+                           ExpressionFactory.Nop,
+                           IfBranch.CreateElse(Assignment.CreateStatement("a", "v"))),
 
                     ExpressionFactory.Readout("a")
                 )));
@@ -64,8 +95,8 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
-        //[TestMethod]
-        public IErrorReporter TODO_ErrorDeclarationsOnTheFly()
+        [TestMethod]
+        public IErrorReporter ErrorDeclarationsOnTheFly()
         {
             // this test was added because we noticed that despite `if` creates its own scope
             // variable created in first condition somehow leaked to the other `if` 
@@ -79,11 +110,13 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(FunctionBuilder.Create("f", NameFactory.BoolTypeReference(),
                 Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse()))));
 
-            NameReference not_initialized = NameReference.Create("xxx");
-
+            const string reused_var_name = "xxx";
             IfBranch if_branch1 = IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("2"),
-                        VariableDeclaration.CreateExpression("xxx", null, IntLiteral.Create("1"))),
-                        new Expression[] { }); // NOP
+                        VariableDeclaration.CreateExpression(reused_var_name, null, IntLiteral.Create("1"))),
+                        ExpressionFactory.Readout(reused_var_name));
+
+            NameReference not_initialized1 = NameReference.Create(reused_var_name);
+            NameReference not_initialized2 = NameReference.Create("yyy");
 
             root_ns.AddBuilder(FunctionBuilder.Create("testing",
                 NameFactory.UnitTypeReference(),
@@ -97,23 +130,29 @@ namespace Skila.Tests.Semantics
 
                     // at this point our variable is gone, because `if` scope is removed
 
-                    // the conditions says:
-                    // f() and (xxx := 3)==5
+                    // if f() and (xxx := 3)==5 then NOP else a = xxx;
                     // so when we reach `else` branch `xxx` might be not initialized because `f` failed first
                     IfBranch.CreateIf(ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
                         ExpressionFactory.IsEqual(IntLiteral.Create("555"),
-                        VariableDeclaration.CreateExpression("xxx", null, IntLiteral.Create("333")))),
-                        new Expression[] { }, // NOP
-                                              // when writing this test `xxx` was reported to be initialized
-                        IfBranch.CreateElse(Assignment.CreateStatement(NameReference.Create("a"), not_initialized))),
+                        VariableDeclaration.CreateExpression(reused_var_name, null, IntLiteral.Create("333")))),
+                        ExpressionFactory.Nop,
+                        // when writing this test `xxx` was reported to be initialized
+                        IfBranch.CreateElse(Assignment.CreateStatement(NameReference.Create("a"), not_initialized1))),
+
+                    // if f() or (yyy := 3)==5 then a = yyy;
+                    IfBranch.CreateIf(ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
+                        ExpressionFactory.IsEqual(IntLiteral.Create("555"),
+                        VariableDeclaration.CreateExpression("yyy", null, IntLiteral.Create("333")))),
+                        Assignment.CreateStatement(NameReference.Create("a"), not_initialized2)),
 
                     ExpressionFactory.Readout("a")
                 )));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized));
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized2));
 
             return resolver;
         }

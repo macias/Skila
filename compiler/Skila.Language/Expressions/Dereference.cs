@@ -49,7 +49,7 @@ namespace Skila.Language.Expressions
 
                 this.typename = inner.NameOf;
                 this.typename.AttachTo(this);
-                this.typename.Evaluated(ctx);
+                this.typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                 this.Evaluation = typename.Evaluation;
             }

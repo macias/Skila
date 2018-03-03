@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ClosureRecursiveCall()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
             IExpression i_eq_jack = ExpressionFactory.IsEqual(NameReference.Create("i"), NameReference.Create("jack"));

@@ -29,7 +29,6 @@ namespace Skila.Language
         public const string RegexTypeName = "Regex";
         public const string VoidTypeName = "Void";
         public const string UnitTypeName = "Unit";
-        public const string UnitValue = "unit";
         public const string IObjectTypeName = "IObject";
         public const string ReferenceTypeName = "Ref";
         public const string PointerTypeName = "Ptr";
@@ -165,19 +164,10 @@ namespace Skila.Language
 
         public const string GetTypeFunctionName = "getType";
 
-        public static NameReference UnitTypeReference(ExpressionReadMode readMode = ExpressionReadMode.ReadRequired)
+        public static NameReference UnitTypeReference()
         {
             return NameReference.Create(NameReference.Root, UnitTypeName);
         }
-        public static NameReference UnitValueReference()
-        {
-            return NameReference.Create(UnitTypeReference(), UnitValue);
-        }
-
-        /*public static NameReference JokerTypeReference()
-        {
-            return EntityInstance.Joker.NameOf;
-        }*/
 
         public static string TupleItemName(int index)
         {

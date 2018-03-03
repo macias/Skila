@@ -23,7 +23,7 @@ namespace Skila.Language.Expressions
         public INameReference RhsTypeName { get; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, RhsTypeName }.Where(it => it != null);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
 
         private ReinterpretType(IExpression lhs, INameReference rhsTypeName)
@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs));
         }
         public override string ToString()
         {

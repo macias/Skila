@@ -85,7 +85,7 @@ namespace Skila.Language
                 .With(members)
                 .Modifier(EntityModifier.Protocol);
             aggregate.AttachTo(this);
-            this.aggregate.Evaluated(ctx);
+            this.aggregate.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
             EntityInstance aggregate_instance = this.aggregate.InstanceOf;
             foreach (EntityInstance instance in dereferencedInstances)

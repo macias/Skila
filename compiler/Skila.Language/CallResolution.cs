@@ -198,7 +198,7 @@ namespace Skila.Language
                 .Select(it => ParameterType.Create(it, objectInstance, targetFunctionInstance))
                 .StoreReadOnlyList();
 
-            target_function.ResultTypeName.Evaluated(ctx);
+            target_function.ResultTypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
             IEntityInstance components = orderedTranslatation(target_function.ResultTypeName.Evaluation.Components,
                 objectInstance, targetFunctionInstance);

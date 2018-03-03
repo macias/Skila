@@ -26,7 +26,7 @@ namespace Skila.Language
 
             env.Root.Surfed(this.Context);
 
-            env.Root.Evaluated(this.Context);
+            env.Root.Evaluated(this.Context, EvaluationCall.Nested);
 
             env.Root.Validated(this.Context);
         }

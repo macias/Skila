@@ -40,7 +40,9 @@ namespace Skila.Language.Entities
 
         internal void SetModifier(EntityModifier modifier)
         {
+            this.Modifier.DetachFrom(this);
             this.Modifier = modifier;
+            this.Modifier.AttachTo(this);
         }
 
         public static FunctionDefinition CreateInitConstructor(
@@ -87,7 +89,7 @@ namespace Skila.Language.Entities
         public FunctionParameter MetaThisParameter { get; private set; }
         private NameReference thisNameReference;
         public ExpressionReadMode CallMode { get; private set; }
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
 
         internal LambdaTrap LambdaTrap { get; set; }
@@ -142,7 +144,7 @@ namespace Skila.Language.Entities
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
             this.constructionCompleted = true;
         }
 

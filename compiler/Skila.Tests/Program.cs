@@ -19,59 +19,63 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            //new Semantics.CompilerProtection().Environment();
-            // new Semantics.Concurrency().ErrorSpawningMutables();
-            // new Semantics.Exceptions().ErrorThrowingNonException();
-            //  new Semantics.Expressions().ErrorIsSameOnValues();
-            new Semantics.Flow().ErrorDoubleConditionalLoopInterruption();
-            //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
-            //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
-            // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-            //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
-            //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
-            //new Semantics.MethodDefinitions().Basics();
-            //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
-            //new Semantics.NameResolution().NameAliasing();
-            //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
-            //new Semantics.Properties().ErrorSettingCustomGetter();
-            // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
-            //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
-            //new Semantics.Types().ErrorInOutVariance();
-            //new Semantics.Variables().ErrorVariableNotUsed();
-
-            //new Execution.Closures().ClosureRecursiveCall();
-            //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
-            //new Execution.Concurrency().SingleMessage();
-            //new Execution.Flow().ThrowingException();
-            //new Execution.FunctionCalls().RecursiveCall();
-            //new Execution.Inheritance().TypeUnion();
-            //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
-            //new Execution.Io().FileReadingLines();
-            //new Execution.Library().RealNotANumber();
-            //new Execution.Objects().TODO_OptionalAssignment();
-            //new Execution.Pointers().StackChunkWithBasicPointers();
-            //new Execution.Properties().AutoPropertiesWithPointers();
-            //new Execution.Templates().HasConstraintWithValue();
-            //new Execution.Text().RegexMatchWithLimits();
-
-            //if (false)
             {
+                new Semantics.CompilerProtection().Environment();
+                // new Semantics.Concurrency().ErrorSpawningMutables();
+                // new Semantics.Exceptions().ErrorThrowingNonException();
+                //  new Semantics.Expressions().ErrorIsSameOnValues();
+                new Semantics.Flow().DeclarationsOnTheFly();
+                //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
+                //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
+                // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
+                //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
+                //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
+                //new Semantics.MethodDefinitions().Basics();
+                //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
+                //new Semantics.NameResolution().NameAliasing();
+                //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
+                //new Semantics.Properties().ErrorSettingCustomGetter();
+                // new Semantics.Templates().TranslationTableOfInferredCommonTypes();
+                //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
+                //new Semantics.Types().ErrorInOutVariance();
+                //new Semantics.Variables().ErrorUnusedVariableWithinUsedExpression();
+
+                //new Execution.Closures().ClosureRecursiveCall();
+                //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
+                //new Execution.Concurrency().SingleMessage();
+                //new Execution.Flow().ThrowingException();
+                //new Execution.FunctionCalls().RecursiveCall();
+                //new Execution.Inheritance().TypeUnion();
+                //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
+                //new Execution.Io().FileReadingLines();
+                //new Execution.Library().RealNotANumber();
+                //new Execution.Objects().TODO_OptionalAssignment();
+                //new Execution.Pointers().StackChunkWithBasicPointers();
+                //new Execution.Properties().AutoPropertiesWithPointers();
+                //new Execution.Templates().HasConstraintWithValue();
+                //new Execution.Text().RegexMatchWithLimits();
+            }
+
+            // if (false)
+            {
+                const double golden_standard = 1.26;
+
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), checkErrorCoverage: true);
 
-                double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
-                Console.WriteLine($"Semantics time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
+                reportTime("Semantics", start, count, golden_standard);
             }
 
             Console.WriteLine();
 
-            // if (false)
+             //if (false)
             {
+                const double golden_standard = 1.31;
+
                 double start = Stopwatch.GetTimestamp();
                 int count = runTests<IInterpreter>(nameof(Execution), checkErrorCoverage: false);
 
-                double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
-                Console.WriteLine($"Interpretation time: {time.ToString("0.00")}s, average: {(time / count).ToString("0.00")}s");
+                reportTime("Interpretation", start, count, golden_standard);
             }
 
             if (AssertReporter.Fails.Any())
@@ -94,6 +98,23 @@ namespace Skila.Tests
 
             if (System.Diagnostics.Debugger.IsAttached)
                 Console.ReadLine();
+        }
+
+        private static void reportTime(string title, double start, int count, double goldenStandard)
+        {
+            double time = (Stopwatch.GetTimestamp() - start) / Stopwatch.Frequency;
+            double avg = time / count;
+            Console.Write($"{title} time: {time.ToString("0.00")}s, average: {avg.ToString("0.00")}s, ");
+            const int rounding = 100;
+            int diff = (int)Math.Round((avg - goldenStandard)* rounding);
+
+            var fc = Console.ForegroundColor;
+            if (diff > 2)
+                Console.ForegroundColor = ConsoleColor.Red;
+            else if (diff < -2)
+                Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"diff: {(diff*1.0/rounding).ToString("0.00")}s");
+            Console.ForegroundColor = fc;
         }
 
         private static int runTests<T>(string @namespace, bool checkErrorCoverage)

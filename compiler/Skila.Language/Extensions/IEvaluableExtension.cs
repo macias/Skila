@@ -10,7 +10,7 @@ namespace Skila.Language.Extensions
     {
         private static void validateReadingValues(IExpression node, ComputationContext ctx)
         {
-            if (node.DebugId.Id == 4439)
+            if (node.DebugId.Id == 797)
             {
                 ;
             }
@@ -77,7 +77,7 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = ExpressionFactory.StackConstructor((targetTypeName as EntityInstance).NameOf, FunctionArgument.Create(source));
                 source.AttachTo(@this);
-                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+                TypeMatch m = source.Evaluated(ctx, EvaluationCall.AdHocCrossJump).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }
@@ -90,7 +90,7 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
-                IEntityInstance source_eval = source.Evaluated(ctx);
+                IEntityInstance source_eval = source.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
                 TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception($"Internal error: matching result {m}");
@@ -100,7 +100,7 @@ namespace Skila.Language.Extensions
                 source.DetachFrom(@this);
                 source = FunctionCall.ConvCall(source, (targetTypeName as EntityInstance).NameOf);
                 source.AttachTo(@this);
-                TypeMatch m = source.Evaluated(ctx).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+                TypeMatch m = source.Evaluated(ctx, EvaluationCall.AdHocCrossJump).MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception("Internal error");
             }

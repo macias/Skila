@@ -4,6 +4,7 @@
     {
         public ILocalBindable Bindable { get; }
         public bool Used { get; set; }
+        public bool Read { get; set; }
 
         public LocalInfo(ILocalBindable bindable)
         {

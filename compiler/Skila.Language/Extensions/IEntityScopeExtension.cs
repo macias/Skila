@@ -21,7 +21,7 @@ namespace Skila.Language.Extensions
                     if (member is FunctionDefinition func && func.IsPropertyAccessor(out Property prop) && !prop.IsIndexer)
                         continue;
                     else
-                        ctx.AddError(ErrorCode.BindableNotUsed, member);
+                        ctx.AddError(ErrorCode.BindableNotUsed, member.Name);
                 }
         }
         public static IEnumerable<IEntity> NestedEntities(this IEntityScope scope)

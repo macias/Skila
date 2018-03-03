@@ -77,6 +77,10 @@ namespace Skila.Language.Expressions
         private Block(Purpose purpose, ExpressionReadMode readMode, Func<Block, ExpressionReadMode> readModeCalc, List<IExpression> body)
             : base(readModeCalc == null ? new Option<ExpressionReadMode>(readMode) : new Option<ExpressionReadMode>())
         {
+            if (this.DebugId.Id==798)
+            {
+                ;
+            }
             this.instructions = body;
             this.Mode = purpose;
             this.readModeCalc = readModeCalc;
@@ -100,6 +104,11 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
+                if (this.DebugId.Id == 798)
+                {
+                    ;
+                }
+
                 IExpression last = this.Instructions.LastOrDefault();
                 if (!this.isReadModeSet)
                     this.setReadMode(readModeCalc(this));

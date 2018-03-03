@@ -445,22 +445,16 @@ namespace Skila.Interpreter
                 return ExecValue.CreateReturn(null);
             else
             {
-                // https://stackoverflow.com/questions/7563981/why-isnt-g-tail-call-optimizing-while-gcc-is
-                // http://www.drdobbs.com/tackling-c-tail-calls/184401756
-                // todo: when time permits fix reference passing (check if local argument is passed by reference, if yes, disable TCO)
-                // currently TCO is implemented naively and incorrectly (thus commented out)
-                // it does not handle passing references to current stack (100% legal), 
-                // since stack is removed (with TCO) we get random behavior
-                /*if (ret.Expr is FunctionCall call && call.IsRecall) // Tail Call Optimization
+                if (ret.TailCallOptimization != null)
                 {
-                    Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
+                    Variant<object, ExecValue, CallInfo> call_prep = await prepareFunctionCallAsync(ret.TailCallOptimization, ctx).ConfigureAwait(false);
                     if (call_prep.Is<ExecValue>())
                         return call_prep.As<ExecValue>();
                     CallInfo call_info = call_prep.As<CallInfo>();
 
                     return ExecValue.CreateRecall(call_info);
                 }
-                else*/
+                else
                 {
                     ExecValue exec_value = await ExecutedAsync(ret.Expr, ctx).ConfigureAwait(false);
                     if (exec_value.IsThrow)
@@ -672,7 +666,7 @@ namespace Skila.Interpreter
             ObjectData this_ref;
             FunctionDefinition target_func;
 
-            if (call.IsRecall)
+            if (call.IsRecall())
             {
                 // this is a speedup, but above all it is a solution for recurent closure calls which are NOT resolved
                 // in regard to this meta-parameter in compile time
@@ -1081,8 +1075,7 @@ namespace Skila.Interpreter
 
             if (retValue == null) // valid, internally function "returns" void as in C, on call we replace it with Unit
             {
-                ObjectData unit_obj = await ctx.TypeRegistry.RegisterGetAsync(ctx, ctx.Env.UnitType.InstanceOf).ConfigureAwait(false);
-                retValue = unit_obj.Fields.Single().Value;
+                retValue = await ObjectData.CreateInstanceAsync(ctx, ctx.Env.UnitType.InstanceOf, UnitLiteral.UnitValue).ConfigureAwait(false);
             }
             else if (node.DereferencedCount_LEGACY > 0)
             {

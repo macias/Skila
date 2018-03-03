@@ -50,6 +50,7 @@ namespace Skila.Language
 
         public bool ExhaustiveMaybes => this.ThenMaybePath != null && this.ElseMaybePath != null;
         public ExecutionPath AlwaysPath { get; }
+
         public IEnumerable<ExecutionPath> ForkMaybePaths => new[] { ThenMaybePath, ElseMaybePath }.Where(it => it != null);
         // please note the important property of the nested maybes, when you have
         // if-then(1)-then(2)
@@ -65,12 +66,11 @@ namespace Skila.Language
         {
             this.AlwaysPath = ExecutionPath.Create(always?.Where(it => it != null) ?? Enumerable.Empty<IExpression>());
             this.ThenMaybePath = ExecutionPath.Create(thenMaybes);
-            this.ElseMaybePath = ExecutionPath.Create( elseMaybes);
+            this.ElseMaybePath = ExecutionPath.Create(elseMaybes);
             this.ThenPostMaybes = ExecutionPath.Create(thenPostMaybes);
 
             if (this.ThenPostMaybes != null && this.ElseMaybePath != null)
                 throw new NotImplementedException("With else we shouldn't have post-then");
-
         }
 
     }

@@ -68,7 +68,7 @@ namespace Skila.Language.Expressions
                     typename = NameFactory.ReferenceTypeReference(inner);
 
                 typename.AttachTo(this);
-                typename.Evaluated(ctx);
+                typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                 this.Evaluation = typename.Evaluation;
 

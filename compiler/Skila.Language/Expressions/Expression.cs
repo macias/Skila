@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions
         private Option<ExpressionReadMode> readMode;
         protected bool isReadModeSet => this.readMode.HasValue;
         public ExpressionReadMode ReadMode => this.readMode.Value;
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public virtual ExecutionFlow Flow => this.flow.Value;
 
         private bool? isRead;
@@ -27,7 +27,7 @@ namespace Skila.Language.Expressions
         protected Expression(Option<ExpressionReadMode> readMode)
         {
             this.readMode = readMode;
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(OwnedNodes.WhereType<IExpression>()));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(OwnedNodes.WhereType<IExpression>()));
         }
         protected Expression(ExpressionReadMode readMode) : this(new Option<ExpressionReadMode>(readMode))
         { 

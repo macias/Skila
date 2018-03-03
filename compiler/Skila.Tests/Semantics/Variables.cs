@@ -69,24 +69,26 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter DetectingUsage()
+        public IErrorReporter ErrorUnusedVariableWithinUsedExpression()
         {
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("anything"), null,
+            VariableDeclaration decl = VariableDeclaration.CreateExpression("result", NameFactory.Int64TypeReference(), initValue: Undef.Create());
+            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new IExpression[] {
-                    Assignment.CreateStatement(NameReference.Sink(),
-                        VariableDeclaration.CreateExpression("result", NameFactory.Int64TypeReference(),initValue: Undef.Create())),
-                })));
+                Block.CreateStatement(
+                    // the declaration-expression is used, but the variable itself is not
+                    // thus we report it as unused (in such code user should pass the init-value itself w/o creating variable)
+                    Assignment.CreateStatement(NameReference.Sink(), decl)
+                )));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl.Name));
 
             return resolver;
         }
@@ -282,10 +284,10 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl1));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl2));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, member));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl1.Name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl2.Name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop.Name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, member.Name));
 
             return resolver;
         }

@@ -5,7 +5,6 @@
         private enum VariableState
         {
             NotInitialized,
-            Maybe,
             Assigned,
         }
     }

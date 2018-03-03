@@ -99,7 +99,7 @@ namespace Skila.Language
 
         public override IEnumerable<INode> OwnedNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
             .Concat(this.Prefix).Where(it => it != null);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
 
         public bool IsSurfed { get; set; }
@@ -127,7 +127,7 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
-            if (this.DebugId.Id == 7677)
+            if (this.DebugId.Id == 8556)
             {
                 ;
             }
@@ -141,7 +141,7 @@ namespace Skila.Language
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Prefix));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Prefix));
         }
 
         public override string ToString()
@@ -507,6 +507,10 @@ namespace Skila.Language
               }*/
 
 
+            if (this.DebugId.Id== 24337)
+            {
+                ;
+            }
             if ((this.Owner as Assignment)?.Lhs != this)
             {
                 if (this.DebugId.Id == 8537)

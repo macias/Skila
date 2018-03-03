@@ -59,6 +59,8 @@ namespace Skila.Language
         public EntityInstance Aggregate { get; private set; }
         public IEntityInstance Evaluation { get; private set; }
 
+        private TypeMutability? typeMutability;
+
         private TypeInheritance inheritance;
         public TypeInheritance Inheritance(ComputationContext ctx)
         {
@@ -121,7 +123,7 @@ namespace Skila.Language
             }
             if (this.Evaluation == null)
             {
-                IEntityInstance eval = this.Target.Evaluated(ctx);
+                IEntityInstance eval = this.Target.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
                 this.Evaluation = eval.TranslateThrough(this);
                 if (this.Evaluation.IsJoker)
                     this.Aggregate = EntityInstance.Joker;
@@ -369,6 +371,13 @@ namespace Skila.Language
         public IEnumerable<EntityInstance> EnumerateAll()
         {
             yield return this;
+        }
+
+        public TypeMutability MutabilityOfType(ComputationContext ctx)
+        {
+            if (!this.typeMutability.HasValue)
+                this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
+            return this.typeMutability.Value;
         }
 
         public bool CoreEquals(IEntityInstance other)

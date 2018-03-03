@@ -136,7 +136,8 @@ namespace Skila.Language.Semantics
 
         public override string ToString()
         {
-            return (IsTerminated ? "terminated" : "flowing") + " with " + (hasExit ? "exit" : "") + " " + String.Join(", ", interruptions.Values);
+            return (IsTerminated ? "terminated" : "flowing") + " with " + (hasExit ? "exit" : "") 
+                + " " + String.Join(", ", interruptions.Values);
         }
     }
 }

@@ -14,8 +14,8 @@ namespace Skila.Language.Expressions.Literals
 
         public abstract object LiteralValue { get; }
 
-        protected Literal(string inputValue, NameReference typeName)
-        : base(ExpressionReadMode.ReadRequired)
+        protected Literal(string inputValue, NameReference typeName, ExpressionReadMode readMode = ExpressionReadMode.ReadRequired)
+        : base(readMode)
         {
             this.typeName = typeName;
             this.InputValue = inputValue;

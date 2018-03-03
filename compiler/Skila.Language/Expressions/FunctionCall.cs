@@ -115,15 +115,13 @@ namespace Skila.Language.Expressions
             .Concat(RequestedOutcomeTypeName)
             .Where(it => it != null)
             .Concat(closures);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
 
         public INameReference RequestedOutcomeTypeName { get; }
 
         public ExpressionReadMode ReadMode => this.Resolution?.TargetFunction?.CallMode ?? ExpressionReadMode.OptionalUse;
         private readonly CallMode mode;
-        private Option<bool> isRecall;
-        public bool IsRecall => this.isRecall.Value;
 
         public bool IsIndexer => this.mode == CallMode.Indexer;
 
@@ -145,7 +143,7 @@ namespace Skila.Language.Expressions
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Arguments));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Arguments));
         }
         public override string ToString()
         {
@@ -168,15 +166,15 @@ namespace Skila.Language.Expressions
                 ctx.AddError(ErrorCode.ConstructorCallFromFunctionBody, this);
 
             {
-                bool is_recall = computeRecall(out FunctionDefinition curr_func, out FunctionDefinition binding_func);                                                                                                                      
+                bool is_recall = isRecall(out FunctionDefinition curr_func, out FunctionDefinition binding_func);
                 if (!ctx.Env.Options.AllowNamedSelf && binding_func != null)
                 {
                     if (this.Name.Name != NameFactory.SelfFunctionName && is_recall)
                         ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveFunctionReference, this.Name);
                     else if (!this.Name.IsSuperReference && curr_func != null)
                     {
-                        curr_func = curr_func.TryGetSuperFunction(ctx);
-                        if (curr_func == binding_func)
+                        FunctionDefinition super_func = curr_func.TryGetSuperFunction(ctx);
+                        if (super_func == binding_func)
                             ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveFunctionReference, this.Name);
                     }
                 }
@@ -337,7 +335,7 @@ namespace Skila.Language.Expressions
                             this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments, this.Resolution.TargetFunctionInstance);
                             this.callee.AttachTo(this);
 
-                            this.Callee.Evaluated(ctx);
+                            this.Callee.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                             if (!this.Name.Binding.HasMatch)
                                 throw new Exception("We've just lost our binding, probably something wrong with template translations");
@@ -368,7 +366,7 @@ namespace Skila.Language.Expressions
             this.Callee.DetachFrom(this);
             this.callee = NameReference.Create(this.Callee, NameFactory.LambdaInvoke);
             this.callee.AttachTo(this);
-            this.callee.Evaluated(ctx);
+            this.callee.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
         }
 
         private static CallContext createCallContext(ComputationContext ctx, NameReference name, IEntity callTarget)
@@ -377,7 +375,7 @@ namespace Skila.Language.Expressions
             if (this_context == null)
                 return new CallContext();
 
-            this_context.Evaluated(ctx);
+            this_context.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
             if (callTarget.Modifier.HasStatic)
                 return new CallContext() { StaticContext = this_context.Evaluation.Components };
@@ -449,12 +447,15 @@ namespace Skila.Language.Expressions
             closure.AttachTo(this);
         }
 
-        private bool computeRecall(out FunctionDefinition currentFunc, out FunctionDefinition targetFunc)
+        public bool IsRecall()
+        {
+            return isRecall(out FunctionDefinition dummy1, out FunctionDefinition dummy2);
+        }
+        private bool isRecall(out FunctionDefinition currentFunc, out FunctionDefinition targetFunc)
         {
             currentFunc = this.EnclosingScope<FunctionDefinition>();
             targetFunc = this.Name.Binding.Match.Target as FunctionDefinition;
-            this.isRecall = new Option<bool>(currentFunc != null && targetFunc == currentFunc);
-            return this.IsRecall;
+            return currentFunc != null && targetFunc == currentFunc;
         }
 
         public FunctionCall ConvertIndexerIntoSetter(IExpression rhs)

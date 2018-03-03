@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Skila.Language
 {
 #if DEBUG
-    public sealed class DebugId
+    public struct DebugId 
     {
         private static object threadLock = new object();
         private static Dictionary<Type, int> typedId = new Dictionary<Type, int>();

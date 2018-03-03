@@ -31,6 +31,10 @@ namespace Skila.Language.Semantics
 
             add(ErrorCode.VirtualFunctionMissingImplementation,
                 ErrorCode.EnumCrossInheritance);
+
+            add(ErrorCode.BindableNotUsed,
+                ErrorCode.ReservedName,
+                ErrorCode.NameAlreadyExists);
         }
         private void add(ErrorCode lower, params ErrorCode[] higherCodes)
         {

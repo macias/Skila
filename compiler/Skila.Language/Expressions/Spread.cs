@@ -22,7 +22,7 @@ namespace Skila.Language.Expressions
         public IExpression Expr => this.expr;
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
 
         private bool prepared;
@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expr));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expr));
         }
         public override string ToString()
         {
@@ -59,7 +59,7 @@ namespace Skila.Language.Expressions
                 throw new Exception("Something wrong?");
 
             RouteSetup(variadic.MinLimit, variadic.HasUpperLimit ? variadic.Max1Limit : (int?)null);
-            this.expr.Evaluated(ctx);
+            this.expr.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
         }
 
         internal void RouteSetup(int? minLimit, int? max1Limit)

@@ -19,6 +19,8 @@ namespace Skila.Language
         public HashSet<IEntityInstance> Instances { get; }
         public bool IsJoker => this.Instances.All(it => it.IsJoker);
 
+        private TypeMutability? typeMutability;
+
         public INameReference NameOf { get; }
 
         protected EntityInstanceSet(IEnumerable<IEntityInstance> instances)
@@ -134,6 +136,13 @@ namespace Skila.Language
         public IEnumerable<EntityInstance> EnumerateAll()
         {
             return this.Instances.SelectMany(it => it.EnumerateAll());
+        }
+
+        public TypeMutability MutabilityOfType(ComputationContext ctx)
+        {
+            if (!this.typeMutability.HasValue)
+                this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
+            return this.typeMutability.Value;
         }
     }
 

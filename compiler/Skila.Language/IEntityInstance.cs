@@ -36,5 +36,6 @@ namespace Skila.Language
 
         bool CoreEquals(IEntityInstance instance);
         IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
+        TypeMutability MutabilityOfType(ComputationContext ctx);
     }
 }

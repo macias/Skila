@@ -11,14 +11,14 @@ namespace Skila.Language.Entities
         private readonly Dictionary<EntityInstanceCore,
             Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>>> instancesCache;
         private readonly IEntity entity;
-        private readonly Lazy<EntityInstance> instanceOf;
+        private readonly Later<EntityInstance> instanceOf;
         public EntityInstance InstanceOf => this.instanceOf.Value;
 
         public EntityInstanceCache(IEntity entity, Func<EntityInstance> instanceOfCreator)
         {
             this.instancesCache = new Dictionary<EntityInstanceCore, Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>>>(EntityInstanceCoreSignatureComparer.Instance);
             this.entity = entity;
-            this.instanceOf = new Lazy<EntityInstance>(instanceOfCreator);
+            this.instanceOf = new Later<EntityInstance>(instanceOfCreator);
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,

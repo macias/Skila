@@ -413,9 +413,8 @@ namespace Skila.Language
         {
             return TypeBuilder.Create(NameFactory.UnitTypeName)
                 .Modifier(EntityModifier.Native)
-                .With(VariableDeclaration.CreateStatement(NameFactory.UnitValue, NameFactory.UnitTypeReference(), null,
-                    EntityModifier.Static | EntityModifier.Native))
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private, null, Block.CreateStatement()))
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
+                    .Modifier(EntityModifier.Native))
                 .Parents(NameFactory.IObjectTypeReference());
         }
 

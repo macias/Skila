@@ -34,7 +34,7 @@ namespace Skila.Language.Entities
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
             .Concat(closures);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
         public EntityModifier Modifier { get; private set; }
 
@@ -42,6 +42,10 @@ namespace Skila.Language.Entities
             INameReference typeName, IExpression initValue)
             : base(readMode)
         {
+            if (this.DebugId.Id == 59)
+            {
+                ;
+            }
             if (name == null)
                 throw new ArgumentNullException();
 
@@ -57,7 +61,7 @@ namespace Skila.Language.Entities
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(InitValue));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(InitValue));
         }
         public override string ToString()
         {
@@ -245,17 +249,9 @@ namespace Skila.Language.Entities
                 }
             }
 
-            this.DataTransfer(ctx, ref initValue, this_eval);
             this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
 
-            if ((this.IsTypeContained() && this.Modifier.HasStatic) || this.isGlobalVariable())
-            {
-                if (this.Modifier.HasReassignable)
-                    ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
-                if (mutability != TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
-                    ctx.AddError(ErrorCode.GlobalMutableVariable, this);
-            }
+            this.DataTransfer(ctx, ref initValue, this.Evaluation.Components);
         }
 
         public void AddClosure(TypeDefinition closure)
@@ -287,6 +283,15 @@ namespace Skila.Language.Entities
             base.Validate(ctx);
 
             InitValue?.ValidateValueExpression(ctx);
+
+            if ((this.IsTypeContained() && this.Modifier.HasStatic) || this.isGlobalVariable())
+            {
+                if (this.Modifier.HasReassignable)
+                    ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
+                TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
+                if (mutability != TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
+                    ctx.AddError(ErrorCode.GlobalMutableVariable, this);
+            }
 
             // only for constructor call allow to have non-reference
             if (!(this.InitValue is Alloc))

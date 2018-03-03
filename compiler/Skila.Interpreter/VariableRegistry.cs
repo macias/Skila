@@ -10,7 +10,7 @@ using System;
 namespace Skila.Interpreter
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableRegistry : INameRegistry
+    public sealed class VariableRegistry : ILayeredNameRegistry
     {
         private readonly ILayerDictionary<ILocalBindable, ObjectData> bag;
 

@@ -397,7 +397,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, parameter));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, parameter.Name));
 
             return resolver;
         }

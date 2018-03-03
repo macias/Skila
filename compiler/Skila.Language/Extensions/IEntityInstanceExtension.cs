@@ -50,16 +50,12 @@ namespace Skila.Language.Extensions
             return @this;
         }
 
-        public static TypeMutability MutabilityOfType(this IEntityInstance @this, ComputationContext ctx)
+        public static TypeMutability ComputeMutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
+            HashSet<IEntityInstance> visited)
         {
             // we have to use cache with visited types, because given type A can have a field of type A, 
             // which would lead to infinite checking
-            return @this.mutabilityOfType(ctx, new HashSet<IEntityInstance>());
-        }
 
-        private static TypeMutability mutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
-            HashSet<IEntityInstance> visited)
-        {
             if (@this.DebugId.Id == 7632)
             {
                 ;
@@ -90,7 +86,7 @@ namespace Skila.Language.Extensions
 
             if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
-                TypeMutability mutability = val_instance.mutabilityOfType(ctx, visited);
+                TypeMutability mutability = val_instance.ComputeMutabilityOfType(ctx, visited);
                 return mutability;
             }
             else

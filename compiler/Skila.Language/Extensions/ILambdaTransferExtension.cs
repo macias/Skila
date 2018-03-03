@@ -67,7 +67,7 @@ namespace Skila.Language.Extensions
             }
 
             IEnumerable<FunctionParameter> trans_parameters = function.Parameters.Select(pit =>
-                           FunctionParameter.Create(pit.Name.Name, pit.TypeName.Evaluated(ctx)
+                           FunctionParameter.Create(pit.Name.Name, pit.TypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump)
                                .TranslateThrough(funcReference.Binding.Match).NameOf));
             FunctionDefinition invoke = FunctionBuilder.Create(NameFactory.LambdaInvoke, ExpressionReadMode.ReadRequired,
                 function.ResultTypeName,
@@ -130,12 +130,12 @@ namespace Skila.Language.Extensions
             // we have to manually evaluate this expression, because it is child of current node, and child nodes
             // are evaluated before their parents
             closure_type.Surfed(ctx); 
-            closure_type.Evaluated(ctx);
+            closure_type.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
             // todo: this is ugly -- we are breaking into details of separate type
             // since the function is already computed, it won't evaluate meta this parameter
-            lambda.MetaThisParameter.Evaluated(ctx);
-            source.Evaluated(ctx);
+            lambda.MetaThisParameter.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
+            source.Evaluated(ctx, EvaluationCall.Nested);
 
             return true;
         }
@@ -173,10 +173,10 @@ namespace Skila.Language.Extensions
                 source.AttachTo(node);
 
                 closure_type.Surfed(ctx);
-                closure_type.Evaluated(ctx);
+                closure_type.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
-                closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx);
-                source.Evaluated(ctx);
+                closure_type.InvokeFunctions().First().MetaThisParameter.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
+                source.Evaluated(ctx, EvaluationCall.Nested);
             }
         }
     }

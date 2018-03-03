@@ -23,7 +23,7 @@ namespace Skila.Language.Expressions
         public IExpression Rhs { get; }
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, Rhs }.Where(it => it != null);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
 
         private IsSame(IExpression lhs, IExpression rhs)
@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs, Rhs));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Lhs, Rhs));
         }
         public override string ToString()
         {

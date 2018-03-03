@@ -7,6 +7,7 @@ using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using System;
 using Skila.Language.Entities;
+using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Flow
 {
@@ -46,7 +47,7 @@ namespace Skila.Language.Flow
 
         public IEnumerable<IExpression> localNodes => new IExpression[] { Condition, Body }.Where(it => it != null);
         public override IEnumerable<INode> OwnedNodes => localNodes.Concat(Next).Where(it => it != null);
-        private readonly Lazy<ExecutionFlow> flow;
+        private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => flow.Value;
 
         public bool IsComputed => this.Evaluation != null;
@@ -61,13 +62,13 @@ namespace Skila.Language.Flow
             // we have to postpone calculating read-mode because the last instruction can be function call
             // and it is resolved only after finding its target
             if (!body.Any())
-                body = new[] { NameFactory.UnitTypeReference(ExpressionReadMode.OptionalUse) };
+                body = new[] { UnitLiteral.Create() };
             this.Body = Block.Create((block) => block.Instructions.Last().ReadMode, body);
             this.Next = next;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Lazy<ExecutionFlow>(() => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
+            this.flow = new Later<ExecutionFlow>(() => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
         }
 
         public override string ToString()
@@ -91,6 +92,10 @@ namespace Skila.Language.Flow
         {
             if (this.Evaluation == null)
             {
+                if (this.DebugId.Id == 205)
+                {
+                    ;
+                }
                 this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
 
                 if (!this.branches.Any(it => it.IsElse))

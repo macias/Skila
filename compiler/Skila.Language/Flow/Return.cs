@@ -23,6 +23,8 @@ namespace Skila.Language.Flow
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
 
+        public FunctionCall TailCallOptimization { get; private set; }
+
         private Return(IExpression value) : base(ExpressionReadMode.CannotBeRead)
         {
             this.expr = value;
@@ -64,7 +66,7 @@ namespace Skila.Language.Flow
             // end
             // this is wrong, we would return reference (address) to the data living on stack, at the moment
             // of return stack is deleted and we have address to phantom data
-            
+
 
             // TODO: currently it is disaster, it is the effect of lack of time, implement it properly
             if (this.Expr != null && ctx.Env.IsReferenceOfType(this.Expr.Evaluation.Components))
@@ -156,6 +158,12 @@ namespace Skila.Language.Flow
                         }
                     }
                 }
+
+                // https://stackoverflow.com/questions/7563981/why-isnt-g-tail-call-optimizing-while-gcc-is
+                // http://www.drdobbs.com/tackling-c-tail-calls/184401756
+                if (this.Expr is FunctionCall call && call.IsRecall()
+                    && !func.Parameters.Any(it => ctx.Env.IsReferenceOfType(it.TypeName.Evaluation.Components)))
+                    this.TailCallOptimization = call;
 
                 this.Evaluation = ctx.Env.UnitEvaluation;
             }
