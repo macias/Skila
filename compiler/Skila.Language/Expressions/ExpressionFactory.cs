@@ -128,7 +128,7 @@ namespace Skila.Language.Expressions
                             NameReference.Create("obj")))))
                                             .Modifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.ComparableTypeReference(MutabilityOverride.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(MutabilityOverride.Neutral)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -286,9 +286,13 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOverflowOperator), FunctionArgument.Create(rhs));
         }
-        internal static IExpression Inc(Func<IExpression> expr)
+        internal static IExpression Inc(Func<IExpression> lhs)
         {
-            return Assignment.CreateStatement(expr(), Add(expr(), Nat8Literal.Create("1")));
+            return IncBy(lhs,Nat8Literal.Create("1"));
+        }
+        internal static IExpression IncBy(Func<IExpression> lhs,IExpression byExpr)
+        {
+            return Assignment.CreateStatement(lhs(), Add(lhs(), byExpr));
         }
         public static IExpression Inc(string name)
         {

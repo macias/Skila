@@ -22,6 +22,7 @@ namespace Skila.Language
         public const string ITupleTypeName = "ITuple";
         public const string IIndexableTypeName = "IIndexable";
         public const string IndexIteratorTypeName = "IndexIterator";
+        public const string Utf8StringIteratorTypeName = "Utf8StringIterator";
         public const string FileTypeName = "File";
         public const string TypeInfoTypeName = "TypeInfo";
         public const string CaptureTypeName = "Capture";
@@ -33,6 +34,7 @@ namespace Skila.Language
         public const string ReferenceTypeName = "Ref";
         public const string PointerTypeName = "Ptr";
         public const string BoolTypeName = "Bool";
+        public const string CharTypeName = "Char";
         public const string Int16TypeName = "Int16";
         public const string Int64TypeName = "Int64";
         public const string IntTypeName = "Int"; // todo: make it platform dependent
@@ -42,7 +44,8 @@ namespace Skila.Language
         public const string SizeTypeName = "Size"; // todo: make it platform dependent
         //public const string EnumTypeName = "Enum";
         public const string OrderingTypeName = "Ordering";
-        public const string ComparableTypeName = "Comparable";
+        public const string IComparableTypeName = "IComparable";
+        public const string Utf8StringTypeName = "Utf8String";
         public const string StringTypeName = "String";
         public const string ChannelTypeName = "Channel";
         public const string OptionTypeName = "Option";
@@ -120,6 +123,9 @@ namespace Skila.Language
         public const string IterableCount = "count";
         public const string IteratorGet = "get";
         public const string IteratorNext = "next";
+
+        public const string StringLength = "length";
+        public const string CharLength = "length";
 
         public const string FileReadLines = "readLines";
         public const string FileExists = "exists";
@@ -223,6 +229,10 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, BoolTypeName);
         }
+        public static NameReference CharTypeReference()
+        {
+            return NameReference.Create(NameReference.Root, CharTypeName);
+        }
 
         internal static NameDefinition InitConstructorNameDefinition()
         {
@@ -297,6 +307,10 @@ namespace Skila.Language
         public static NameReference IIteratorTypeReference(string templateTypeName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return IIteratorTypeReference(NameReference.Create(templateTypeName), mutability);
+        }
+        public static NameReference Utf8StringIteratorTypeReference()
+        {
+            return NameReference.Create(SystemNamespaceReference(), Utf8StringIteratorTypeName);
         }
         public static NameReference IndexIteratorTypeReference(INameReference templateTypeName)
         {
@@ -406,9 +420,13 @@ namespace Skila.Language
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName);
         }
-        public static NameReference ComparableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        public static NameReference Utf8StringTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.ComparableTypeName);
+            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.Utf8StringTypeName);
+        }
+        public static NameReference IComparableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        {
+            return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.IComparableTypeName);
         }
         public static NameReference OrderingTypeReference()
         {

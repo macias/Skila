@@ -32,7 +32,7 @@ namespace Skila.Tests
                 //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
-                new Semantics.NameResolution().ErrorAccessNotGranted();
+                //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
                 // new Semantics.Templates().ErrorCallingTraitMethodOnHost();
@@ -53,12 +53,12 @@ namespace Skila.Tests
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                //new Execution.Text().RegexMatchWithLimits();
+                //new Execution.Text().RegexMatchWithNamedCaptures();
             }
 
             // if (false)
             {
-                const double golden_avg_s = 1.28;
+                const double golden_avg_s = 1.30;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -73,7 +73,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.31;
+                const double golden_avg_s = 1.33;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 
@@ -116,10 +116,10 @@ namespace Skila.Tests
 
             Console.Write($"{title} time: {time_s.ToString("0.00")}s");
             Console.Write(", ");
-            reportTime("min", min_s, goldenMin, useColoring: false);
-            Console.Write(", ");
-            reportTime("max", max_s, goldenMax, useColoring: false);
-            Console.Write(", ");
+            //reportTime("min", min_s, goldenMin, useColoring: false);
+            //Console.Write(", ");
+            //reportTime("max", max_s, goldenMax, useColoring: false);
+            //Console.Write(", ");
             reportTime("avg", avg_s, goldenAvg, useColoring: true);
             Console.WriteLine();
         }

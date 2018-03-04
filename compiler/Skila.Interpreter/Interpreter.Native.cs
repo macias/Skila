@@ -162,7 +162,7 @@ namespace Skila.Interpreter
                 return await executeNativeEnumFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             else if (owner_type == ctx.Env.UnitType)
                 return await executeNativeUnitFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
-            else if (owner_type == ctx.Env.StringType)
+            else if (owner_type == ctx.Env.Utf8StringType)
                 return await executeNativeStringFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
             else if (owner_type == ctx.Env.RegexType)
                 return await executeNativeRegexFunctionAsync(ctx, func, this_value).ConfigureAwait(false);
@@ -254,7 +254,7 @@ namespace Skila.Interpreter
         {
             string this_native = thisValue.NativeString;
 
-            if (func == ctx.Env.StringCountGetter)
+            if (func == ctx.Env.Utf8StringCountGetter)
             {
                 ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
                     (UInt64)this_native.Length).ConfigureAwait(false);

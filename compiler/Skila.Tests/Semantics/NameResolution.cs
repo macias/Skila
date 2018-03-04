@@ -399,7 +399,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(env.Utf8StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -416,7 +416,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(env.Utf8StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -452,7 +452,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, string_ref.Binding.Matches.Count());
-            Assert.AreEqual(env.StringType, string_ref.Binding.Match.Instance.Target);
+            Assert.AreEqual(env.Utf8StringType, string_ref.Binding.Match.Instance.Target);
 
             return resolver;
         }
@@ -463,15 +463,15 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
-            var dup_type = TypeBuilder.Create(NameDefinition.Create(NameFactory.StringTypeName)).Build();
+            var dup_type = TypeBuilder.Create(NameDefinition.Create(NameFactory.Utf8StringTypeName)).Build();
             system_ns.AddNode(dup_type);
 
-            var string_ref = system_ns.AddNode(NameReference.Create(NameFactory.StringTypeName));
+            var string_ref = system_ns.AddNode(NameReference.Create(NameFactory.Utf8StringTypeName));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(2, string_ref.Binding.Matches.Count());
-            Assert.IsTrue(string_ref.Binding.Matches.Any(it => it.Instance.Target == env.StringType));
+            Assert.IsTrue(string_ref.Binding.Matches.Any(it => it.Instance.Target == env.Utf8StringType));
 
             return resolver;
         }

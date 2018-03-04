@@ -389,8 +389,8 @@ namespace Skila.Interpreter
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return allocObjectAsync(ctx,
-                ctx.Env.StringType.InstanceOf,
-                ctx.Env.Reference(ctx.Env.StringType.InstanceOf, MutabilityOverride.NotGiven, null, viaPointer: true),
+                ctx.Env.Utf8StringType.InstanceOf,
+                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, MutabilityOverride.NotGiven, null, viaPointer: true),
                 value);
         }
 
