@@ -55,7 +55,7 @@ namespace Skila.Language.Expressions
         {
             TypeMatch lhs_rhs_match = lhsTypeInstance.MatchesTarget(ctx, rhsTypeInstance,
                     TypeMatching.Create(duckTyping: false, allowSlicing: true).WithIgnoredMutability(true));
-            return lhs_rhs_match.HasFlag(TypeMatch.Same) || lhs_rhs_match.HasFlag(TypeMatch.Substitute);
+            return lhs_rhs_match.Passed;
         }
         public override void Validate(ComputationContext ctx)
         {

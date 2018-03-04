@@ -34,7 +34,7 @@
         AssigningRValue = 30,
         NOTEST_AmbiguousOverloadedCall = 31,
         AddressingRValue = 32,
-        HeapTypeOnStack = 33,
+        HeapTypeAsValue = 33,
         NoDefaultConstructor = 34,
         CannotAutoInitializeCompoundType = 35,
         CannotReassignReadOnlyVariable = 36,

@@ -51,6 +51,34 @@ namespace Skila.Language.Extensions
             return findEntities(name, entities);
         }
 
+        public static IEnumerable<EntityInstance> FindExtensions(this EntityInstance extInstance, ComputationContext ctx,
+            NameReference name, EntityFindMode findMode)
+        {
+            var available = new List<EntityInstance>();
+            INode ns = name;
+            while (true)
+            {
+                ns = ns.EnclosingScope<Namespace>();
+                if (ns == null)
+                    break;
+
+                foreach (Extension ext in ns.NestedExtensions())
+                {
+                    foreach (EntityInstance func_instance in ext.NestedEntityInstances())
+                    {
+                        FunctionDefinition func = func_instance.TargetFunction;
+                        TypeMatch match = extInstance.MatchesTarget(ctx, func.Parameters.First().Evaluation.Components,
+                            TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+                        if (match.Passed)
+                            available.Add(func_instance);
+                    }
+                }
+            }
+
+            IEnumerable<EntityInstance> entities = filterAvailableEntities(available, extInstance.TargetTemplate, name, findMode);
+            return findEntities(name, entities);
+        }
+
         public static IEnumerable<EntityInstance> findEntities(NameReference name, IEnumerable<EntityInstance> entities)
         {
             var result = new List<EntityInstance>();

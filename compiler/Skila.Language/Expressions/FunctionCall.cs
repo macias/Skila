@@ -253,9 +253,13 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
+                    if (this.DebugId== (20, 324))
+                    {
+                        ;
+                    }
                     IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
-                            createCallContext(ctx, this.Name, it.Target), targetFunctionInstance: it))
+                            createCallContext(ctx, this.Name, it.TargetFunction), targetFunctionInstance: it))
                         .Where(it => it != null)
                         .StoreReadOnly();
                     targets = targets.Where(it => it.RequiredParametersUsed()).StoreReadOnly();
@@ -341,7 +345,7 @@ namespace Skila.Language.Expressions
             this.callee.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
         }
 
-        private static CallContext createCallContext(ComputationContext ctx, NameReference name, IEntity callTarget)
+        private static CallContext createCallContext(ComputationContext ctx, NameReference name, FunctionDefinition callTarget)
         {
             IExpression this_context = name.GetContext(callTarget);
             if (this_context == null)
@@ -349,7 +353,7 @@ namespace Skila.Language.Expressions
 
             this_context.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
-            if (callTarget.Modifier.HasStatic)
+            if (callTarget.Modifier.HasStatic && !callTarget.IsExtension)
                 return new CallContext() { StaticContext = this_context.Evaluation.Components };
             else
                 return new CallContext() { MetaThisArgument = FunctionArgument.Create(this_context) };

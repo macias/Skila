@@ -12,6 +12,11 @@ namespace Skila.Language.Extensions
             return node.OwnedNodes.WhereType<TypeDefinition>();
         }
 
+        public static IEnumerable<Extension> NestedExtensions(this INode node)
+        {
+            return node.OwnedNodes.WhereType<Extension>();
+        }
+
         public static IEnumerable<INode> DescendantNodes(this INode node)
         {
             return node.OwnedNodes.Concat(node.OwnedNodes.SelectMany(it => it.DescendantNodes()));

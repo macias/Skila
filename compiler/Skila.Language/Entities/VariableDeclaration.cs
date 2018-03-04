@@ -329,14 +329,7 @@ namespace Skila.Language.Entities
                 }
             }
 
-            if (this.Evaluation.Components.EnumerateAll()
-                .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))
-                .Any(it => it.TargetType.Modifier.HasHeapOnly))
-            {
-                ctx.AddError(ErrorCode.HeapTypeOnStack, this);
-            }
-
-
+            this.TypeName?.ValidateTypeName(ctx);
         }
 
         public void SetIsMemberUsed()

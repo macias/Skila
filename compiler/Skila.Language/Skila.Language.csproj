@@ -71,6 +71,7 @@
     <Compile Include="BindingMatch.cs" />
     <Compile Include="Entities\Alias.cs" />
     <Compile Include="Entities\IRestrictedMember.cs" />
+    <Compile Include="Entities\Extension.cs" />
     <Compile Include="Entities\Property.Accessor.cs" />
     <Compile Include="ExecutionPath.cs" />
     <Compile Include="Expressions\Literals\Real64Literal.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="Extensions\EvaluationCall.cs" />
+    <Compile Include="Extensions\INameReferenceExtension.cs" />
     <Compile Include="Extensions\IRestrictedMemberExtension.cs" />
     <Compile Include="IComputable.cs" />
     <Compile Include="INameBindable.cs" />

@@ -55,6 +55,13 @@ namespace Skila.Language.Expressions
             }
         }
 
+        public override void Validate(ComputationContext ctx)
+        {
+            base.Validate(ctx);
+
+            this.typename.ValidateTypeName(ctx,this);
+        }
+
         public override bool IsLValue(ComputationContext ctx)
         {
             return true;

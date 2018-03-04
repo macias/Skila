@@ -51,6 +51,8 @@ namespace Skila.Language
         public bool Mutability => this.data == 1; // make sense for rejection
         public int Dereferences { get; }
 
+        public bool Passed => (this.flag & MatchFlag.Same)!=0 || (this.flag & MatchFlag.Substitute)!=0;
+
         private TypeMatch(MatchFlag flag, int dereferences, int data = 0)
         {
             this.flag = flag;

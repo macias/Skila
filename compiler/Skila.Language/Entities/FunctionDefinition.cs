@@ -119,6 +119,8 @@ namespace Skila.Language.Entities
         public NameDefinition Label { get; }
         public IEnumerable<LabelReference> AccessGrants { get; }
 
+        public bool IsExtension => this.Parameters.FirstOrDefault()?.Modifier?.HasThis ?? false;
+
         private FunctionDefinition(EntityModifier modifier,
             NameDefinition name,
             NameDefinition label,
@@ -278,6 +280,8 @@ namespace Skila.Language.Entities
         public override void Validate(ComputationContext ctx)
         {
             this.ValidateRestrictedMember(ctx);
+
+            this.ResultTypeName.ValidateTypeName(ctx);
 
             TypeDefinition type_owner = this.ContainingType();
 

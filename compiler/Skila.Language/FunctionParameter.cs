@@ -132,6 +132,7 @@ namespace Skila.Language
         public void Validate(ComputationContext ctx)
         {
             this.ValidateReferenceAssociatedReference(ctx);
+            this.ElementTypeName.ValidateTypeName(ctx);
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability, 

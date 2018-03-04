@@ -25,7 +25,17 @@ namespace Skila.Interpreter
             lock (this.threadLock)
                 tt = this.tasks.Concat(mainTask).ToArray();
 
-            Task.WaitAll(tt);
+            try
+            {
+                Task.WaitAll(tt);
+            }
+            catch (AggregateException ex)
+            {
+                ex.Handle(x => {
+                    Console.WriteLine(x.StackTrace);
+                    return false; });
+                throw;
+            }
             lock (this.threadLock)
             {
                 this.errors.AddRange(tt.Where(it => it.IsCanceled || it.IsFaulted).Select(it => it.Exception));

@@ -29,7 +29,8 @@ namespace Skila.Interpreter
         {
             ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
 
-            if (ctx.ThisArgument != null)
+            // in case of the extension within the function we use first parameter as regular one
+            if (ctx.ThisArgument != null && !func.IsExtension)
             {
                 ctx.LocalVariables.Add(func.MetaThisParameter, ctx.ThisArgument);
                 ObjectData this_value = ctx.ThisArgument.DereferencedOnce();
@@ -40,7 +41,11 @@ namespace Skila.Interpreter
                 for (int i = 0; i < func.Parameters.Count; ++i)
                 {
                     FunctionParameter param = func.Parameters[i];
-                    ObjectData arg_data = ctx.FunctionArguments[i];
+                    ObjectData arg_data;
+                    if (func.IsExtension && i == 0)
+                        arg_data = ctx.ThisArgument;
+                    else
+                        arg_data = ctx.FunctionArguments[i];
 
                     bool added;
                     if (arg_data == null)
@@ -612,6 +617,10 @@ namespace Skila.Interpreter
         }
         private async Task<Variant<object, ExecValue, CallInfo>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
+            if (call.DebugId == (20, 324))
+            {
+                ;
+            }
             ObjectData this_ref;
             FunctionDefinition target_func;
 

@@ -272,7 +272,11 @@ namespace Skila.Language
 
         private bool isParameterUsed(int paramIndex)
         {
-            return this.GetArguments(paramIndex).Any();
+            FunctionParameter param = this.TargetFunction.Parameters[paramIndex];
+            if (param.Modifier.HasThis)
+                return this.MetaThisArgument != null;
+            else
+                return this.GetArguments(paramIndex).Any();
         }
 
         internal IEnumerable<IEnumerable<FunctionArgument>> GetArgumentsMultipleTargeted()

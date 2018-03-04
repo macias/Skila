@@ -110,7 +110,7 @@ namespace Skila.Language
                     ctx.Env.DereferencedOnce(input, out IEntityInstance inner_input_type, out bool dummy);
 
                     TypeMatch m = inner_input_type.MatchesTarget(ctx, target, matching.WithSlicing(true));
-                    if (m.HasFlag(TypeMatch.Same) || m.HasFlag(TypeMatch.Substitute))
+                    if (m.Passed)
                         return m | TypeMatch.AutoDereference;
                 }
             }
@@ -407,10 +407,8 @@ namespace Skila.Language
 
                 // example: we cannot check if x (of Int) is IAlien because Int is sealed and there is no way
                 // it could be something else not available in its inheritance tree
-                if (!match.HasFlag(TypeMatch.Same) && !match.HasFlag(TypeMatch.Substitute))
-                {
+                if (!match.Passed)
                     return false;
-                }
             }
 
             return true;

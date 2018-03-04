@@ -353,8 +353,12 @@ namespace Skila.Language
                     return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
             }
-            else
+            else // we have prefix
             {
+                if (this.DebugId== (3, 8770))
+                {
+                    ;
+                }
                 EntityFindMode find_mode = this.isPropertyIndexerCallReference
                     ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
 
@@ -380,6 +384,10 @@ namespace Skila.Language
                     int dereferenced = 0;
                     EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, out dereferenced);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
+
+                    if (!entities.Any())
+                        entities = prefix_instance.FindExtensions(ctx, this, find_mode);
+
                     {
                         IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
                         // we need to get value evaluation to perform translation

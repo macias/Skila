@@ -29,7 +29,7 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
-                //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
+                //new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
@@ -43,6 +43,7 @@ namespace Skila.Tests
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
                 //new Execution.Concurrency().SingleMessage();
+                new Execution.Extensions().StaticDispatch();
                 //new Execution.Flow().InitializationWithinOptionalAssignment();
                 //new Execution.FunctionCalls().RecursiveCall();
                 //new Execution.Inheritance().TypeUnion();
@@ -73,7 +74,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.33;
+                const double golden_avg_s = 1.34;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 
