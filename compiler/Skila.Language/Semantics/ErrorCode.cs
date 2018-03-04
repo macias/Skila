@@ -115,5 +115,7 @@
         MainFunctionInvalidResultType = 111,
         DisabledProtocols = 112,
         CannotAssignCustomProperty = 113,
+        AmbiguousReference = 114,
+        AccessGrantsOnExposedMember = 115,
     }
 }

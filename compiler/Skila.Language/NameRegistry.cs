@@ -5,9 +5,7 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Comparers;
 using Skila.Language.Data;
 using Skila.Language.Extensions;
-using Skila.Language.Entities;
 using Skila.Language.Expressions;
-using System;
 
 namespace Skila.Language
 {

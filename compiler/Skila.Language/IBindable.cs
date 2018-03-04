@@ -4,7 +4,6 @@ namespace Skila.Language
 {
     public interface IBindable : INode
     {
-        NameDefinition Name { get; }
-    }
 
+    }
 }

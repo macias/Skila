@@ -286,7 +286,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl1.Name));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl2.Name));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop.Name));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop.Label));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, member.Name));
 
             return resolver;

@@ -17,11 +17,11 @@ namespace Skila.Language.Flow
     {
         public static LoopInterrupt CreateBreak(string label = null)
         {
-            return new LoopInterrupt(label == null ? (LabelReference)null : LabelReference.Create(label), isBreak: true);
+            return new LoopInterrupt(label == null ? (LabelReference)null : LabelReference.CreateLocal(label), isBreak: true);
         }
         public static LoopInterrupt CreateContinue(string label = null)
         {
-            return new LoopInterrupt(label == null ? (LabelReference)null : LabelReference.Create(label), isBreak: false);
+            return new LoopInterrupt(label == null ? (LabelReference)null : LabelReference.CreateLocal(label), isBreak: false);
         }
 
         private bool? isRead;
@@ -74,8 +74,7 @@ namespace Skila.Language.Flow
                     this.AssociatedLoop = this.EnclosingScope<Loop>();
                 else
                 {
-                    this.Label.Evaluate(ctx);
-                    this.AssociatedLoop = this.Label.Binding;
+                    this.AssociatedLoop = this.Label.Binding.Cast<IAnchor>();
                 }
 
                 Loop loop = this.EnclosingScope<Loop>();

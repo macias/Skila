@@ -47,7 +47,8 @@ namespace Skila.Language.Flow
 
         public ExpressionReadMode ReadMode { get; }
 
-        public NameDefinition Name { get; }
+        public NameDefinition Label { get; }
+        public NameDefinition Name => this.Label;
         public IEnumerable<IExpression> Init { get; }
         private IExpression preCondition;
         public IExpression PreCondition => this.preCondition;
@@ -57,7 +58,7 @@ namespace Skila.Language.Flow
         private IExpression postCondition;
         public IExpression PostCondition => this.postCondition;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Name }.Concat(Init).Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Label }.Concat(Init).Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
         private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
 
@@ -80,7 +81,7 @@ namespace Skila.Language.Flow
             // step
             // post-condition
 
-            this.Name = label;
+            this.Label = label;
             this.Init = (init ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.preCondition = preCondition;
             this.PostStep = (postStep ?? Enumerable.Empty<IExpression>()).StoreReadOnly();

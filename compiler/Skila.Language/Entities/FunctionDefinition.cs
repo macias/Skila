@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope, IMember
+    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope, IRestrictedMember, ILabelBindable
     {
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -22,7 +22,9 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition(modifier,
-                name, constraints, parameters, callMode, result, constructorChainCall: null, body: body);
+                name,
+                (NameDefinition)null,
+                constraints, parameters, callMode, result, constructorChainCall: null, body: body);
         }
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -35,14 +37,9 @@ namespace Skila.Language.Entities
             Block body)
         {
             return new FunctionDefinition(modifier,
-                name, constraints, parameters, callMode, result, constructorChainCall, body);
-        }
-
-        internal void SetModifier(EntityModifier modifier)
-        {
-            this.Modifier.DetachFrom(this);
-            this.Modifier = modifier;
-            this.Modifier.AttachTo(this);
+                name,
+                                (NameDefinition)null,
+                constraints, parameters, callMode, result, constructorChainCall, body);
         }
 
         public static FunctionDefinition CreateInitConstructor(
@@ -52,7 +49,9 @@ namespace Skila.Language.Entities
             FunctionCall constructorChainCall = null)
         {
             return new FunctionDefinition(modifier,
-                                NameFactory.InitConstructorNameDefinition(), null,
+                                NameFactory.InitConstructorNameDefinition(),
+                                (NameDefinition)null,
+                                null,
                                 parameters,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
@@ -67,14 +66,18 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition(
                 modifier | EntityModifier.Static,
-                NameFactory.NewConstructorNameDefinition(), null,
+                NameFactory.NewConstructorNameDefinition(),
+                                (NameDefinition)null,
+                null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
                 constructorChainCall: null, body: body);
         }
         public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier, Block body)
         {
             return new FunctionDefinition(modifier | EntityModifier.Private,
-                                NameFactory.ZeroConstructorNameDefinition(), null,
+                                NameFactory.ZeroConstructorNameDefinition(),
+                                (NameDefinition)null,
+                                null,
                                 null,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
@@ -98,31 +101,40 @@ namespace Skila.Language.Entities
         public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
-            // parameters have to go before user body, so they are registered for use
-            .Concat(this.Parameters)
+            .Concat(this.Label)                               
+            .Concat(this.Parameters)// parameters have to go before user body, so they are registered for use
             .Concat(this.MetaThisParameter)
             .Concat(UserBody)
             .Concat(this.ResultTypeName)
             .Concat(this.thisNameReference)
-            .Where(it => it != null);
+            .Where(it => it != null)
+            .Concat(this.AccessGrants)
+            ;
 
         public bool IsDeclaration => this.UserBody == null;
 
         public bool IsLambdaInvoker => this.Name.Name == NameFactory.LambdaInvoke;
         public bool IsLambda => this.EnclosingScope<TemplateDefinition>().IsFunction();
 
+        public NameDefinition Label { get; }
+        public IEnumerable<LabelReference> AccessGrants { get; }
+
         private FunctionDefinition(EntityModifier modifier,
             NameDefinition name,
+            NameDefinition label,
             IEnumerable<TemplateConstraint> constraints,
             IEnumerable<FunctionParameter> parameters,
             ExpressionReadMode callMode,
             INameReference result,
             FunctionCall constructorChainCall,
-            Block body)
+            Block body,
+            IEnumerable<LabelReference> friends = null)
             : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
+            this.Label = label ?? NameDefinition.Create(name.Name);
+            this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
             this.ResultTypeName = result;
             this.IsResultTypeNameInfered = result == null;
@@ -265,6 +277,8 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
+            this.ValidateRestrictedMember(ctx);
+
             TypeDefinition type_owner = this.ContainingType();
 
             if (type_owner != null && type_owner.IsTrait && this.IsAnyConstructor())
@@ -331,6 +345,13 @@ namespace Skila.Language.Entities
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))
                 this.CallMode = ExpressionReadMode.OptionalUse;
+        }
+
+        internal void SetModifier(EntityModifier modifier)
+        {
+            this.Modifier.DetachFrom(this);
+            this.Modifier = modifier;
+            this.Modifier.AttachTo(this);
         }
 
 

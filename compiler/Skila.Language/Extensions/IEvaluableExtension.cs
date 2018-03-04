@@ -18,7 +18,7 @@ namespace Skila.Language.Extensions
             node.IsRead = parent_reading;
             if (parent_reading && ctx.ValAssignTracker != null && node is VariableDeclaration decl)
             {
-                if (!ctx.ValAssignTracker.CanRead(decl))
+                if (decl.InitValue==null)
                     ctx.AddError(ErrorCode.VariableNotInitialized, parent, decl);
             }
 

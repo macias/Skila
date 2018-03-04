@@ -109,7 +109,7 @@ namespace Skila.Language.Builders
 
         private FunctionDefinition build;
 
-        public FunctionBuilder(
+        private FunctionBuilder(
                   NameDefinition name,
                   IEnumerable<FunctionParameter> parameters,
                   ExpressionReadMode callMode,

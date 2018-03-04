@@ -15,16 +15,63 @@ namespace Skila.Tests.Semantics
     public class NameResolution
     {
         [TestMethod]
+        public IErrorReporter ErrorAccessNotGranted()
+        {
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            NameReference forbidden_access = NameReference.CreateThised("x");
+
+            VariableDeclaration decl = VariableBuilder.CreateStatement("y", NameFactory.Int64TypeReference(), null)
+                    .Modifier(EntityModifier.Public | EntityModifier.Reassignable)
+                    .GrantAccess("twin");
+
+            root_ns.AddBuilder(TypeBuilder.Create("Point")
+                .Modifier(EntityModifier.Mutable)
+                .With(FunctionBuilder.Create("friendly",
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(ExpressionFactory.Readout(NameFactory.ThisVariableName, "x"))))
+
+                    .With(FunctionBuilder.Create("foe",
+                        NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(ExpressionFactory.Readout(forbidden_access))))
+
+                    .With(FunctionBuilder.Create("twin",
+                        NameFactory.UnitTypeReference(),
+                        Block.CreateStatement()))
+
+                    .With(FunctionBuilder.Create("twin",
+                        NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(Return.Create(NameReference.Create("p"))))
+                        .Parameters(FunctionParameter.Create("p", NameFactory.UnitTypeReference())))
+
+                    .With(VariableBuilder.CreateStatement("x", NameFactory.Int64TypeReference(), null)
+                    .Modifier(EntityModifier.Private | EntityModifier.Reassignable)
+                    .GrantAccess("friendly"))
+
+                    .With(decl));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AccessForbidden, forbidden_access));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AmbiguousReference, decl.AccessGrants.Single()));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AccessGrantsOnExposedMember, decl.AccessGrants.Single()));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter NameAliasing()
         {
             var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(Alias.Create("Boo",NameFactory.Int64TypeReference()))
+                .With(Alias.Create("Boo", NameFactory.Int64TypeReference()))
                 .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("x",NameReference.Create("Boo"),Int64Literal.Create("2")),
+                        VariableDeclaration.CreateStatement("x", NameReference.Create("Boo"), Int64Literal.Create("2")),
                         ExpressionFactory.Readout("x"),
 
                         Alias.Create("Loc", NameFactory.Int64TypeReference()),
@@ -62,7 +109,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingIt()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -343,7 +390,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceToNestedTarget()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             // reference to nested target
@@ -359,7 +406,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceInSameNamespace()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -376,7 +423,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorResolvingUnqualifiedReferenceToNestedNamespace()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -396,7 +443,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingUnqualifiedReferenceWithinSameNamespace()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -412,7 +459,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingForDuplicatedType()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -432,7 +479,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateResolving()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

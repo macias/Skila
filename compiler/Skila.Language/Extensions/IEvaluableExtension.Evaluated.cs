@@ -4,7 +4,7 @@ using Skila.Language.Semantics;
 using System.Linq;
 
 namespace Skila.Language.Extensions
-{    
+{
     public static partial class IEvaluableExtension
     {
         public static IEntityInstance Evaluated(this INode node, ComputationContext ctx, EvaluationCall evalCall)
@@ -71,7 +71,7 @@ namespace Skila.Language.Extensions
                 else
                 {
                     node.OwnedNodes.ForEach(it => Evaluated(it, ctx, EvaluationCall.Nested));
-                    evaluable?.Evaluate(ctx);
+                    (node as IComputable)?.Evaluate(ctx);
                 }
             }
 
@@ -79,11 +79,11 @@ namespace Skila.Language.Extensions
             {
                 foreach (LocalInfo bindable_info in ctx.EvalLocalNames.RemoveLayer())
                 {
-                    if (bindable_info.Bindable is VariableDeclaration)
+                    if (bindable_info.Bindable is VariableDeclaration decl)
                     {
                         if (!bindable_info.Read)
                         {
-                            ctx.AddError(ErrorCode.BindableNotUsed, bindable_info.Bindable.Name);
+                            ctx.AddError(ErrorCode.BindableNotUsed, decl.Name);
                         }
                     }
                     else if (!bindable_info.Used)
@@ -92,7 +92,7 @@ namespace Skila.Language.Extensions
                         // reading and assigning, loop label does not have such distinction
                         // and function parameter is always assigned
                         if (bindable_info.Bindable is IAnchor
-                            || (bindable_info.Bindable is FunctionParameter param && param.UsageMode == ExpressionReadMode.ReadRequired))
+                        || (bindable_info.Bindable is FunctionParameter param && param.UsageMode == ExpressionReadMode.ReadRequired))
                             ctx.AddError(ErrorCode.BindableNotUsed, bindable_info.Bindable.Name);
                     }
                 }

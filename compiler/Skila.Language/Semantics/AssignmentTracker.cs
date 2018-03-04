@@ -111,11 +111,6 @@ namespace Skila.Language.Semantics
             return true;
         }
 
-        public bool CanRead(VariableDeclaration decl)
-        {
-            return decl.InitValue != null;
-        }
-
         public override string ToString()
         {
             if (this.initializedVariables.Any())

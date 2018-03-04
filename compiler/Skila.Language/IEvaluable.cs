@@ -2,14 +2,10 @@
 
 namespace Skila.Language
 {
-    public interface IEvaluable : IValidable
+    public interface IEvaluable : IValidable,IComputable
     {
         EvaluationInfo Evaluation { get; }
         ValidationData Validation { get; set; }
-
-        bool IsComputed { get; }
-
-        void Evaluate(ComputationContext ctx);
     }
 
 }

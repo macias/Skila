@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Skila.Language.Entities
 {
-    public interface IEntity : IEvaluable, IBindable
+    public interface IEntity : IEvaluable, INameBindable
     {
         EntityModifier Modifier { get; }
         EntityInstance InstanceOf { get; }

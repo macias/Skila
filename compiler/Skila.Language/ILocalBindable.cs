@@ -1,6 +1,6 @@
 ﻿namespace Skila.Language
 {
-    public interface ILocalBindable : IBindable
+    public interface ILocalBindable : INameBindable
     {
     }
 

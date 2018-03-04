@@ -500,6 +500,12 @@ namespace Skila.Language
                     {
                         ctx.AddError(ErrorCode.AccessForbidden, this);
                     }
+                    else if (binding_target is IRestrictedMember member && member.AccessGrants.Any())
+                    {
+                        FunctionDefinition curr_func = this.EnclosingScope<FunctionDefinition>();
+                        if (!curr_func.IsAnyConstructor() && !member.AccessGrants.Select(it => it.Binding).Contains(curr_func))
+                            ctx.AddError(ErrorCode.AccessForbidden, this);
+                    }
                 }
             }
 

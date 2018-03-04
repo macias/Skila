@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
+using Skila.Language.Comparers;
+using Skila.Language.Entities;
+using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 
 namespace Skila.Language
@@ -11,26 +14,32 @@ namespace Skila.Language
     // (which in turn requires Entity, and loops are not entities), EntityInstance uses Evaluation
     // and to compute it we would have to evaluate loop first which leads to circular computations
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class LabelReference : Node, ITemplateName
+    public sealed class LabelReference : Node, ITemplateName,IComputable
     {
-        public static LabelReference Create(string name)
+        public static LabelReference CreateLocal(string name)
         {
-            return new LabelReference(name);
+            return new LabelReference(name,isLocal:true);
+        }
+        public static LabelReference CreateGlobal(string name)
+        {
+            return new LabelReference(name, isLocal: false);
         }
 
         public int Arity => 0;
         public string Name { get; }
 
-        private Option<IAnchor> binding;
-        public IAnchor Binding => this.binding.Value;
+        private Option<ILabelBindable> binding;
+        private readonly bool isLocal;
+
+        public ILabelBindable Binding => this.binding.Value;
+        public bool IsComputed => this.binding.HasValue;
 
         public override IEnumerable<INode> OwnedNodes => Enumerable.Empty<INode>();
 
-        private LabelReference(string name)
-            : base()
+        private LabelReference(string name,bool isLocal)
         {
             this.Name = name;
-            this.binding = new Option<IAnchor>();
+            this.isLocal = isLocal;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -42,15 +51,28 @@ namespace Skila.Language
 
         public void Evaluate(ComputationContext ctx)
         {
-            if (!this.binding.HasValue)
             {
-                IAnchor anchor;
-
-                if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet<IAnchor>(this, out anchor))
-                    this.binding = new Option<IAnchor>(anchor);
+                if (this.isLocal)
+                {
+                    if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet<IAnchor>(this, out IAnchor anchor))
+                        this.binding = new Option<ILabelBindable>(anchor);
+                }
                 else
                 {
-                    this.binding = new Option<IAnchor>(null);
+                    TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
+                    IReadOnlyCollection<ILabelBindable> found = curr_type.NestedEntities()
+                        .WhereType<ILabelBindable>(it => EntityBareNameComparer.Instance.Equals(it.Label, this)).StoreReadOnly();
+                    if (found.Count>0)
+                    {
+                        this.binding = new Option<ILabelBindable>(found.First());
+                        if (found.Count > 1)
+                            ctx.AddError(ErrorCode.AmbiguousReference, this);
+                    }
+                }
+
+                if (!this.binding.HasValue)
+                {
+                    this.binding = new Option<ILabelBindable>(null);
                     ctx.ErrorManager.AddError(ErrorCode.ReferenceNotFound, this);
                 }
             }

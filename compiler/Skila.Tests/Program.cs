@@ -24,7 +24,7 @@ namespace Skila.Tests
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
-                 //new Semantics.Flow().ErrorExtendedAssignmentTracking();
+                //new Semantics.Flow().ErrorExtendedAssignmentTracking();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -32,13 +32,13 @@ namespace Skila.Tests
                 //new Semantics.MemoryClasses().ErrorReferenceEscapesFromScope();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
-                //new Semantics.NameResolution().NameAliasing();
+                new Semantics.NameResolution().ErrorAccessNotGranted();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
                 // new Semantics.Templates().ErrorCallingTraitMethodOnHost();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().ErrorInOutVariance();
-               //new Semantics.Variables().TODO_OptionalAssignment();
+                //new Semantics.Variables().TODO_OptionalAssignment();
 
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
@@ -58,26 +58,30 @@ namespace Skila.Tests
 
             // if (false)
             {
-                const double golden_standard = 1.29;
+                const double golden_avg_s = 1.28;
+                const double golden_min_s = 0.00;
+                const double golden_max_s = 2.56;
 
                 long min_ticks, max_ticks;
                 long start = Stopwatch.GetTimestamp();
-                int count = runTests<IErrorReporter>(nameof(Semantics),out min_ticks,out max_ticks, checkErrorCoverage: true);
+                int count = runTests<IErrorReporter>(nameof(Semantics), out min_ticks, out max_ticks, checkErrorCoverage: true);
 
-                reportTime("Semantics", start, count, golden_standard, min_ticks, max_ticks);
+                reportTime("Semantics", start, count, golden_avg_s, min_ticks, golden_min_s, max_ticks, golden_max_s);
             }
 
             Console.WriteLine();
 
-             //if (false)
+            //if (false)
             {
-                const double golden_standard = 1.31;
+                const double golden_avg_s = 1.31;
+                const double golden_min_s = 1.17;
+                const double golden_max_s = 2.17;
 
                 long min_ticks, max_ticks;
                 long start = Stopwatch.GetTimestamp();
                 int count = runTests<IInterpreter>(nameof(Execution), out min_ticks, out max_ticks, checkErrorCoverage: false);
 
-                reportTime("Interpretation", start, count, golden_standard, min_ticks, max_ticks);
+                reportTime("Interpretation", start, count, golden_avg_s, min_ticks, golden_min_s, max_ticks, golden_max_s);
             }
 
             if (AssertReporter.Fails.Any())
@@ -102,26 +106,42 @@ namespace Skila.Tests
                 Console.ReadLine();
         }
 
-        private static void reportTime(string title, long start, int count, double goldenStandard,long minTicks,long maxTicks)
+        private static void reportTime(string title, long start, int count, double goldenAvg, long minTicks, double goldenMin, 
+            long maxTicks, double goldenMax)
         {
-            double time_s = (Stopwatch.GetTimestamp() - start) *1.0 / Stopwatch.Frequency;
+            double time_s = (Stopwatch.GetTimestamp() - start) * 1.0 / Stopwatch.Frequency;
             double avg_s = time_s / count;
             double min_s = minTicks * 1.0 / Stopwatch.Frequency;
             double max_s = maxTicks * 1.0 / Stopwatch.Frequency;
-            Console.Write($"{title} time: {time_s.ToString("0.00")}s, min: {min_s.ToString("0.00")}s, max: {max_s.ToString("0.00")}s, average: {avg_s.ToString("0.00")}s, ");
+
+            Console.Write($"{title} time: {time_s.ToString("0.00")}s");
+            Console.Write(", ");
+            reportTime("min", min_s, goldenMin, useColoring: false);
+            Console.Write(", ");
+            reportTime("max", max_s, goldenMax, useColoring: false);
+            Console.Write(", ");
+            reportTime("avg", avg_s, goldenAvg, useColoring: true);
+            Console.WriteLine();
+        }
+        private static void reportTime(string part, double currentValue, double goldenValue, bool useColoring)
+        {
+            Console.Write($"{part}: {currentValue.ToString("0.00")}");
             const int rounding = 100;
-            int diff = (int)Math.Round((avg_s - goldenStandard)* rounding);
+            int diff = (int)Math.Round((currentValue - goldenValue) * rounding);
 
             var fc = Console.ForegroundColor;
-            if (diff > 2)
-                Console.ForegroundColor = ConsoleColor.Red;
-            else if (diff < -2)
-                Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"diff: {(diff*1.0/rounding).ToString("0.00")}s");
+            if (useColoring)
+            {
+                if (diff > 2)
+                    Console.ForegroundColor = ConsoleColor.Red;
+                else if (diff < -2)
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+            }
+            Console.Write($"/{(diff * 1.0 / rounding).ToString("+0.00;-0.00;0")}");
             Console.ForegroundColor = fc;
         }
 
-        private static int runTests<T>(string @namespace,out long minTicks,out long maxTicks, bool checkErrorCoverage)
+        private static int runTests<T>(string @namespace, out long minTicks, out long maxTicks, bool checkErrorCoverage)
             where T : class
         {
             minTicks = long.MaxValue;
@@ -137,7 +157,7 @@ namespace Skila.Tests
                 .Where(it => it.Namespace.EndsWith(@namespace))
                 .OrderBy(it => it.Name))
             {
-                missed_atrr.AddRange(runTests<T>(type, ref total, ref failed,ref minTicks,ref maxTicks, reported_errors));
+                missed_atrr.AddRange(runTests<T>(type, ref total, ref failed, ref minTicks, ref maxTicks, reported_errors));
             }
 
             if (checkErrorCoverage)
@@ -197,7 +217,7 @@ namespace Skila.Tests
             return total;
         }
 
-        private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed,ref long minTicks,ref long maxTicks,
+        private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed, ref long minTicks, ref long maxTicks,
             HashSet<ErrorCode> errors)
             where T : class
         {

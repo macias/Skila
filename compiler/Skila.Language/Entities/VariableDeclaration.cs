@@ -10,15 +10,21 @@ using Skila.Language.Semantics;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer, ILocalBindable, IMember
+    public sealed class VariableDeclaration : Expression, IEntityVariable, ILambdaTransfer, ILocalBindable, IRestrictedMember
     {
-        public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue, EntityModifier modifier = null)
+        public static VariableDeclaration CreateStatement(string name, INameReference typeName, IExpression initValue,
+            EntityModifier modifier = null)
         {
             return new VariableDeclaration(modifier, ExpressionReadMode.CannotBeRead, name, typeName, initValue);
         }
         public static VariableDeclaration CreateExpression(string name, INameReference typeName, IExpression initValue)
         {
             return new VariableDeclaration(EntityModifier.None, ExpressionReadMode.ReadRequired, name, typeName, initValue);
+        }
+        public static VariableDeclaration Create(ExpressionReadMode readMode, string name, INameReference typeName,
+            IExpression initValue, EntityModifier modifier, IEnumerable<LabelReference> friends)
+        {
+            return new VariableDeclaration(modifier, readMode, name, typeName, initValue, friends);
         }
 
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -33,13 +39,18 @@ namespace Skila.Language.Entities
 
         public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
+            .Concat(this.AccessGrants)
             .Concat(closures);
+
         private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
         public EntityModifier Modifier { get; private set; }
+        public IEnumerable<LabelReference> AccessGrants { get; }
 
         private VariableDeclaration(EntityModifier modifier, ExpressionReadMode readMode, string name,
-            INameReference typeName, IExpression initValue)
+            INameReference typeName,
+            IExpression initValue,
+            IEnumerable<LabelReference> friends = null)
             : base(readMode)
         {
             if (name == null)
@@ -49,6 +60,7 @@ namespace Skila.Language.Entities
             this.Name = NameDefinition.Create(name);
             this.TypeName = typeName;
             this.initValue = initValue;
+            this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
                 translation: TemplateTranslation.Create(this)));
@@ -168,7 +180,7 @@ namespace Skila.Language.Entities
                             this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(),
             // we have to give target for name, because this could be property field, and it is in scope
             // of a property not enclosed type, so from constructor such field is invisible
-                            this.InstanceOf,isLocal:false);
+                            this.InstanceOf, isLocal: false);
         }
 
         public override void Evaluate(ComputationContext ctx)
@@ -264,6 +276,7 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
+            this.ValidateRestrictedMember(ctx);
             InitValue?.ValidateValueExpression(ctx);
 
             if ((this.IsTypeContained() && this.Modifier.HasStatic) || this.isGlobalVariable())
