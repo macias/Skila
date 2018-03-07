@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                     // the declaration-expression is used, but the variable itself is not
                     // thus we report it as unused (in such code user should pass the init-value itself w/o creating variable)
-                    Assignment.CreateStatement(NameReference.Sink(), decl)
+                    ExpressionFactory.Readout( decl)
                 )));
 
             var resolver = NameResolver.Create(env);

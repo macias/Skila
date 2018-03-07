@@ -139,16 +139,16 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             TypeDefinition from_reg = root_ns.AddBuilder(TypeBuilder.CreateEnum(NameFactory.SizeTypeName)
                 .Parents("Whatever")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(EnumCaseBuilder.Create("small", "big")));
 
             TypeDefinition from_enum = root_ns.AddBuilder(TypeBuilder.Create("Another")
                 .Parents(NameFactory.SizeTypeName)
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             var resolver = NameResolver.Create(env);
 

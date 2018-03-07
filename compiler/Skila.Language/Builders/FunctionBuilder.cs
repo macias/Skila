@@ -108,6 +108,8 @@ namespace Skila.Language.Builders
         private IEnumerable<TemplateConstraint> constraints;
 
         private FunctionDefinition build;
+        private IEnumerable<NameReference> includes;
+        private IEnumerable<LabelReference> friends;
 
         private FunctionBuilder(
                   NameDefinition name,
@@ -159,6 +161,22 @@ namespace Skila.Language.Builders
             this.constraints = constraints;
             return this;
         }
+        public FunctionBuilder Include(params NameReference[] includes)
+        {
+            if (this.includes != null || this.build != null)
+                throw new InvalidOperationException();
+
+            this.includes = includes;
+            return this;
+        }
+        public FunctionBuilder GrantAccess(params LabelReference[] friends)
+        {
+            if (this.friends != null || this.build != null)
+                throw new InvalidOperationException();
+
+            this.friends = friends;
+            return this;
+        }
 
         public FunctionDefinition Build()
         {
@@ -169,12 +187,15 @@ namespace Skila.Language.Builders
                     constraints,
                     parameters ?? Enumerable.Empty<FunctionParameter>(), callMode, result,
                     chainCall,
-                    body);
+                    body,
+                    includes,
+                    friends);
             return build;
         }
         public static implicit operator FunctionDefinition(FunctionBuilder @this)
         {
             return @this.Build();
         }
+
     }
 }

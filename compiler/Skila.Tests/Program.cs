@@ -20,10 +20,11 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                //new Semantics.CompilerProtection().Environment();
+                //new Semantics.CompilerProtection().EnvironmentOption2();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
+                //new Semantics.Extensions().ErrorInvalidDefinitions();
                 //new Semantics.Flow().ErrorExtendedAssignmentTracking();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
@@ -41,9 +42,9 @@ namespace Skila.Tests
                 //new Semantics.Variables().TODO_OptionalAssignment();
 
                 //new Execution.Closures().ClosureRecursiveCall();
-                //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
+                //new Execution.Collections().MapFunction();
                 //new Execution.Concurrency().SingleMessage();
-                new Execution.Extensions().StaticDispatch();
+                //new Execution.Extensions().StaticDispatch();
                 //new Execution.Flow().InitializationWithinOptionalAssignment();
                 //new Execution.FunctionCalls().RecursiveCall();
                 //new Execution.Inheritance().TypeUnion();
@@ -54,12 +55,12 @@ namespace Skila.Tests
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                //new Execution.Text().RegexMatchWithNamedCaptures();
+                new Execution.Text().RegexMatchWithNamedCaptures();
             }
 
             // if (false)
             {
-                const double golden_avg_s = 1.30;
+                const double golden_avg_s = 1.33;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -74,7 +75,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.34;
+                const double golden_avg_s = 1.38;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 
@@ -107,7 +108,7 @@ namespace Skila.Tests
                 Console.ReadLine();
         }
 
-        private static void reportTime(string title, long start, int count, double goldenAvg, long minTicks, double goldenMin, 
+        private static void reportTime(string title, long start, int count, double goldenAvg, long minTicks, double goldenMin,
             long maxTicks, double goldenMax)
         {
             double time_s = (Stopwatch.GetTimestamp() - start) * 1.0 / Stopwatch.Frequency;

@@ -29,7 +29,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("CardboardBox")
                 .Parents("ISecret")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 // refining private is OK
                 .With(FunctionBuilder.Create("noTell", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
@@ -59,7 +59,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
-                    .Modifier(EntityModifier.Base)
+                    .SetModifier(EntityModifier.Base)
                     .With(FunctionBuilder.Create("f",
                      NameFactory.UnitTypeReference(),
                         Block.CreateStatement())
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase | EntityModifier.HeapOnly)
                         .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
-                    .Modifier(EntityModifier.Base)
+                    .SetModifier(EntityModifier.Base)
                     .Parents("Grandparent")
                     .With(func));
 
@@ -94,7 +94,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
-                    .Modifier(EntityModifier.Base)
+                    .SetModifier(EntityModifier.Base)
                     .With(FunctionBuilder.Create("f",
                      NameFactory.UnitTypeReference(),
                         Block.CreateStatement())
@@ -106,7 +106,7 @@ namespace Skila.Tests.Semantics
                             FunctionParameter.Create("b", NameFactory.RealTypeReference(), ExpressionReadMode.CannotBeRead))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
-                    .Modifier(EntityModifier.Base)
+                    .SetModifier(EntityModifier.Base)
                     .Parents("Grandparent")
                     .With(FunctionBuilder.Create("f",
                      NameFactory.UnitTypeReference(),
@@ -136,14 +136,14 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Start")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create("getSome",
                  NameFactory.Int64TypeReference(),
                     Block.CreateStatement(Return.Create(Int64Literal.Create("3"))))
                     .Modifier(EntityModifier.Pinned)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .Parents("Start")
                 .With(FunctionBuilder.Create("getSome",
                  NameFactory.Int64TypeReference(),
@@ -169,7 +169,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
                 .With(EnumCaseBuilder.Create("Sat", "Sun"))
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("First")
                 .With(EnumCaseBuilder.Create("Mon"))
@@ -201,16 +201,16 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             TypeDefinition from_reg = root_ns.AddBuilder(TypeBuilder.CreateEnum("Sizing")
                 .Parents("Whatever")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(EnumCaseBuilder.Create("small", "big")));
 
             TypeDefinition from_enum = root_ns.AddBuilder(TypeBuilder.Create("Another")
                 .Parents("Sizing")
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             var resolver = NameResolver.Create(env);
 
@@ -305,7 +305,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .Modifier(EntityModifier.HeapOnly | EntityModifier.Base));
+                .SetModifier(EntityModifier.HeapOnly | EntityModifier.Base));
 
             NameReference parent_name = NameReference.Create("Point");
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("PointEx"))
@@ -345,8 +345,8 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point1")).Modifier(EntityModifier.Base));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point2")).Modifier(EntityModifier.Base));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point1")).SetModifier(EntityModifier.Base));
+            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point2")).SetModifier(EntityModifier.Base));
 
             NameReference parent_name = NameReference.Create("Point2");
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("PointEx"))
@@ -435,10 +435,10 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             system_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .Parents(NameReference.Create("Bar")));
             system_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .Parents(NameReference.Create("Foo")));
 
             // if it does not hang, it is OK
@@ -468,7 +468,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference()))
-                .Modifier(EntityModifier.Interface));
+                .SetModifier(EntityModifier.Interface));
 
             FunctionDefinition bar_impl = FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
@@ -508,11 +508,11 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference()))
-                .Modifier(EntityModifier.Interface));
+                .SetModifier(EntityModifier.Interface));
 
             root_ns.AddBuilder(TypeBuilder.Create("MiddleImpl")
                 // ok to ignore the functions inside abstract type
-                .Modifier(EntityModifier.Abstract)
+                .SetModifier(EntityModifier.Abstract)
                 .Parents(NameReference.Create("Inter")));
 
             // there is still function to implement
@@ -539,7 +539,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                     .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
-                .Modifier(EntityModifier.Interface));
+                .SetModifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
@@ -574,7 +574,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference())
                     .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
-                .Modifier(EntityModifier.Interface));
+                .SetModifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                 .Add("V").Values))

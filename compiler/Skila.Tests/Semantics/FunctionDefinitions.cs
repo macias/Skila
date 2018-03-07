@@ -56,7 +56,7 @@ namespace Skila.Tests.Semantics
                     .Parameters(FunctionParameter.Create("x",NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
 
             root_ns.AddBuilder(TypeBuilder.Create("Start")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(conv1)
                 .With(conv2)
                 .With(conv3));

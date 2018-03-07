@@ -20,14 +20,14 @@ namespace Skila.Language.Entities
         {
             return new TypeDefinition(modifier, allowSlicing, name, constraints,
                 parents, features,
-                typeParameter: null);
+                typeParameter: null,includes:null);
         }
         public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
             return new TypeDefinition(EntityModifier.Interface,
                 false, name, null, new[] { NameFactory.IObjectTypeReference() },
                 features: null,
-                typeParameter: null);
+                typeParameter: null, includes: null);
         }
 
         // used for creating embedded type definitions of type parameters, e.g. Tuple<T1,T2>, here we create T1 and T2
@@ -42,7 +42,7 @@ namespace Skila.Language.Entities
                 modifier |= EntityModifier.Mutable;
             return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
                 typeParameter.Constraint.InheritsNames, typeParameter.Constraint.HasFunctions,
-                typeParameter);
+                typeParameter, includes: null);
         }
 
 
@@ -87,7 +87,8 @@ namespace Skila.Language.Entities
             IEnumerable<TemplateConstraint> constraints,
             IEnumerable<NameReference> parents,
             IEnumerable<INode> features,
-            TemplateParameter typeParameter) : base(modifier, name, constraints)
+            TemplateParameter typeParameter,
+            IEnumerable<NameReference> includes) : base(modifier, name, constraints,includes)
         {
             this.AllowSlicedSubstitution = allowSlicing;
             this.TemplateParameter = typeParameter;

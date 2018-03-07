@@ -370,7 +370,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("v", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),

@@ -88,7 +88,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
@@ -128,7 +128,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),

@@ -13,10 +13,10 @@ namespace Skila.Language
                 IEntityInstance objectInstance,
                 EntityInstance targetFunctionInstance)
             {
-                IEntityInstance elem_instance = orderedTranslatation(param.ElementTypeName.Evaluation.Components,
+                IEntityInstance elem_instance = translateFunctionElement(param.ElementTypeName.Evaluation.Components,
                     objectInstance, targetFunctionInstance);
 
-                IEntityInstance type_instance = orderedTranslatation(param.TypeName.Evaluation.Components,
+                IEntityInstance type_instance = translateFunctionElement(param.TypeName.Evaluation.Components,
                     objectInstance, targetFunctionInstance);
 
                 return new ParameterType(elementTypeInstance: elem_instance, typeInstance: type_instance);

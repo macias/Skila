@@ -68,6 +68,7 @@
     <Compile Include="Execution\Closures.cs" />
     <Compile Include="Execution\Templates.cs" />
     <Compile Include="Semantics\CompilerProtection.cs" />
+    <Compile Include="Semantics\Extensions.cs" />
     <Compile Include="Semantics\Concurrency.cs" />
     <Compile Include="Semantics\Inheritance.cs" />
     <Compile Include="Semantics\Templates.cs" />

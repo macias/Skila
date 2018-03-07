@@ -83,7 +83,7 @@ namespace Skila.Language
         {
             this.aggregate = TypeBuilder.Create(AutoName.Instance.CreateNew("Aggregate"))
                 .With(members)
-                .Modifier(EntityModifier.Protocol);
+                .SetModifier(EntityModifier.Protocol);
             aggregate.AttachTo(this);
             this.aggregate.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 

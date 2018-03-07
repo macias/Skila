@@ -494,7 +494,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(),
                     Int64Literal.Create("2"), EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("pass"), new[] {

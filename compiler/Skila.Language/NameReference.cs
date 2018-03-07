@@ -13,8 +13,6 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class NameReference : Node, ITemplateName, IExpression, INameReference
     {
-        private const string sink = "_";
-
         public static NameReference CreateThised(params string[] parts)
         {
             return NameReference.Create(new[] { NameFactory.ThisVariableName }.Concat(parts).ToArray());
@@ -74,12 +72,6 @@ namespace Skila.Language
         public bool HasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
 
 
-        public static NameReference Sink()
-        {
-            return Create(sink);
-        }
-
-
         private bool? isRead;
         public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue && this.isRead != value) throw new Exception("Internal error"); this.isRead = value; } }
 
@@ -114,7 +106,7 @@ namespace Skila.Language
 
         public ExpressionReadMode ReadMode { get; }
 
-        public bool IsSink => this.Arity == 0 && this.Prefix == null && this.Name == sink;
+        public bool IsSink => this.Arity == 0 && this.Prefix == null && this.Name == NameFactory.Sink;
 
         private bool isPropertyIndexerCallReference => this.Owner is FunctionCall call && call.Callee == this && call.IsIndexer;
 
@@ -220,11 +212,15 @@ namespace Skila.Language
             }
             else
             {
+                if (this.DebugId == (3, 8845))
+                {
+                    ;
+                }
                 ErrorCode errorCode = ErrorCode.ReferenceNotFound;
                 IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
 
                 this.Binding.Set(entities
-                    .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability), 
+                    .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability),
                         it.IsLocal)));
 
                 if (this.Binding.Match.Instance.IsJoker && !this.IsSink
@@ -338,9 +334,7 @@ namespace Skila.Language
                                     else
                                     {
                                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
-                                        entities = filterTargetEntities(entities, it =>
-                                             !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                                             || !it.Target.Modifier.HasStatic);
+                                        entities = filterCrossAccessEntities(ctx, entities);
                                     }
                                 }
 
@@ -355,7 +349,7 @@ namespace Skila.Language
             }
             else // we have prefix
             {
-                if (this.DebugId== (3, 8770))
+                if (this.DebugId == (3, 8845))
                 {
                     ;
                 }
@@ -381,6 +375,10 @@ namespace Skila.Language
                 }
                 else
                 {
+                    if (this.DebugId == (3, 8845))
+                    {
+                        ;
+                    }
                     int dereferenced = 0;
                     EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, out dereferenced);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
@@ -398,8 +396,7 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    entities = filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                        || !it.Target.Modifier.HasStatic);
+                    entities = filterCrossAccessEntities(ctx, entities);
 
                     this.Prefix.DereferencedCount_LEGACY = dereferenced;
                     this.DereferencingCount = dereferenced;
@@ -407,6 +404,12 @@ namespace Skila.Language
                     return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
             }
+        }
+
+        private IEnumerable<EntityInstance> filterCrossAccessEntities(ComputationContext ctx, IEnumerable<EntityInstance> entities)
+        {
+            return filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName
+                                    || !it.Target.Modifier.HasStatic || ((it.Target is FunctionDefinition func) && func.IsExtension));
         }
 
         // this function tries to minimize number of errors -- in case we cannot resolve a name

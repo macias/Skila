@@ -28,7 +28,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(
                 NameDefinition.Create(NameFactory.TupleTypeName,
                 TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
                     new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
                 .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
@@ -131,7 +131,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .Modifier(EntityModifier.Const | EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Const | EntityModifier.Mutable));
 
             var resolver = NameResolver.Create(env);
 

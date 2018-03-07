@@ -66,7 +66,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Parents("ISay")
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
@@ -115,7 +115,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Parents("ISay")
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
@@ -162,7 +162,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Parents("ISay")
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
@@ -209,7 +209,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                 .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                 Block.CreateStatement(

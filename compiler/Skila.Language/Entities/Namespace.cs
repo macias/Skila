@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 using NaiveLanguageTools.Common;
 using System.Collections.Generic;
-using Skila.Language.Semantics;
 using Skila.Language.Extensions;
 
 namespace Skila.Language.Entities
@@ -21,7 +19,7 @@ namespace Skila.Language.Entities
             return new Namespace(NameDefinition.Create(name));
         }
 
-        private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null)
+        private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null,null)
         {
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }

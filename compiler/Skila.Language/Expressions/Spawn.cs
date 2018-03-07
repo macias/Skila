@@ -43,7 +43,7 @@ namespace Skila.Language.Expressions
             {
                 this.Evaluation = ctx.Env.UnitEvaluation;
 
-                foreach (FunctionArgument arg in this.Call.Arguments)
+                foreach (FunctionArgument arg in this.Call.UserArguments)
                     if (arg.Evaluation.Components.MutabilityOfType(ctx) != TypeMutability.ConstAsSource)
                         ctx.AddError(ErrorCode.CannotSpawnWithMutableArgument, arg);
 

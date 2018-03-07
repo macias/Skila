@@ -93,7 +93,8 @@ namespace Skila.Tests.Execution
                 ),
 
                     Return.Create(Nat8Literal.Create("7"))
-                )));
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
@@ -187,7 +188,8 @@ namespace Skila.Tests.Execution
                 ),
 
                     Return.Create(Nat8Literal.Create("7"))
-                )));
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
@@ -301,7 +303,8 @@ namespace Skila.Tests.Execution
                 ),
 
                     Return.Create(Nat8Literal.Create("7"))
-                )));
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);

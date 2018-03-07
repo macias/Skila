@@ -41,7 +41,7 @@ namespace Skila.Language.Builders
         {
             TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
             builder = builder
-                .Modifier(EntityModifier.Enum)
+                .SetModifier(EntityModifier.Enum)
                 .Parents(NameFactory.IEquatableTypeReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private,
                     new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.NatTypeReference(),
@@ -81,7 +81,7 @@ namespace Skila.Language.Builders
         }
         public static TypeBuilder CreateInterface(NameDefinition name, EntityModifier modifier = null)
         {
-            return new TypeBuilder(name).Modifier(EntityModifier.Interface | modifier);
+            return new TypeBuilder(name).SetModifier(EntityModifier.Interface | modifier);
         }
 
 
@@ -89,7 +89,7 @@ namespace Skila.Language.Builders
         private readonly List<INode> features;
         private IEnumerable<NameReference> parents;
         //private List<NameReference> embedTypeNames;
-        private EntityModifier modifier;
+        public EntityModifier Modifier { get; private set; }
         private TypeDefinition build;
         private bool allowSlicing;
         private IEnumerable<TemplateConstraint> constraints;
@@ -127,7 +127,7 @@ namespace Skila.Language.Builders
 
         public TypeBuilder With(EnumCaseBuilder enumBuilder)
         {
-            if (!this.modifier.HasEnum)
+            if (!this.Modifier.HasEnum)
                 throw new InvalidOperationException();
             return this.With(enumBuilder.Build(this));
         }
@@ -152,12 +152,12 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public TypeBuilder Modifier(EntityModifier modifier)
+        public TypeBuilder SetModifier(EntityModifier modifier)
         {
             if (this.build != null)
                 throw new InvalidOperationException();
 
-            this.modifier = modifier | this.modifier;
+            this.Modifier = modifier | this.Modifier;
             return this;
         }
 
@@ -171,7 +171,7 @@ namespace Skila.Language.Builders
                     throw new Exception("Add modifier via Modifier method");
                 }
 
-                build = TypeDefinition.Create(this.modifier,
+                build = TypeDefinition.Create(this.Modifier,
                     this.name,
                     this.constraints,
                     allowSlicing,

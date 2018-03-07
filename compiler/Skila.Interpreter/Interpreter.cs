@@ -27,6 +27,13 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionDefinition func)
         {
+            if (func.IsDeclaration)
+                throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
+
+            if (func.DebugId == (6, 107))
+            {
+                ;
+            }
             ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
 
             // in case of the extension within the function we use first parameter as regular one
@@ -230,6 +237,10 @@ namespace Skila.Interpreter
 
             while (true)
             {
+                if (node.DebugId == (6, 201))
+                {
+                    ;
+                }
                 INameRegistryExtension.EnterNode(node, ref ctx.LocalVariables, () => new VariableRegistry(ctx.Env.Options.ScopeShadowing));
 
                 ExecValue result;
@@ -617,7 +628,7 @@ namespace Skila.Interpreter
         }
         private async Task<Variant<object, ExecValue, CallInfo>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId == (20, 324))
+            if (call.DebugId == (20, 53))
             {
                 ;
             }
@@ -664,7 +675,7 @@ namespace Skila.Interpreter
 
             {
                 var args_buffer = new List<ObjectData>[call.Resolution.TargetFunction.Parameters.Count];
-                foreach (var param in call.Resolution.TargetFunction.Parameters)
+                foreach (var param in call.Resolution.TargetFunction.Parameters.Skip(call.Resolution.TargetFunction.IsExtension ? 1 : 0))
                 {
                     args_buffer[param.Index] = new List<ObjectData>();
 
@@ -701,7 +712,7 @@ namespace Skila.Interpreter
             {
                 ++index;
 
-                if (!args_group.Any())
+                if (args_group == null || !args_group.Any())
                 {
                     ;
                 }

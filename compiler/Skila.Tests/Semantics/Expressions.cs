@@ -248,7 +248,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable)));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -336,7 +336,7 @@ namespace Skila.Tests.Semantics
             var system_ns = env.SystemNamespace;
 
             root_ns.AddBuilder(TypeBuilder.Create("Oint")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(Property.Create("x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), null, EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },

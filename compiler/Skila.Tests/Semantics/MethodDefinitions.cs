@@ -42,7 +42,7 @@ namespace Skila.Tests.Semantics
 
             FunctionCall virtual_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "foo"));
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                     Block.CreateStatement(new[] {
                         virtual_call
@@ -72,7 +72,7 @@ namespace Skila.Tests.Semantics
             FunctionCall constructor_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName,
                 NameFactory.InitConstructorName));
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,

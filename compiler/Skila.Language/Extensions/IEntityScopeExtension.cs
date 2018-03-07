@@ -54,7 +54,7 @@ namespace Skila.Language.Extensions
         public static IEnumerable<EntityInstance> FindExtensions(this EntityInstance extInstance, ComputationContext ctx,
             NameReference name, EntityFindMode findMode)
         {
-            var available = new List<EntityInstance>();
+            var available = new HashSet<EntityInstance>();
             INode ns = name;
             while (true)
             {
@@ -64,19 +64,31 @@ namespace Skila.Language.Extensions
 
                 foreach (Extension ext in ns.NestedExtensions())
                 {
-                    foreach (EntityInstance func_instance in ext.NestedEntityInstances())
-                    {
-                        FunctionDefinition func = func_instance.TargetFunction;
-                        TypeMatch match = extInstance.MatchesTarget(ctx, func.Parameters.First().Evaluation.Components,
-                            TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
-                        if (match.Passed)
-                            available.Add(func_instance);
-                    }
+                    available.AddRange(findExtensionFunctions(ctx, ext, extInstance));
                 }
+            }
+
+            foreach (Extension ext in name.EnclosingScopesToRoot().WhereType<TemplateDefinition>().SelectMany(it => it.Includes)
+                .Select(it => it.Binding.Match.Instance.Target)
+                .WhereType<Extension>())
+            {
+                available.AddRange(findExtensionFunctions(ctx, ext, extInstance));
             }
 
             IEnumerable<EntityInstance> entities = filterAvailableEntities(available, extInstance.TargetTemplate, name, findMode);
             return findEntities(name, entities);
+        }
+
+        private static IEnumerable<EntityInstance> findExtensionFunctions(ComputationContext ctx, Extension ext, EntityInstance extInstance)
+        {
+            foreach (EntityInstance func_instance in ext.NestedEntityInstances())
+            {
+                FunctionDefinition func = func_instance.TargetFunction;
+                if (!func.IsExtension)
+                    continue;
+
+                yield return func_instance;
+            }
         }
 
         public static IEnumerable<EntityInstance> findEntities(NameReference name, IEnumerable<EntityInstance> entities)

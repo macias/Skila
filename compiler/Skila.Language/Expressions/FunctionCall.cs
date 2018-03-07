@@ -105,8 +105,8 @@ namespace Skila.Language.Expressions
         public IExpression Callee => this.callee;
         public NameReference Name => this.Callee.Cast<NameReference>();
 
-        public IReadOnlyList<FunctionArgument> Arguments { get; }
-        public override IEnumerable<INode> OwnedNodes => Arguments.Select(it => it.Cast<INode>())
+        public IReadOnlyList<FunctionArgument> UserArguments { get; }
+        public override IEnumerable<INode> OwnedNodes => UserArguments.Select(it => it.Cast<INode>())
             .Concat(this.Callee)
             .Concat(RequestedOutcomeTypeName)
             .Where(it => it != null)
@@ -127,18 +127,18 @@ namespace Skila.Language.Expressions
         {
             this.mode = mode;
             this.callee = callee;
-            this.Arguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
+            this.UserArguments = (arguments ?? Enumerable.Empty<FunctionArgument>()).Indexed().StoreReadOnlyList();
             this.RequestedOutcomeTypeName = requestedOutcomeType;
 
             this.closures = new List<TypeDefinition>();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Arguments));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserArguments));
         }
         public override string ToString()
         {
-            return this.Callee + "(" + Arguments.Select(it => it == null ? "Ø" : it.ToString()).Join(",") + ")";
+            return this.Callee + "(" + UserArguments.Select(it => it == null ? "Ø" : it.ToString()).Join(",") + ")";
         }
 
         public void Validate(ComputationContext ctx)
@@ -253,7 +253,7 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId== (20, 324))
+                    if (this.DebugId==   (20, 328))
                     {
                         ;
                     }
@@ -332,7 +332,7 @@ namespace Skila.Language.Expressions
                     this.Evaluation = EvaluationInfo.Joker;
                 }
 
-                foreach (IExpression arg in Arguments)
+                foreach (IExpression arg in UserArguments)
                     arg.ValidateValueExpression(ctx);
             }
         }
@@ -369,9 +369,9 @@ namespace Skila.Language.Expressions
             foreach (CallResolution call_target in targets)
             {
                 var weights = new List<FunctionOverloadWeight>();
-                foreach (FunctionArgument arg in call_target.Arguments)
+                foreach (FunctionArgument arg in call_target.TrueArguments)
                 {
-                    FunctionParameter param = call_target.GetParamByArgIndex(arg.Index);
+                    FunctionParameter param = call_target.GetParamByArg(arg);
                     var weight = new FunctionOverloadWeight();
                     // prefer non-variadic parameters
                     if (param.IsVariadic)
@@ -442,7 +442,7 @@ namespace Skila.Language.Expressions
 
             return new FunctionCall(CallMode.Indexer,
                 NameReference.Create(this.Name.Prefix, NameFactory.PropertySetter),
-                this.Arguments.Concat(FunctionArgument.Create(NameFactory.PropertySetterValueParameter, rhs)),
+                this.UserArguments.Concat(FunctionArgument.Create(NameFactory.PropertySetterValueParameter, rhs)),
                 requestedOutcomeType: null);
         }
     }

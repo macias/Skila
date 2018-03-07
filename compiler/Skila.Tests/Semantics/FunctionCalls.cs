@@ -128,14 +128,14 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnqualifiedBaseConstructorCall()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None,
                 new[] { FunctionParameter.Create("g", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
                 Block.CreateStatement());
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(base_constructor));
 
             // without pinning down the target constructor with "base" it is not available
@@ -146,7 +146,7 @@ namespace Skila.Tests.Semantics
 
             TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                 .Parents("Point")
-                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(next_constructor));
 
             var resolver = NameResolver.Create(env);
@@ -160,7 +160,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAmbiguousCallWithDistinctOutcomeTypes()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var func1 = root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("go"),
@@ -234,8 +234,7 @@ namespace Skila.Tests.Semantics
                 NameReference.Create("Foo"),
                 Block.CreateStatement(new IExpression[] {
                     // just playing with declaration-expression
-                    Assignment.CreateStatement(NameReference.Sink(),
-                        VariableDeclaration.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
+                    ExpressionFactory.Readout(VariableDeclaration.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
                     Return.Create(NameReference.Create("result"))
                 }));
 
@@ -292,11 +291,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnchainedBase()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
@@ -348,7 +347,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getB"),
                     ExpressionReadMode.ReadRequired,
@@ -381,7 +380,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingSelfFunctionByFunctioName()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             NameReference self_function_reference = NameReference.Create("foo");
@@ -431,7 +430,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingNonFunction()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             NameReference non_func_ref = NameReference.Create("i");
@@ -592,7 +591,7 @@ namespace Skila.Tests.Semantics
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call1));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InvalidNumberVariadicArguments, call4));
 
-            foreach (var arg in call1.Arguments.Concat(call2.Arguments).Concat(call3.Arguments).Concat(call4.Arguments))
+            foreach (var arg in call1.UserArguments.Concat(call2.UserArguments).Concat(call3.UserArguments).Concat(call4.UserArguments))
                 Assert.AreEqual(param1, arg.MappedTo);
 
             return resolver;
@@ -649,7 +648,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.UserArguments[0]);
             Assert.AreEqual(env.Int64Type.InstanceOf, param_eval);
 
             return resolver;
@@ -689,7 +688,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.UserArguments[0]);
             Assert.AreEqual(env.Int64Type.InstanceOf, param_eval);
 
             return resolver;
@@ -756,7 +755,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.UserArguments[0]);
             Assert.AreEqual(env.Int64Type.InstanceOf, param_eval);
 
             return resolver;
@@ -784,7 +783,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.UserArguments[0]);
             Assert.AreEqual(env.Int64Type.InstanceOf, param_eval);
 
             return resolver;
@@ -828,7 +827,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.Arguments[0]);
+            IEntityInstance param_eval = call.Resolution.GetTransParamEvalByArg(call.UserArguments[0]);
             Assert.AreEqual(env.Int64Type.InstanceOf, param_eval);
 
             return resolver;

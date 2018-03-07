@@ -56,7 +56,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Parents("ISay")
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
@@ -99,7 +99,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(int_call))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                 .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
@@ -154,18 +154,18 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             TypeDefinition non_generic_trait = root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Trait));
+                .SetModifier(EntityModifier.Trait));
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
 
             TypeDefinition unconstrained_trait = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
-                .Modifier(EntityModifier.Trait));
+                .SetModifier(EntityModifier.Trait));
 
             TypeDefinition missing_host = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MissMe", "Y", VarianceMode.None))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("Y")
                     .Modifier(EntityModifier.Const)));
 
@@ -174,7 +174,7 @@ namespace Skila.Tests.Semantics
             FunctionDefinition trait_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement());
             VariableDeclaration trait_field = VariableDeclaration.CreateStatement("f", NameFactory.Int64TypeReference(), Int64Literal.Create("5"), EntityModifier.Public);
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .With(trait_constructor)
                 .With(trait_field)
                 .Constraints(ConstraintBuilder.Create("T")
@@ -185,7 +185,7 @@ namespace Skila.Tests.Semantics
             NameReference parent_impl = NameReference.Create("Bar");
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Inheriting", "T", VarianceMode.None))
                 .Parents(parent_impl)
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)));
 
@@ -211,7 +211,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
-                .Modifier(EntityModifier.Trait)
+                .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("T")
                     .Modifier(EntityModifier.Const)));
 
@@ -272,7 +272,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.ReferenceTypeReference(parent_elemtype));
             TypeDefinition parent = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(parent_typename,
                 TemplateParametersBuffer.Create(parent_elemtype).Values))
-                .Modifier(EntityModifier.Abstract)
+                .SetModifier(EntityModifier.Abstract)
                 .With(base_func));
 
             const string child_typename = "Kid";
@@ -328,7 +328,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(Return.Create(Undef.Create())));
             TypeDefinition parent = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(parent_typename,
                 TemplateParametersBuffer.Create(parent_elemtype).Values))
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(access_func)
                 );
 
@@ -410,7 +410,8 @@ namespace Skila.Tests.Semantics
                 .Constraints(ConstraintBuilder.Create("X")
                     .BaseOf(NameReference.Create("T"))));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("part", NameFactory.Int64TypeReference(), NameReference.Sink()));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("part", NameFactory.Int64TypeReference(),
+                NameFactory.SinkReference()));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("caller"),
                 NameFactory.UnitTypeReference(),
@@ -467,7 +468,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Mut").Modifier(EntityModifier.Mutable));
+            root_ns.AddBuilder(TypeBuilder.Create("Mut").SetModifier(EntityModifier.Mutable));
 
             NameReference parent_constraint = NameReference.Create("Mut");
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("proxy",
@@ -496,7 +497,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
             root_ns.AddBuilder(TypeBuilder.Create("Child").Parents("Parent"));
 
             NameReference baseof_name = NameReference.Create("Parent");

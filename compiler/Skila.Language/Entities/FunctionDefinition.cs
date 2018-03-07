@@ -24,7 +24,7 @@ namespace Skila.Language.Entities
             return new FunctionDefinition(modifier,
                 name,
                 (NameDefinition)null,
-                constraints, parameters, callMode, result, constructorChainCall: null, body: body);
+                constraints, parameters, callMode, result, constructorChainCall: null, body: body,includes:null,friends:null);
         }
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -34,12 +34,14 @@ namespace Skila.Language.Entities
             ExpressionReadMode callMode,
             INameReference result,
             FunctionCall constructorChainCall,
-            Block body)
+            Block body,
+            IEnumerable<NameReference> includes,
+            IEnumerable<LabelReference> friends)
         {
             return new FunctionDefinition(modifier,
                 name,
                                 (NameDefinition)null,
-                constraints, parameters, callMode, result, constructorChainCall, body);
+                constraints, parameters, callMode, result, constructorChainCall, body,includes,friends);
         }
 
         public static FunctionDefinition CreateInitConstructor(
@@ -55,7 +57,7 @@ namespace Skila.Language.Entities
                                 parameters,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
-                                constructorChainCall, body: body);
+                                constructorChainCall, body: body, includes: null, friends: null);
         }
 
         public static FunctionDefinition CreateHeapConstructor(
@@ -70,7 +72,7 @@ namespace Skila.Language.Entities
                                 (NameDefinition)null,
                 null,
                 parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
-                constructorChainCall: null, body: body);
+                constructorChainCall: null, body: body, includes: null, friends: null);
         }
         public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier, Block body)
         {
@@ -81,7 +83,7 @@ namespace Skila.Language.Entities
                                 null,
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.UnitTypeReference(),
-                                constructorChainCall: null, body: body);
+                                constructorChainCall: null, body: body, includes: null, friends: null);
         }
 
         public bool IsResultTypeNameInfered { get; }
@@ -130,8 +132,9 @@ namespace Skila.Language.Entities
             INameReference result,
             FunctionCall constructorChainCall,
             Block body,
-            IEnumerable<LabelReference> friends = null)
-            : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints)
+            IEnumerable<NameReference> includes,
+            IEnumerable<LabelReference> friends)
+            : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints,includes)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
@@ -331,6 +334,24 @@ namespace Skila.Language.Entities
                 .FirstOrDefault(it => !it.IsNameRequired);
             if (tail_anon_variadic != null)
                 ctx.AddError(ErrorCode.AnonymousTailVariadicParameter, tail_anon_variadic);
+
+            // extensions
+            {
+                foreach (FunctionParameter param in this.Parameters.Skip(1).Where(it => it.Modifier.HasThis))
+                    ctx.AddError(ErrorCode.NonPrimaryThisParameter, param);
+
+                if (this.IsExtension)
+                {
+                    FunctionParameter param = this.Parameters.First();
+                    if (param.IsVariadic)
+                        ctx.AddError(ErrorCode.VariadicThisParameter, param);
+                    else if (param.IsOptional)
+                        ctx.AddError(ErrorCode.OptionalThisParameter, param);
+
+                    if (!ctx.Env.IsReferenceOfType(param.Evaluation.Components))
+                        ctx.AddError(ErrorCode.NonReferenceThisParameter, param);
+                }
+            }
         }
 
         public bool IsReadingValueOfNode(IExpression node)

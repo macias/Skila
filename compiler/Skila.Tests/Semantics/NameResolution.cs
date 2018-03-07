@@ -27,7 +27,7 @@ namespace Skila.Tests.Semantics
                     .GrantAccess("twin");
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(FunctionBuilder.Create("friendly",
                     NameFactory.UnitTypeReference(),
                     Block.CreateStatement(ExpressionFactory.Readout(NameFactory.ThisVariableName, "x"))))
@@ -113,7 +113,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, EntityModifier.Private | EntityModifier.Static))
                 .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -134,7 +134,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, EntityModifier.Protected))
                 .With(FunctionBuilder.Create("foo", ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
@@ -180,7 +180,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(FunctionBuilder.Create("dummyReader", ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
 
@@ -218,7 +218,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("a", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Protected))
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             NameReference cross_reference = NameReference.Create(NameFactory.BaseVariableName, "a");
             root_ns.AddBuilder(TypeBuilder.Create("Bank")
@@ -230,7 +230,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.Readout(cross_reference),
                 })))
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
 
             var resolver = NameResolver.Create(env);

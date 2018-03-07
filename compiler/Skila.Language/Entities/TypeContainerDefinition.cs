@@ -13,7 +13,8 @@ namespace Skila.Language.Entities
     public abstract class TypeContainerDefinition : TemplateDefinition
     {
         protected TypeContainerDefinition(EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints) : base(modifier, name, constraints)
+            IEnumerable<TemplateConstraint> constraints,IEnumerable<NameReference> includes) 
+            : base(modifier, name, constraints,includes)
         {
         }
 

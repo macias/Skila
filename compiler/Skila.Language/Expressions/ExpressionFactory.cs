@@ -161,7 +161,7 @@ namespace Skila.Language.Expressions
         }
         public static IExpression Readout(IExpression expr)
         {
-            return Assignment.CreateStatement(NameReference.Sink(), expr);
+            return Assignment.CreateStatement(NameFactory.SinkReference(), expr);
         }
 
         public static IExpression HeapConstructor(string innerTypeName, params IExpression[] arguments)

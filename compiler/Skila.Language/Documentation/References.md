@@ -23,3 +23,17 @@
 * [How can compiler compute automatically co- and contravariance?](http://stackoverflow.com/questions/32234737/how-can-compiler-compute-automatically-co-and-contravariance)
 * [Exact rules for variance validity](http://blogs.msdn.com/b/ericlippert/archive/2009/12/03/exact-rules-for-variance-validity.aspx)
 * [Covariance and Contravariance in C#: Why Do We Need A Syntax At All?](http://blogs.msdn.com/b/ericlippert/archive/2007/10/29/covariance-and-contravariance-in-c-part-seven-why-do-we-need-a-syntax-at-all.aspx)
+
+## References/pointers dereference assignment
+
+Or in other words injecting the value via references/pointers. This is legal in C:
+
+    (*ptr) = 1;
+
+But it is not welcome in Skila, however for now we don't see a clear way to solve it.
+
+First problem that when allowing this, signature of functions would be too heavy (because the
+fact assignment is done should be signaled to outside world, like `ref` in C#).
+
+So it would be great to forbid it, but assuming atomic primitives (`Int`, `Bool`) are immutable
+there would be no way to mutate them on purpose via reference/pointer.

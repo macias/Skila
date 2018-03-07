@@ -36,4 +36,10 @@ So what we need is not duck typing which affects entire type system
 but the notion of shell type which could be used on **particular** existing
 type transforming it to **particular** existing interface.
 
+### Afterthought
+
+Maybe duck typing could be of some use via immutable, non-empty protocols
+(protocols in Skila are interfaces with enabled duck typing). The purpose
+of such exception would be to allow query only given object.
+
 

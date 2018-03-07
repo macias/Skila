@@ -41,10 +41,8 @@ namespace Skila.Language
                     template.Name.Parameters[i].Variance,
                     matching);
 
-                if (m != TypeMatch.Same && m != TypeMatch.Substitute && m != TypeMatch.AutoDereference)
-                {
+                if (!m.Passed)
                     return false;
-                }
             }
 
             return true;
@@ -144,6 +142,10 @@ namespace Skila.Language
 
                 foreach (TypeAncestor inherited_input in input_family)
                 {
+                    if (inherited_input.AncestorInstance.DebugId==(10, 7603) && target.DebugId==(10, 7607))
+                    {
+                        ;
+                    }
                     if (matchTypes(ctx, input_mutability, inherited_input.AncestorInstance, target, matching, inherited_input.Distance, out TypeMatch match))
                         return match;
                 }
@@ -176,6 +178,10 @@ namespace Skila.Language
 
             if (target.TargetsTemplateParameter)
             {
+                if (input.DebugId==(10, 4898) && target.DebugId==(10, 897))
+                {
+                    ;
+                }
                 // template parameter can have reversed inheritance defined via base-of constraints
 
                 // todo: at this it should be already evaluated, so constraints should be surfables
@@ -195,6 +201,10 @@ namespace Skila.Language
         private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability, EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
+            if (input.DebugId==(10, 7603) && target.DebugId== (10, 7607))
+            {
+                ;
+            }
             bool is_matched = templateMatches(ctx, input, target, matching);
             if (is_matched)
             {

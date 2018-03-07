@@ -117,5 +117,9 @@
         CannotAssignCustomProperty = 113,
         AmbiguousReference = 114,
         AccessGrantsOnExposedMember = 115,
+        NonPrimaryThisParameter = 116,
+        OptionalThisParameter = 117,
+        VariadicThisParameter = 118,
+        NonReferenceThisParameter = 119,
     }
 }

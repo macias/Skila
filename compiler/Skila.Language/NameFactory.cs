@@ -51,6 +51,8 @@ namespace Skila.Language
         public const string OptionTypeName = "Option";
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
+        public const string ICountedTypeName = "ICounted";
+        public const string LinqExtensionName = "Linq";
         public const string ChunkTypeName = "Chunk";
         public const string ArrayTypeName = "Array";
         public const string IIterableTypeName = "IIterable";
@@ -117,6 +119,8 @@ namespace Skila.Language
         public const string LessOperator = "<";
         public const string LessEqualOperator = "<=";
         public const string NotOperator = "not";
+
+        public const string Sink = "_";
 
         public const string AtFunctionName = "at";
         public const string PropertyIndexerName = AtFunctionName;
@@ -201,6 +205,11 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, Nat8TypeName);
         }
+        public static NameReference SinkReference()
+        {
+            return NameReference.Create(NameFactory.Sink);
+        }
+
         public static NameReference Nat64TypeReference()
         {
             return NameReference.Create(NameReference.Root, Nat64TypeName);
@@ -328,6 +337,14 @@ namespace Skila.Language
             MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
+        }
+        public static NameReference LinqExtensionReference()
+        {
+            return NameReference.Create(CollectionsNamespaceReference(), LinqExtensionName);
+        }
+        public static NameReference ICountedTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        {
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), ICountedTypeName);
         }
         public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {

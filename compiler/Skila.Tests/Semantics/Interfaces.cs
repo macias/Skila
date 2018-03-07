@@ -20,7 +20,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
-                .Modifier(EntityModifier.Interface));
+                .SetModifier(EntityModifier.Interface));
 
             NameReference typename = NameReference.Create("IX");
             NameReference cons_ref;
@@ -79,7 +79,7 @@ namespace Skila.Tests.Semantics
                      ExpressionReadMode.OptionalUse,
                      NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                      .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
-                 .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
+                 .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
@@ -138,7 +138,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
-                 .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
+                 .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
             root_ns.AddBuilder(TypeBuilder.Create("X"));
 

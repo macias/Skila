@@ -319,7 +319,7 @@ namespace Skila.Tests.Semantics
                     decl,
                     if_assign,
                     VariableDeclaration.CreateStatement("x", null, var_ref),
-                    Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("x"))
+                    ExpressionFactory.Readout("x")
                 })));
 
             var resolver = NameResolver.Create(env);
@@ -351,7 +351,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null, EntityModifier.Reassignable),
                     loop,
                     VariableDeclaration.CreateStatement("x", null, var_ref),
-                    Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("x"))
+                    ExpressionFactory.Readout("x")
             })));
 
             var resolver = NameResolver.Create(env);
@@ -390,21 +390,21 @@ namespace Skila.Tests.Semantics
                         if_double_jump,
                         unreachable_assign,
                         VariableDeclaration.CreateStatement("m1",null,NameReference.Create("s")),
-                        Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m1"))
+                        ExpressionFactory.Readout("m1")
                     });
                 // since step is executed after the body is executed, from its POV the variable can be read
                 var outer_loop = Loop.CreateFor(NameDefinition.Create("outer"),
                         init: null,
                         condition: null,
                         step: new IExpression[] { VariableDeclaration.CreateStatement("m3", null, NameReference.Create("s")),
-                                                  Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m3")) },
+                              ExpressionFactory.Readout("m3") },
                         body: new IExpression[] {
                         inner_loop,
                         // this assigment is skipped when we jump out of this (outer) loop
                         // or it is executed, in first case loop-step is not executed, in the second -- it is
                         Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("44")),
                         VariableDeclaration.CreateStatement("m2",null,NameReference.Create("s")),
-                        Assignment.CreateStatement(NameReference.Sink(),NameReference.Create("m2"))
+                        ExpressionFactory.Readout("m2")
                     });
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     NameDefinition.Create("main"),
@@ -414,7 +414,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null,EntityModifier.Reassignable),
                     outer_loop,
-                    Assignment.CreateStatement(NameReference.Sink(), var_ref)
+                    ExpressionFactory.Readout(var_ref)
                     })));
 
                 var resolver = NameResolver.Create(env);

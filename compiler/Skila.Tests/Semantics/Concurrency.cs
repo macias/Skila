@@ -19,7 +19,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, 
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {

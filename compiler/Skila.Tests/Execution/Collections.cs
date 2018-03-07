@@ -52,9 +52,10 @@ namespace Skila.Tests.Execution
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
-                )));
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
 
-            var interpreter = new Interpreter.Interpreter();
+            var interpreter = new Interpreter.Interpreter(debugMode:false);
             ExecValue result = interpreter.TestRun(env);
 
             Assert.AreEqual(2L, result.RetValue.PlainValue);
@@ -102,7 +103,8 @@ namespace Skila.Tests.Execution
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
-                )));
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
@@ -115,25 +117,25 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverConcatenatedMixedIterables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
-                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(ExpressionFactory.BasicConstructor(new[] { "x" },
                     new[] { NameFactory.Int64TypeReference() })));
 
             root_ns.AddBuilder(TypeBuilder.Create("PointA")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .Parents("BasePoint")
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
                     FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("a")))
                     .Parameters(FunctionParameter.Create("a", NameFactory.Int64TypeReference()))));
 
             root_ns.AddBuilder(TypeBuilder.Create("PointB")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .Parents("BasePoint")
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
                     FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("b")))

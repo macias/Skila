@@ -22,10 +22,10 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Alien")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Container", "CCC", VarianceMode.None))
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             // we should get error here because the parent should evaluate to mutable type, and current one is non-mutable
             NameReference parent_name = NameReference.Create("Container", NameReference.Create("Alien"));
@@ -47,7 +47,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Alien")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             // Option is a type which mutability is not decided until concrete type is given
             // here we pass mutable type so it should evaluate into mutable one 
@@ -86,7 +86,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Alien")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             // since Alien is mutable it looks like we try to shake off neutral flag
             IExpression bad_cast = ExpressionFactory.DownCast(NameReference.Create("x"),
@@ -132,10 +132,10 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
                 .With(FunctionBuilder.Create("violate", NameFactory.UnitTypeReference(), Block.CreateStatement())
                     .Modifier(EntityModifier.Mutable))
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Mangler")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("m",
                     NameFactory.PointerTypeReference(NameReference.Create("Mutator", NameReference.Create("Stone"))),
                     Undef.Create(),
@@ -175,10 +175,10 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Stone"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Mangler")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("f",
                     NameFactory.PointerTypeReference(NameReference.Create("Mutator", NameReference.Create("Stone"))),
                     Undef.Create(),
@@ -208,7 +208,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Stone"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("f",
@@ -261,7 +261,7 @@ namespace Skila.Tests.Semantics
 
             FunctionCall call = FunctionCall.Create(NameReference.CreateThised("mutator"));
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(FunctionBuilder.Create("innocent", NameFactory.UnitTypeReference(),
                     Block.CreateStatement(call)))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
@@ -284,7 +284,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(PropertyBuilder.CreateAutoFull("numi", NameFactory.Int64TypeReference(), null))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
@@ -320,7 +320,7 @@ namespace Skila.Tests.Semantics
 
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f"), Int64Literal.Create("5"));
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("f", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
@@ -348,7 +348,7 @@ namespace Skila.Tests.Semantics
             FunctionDefinition function = FunctionBuilder.CreateDeclaration("getMe", NameFactory.UnitTypeReference())
                     .Modifier(EntityModifier.Mutable);
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")
-                .Modifier(EntityModifier.Abstract)
+                .SetModifier(EntityModifier.Abstract)
                 .With(property)
                 .With(function));
 
@@ -394,7 +394,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutant")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Untouchable"));
 
@@ -429,7 +429,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutant")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Untouchable"));
 
@@ -471,7 +471,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             IExpression mutable_init = ExpressionFactory.HeapConstructor(NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -505,7 +505,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.Int64TypeReference(),
                 null, EntityModifier.Reassignable | EntityModifier.Public);
@@ -550,7 +550,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
             root_ns.AddBuilder(TypeBuilder.Create("Foo"));
 
             // we build type Point<T> with enforced "const" on T -- meaning we can pass only trully immutable types
@@ -593,7 +593,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
-                .Modifier(EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Mutable));
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("r", NameFactory.Int64TypeReference(),
                 null, EntityModifier.Reassignable | EntityModifier.Public);
@@ -619,7 +619,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
-                .Modifier(EntityModifier.Base | EntityModifier.Mutable));
+                .SetModifier(EntityModifier.Base | EntityModifier.Mutable));
 
             NameReference parent_name = NameReference.Create("Parent");
             root_ns.AddBuilder(TypeBuilder.Create("Child")

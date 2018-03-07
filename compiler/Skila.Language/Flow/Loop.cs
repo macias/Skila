@@ -34,11 +34,15 @@ namespace Skila.Language.Flow
             string iter = AutoName.Instance.CreateNew("iter");
             VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter, null,
                 FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
+
+            if (varName != NameFactory.Sink)
+               body = VariableDeclaration.CreateStatement(varName, varTypeName,
+                    FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorGet)))
+                    .Concat(body);
+
             return new Loop(null, new[] { iter_decl },
                 preCondition: FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorNext)),
-                body: VariableDeclaration.CreateStatement(varName, varTypeName,
-                    FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorGet)))
-                    .Concat(body), 
+                body: body,
                 postStep: null, postCondition: null);
         }
 

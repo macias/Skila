@@ -284,6 +284,12 @@ namespace Skila.Language
         public TypeMatch TemplateMatchesInput(ComputationContext ctx, EntityInstance input,
             VarianceMode variance, TypeMatching matching)
         {
+            // todo: this is correct but it is just a hack really, because we should check constraints
+            // and if they are compatible we should return match
+            if (input.TargetsTemplateParameter && this.TargetsTemplateParameter
+                && !input.TargetTemplate.Constraints.Any() && !this.TargetTemplate.Constraints.Any())
+                return TypeMatch.Same;
+
             matching.Position = matching.Position.Flipped(variance);
             switch (matching.Position)
             {

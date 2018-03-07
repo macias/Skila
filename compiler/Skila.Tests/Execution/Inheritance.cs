@@ -20,7 +20,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
                 .With(EnumCaseBuilder.Create("Sat", "Sun"))
-                .Modifier(EntityModifier.Base));
+                .SetModifier(EntityModifier.Base));
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("First")
                 .With(EnumCaseBuilder.Create("Mon"))
@@ -153,7 +153,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("MyBase")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
@@ -203,7 +203,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
                 .Parents("IBase")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("getA"),
                     ExpressionReadMode.ReadRequired,

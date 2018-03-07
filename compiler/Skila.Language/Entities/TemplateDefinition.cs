@@ -35,14 +35,15 @@ namespace Skila.Language.Entities
             .Concat(this.Name)
             .Concat(Conditionals)
             .Concat(Modifier)
-            .Where(it => it != null);
+            .Where(it => it != null)
+            .Concat(Includes);
 
         private readonly EntityInstanceCache instancesCache;
 
         public bool IsComputed { get; protected set; }
         public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
-
+        public IEnumerable<NameReference> Includes { get; }
         public EntityModifier Modifier { get; protected set; }
         public IEnumerable<TemplateConstraint> Constraints { get; }
         // constraints that sets the availability of the entire template
@@ -59,12 +60,13 @@ namespace Skila.Language.Entities
         protected bool constructionCompleted;
 
         protected TemplateDefinition(EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints) : base()
+            IEnumerable<TemplateConstraint> constraints,IEnumerable<NameReference> includes) : base()
         {
             modifier = modifier ?? EntityModifier.None;
             if (modifier.HasEnum)
                 modifier |= EntityModifier.Const;
 
+            this.Includes = (includes ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
             this.Modifier = modifier;
             this.Constraints = (constraints ?? Enumerable.Empty<TemplateConstraint>()).StoreReadOnly();
             this.ownedNodes = new HashSet<INode>(ReferenceEqualityComparer<INode>.Instance);

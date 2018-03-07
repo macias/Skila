@@ -4,7 +4,7 @@ namespace Skila.Language.Expressions
 {
     public interface IFunctionArgumentsProvider : INode
     {
-        IReadOnlyList<FunctionArgument> Arguments { get; }
+        IReadOnlyList<FunctionArgument> UserArguments { get; }
         INameReference RequestedOutcomeTypeName { get; }
     }
 }

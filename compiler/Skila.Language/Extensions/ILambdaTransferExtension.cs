@@ -94,7 +94,7 @@ namespace Skila.Language.Extensions
 
                 TypeMutability mutability = thisObject.Evaluation.Components.MutabilityOfType(ctx);
                 if (mutability == TypeMutability.Mutable)
-                    closure_builder.Modifier(EntityModifier.Mutable);
+                    closure_builder.SetModifier(EntityModifier.Mutable);
                 else if (mutability != TypeMutability.ConstAsSource)
                     throw new NotImplementedException();
             }

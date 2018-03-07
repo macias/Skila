@@ -25,7 +25,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
                 .Parents("IProvider")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
                     .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)
@@ -33,7 +33,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(PropertyBuilder.CreateIndexer(NameFactory.Int64TypeReference())
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
@@ -69,14 +69,14 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create("Middle")
                 .Parents("IProvider")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
                     .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(PropertyBuilder.Create("getMe", NameFactory.Int64TypeReference())
                     .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
@@ -109,7 +109,7 @@ namespace Skila.Tests.Execution
             NameReference property_typename = NameFactory.Int64TypeReference();
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(Property.CreateIndexer(property_typename,
                     new[] { VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), Int64Literal.Create("1"),
                         EntityModifier.Reassignable) },
@@ -159,7 +159,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(Property.Create("x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
@@ -195,7 +195,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(Property.Create("x", NameFactory.PointerTypeReference(  NameFactory.Nat8TypeReference()),
                     new[] { Property.CreateAutoField(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),  Nat8Literal.Create("1")), 

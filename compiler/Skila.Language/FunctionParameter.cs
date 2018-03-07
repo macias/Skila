@@ -20,6 +20,14 @@ namespace Skila.Language
         {
             return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue,null, isNameRequired: isNameRequired);
         }
+        public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
+            IExpression defaultValue,
+             bool isNameRequired,
+             EntityModifier modifier,
+             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
+        {
+            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue, modifier, isNameRequired: isNameRequired);
+        }
         public static FunctionParameter Create(string name, INameReference typeName,
             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {

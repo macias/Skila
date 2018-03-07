@@ -67,7 +67,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
-                .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     null,
@@ -128,7 +128,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
-                .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     null,
@@ -139,7 +139,7 @@ namespace Skila.Tests.Execution
                     }))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,
@@ -205,7 +205,7 @@ namespace Skila.Tests.Execution
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                     .Add("T").Values))
-                .Modifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
                 .With(FunctionBuilder.CreateDeclaration(
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.ReadRequired,

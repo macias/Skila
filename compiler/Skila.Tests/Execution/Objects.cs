@@ -100,7 +100,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .Parents(NameFactory.IEquatableTypeReference())
                 .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
@@ -152,7 +152,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
-                .Modifier(EntityModifier.Base)
+                .SetModifier(EntityModifier.Base)
                 .Parents(NameFactory.IEquatableTypeReference())
                 .WithEquatableEquals()
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
@@ -329,7 +329,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable)
+                .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
                 .With(VariableDeclaration.CreateStatement("y", NameFactory.Int64TypeReference(), null,
@@ -394,7 +394,7 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"a"),Int64Literal.Create("5")))
                 }));
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(base_constructor)
                 .With(VariableDeclaration.CreateStatement("a", NameFactory.Int64TypeReference(), Int64Literal.Create("-1"),
                     EntityModifier.Public | EntityModifier.Reassignable)));
@@ -408,7 +408,7 @@ namespace Skila.Tests.Execution
 
             TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                 .Parents("Point")
-                .Modifier(EntityModifier.Mutable | EntityModifier.Base)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                 .With(next_constructor)
 
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
