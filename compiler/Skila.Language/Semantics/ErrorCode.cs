@@ -121,5 +121,6 @@
         OptionalThisParameter = 117,
         VariadicThisParameter = 118,
         NonReferenceThisParameter = 119,
+        UndefinedTemplateArguments = 120,
     }
 }

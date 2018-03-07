@@ -4,6 +4,8 @@ using Skila.Language.Builders;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Flow;
+using Skila.Language.Semantics;
 
 namespace Skila.Tests.Semantics
 {
@@ -128,6 +130,32 @@ namespace Skila.Tests.Semantics
                 .With(VariableDeclaration.CreateStatement("n", NameReference.Create("Chain"), Undef.Create())));
 
             var resolver = NameResolver.Create(env);
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorUsingFunctionAsProperty()
+        {
+            // when writing this test compiler crashed when the function was called like a property
+            var env = Skila.Language.Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            NameReference func_name = NameReference.Create("b", NameFactory.IterableCount);
+            root_ns.AddBuilder(FunctionBuilder.Create("bad_call", NameFactory.SizeTypeReference(), Block.CreateStatement(
+                // using function like a property (error)
+                // todo: however it should be another error, because this reference should create functor and the error should
+                // say about type mismatch between returning value and result type
+                Return.Create(func_name)))
+                .Parameters(FunctionParameter.Create("b", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                    Variadic.Create(2, 3), null, false))
+                .Include(NameFactory.LinqExtensionReference()));
+
+          
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.UndefinedTemplateArguments, func_name));
 
             return resolver;
         }

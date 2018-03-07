@@ -460,6 +460,9 @@ namespace Skila.Language
                     ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
                 else if (mismatch == ConstraintMatch.MissingFunction)
                     ctx.AddError(ErrorCode.ViolatedHasFunctionConstraint, this);
+                // todo: added in a rush, polish this scenario
+                else if (mismatch == ConstraintMatch.UndefinedTemplateArguments)
+                    ctx.AddError(ErrorCode.UndefinedTemplateArguments, this);
                 else if (mismatch != ConstraintMatch.Yes)
                     throw new Exception("Internal error");
             }

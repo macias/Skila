@@ -7,5 +7,6 @@
         BaseViolation,
         InheritsViolation,
         MissingFunction,
+        UndefinedTemplateArguments,
     }
 }
