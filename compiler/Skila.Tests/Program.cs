@@ -44,7 +44,7 @@ namespace Skila.Tests
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().MapFunction();
                 //new Execution.Concurrency().SingleMessage();
-                //new Execution.Extensions().StaticDispatch();
+                //new Execution.Extensions().TODO_StaticCallStaticDispatch();
                 //new Execution.Flow().InitializationWithinOptionalAssignment();
                 //new Execution.FunctionCalls().RecursiveCall();
                 //new Execution.Inheritance().TypeUnion();
@@ -55,7 +55,7 @@ namespace Skila.Tests
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-               // new Execution.Text().RegexMatchWithNamedCaptures();
+                new Execution.Text().StringTrimming();
             }
 
             // if (false)

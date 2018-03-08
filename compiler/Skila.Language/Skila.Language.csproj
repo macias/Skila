@@ -81,6 +81,8 @@
     <Compile Include="Expressions\Literals\Nat8Literal.cs" />
     <Compile Include="Expressions\Literals\Nat64Literal.cs" />
     <Compile Include="Expressions\IsSame.cs" />
+    <Compile Include="Expressions\Literals\CharLiteral.cs" />
+    <Compile Include="Expressions\Literals\Utf8StringLiteral.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="Extensions\EvaluationCall.cs" />
     <Compile Include="Extensions\INameReferenceExtension.cs" />

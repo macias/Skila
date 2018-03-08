@@ -269,7 +269,7 @@ namespace Skila.Interpreter
                 {
                     result = await executeAsync(ctx, name_ref).ConfigureAwait(false);
                 }
-                else if (node is StringLiteral str_lit)
+                else if (node is Utf8StringLiteral str_lit)
                 {
                     result = await executeAsync(ctx, str_lit).ConfigureAwait(false);
                 }
@@ -362,7 +362,7 @@ namespace Skila.Interpreter
             return executeAllocObjectAsync(ctx, alloc.InnerTypeName.Evaluation.Components, alloc.Evaluation.Components, null);
         }
 
-        private async Task<ObjectData> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName,
+        private static async Task<ObjectData> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName,
             object value)
         {
             ObjectData obj = await ObjectData.CreateInstanceAsync(ctx, innerTypeName, value).ConfigureAwait(false);
@@ -395,13 +395,13 @@ namespace Skila.Interpreter
             return executeAllocObjectAsync(ctx, literal.Evaluation.Components, literal.Evaluation.Components, literal.LiteralValue);
         }
 
-        private async Task<ExecValue> executeAsync(ExecutionContext ctx, StringLiteral literal)
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, Utf8StringLiteral literal)
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return ExecValue.CreateExpression(await createStringAsync(ctx, literal.Value).ConfigureAwait(false));
         }
 
-        private Task<ObjectData> createStringAsync(ExecutionContext ctx, string value)
+        private static Task<ObjectData> createStringAsync(ExecutionContext ctx, string value)
         {
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return allocObjectAsync(ctx,

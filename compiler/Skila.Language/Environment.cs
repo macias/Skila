@@ -75,6 +75,8 @@ namespace Skila.Language
         public TypeDefinition Utf8StringType { get; }
         public FunctionDefinition Utf8StringCountGetter { get; }
         public FunctionDefinition Utf8StringAtGetter { get; }
+        public FunctionDefinition Utf8StringTrimStart { get; }
+        public FunctionDefinition Utf8StringTrimEnd { get; }
         public FunctionDefinition Utf8StringLengthGetter { get; }
 
         public TypeDefinition Utf8StringIteratorType { get; }
@@ -371,10 +373,14 @@ namespace Skila.Language
                 this.Utf8StringType = this.SystemNamespace.AddNode(createUtf8String(
                     out FunctionDefinition count_getter,
                     out FunctionDefinition length_getter,
-                    out IMember at_getter));
+                    out IMember at_getter,
+                    out FunctionDefinition trim_start,
+                    out FunctionDefinition trim_end));
                 this.Utf8StringCountGetter = count_getter;
                 this.Utf8StringLengthGetter = length_getter;
                 this.Utf8StringAtGetter = at_getter.Cast<FunctionDefinition>();
+                this.Utf8StringTrimStart = trim_start;
+                this.Utf8StringTrimEnd = trim_end;
                 this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
@@ -664,7 +670,8 @@ namespace Skila.Language
         }
 
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
-            out IMember atGetter)
+            out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd
+            )
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -675,6 +682,14 @@ namespace Skila.Language
 
             countGetter = count_property.Getter;
             lengthGetter = length_property.Getter;
+
+
+            trimStart = FunctionBuilder.Create(NameFactory.StringTrimStart, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+                .Modifier(EntityModifier.Native);
+            trimEnd = FunctionBuilder.Create(NameFactory.StringTrimEnd, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+                .Modifier(EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
@@ -707,6 +722,15 @@ namespace Skila.Language
                                     NameFactory.ReferenceTypeReference(NameFactory.ItTypeReference(MutabilityOverride.Neutral)),
                                     ExpressionReadMode.CannotBeRead)))
 
+                                    .With(trimStart)
+                                    .With(trimEnd)
+                            .With(FunctionBuilder.Create(NameFactory.StringTrim,
+                                NameFactory.Utf8StringPointerTypeReference(),
+                                Block.CreateStatement(
+                                    Return.Create(FunctionCall.Create(NameReference.Create(
+                                        FunctionCall.Create(NameReference.CreateThised(NameFactory.StringTrimStart)),
+                                            NameFactory.StringTrimEnd)))
+                                    )))
                                 ;
 
             withComparableFunctions(builder);
@@ -852,7 +876,7 @@ namespace Skila.Language
                 const string pred_name = "pred";
                 const string elem_name = "filtered_elem";
                 filter_func = FunctionBuilder.Create(
-                    NameDefinition.Create(NameFactory.FilterFunctionName,elem_type, VarianceMode.None),
+                    NameDefinition.Create(NameFactory.FilterFunctionName, elem_type, VarianceMode.None),
                     NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityOverride.Neutral)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(buffer_name, null,
@@ -875,7 +899,7 @@ namespace Skila.Language
                 const string count_name = "cnt";
                 const string elem_name = NameFactory.Sink;
                 count_func = FunctionBuilder.Create(
-                    NameDefinition.Create( NameFactory.IterableCount,elem_type, VarianceMode.None),
+                    NameDefinition.Create(NameFactory.IterableCount, elem_type, VarianceMode.None),
                     NameFactory.SizeTypeReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(count_name, null, NatLiteral.Create("0"), EntityModifier.Reassignable),

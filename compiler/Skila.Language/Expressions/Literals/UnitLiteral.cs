@@ -3,7 +3,7 @@
 namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class UnitLiteral : Literals.Literal
+    public sealed class UnitLiteral : Literal
     {
         public static readonly char UnitValue = 'µ';
 

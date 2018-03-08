@@ -3,19 +3,11 @@
 namespace Skila.Language.Expressions.Literals
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class StringLiteral : Literal
+    public static class StringLiteral 
     {
-        public string Value => InputValue;
-        public override object LiteralValue => this.Value;
-
-        public static StringLiteral Create(string value)
+        public static Utf8StringLiteral Create(string value)
         {
-            return new StringLiteral(value);
-        }
-
-        private StringLiteral(string value)
-            : base(value, NameFactory.StringPointerTypeReference( MutabilityOverride.DualConstMutable))
-        {
+            return Utf8StringLiteral.Create(value);
         }
     }
 }

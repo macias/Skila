@@ -260,6 +260,20 @@ namespace Skila.Interpreter
                     (UInt64)this_native.Length).ConfigureAwait(false);
                 return ExecValue.CreateReturn(result);
             }
+            else if (func == ctx.Env.Utf8StringTrimStart)
+            {
+                ObjectData result = await createStringAsync(ctx, this_native.TrimStart()).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString,""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.Utf8StringTrimEnd)
+            {
+                ObjectData result = await createStringAsync(ctx, this_native.TrimEnd()).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
             else
             {
                 ExecValue? result = await equalityTestAsync<string>(ctx, func, thisValue, heapArguments: true).ConfigureAwait(false);

@@ -16,7 +16,8 @@ namespace Skila.Interpreter
         FileLine = 1 << 8,
         IncField = 1 << 9,
         StoringLocalPointer = 1 << 10,
-        ThrowingException = 1 << 11
+        ThrowingException = 1 << 11,
+        NewString = 1 << 12
     }
 
     [Flags]

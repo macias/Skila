@@ -12,6 +12,75 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
+       // [TestMethod]
+        public IInterpreter TODO_StringSearchingBackwards()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    /*
+  assert("".lastIndexOf(%c'a') is null);
+  assert("balboa".lastIndexOf(%c'a')==5);
+  assert("balboa".lastIndexOf(%c'a',5)==5);
+  assert("balboa".lastIndexOf(%c'a',4)==1);
+  assert("balboa".lastIndexOf(%c'a',1)==1);
+  assert("balboa".lastIndexOf(%c'a',0) is null);
+  assert("balboa".lastIndexOf(%c'x') is null);
+                     */
+
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc "),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc "), NameFactory.StringTrimStart))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter StringTrimming()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    /*
+  assert("abc ".trimLeft()=="abc ");
+  assert(" abc".trimRight()==" abc");
+  assert("abc ".trimRight()=="abc");
+  assert("abc  \t".trimRight()=="abc");
+  assert(" abc".trimLeft()=="abc");
+  assert("\t  abc".trimLeft()=="abc");
+                     */
+
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc "),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc "), NameFactory.StringTrimStart))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
         [TestMethod]
         public IInterpreter RegexMatchWithLimits()
         {
@@ -152,7 +221,7 @@ namespace Skila.Tests.Execution
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
                     ExpressionFactory.AssertEqual(StringLiteral.Create("y"),
-                        NameReference.Create("c", NameFactory.CaptureNameFieldName,NameFactory.OptionValue)),
+                        NameReference.Create("c", NameFactory.CaptureNameFieldName, NameFactory.OptionValue)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),

@@ -128,7 +128,12 @@ namespace Skila.Language
         public const string IteratorGet = "get";
         public const string IteratorNext = "next";
 
+        public const string StringTrim = "trim";
+        // don't use terms left/right because it will confuse right-to-left devs
+        public const string StringTrimStart = "trimStart";
+        public const string StringTrimEnd = "trimEnd";
         public const string StringLength = "length";
+
         public const string CharLength = "length";
 
         public const string FileReadLines = "readLines";
@@ -429,6 +434,10 @@ namespace Skila.Language
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
+        public static NameReference Utf8StringPointerTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        {
+            return NameFactory.PointerTypeReference(Utf8StringTypeReference(mutability));
+        }
         public static NameReference StringPointerTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
             return NameFactory.PointerTypeReference(StringTypeReference(mutability));
