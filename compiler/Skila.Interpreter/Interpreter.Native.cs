@@ -249,7 +249,7 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
         }
 
-        private static async Task<ExecValue> executeNativeStringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
+        private async Task<ExecValue> executeNativeStringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
         {
             string this_native = thisValue.NativeString;
@@ -260,10 +260,16 @@ namespace Skila.Interpreter
                     (UInt64)this_native.Length).ConfigureAwait(false);
                 return ExecValue.CreateReturn(result);
             }
+            else if (func == ctx.Env.Utf8StringLengthGetter)
+            {
+                ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
+                    (UInt64)this_native.Length).ConfigureAwait(false);
+                return ExecValue.CreateReturn(result);
+            }
             else if (func == ctx.Env.Utf8StringTrimStart)
             {
                 ObjectData result = await createStringAsync(ctx, this_native.TrimStart()).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString,""))
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
@@ -273,6 +279,50 @@ namespace Skila.Interpreter
                 if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.Utf8StringIndexOfChar)
+            {
+                ObjectData arg_char_obj = ctx.FunctionArguments[0];
+                char native_char_arg = arg_char_obj.NativeChar;
+                ObjectData arg_idx_obj = ctx.FunctionArguments[1];
+                UInt64 native_idx_arg = arg_idx_obj.NativeNat;
+
+                int idx = this_native.IndexOf(native_char_arg, (int)native_idx_arg);
+
+                Option<ObjectData> index_obj;
+                if (idx != -1)
+                    index_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.SizeType.InstanceOf, (UInt64)idx)
+                        .ConfigureAwait(false));
+                else
+                    index_obj = new Option<ObjectData>();
+
+                ExecValue opt_exec = await createOption(ctx, func.ResultTypeName.Evaluation.Components, index_obj).ConfigureAwait(false);
+                if (opt_exec.IsThrow)
+                    return opt_exec;
+
+                return ExecValue.CreateReturn(opt_exec.ExprValue);
+            }
+            else if (func == ctx.Env.Utf8StringLastIndexOfChar)
+            {
+                ObjectData arg_char_obj = ctx.FunctionArguments[0];
+                char native_char_arg = arg_char_obj.NativeChar;
+                ObjectData arg_idx_obj = ctx.FunctionArguments[1];
+                UInt64 native_idx_arg = arg_idx_obj.NativeNat;
+
+                int idx = this_native.LastIndexOf(native_char_arg, ((int)native_idx_arg) - 1);
+
+                Option<ObjectData> index_obj;
+                if (idx != -1)
+                    index_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.SizeType.InstanceOf, (UInt64)idx)
+                        .ConfigureAwait(false));
+                else
+                    index_obj = new Option<ObjectData>();
+
+                ExecValue opt_exec = await createOption(ctx, func.ResultTypeName.Evaluation.Components, index_obj).ConfigureAwait(false);
+                if (opt_exec.IsThrow)
+                    return opt_exec;
+
+                return ExecValue.CreateReturn(opt_exec.ExprValue);
             }
             else
             {

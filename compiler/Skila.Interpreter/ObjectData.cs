@@ -119,6 +119,7 @@ namespace Skila.Interpreter
                 return this.data.PlainValue;
             }
         }
+        public char NativeChar => this.PlainValue.Cast<char>();
         public string NativeString => this.PlainValue.Cast<string>();
         public Int16 NativeInt16 => this.PlainValue.Cast<Int16>();
         public Int64 NativeInt64 => this.PlainValue.Cast<Int64>();

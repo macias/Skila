@@ -26,7 +26,7 @@ namespace Skila.Language.Expressions
                 string temp = AutoName.Instance.CreateNew("optassign");
                 names.Add(temp);
 
-                IExpression curr = OptionHasValue(VariableDeclaration.CreateExpression(temp, null, rhs));
+                IExpression curr = OptionIsSome(VariableDeclaration.CreateExpression(temp, null, rhs));
                 if (condition == null)
                     condition = curr;
                 else
@@ -389,12 +389,13 @@ namespace Skila.Language.Expressions
             return AssertTrue(IsEqual(expected, actual));
         }
 
-        public static IExpression AssertOptionValue(IExpression option, bool hasValue = true)
+        public static IExpression AssertOptionIsSome(IExpression option)
         {
-            IExpression condition = OptionHasValue(option);
-            if (!hasValue)
-                condition = Not(condition);
-            return AssertTrue(condition);
+            return AssertTrue(OptionIsSome(option));
+        }
+        public static IExpression AssertOptionIsNull(IExpression option)
+        {
+            return AssertTrue(OptionIsNull(option));
         }
 
         public static IExpression Ternary(IExpression condition, IExpression then, IExpression otherwise)
@@ -409,13 +410,18 @@ namespace Skila.Language.Expressions
             return Block.CreateExpression(new[] {
                 // todo: shouldn't it be a reference to option?
                 VariableDeclaration.CreateStatement(temp, null, option),
-                Ternary(OptionHasValue(temp_ref), GetOptionValue(temp_ref), fallback)
+                Ternary(OptionIsSome(temp_ref), GetOptionValue(temp_ref), fallback)
             });
         }
 
-        public static NameReference OptionHasValue(IExpression option)
+        public static NameReference OptionIsSome(IExpression option)
         {
             return NameReference.Create(option, NameFactory.OptionHasValue);
+        }
+
+        public static IExpression OptionIsNull(IExpression option)
+        {
+            return Not(OptionIsSome(option));
         }
 
         public static NameReference GetOptionValue(IExpression option)

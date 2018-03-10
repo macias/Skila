@@ -89,7 +89,7 @@ namespace Skila.Tests.Execution
                     Spawn.Create(FunctionCall.Create(NameReference.Create("sender"),FunctionArgument.Create(NameReference.Create("ch")))),
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("r")),
+                    ExpressionFactory.AssertOptionIsSome(NameReference.Create("r")),
                     Return.Create(NameReference.Create("r",NameFactory.OptionValue))
                 })));
 

@@ -5,7 +5,7 @@ namespace Skila.Language.Expressions.Literals
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class CharLiteral : Literal
     {
-        public string Value => InputValue;
+        public char Value { get; }
         public override object LiteralValue => this.Value;
 
         public static CharLiteral Create(char value)
@@ -16,6 +16,7 @@ namespace Skila.Language.Expressions.Literals
         private CharLiteral(char value)
             : base(value.ToString(), NameFactory.CharTypeReference())
         {
+            this.Value = value;
         }
     }
 }

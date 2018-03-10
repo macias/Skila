@@ -55,12 +55,12 @@ namespace Skila.Tests
                 //new Execution.Pointers().StackChunkWithBasicPointers();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().StringTrimming();
+                new Execution.Text().StringSearchingBackwards();
             }
 
             // if (false)
             {
-                const double golden_avg_s = 1.33;
+                const double golden_avg_s = 1.37;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 

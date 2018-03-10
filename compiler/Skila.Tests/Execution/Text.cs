@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
-       // [TestMethod]
-        public IInterpreter TODO_StringSearchingBackwards()
+        [TestMethod]
+        public IInterpreter StringSearchingBackwards()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
@@ -33,8 +33,26 @@ namespace Skila.Tests.Execution
   assert("balboa".lastIndexOf(%c'x') is null);
                      */
 
-                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc "),
-                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc "), NameFactory.StringTrimStart))),
+                    // please note, reverse indices in Skila-3 are exclusive (in Skila-1 they were inclusive)
+
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create(""), 
+                        NameFactory.StringLastIndexOf),CharLiteral.Create('a'))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("5"),
+                        ExpressionFactory.GetOptionValue( FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a')))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("5"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("6")))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("5")))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("2")))),
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("1"))),
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('x'))),
 
                     Return.Create(Nat8Literal.Create("0"))
                 )));
@@ -128,7 +146,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -142,7 +160,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("1"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -156,7 +174,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("2"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("8"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -314,7 +332,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -340,7 +358,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -366,7 +384,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
-                    ExpressionFactory.AssertOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName), hasValue: false),
+                    ExpressionFactory.AssertOptionIsNull(NameReference.Create("c", NameFactory.CaptureNameFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("8"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),

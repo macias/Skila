@@ -81,8 +81,8 @@ namespace Skila.Interpreter
                 ObjectData arg = ctx.FunctionArguments.Single();
                 var this_int = thisValue.NativeNat64;
                 var arg_int = arg.NativeNat64;
-                UInt64 value3 = checked(this_int - arg_int);
-                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value3)
+                UInt64 value = checked(this_int - arg_int);
+                ObjectData res_value = await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, value)
                     .ConfigureAwait(false);
                 ExecValue result = ExecValue.CreateReturn(res_value);
                 return result;

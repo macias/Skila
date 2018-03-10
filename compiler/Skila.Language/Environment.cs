@@ -56,6 +56,9 @@ namespace Skila.Language
         public FunctionDefinition Int64ParseStringFunction { get; }
         public FunctionDefinition Int64FromNat8Constructor { get; }
 
+        public TypeDefinition SizeType => NatType;
+        public TypeDefinition NatType => Nat64Type;
+
         public TypeDefinition Nat64Type { get; }
         public FunctionDefinition Nat64ParseStringFunction { get; }
         public FunctionDefinition Nat64FromNat8Constructor { get; }
@@ -77,6 +80,8 @@ namespace Skila.Language
         public FunctionDefinition Utf8StringAtGetter { get; }
         public FunctionDefinition Utf8StringTrimStart { get; }
         public FunctionDefinition Utf8StringTrimEnd { get; }
+        public FunctionDefinition Utf8StringIndexOfChar { get; }
+        public FunctionDefinition Utf8StringLastIndexOfChar { get; }
         public FunctionDefinition Utf8StringLengthGetter { get; }
 
         public TypeDefinition Utf8StringIteratorType { get; }
@@ -375,12 +380,16 @@ namespace Skila.Language
                     out FunctionDefinition length_getter,
                     out IMember at_getter,
                     out FunctionDefinition trim_start,
-                    out FunctionDefinition trim_end));
+                    out FunctionDefinition trim_end,
+                    out FunctionDefinition index_of_char,
+                    out FunctionDefinition last_index_of_char));
                 this.Utf8StringCountGetter = count_getter;
                 this.Utf8StringLengthGetter = length_getter;
                 this.Utf8StringAtGetter = at_getter.Cast<FunctionDefinition>();
                 this.Utf8StringTrimStart = trim_start;
                 this.Utf8StringTrimEnd = trim_end;
+                this.Utf8StringIndexOfChar = index_of_char;
+                this.Utf8StringLastIndexOfChar = last_index_of_char;
                 this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
@@ -670,8 +679,8 @@ namespace Skila.Language
         }
 
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
-            out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd
-            )
+            out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd,
+            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -683,12 +692,21 @@ namespace Skila.Language
             countGetter = count_property.Getter;
             lengthGetter = length_property.Getter;
 
-
             trimStart = FunctionBuilder.Create(NameFactory.StringTrimStart, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .Modifier(EntityModifier.Native);
             trimEnd = FunctionBuilder.Create(NameFactory.StringTrimEnd, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
+                .Modifier(EntityModifier.Native);
+            indexOfChar = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .Modifier(EntityModifier.Native);
+            lastIndexOfChar = FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("index1", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
                 .Modifier(EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
@@ -721,6 +739,23 @@ namespace Skila.Language
                                 .Parameters(FunctionParameter.Create("cmp",
                                     NameFactory.ReferenceTypeReference(NameFactory.ItTypeReference(MutabilityOverride.Neutral)),
                                     ExpressionReadMode.CannotBeRead)))
+
+
+                                    .With(indexOfChar)
+                                    .With(lastIndexOfChar)
+                                    .With(FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                                        Block.CreateStatement(Return.Create(
+                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringLastIndexOf),
+                                        NameReference.Create("ch"),
+                                        NameReference.CreateThised(NameFactory.StringLength)))))
+                            .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
+                                    .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                                        Block.CreateStatement(Return.Create(
+                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
+                                        NameReference.Create("ch"), 
+                                        NatLiteral.Create("0")))))
+                            .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
+
 
                                     .With(trimStart)
                                     .With(trimEnd)

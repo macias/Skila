@@ -132,6 +132,8 @@ namespace Skila.Language
         // don't use terms left/right because it will confuse right-to-left devs
         public const string StringTrimStart = "trimStart";
         public const string StringTrimEnd = "trimEnd";
+        public const string StringIndexOf = "indexOf";
+        public const string StringLastIndexOf = "lastIndexOf";
         public const string StringLength = "length";
 
         public const string CharLength = "length";
