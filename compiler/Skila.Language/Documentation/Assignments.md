@@ -1,5 +1,7 @@
 ﻿## Assignments
 
+### Tracking
+
 We have 3 kind of flows:
 
 **certain**
@@ -38,3 +40,26 @@ Consider such code
 
 There are some technicalities -- `break` jumps outside the loop, while `continue` inside it. With `if` there could be `else` so we have
 to merge the outcomes of two branches.
+
+### Compound assignments (designing)
+
+In C++
+
+    a += b
+
+does not really mean:
+
+    a = a + b
+
+The first one is mutating operation, the second is non-mutating 
+addition with assigment. We would like to have cookie and eat it as well, 
+thus maybe we could have compound assigment as the shortcut for full form:
+
+    a += b
+    a = a + b
+
+And for mutation we would have completely different syntax, like:
+
+    a ! + b
+
+?

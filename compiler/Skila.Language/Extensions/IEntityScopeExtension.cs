@@ -84,10 +84,8 @@ namespace Skila.Language.Extensions
             foreach (EntityInstance func_instance in ext.NestedEntityInstances())
             {
                 FunctionDefinition func = func_instance.TargetFunction;
-                if (!func.IsExtension)
-                    continue;
-
-                yield return func_instance;
+                if (func.IsExtension)
+                    yield return func_instance;
             }
         }
 

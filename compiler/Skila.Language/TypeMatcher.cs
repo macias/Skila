@@ -379,7 +379,7 @@ namespace Skila.Language
         public static ConstraintMatch ArgumentsMatchConstraintsOf(ComputationContext ctx,
             IEnumerable<TemplateParameter> templateParameters, EntityInstance closedTemplate)
         {
-            if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)//@@@
+            if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)
                 return ConstraintMatch.UndefinedTemplateArguments;
 
             foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in templateParameters

@@ -253,7 +253,7 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId==   (20, 328))
+                    if (this.DebugId == (20, 331))
                     {
                         ;
                     }
@@ -312,7 +312,7 @@ namespace Skila.Language.Expressions
                         {
                             NameReference this_name = this.Name;
                             this_name.DetachFrom(this);
-                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments, 
+                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments,
                                 this.Resolution.TargetFunctionInstance, this_name.Binding.Match.IsLocal);
                             this.callee.AttachTo(this);
 
@@ -353,7 +353,16 @@ namespace Skila.Language.Expressions
 
             this_context.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
-            if (callTarget.Modifier.HasStatic && !callTarget.IsExtension)
+            bool is_static_call;
+            if (callTarget.IsExtension)
+            {
+                is_static_call = this_context is NameReference name_ref
+                    && name_ref.Binding.Match.Instance.Target is Extension;
+            }
+            else
+                is_static_call = callTarget.Modifier.HasStatic;
+
+            if (is_static_call)
                 return new CallContext() { StaticContext = this_context.Evaluation.Components };
             else
                 return new CallContext() { MetaThisArgument = FunctionArgument.Create(this_context) };

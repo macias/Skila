@@ -26,7 +26,8 @@ namespace Skila.Language
             if (!targetFunctionInstance.Target.IsFunction())
                 throw new Exception("Internal error");
 
-            List<int> arg_param_mapping = createArgParamMapping(targetFunctionInstance, argumentsProvider.UserArguments);
+            List<int> arg_param_mapping = createArgParamMapping(targetFunctionInstance,
+                callContext.MetaThisArgument, argumentsProvider.UserArguments);
             if (arg_param_mapping == null)
                 return null;
 
@@ -67,6 +68,8 @@ namespace Skila.Language
         public FunctionArgument MetaThisArgument { get; } // null for regular functions (not-methods)
         public EvaluationInfo Evaluation => this.translatedResultEvaluation;
 
+        public bool IsExtendedCall => this.TargetFunction.IsExtension && this.MetaThisArgument != null;
+
         private CallResolution(ComputationContext ctx,
             IEnumerable<INameReference> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
@@ -81,7 +84,7 @@ namespace Skila.Language
             this.TargetFunctionInstance = targetFunctionInstance;
             this.argumentsProvider = argumentsProvider;
 
-            if (this.TargetFunction.IsExtension)
+            if (this.IsExtendedCall)
                 this.TrueArguments = new[] { this.MetaThisArgument }.Concat(this.argumentsProvider.UserArguments).StoreReadOnlyList();
             else
                 this.TrueArguments = this.argumentsProvider.UserArguments;
@@ -126,14 +129,19 @@ namespace Skila.Language
         }
 
         private static List<int> createArgParamMapping(EntityInstance targetFunctionInstance,
+            FunctionArgument metaThisArgument,
             IReadOnlyList<FunctionArgument> arguments)
         {
             FunctionDefinition target_function = targetFunctionInstance.Target.CastFunction();
 
+            if (target_function.DebugId == (6, 688))
+            {
+                ;
+            }
             List<int> argParamMapping = Enumerable.Repeat(noMapping, arguments.Count).ToList();
 
             {
-                int param_idx = target_function.IsExtension ? 1 : 0;
+                int param_idx = target_function.IsExtension && metaThisArgument != null ? 1 : 0;
                 foreach (FunctionArgument arg in arguments)
                 {
                     FunctionParameter param;
@@ -285,19 +293,21 @@ namespace Skila.Language
             }
             if (paramIndex >= this.paramArgMapping.Count)
                 return Enumerable.Empty<FunctionArgument>();
-            else if (paramIndex == 0 && this.TargetFunction.IsExtension)
+            else if (paramIndex == 0 && this.IsExtendedCall)
                 return new[] { this.MetaThisArgument };
             else
-            return this.paramArgMapping[paramIndex].Select(arg_idx => this.UserArguments[arg_idx]);
+                return this.paramArgMapping[paramIndex].Select(arg_idx => this.UserArguments[arg_idx]);
         }
 
         private bool isParameterUsed(int paramIndex)
         {
-            FunctionParameter param = this.TargetFunction.Parameters[paramIndex];
-            if (param.Modifier.HasThis)
-                return this.MetaThisArgument != null;
+            if (this.IsExtendedCall && paramIndex == 0)
+                return true;
             else
+            {
+                FunctionParameter param = this.TargetFunction.Parameters[paramIndex];
                 return this.GetArguments(paramIndex).Any();
+            }
         }
 
         internal IEnumerable<IEnumerable<FunctionArgument>> GetArgumentsMultipleTargeted()

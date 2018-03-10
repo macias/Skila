@@ -49,7 +49,7 @@ namespace Skila.Interpreter
                 {
                     FunctionParameter param = func.Parameters[i];
                     ObjectData arg_data;
-                    if (func.IsExtension && i == 0)
+                    if (i == 0 && func.IsExtension && ctx.ThisArgument != null)
                         arg_data = ctx.ThisArgument;
                     else
                         arg_data = ctx.FunctionArguments[i];
@@ -675,7 +675,7 @@ namespace Skila.Interpreter
 
             {
                 var args_buffer = new List<ObjectData>[call.Resolution.TargetFunction.Parameters.Count];
-                foreach (var param in call.Resolution.TargetFunction.Parameters.Skip(call.Resolution.TargetFunction.IsExtension ? 1 : 0))
+                foreach (var param in call.Resolution.TargetFunction.Parameters.Skip(call.Resolution.IsExtendedCall ? 1 : 0))
                 {
                     args_buffer[param.Index] = new List<ObjectData>();
 

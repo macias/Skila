@@ -12,8 +12,8 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Extensions
     {
-        //[TestMethod]
-        public IInterpreter TODO_StaticCallStaticDispatch()
+        [TestMethod]
+        public IInterpreter StaticCallStaticDispatch()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
