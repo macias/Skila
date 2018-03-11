@@ -51,7 +51,7 @@ namespace Skila.Language.Expressions
 
         private readonly List<TypeDefinition> closures;
 
-        internal bool IsSpread => this.Expression is Spread;
+        public bool IsSpread => this.Expression is Spread;
         public FunctionParameter MappedTo { get; private set; }
         public ExpressionReadMode ReadMode => Expression.ReadMode;
 

@@ -107,6 +107,9 @@ namespace Skila.Language
 
         public const string ComparableCompare = "compare";
 
+        public const string CommandLineProgramPath = "program";
+        public const string CommandLineArguments = "args";
+
         public const string AddOverflowOperator = "+®";
         public const string AddOperator = "+";
         public const string MulOperator = "*";
@@ -125,7 +128,6 @@ namespace Skila.Language
         public const string AtFunctionName = "at";
         public const string PropertyIndexerName = AtFunctionName;
         public const string IterableCount = "count";
-        public const string IteratorGet = "get";
         public const string IteratorNext = "next";
 
         public const string StringTrim = "trim";

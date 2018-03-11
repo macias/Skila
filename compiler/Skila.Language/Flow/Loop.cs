@@ -31,17 +31,34 @@ namespace Skila.Language.Flow
         public static Loop CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
             IEnumerable<IExpression> body)
         {
-            string iter = AutoName.Instance.CreateNew("iter");
-            VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter, null,
+            // todo: remove this limitation once we have typedefs and/or optional declaration
+            if (varTypeName == null)
+                throw new ArgumentNullException("Temporarily null type is not supported");
+
+            string iter_name = AutoName.Instance.CreateNew("iter");
+            VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter_name, null,
                 FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
 
-            if (varName != NameFactory.Sink)
-               body = VariableDeclaration.CreateStatement(varName, varTypeName,
-                    FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorGet)))
-                    .Concat(body);
+            string elem_name;
+            VariableDeclaration elem_decl;
+            if (varName == NameFactory.Sink)
+            {
+                elem_name = NameFactory.Sink;
+                elem_decl = null;
+            }
+            else
+            {
+                elem_name = AutoName.Instance.CreateNew("elem");
+                elem_decl = VariableDeclaration.CreateStatement(elem_name, varTypeName, Undef.Create(), EntityModifier.Reassignable);
+                body = VariableDeclaration.CreateStatement(varName, varTypeName,
+                         NameReference.Create(elem_name))
+                         .Concat(body);
+            }
 
-            return new Loop(null, new[] { iter_decl },
-                preCondition: FunctionCall.Create(NameReference.Create(iter, NameFactory.IteratorNext)),
+            // todo: once we have optional declarations use them here 
+            return new Loop(null, new[] { iter_decl, elem_decl }.Where(it => it != null),
+                preCondition: ExpressionFactory.OptionalAssignment(NameReference.Create(elem_name),
+                    FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext))),
                 body: body,
                 postStep: null, postCondition: null);
         }

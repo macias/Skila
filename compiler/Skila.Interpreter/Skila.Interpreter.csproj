@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Async\AsyncAutoResetEvent.cs" />
+    <Compile Include="ArgumentGroup.cs" />
     <Compile Include="RefCountReason.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\IChannel.cs" />

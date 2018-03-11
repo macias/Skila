@@ -14,6 +14,10 @@ namespace Skila.Interpreter
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.Nat64Type.InstanceOf, value);
         }
+        private Task<ObjectData> createCharAsync(ExecutionContext ctx, char value)
+        {
+            return ObjectData.CreateInstanceAsync(ctx, ctx.Env.CharType.InstanceOf, value);
+        }
 
         private async Task<ExecValue> executeNativeNat64FunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)

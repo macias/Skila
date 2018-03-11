@@ -17,7 +17,8 @@ namespace Skila.Interpreter
         IncField = 1 << 9,
         StoringLocalPointer = 1 << 10,
         ThrowingException = 1 << 11,
-        NewString = 1 << 12
+        NewString = 1 << 12,
+        CommandLine = 1 << 13
     }
 
     [Flags]
@@ -30,6 +31,7 @@ namespace Skila.Interpreter
         FreeChunkElem = 1 << 4,
         FreeField = 1 << 5,
         DropOnCallResult = 1 << 6,
-        DroppingLocalPointer = 1 << 7
+        DroppingLocalPointer = 1 << 7,
+        CommandLine = 1 << 8
     }
 }

@@ -63,7 +63,8 @@ namespace Skila.Tests.Execution
                 NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p_int",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),FunctionArgument.Create(Int64Literal.Create("77")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("77")))),
                     Return.Create( NameReference.Create("p_int")),
                 })));
 
@@ -80,6 +81,8 @@ namespace Skila.Tests.Execution
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(77L, result.RetValue.PlainValue);
 
             return interpreter;
         }
@@ -114,6 +117,8 @@ namespace Skila.Tests.Execution
 
             var interpreter = new Interpreter.Interpreter();
             ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual(2L, result.RetValue.PlainValue);
 
             return interpreter;
         }

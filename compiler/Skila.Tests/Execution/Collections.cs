@@ -151,10 +151,10 @@ namespace Skila.Tests.Execution
                         NameFactory.TupleTypeReference(
                             NameFactory.PointerTypeReference("PointA"),
                             NameFactory.PointerTypeReference("PointA"),
-                            // todo: use sink
+                            // todo: use wildcard
                             NameFactory.PointerTypeReference("PointA")),
                         ExpressionFactory.StackConstructor( NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
+                            // todo: use wildcard for all of them
                             NameFactory.PointerTypeReference("PointA"),
                             NameFactory.PointerTypeReference("PointA"),
                             NameFactory.PointerTypeReference("PointA")),
@@ -168,13 +168,19 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("3")),
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("-5"))),
 
+                    // let c = concat(t,array) 
+                    // in effect we should get iterable of `PointBase` 
                     VariableDeclaration.CreateStatement("c",null,
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
 
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
-                    Loop.CreateForEach("elem",null,NameReference.Create("c"),
+                    Loop.CreateForEach("pt",
+                        // todo: once foreach supports null as typename, use null
+                        NameFactory.PointerTypeReference( NameReference.Create("BasePoint")),
+                        //null,
+                        NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem","x"))) }),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("pt","x"))) }),
                     Return.Create(NameReference.Create("acc"))
                 })));
 

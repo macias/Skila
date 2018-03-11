@@ -53,17 +53,30 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInvalidVariable()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() {  DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("3"), modifier: EntityModifier.Public);
             root_ns.AddNode(decl);
 
+            VariableDeclaration empty_decl1 = VariableDeclaration.CreateStatement("empty1", null, Undef.Create());
+            VariableDeclaration empty_decl2 = VariableDeclaration.CreateStatement("empty2", null, null);
+            root_ns.AddBuilder(FunctionBuilder.Create("testing",
+                            NameFactory.UnitTypeReference(),
+                            Block.CreateStatement(
+                                empty_decl1,
+                                empty_decl2,
+                                ExpressionFactory.Readout("empty1"),
+                                ExpressionFactory.Readout("empty2")
+                            )));
+
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.GlobalVariable, decl));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeName, decl));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeName, empty_decl1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeAndValue, empty_decl2));
 
             return resolver;
         }
@@ -185,13 +198,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TypeInference()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
             var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
 
             var var_x = VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create());
             var var_y = VariableDeclaration.CreateStatement("y", null, NameReference.Create("x"));
-            var var_z = VariableDeclaration.CreateStatement("z", null, null);
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("notimportant"),
@@ -201,15 +212,12 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                     var_x,
                     var_y,
-                    var_z,
-                    ExpressionFactory.Readout("z"),
                     ExpressionFactory.Readout("y")
                 })));
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MissingTypeAndValue, var_z));
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
 
             Assert.AreEqual(env.Real64Type.InstanceOf, var_y.Evaluation.Components);
 

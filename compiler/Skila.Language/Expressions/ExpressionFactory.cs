@@ -13,20 +13,45 @@ namespace Skila.Language.Expressions
     {
         public static IEnumerable<IExpression> Nop { get; } = Enumerable.Empty<IExpression>();
 
+        public static IExpression OptionalAssignment(IExpression lhs, IExpression rhs)
+        {
+            return OptionalAssignment(new[] { lhs }, new[] { rhs });
+        }
         public static IExpression OptionalAssignment(IEnumerable<IExpression> lhsExpressions, IEnumerable<IExpression> rhsExpressions)
         {
             // todo: add support for spread
             if (rhsExpressions.Count() != lhsExpressions.Count())
                 throw new NotImplementedException();
 
+            // please note we could have dummy assignments in form
+            // _ ?= x
+            // in such case we are not interested in the assigment but the fact it was sucessful or not
+
+            lhsExpressions = lhsExpressions.Select(lhs => lhs is NameReference lhs_name && lhs_name.IsSink ? null : lhs);
+
             var names = new List<string>();
             IExpression condition = null;
-            foreach (IExpression rhs in rhsExpressions)
+            foreach (Tuple<IExpression, IExpression> pair in rhsExpressions.SyncZip(lhsExpressions))
             {
-                string temp = AutoName.Instance.CreateNew("optassign");
+                IExpression rhs = pair.Item1;
+                IExpression lhs = pair.Item2;
+
+                string temp;
+                IExpression curr;
+
+                if (lhs == null)
+                {
+                    temp = null;
+                    curr = OptionIsSome(rhs);
+                }
+                else
+                {
+                    temp = AutoName.Instance.CreateNew("optassign");
+                    curr = OptionIsSome(VariableDeclaration.CreateExpression(temp, null, rhs));
+                }
+
                 names.Add(temp);
 
-                IExpression curr = OptionIsSome(VariableDeclaration.CreateExpression(temp, null, rhs));
                 if (condition == null)
                     condition = curr;
                 else
@@ -41,7 +66,8 @@ namespace Skila.Language.Expressions
                     IExpression lhs = pair.Item1;
                     string temp = pair.Item2;
 
-                    success_body.Add(Assignment.CreateStatement(lhs, GetOptionValue(NameReference.Create(temp))));
+                    if (lhs != null)
+                        success_body.Add(Assignment.CreateStatement(lhs, GetOptionValue(NameReference.Create(temp))));
                 }
 
                 success_body.Add(BoolLiteral.CreateTrue());
@@ -288,9 +314,9 @@ namespace Skila.Language.Expressions
         }
         internal static IExpression Inc(Func<IExpression> lhs)
         {
-            return IncBy(lhs,Nat8Literal.Create("1"));
+            return IncBy(lhs, Nat8Literal.Create("1"));
         }
-        internal static IExpression IncBy(Func<IExpression> lhs,IExpression byExpr)
+        internal static IExpression IncBy(Func<IExpression> lhs, IExpression byExpr)
         {
             return Assignment.CreateStatement(lhs(), Add(lhs(), byExpr));
         }

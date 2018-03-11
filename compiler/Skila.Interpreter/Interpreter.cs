@@ -15,6 +15,9 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
+        public const string CommandLineTestProgramPath = "hello_world.out";
+        public const string CommandLineTestArgument = "hello";
+
         private readonly bool debugMode;
 
         public Interpreter(bool debugMode = false)
@@ -218,9 +221,24 @@ namespace Skila.Interpreter
             return main_task.Result;
         }
 
-        private async Task<ExecValue> mainExecutedAsync(ExecutionContext ctx, IEvaluable node)
+        private async Task<ExecValue> mainExecutedAsync(ExecutionContext ctx, FunctionDefinition main)
         {
-            ExecValue result = await ExecutedAsync(node, ctx).ConfigureAwait(false);
+            ObjectData program_path = null;
+            ObjectData argument = null;
+            if (main.Parameters.Any())
+            {
+                program_path = await createStringAsync(ctx, CommandLineTestProgramPath).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, program_path, RefCountIncReason.CommandLine, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                argument = await createStringAsync(ctx, CommandLineTestArgument).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, argument, RefCountIncReason.CommandLine, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+
+                ObjectData[] args = await prepareArguments(ctx, main,
+                    new[] { ArgumentGroup.Single(program_path), ArgumentGroup.Many(argument) }).ConfigureAwait(false);
+                SetupFunctionCallData(ref ctx, null, null, args);
+            }
+            ExecValue result = await ExecutedAsync(main, ctx).ConfigureAwait(false);
             if (result.IsThrow)
             {
                 // todo: print the stacktrace, dump memory, etc etc etc
@@ -228,6 +246,11 @@ namespace Skila.Interpreter
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 result = ExecValue.CreateThrow(null); // this is to return something for Tests
             }
+
+            if (program_path != null)
+                ctx.Heap.TryRelease(ctx, program_path, null, false, RefCountDecReason.CommandLine, "");
+            if (argument != null)
+                ctx.Heap.TryRelease(ctx, argument, null, false, RefCountDecReason.CommandLine, "");
             return result;
         }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
@@ -572,7 +595,10 @@ namespace Skila.Interpreter
             CallInfo call_info = call_prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
-
+            if (call.DebugId == (20, 333))
+            {
+                ;
+            }
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
             if (ret.IsThrow)
                 return ret;
@@ -628,7 +654,7 @@ namespace Skila.Interpreter
         }
         private async Task<Variant<object, ExecValue, CallInfo>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId == (20, 53))
+            if (call.DebugId == (20, 334))
             {
                 ;
             }
@@ -674,19 +700,30 @@ namespace Skila.Interpreter
             ObjectData[] arguments;
 
             {
-                var args_buffer = new List<ObjectData>[call.Resolution.TargetFunction.Parameters.Count];
+                var args_buffer = new ArgumentGroup[call.Resolution.TargetFunction.Parameters.Count];
                 foreach (var param in call.Resolution.TargetFunction.Parameters.Skip(call.Resolution.IsExtendedCall ? 1 : 0))
                 {
-                    args_buffer[param.Index] = new List<ObjectData>();
+                    var buff = new List<ObjectData>();
 
+                    bool is_spread = false;
                     foreach (FunctionArgument arg in call.Resolution.GetArguments(param.Index))
                     {
+                        if (arg.IsSpread)
+                            is_spread = true;
+
                         ExecValue arg_exec = await ExecutedAsync(arg.Expression, ctx).ConfigureAwait(false);
                         ObjectData arg_obj = arg_exec.ExprValue;
                         if (arg_obj.TryDereferenceMany(ctx.Env, arg, arg, out ObjectData dereferenced))
                             arg_obj = dereferenced;
-                        args_buffer[param.Index].Add(arg_obj);
+                        buff.Add(arg_obj);
                     }
+
+                    if (!buff.Any())
+                        args_buffer[param.Index] = ArgumentGroup.None();
+                    else if (param.IsVariadic && !is_spread)
+                        args_buffer[param.Index] = ArgumentGroup.Many(buff.ToArray());
+                    else
+                        args_buffer[param.Index] = ArgumentGroup.Single(buff.Single());
                 }
 
                 arguments = await prepareArguments(ctx, call.Resolution.TargetFunction, args_buffer).ConfigureAwait(false);
@@ -701,33 +738,33 @@ namespace Skila.Interpreter
         }
 
         private async Task<ObjectData[]> prepareArguments(ExecutionContext ctx, FunctionDefinition targetFunc,
-            IEnumerable<IReadOnlyCollection<ObjectData>> argumentsData)
+            IEnumerable<ArgumentGroup> argumentsData)
         {
             // here we create chunks for variadic arguments, we modify ref counts, etc.
 
             var arguments_repacked = new ObjectData[targetFunc.Parameters.Count];
 
             int index = -1;
-            foreach (var args_group in argumentsData)
+            foreach (ArgumentGroup args_group in argumentsData)
             {
                 ++index;
 
-                if (args_group == null || !args_group.Any())
+                if (args_group.IsNone)
                 {
                     ;
                 }
-                else if (args_group.Count == 1)
+                else if (args_group.IsSingle)
                 {
-                    ObjectData arg_obj = args_group.Single();
+                    ObjectData arg_obj = args_group.Arguments.Single();
                     ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"for `{targetFunc}`");
                     arguments_repacked[index] = arg_obj;
                 }
                 else
                 {
                     // preparing arguments to be passed as one for variadic parameter
-                    var chunk = new ObjectData[args_group.Count];
+                    var chunk = new ObjectData[args_group.Arguments.Count];
                     int i = 0;
-                    foreach (ObjectData arg_obj_elem in args_group)
+                    foreach (ObjectData arg_obj_elem in args_group.Arguments)
                     {
                         ObjectData arg_obj = arg_obj_elem;
                         ctx.Heap.TryInc(ctx, arg_obj, RefCountIncReason.PrepareArgument, $"{i} for `{targetFunc}`");
@@ -965,7 +1002,8 @@ namespace Skila.Interpreter
             return rhs_val;
         }
 
-        private static ObjectData hackyDereferenceWithRefInc(ExecutionContext ctx, ObjectData obj, IExpression parentExpr, IExpression childExpr)
+        private static ObjectData hackyDereferenceWithRefInc(ExecutionContext ctx, ObjectData obj, IExpression parentExpr,
+            IExpression childExpr)
         {
             // todo: clean it up -- currently function call perform its own, custom, derefencing so when getting value from some
             // expression we need to check if this was function call or not, remove this mess
@@ -1013,9 +1051,10 @@ namespace Skila.Interpreter
         {
             if (retValue == null) // valid, internally function "returns" void as in C, on call we replace it with Unit
             {
-                retValue = await ObjectData.CreateInstanceAsync(ctx, ctx.Env.UnitType.InstanceOf, UnitLiteral.UnitValue).ConfigureAwait(false);
+                return await ObjectData.CreateInstanceAsync(ctx, ctx.Env.UnitType.InstanceOf, UnitLiteral.UnitValue).ConfigureAwait(false);
             }
-            else if (node.DereferencedCount_LEGACY > 0)
+
+            if (node.DereferencedCount_LEGACY > 0)
             {
                 ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
                 temp = temp.Copy();

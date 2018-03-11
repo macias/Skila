@@ -14,6 +14,38 @@ namespace Skila.Tests.Execution
     {
         private const string randomTextFilePath = "Data/random_text.utf8.txt";
 
+        //[TestMethod]
+        public IInterpreter TODO_CommandLine()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
+                        NameReference.Create(NameFactory.CommandLineProgramPath)),
+
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestArgument),
+                        FunctionCall.Create(NameReference.Create(NameFactory.CommandLineArguments,NameFactory.AtFunctionName),
+                            NatLiteral.Create("0"))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )).
+                Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath,NameFactory.StringPointerTypeReference( MutabilityOverride.Neutral)),
+                    FunctionParameter.Create(NameFactory.CommandLineArguments,
+                        NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral),Variadic.Create(),null,isNameRequired:false)));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
         [TestMethod]
         public IInterpreter FileExists()
         {

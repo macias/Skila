@@ -13,6 +13,38 @@ namespace Skila.Tests.Execution
     public class Text
     {
         [TestMethod]
+        public IInterpreter TODO_StringIterating()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("i", null, Nat8Literal.Create("2"), EntityModifier.Reassignable),
+                    // € takes 3 bytes
+                    Loop.CreateForEach("ch", NameFactory.CharTypeReference(), StringLiteral.Create("€a"),
+                    new IExpression[] {
+                        ExpressionFactory.IncBy("acc",
+                            ExpressionFactory.Mul(NameReference.Create("i"),NameReference.Create("ch",NameFactory.CharLength))),
+                        ExpressionFactory.Inc("i")
+                    }),
+
+                    Return.Create(NameReference.Create("acc"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter StringSearchingBackwards()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -35,10 +67,10 @@ namespace Skila.Tests.Execution
 
                     // please note, reverse indices in Skila-3 are exclusive (in Skila-1 they were inclusive)
 
-                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create(""), 
-                        NameFactory.StringLastIndexOf),CharLiteral.Create('a'))),
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create(""),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'))),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"),
-                        ExpressionFactory.GetOptionValue( FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
                         NameFactory.StringLastIndexOf), CharLiteral.Create('a')))),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"),
                         ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
@@ -53,6 +85,14 @@ namespace Skila.Tests.Execution
                         NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("1"))),
                     ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
                         NameFactory.StringLastIndexOf), CharLiteral.Create('x'))),
+
+                    //https://en.wikipedia.org/wiki/UTF-8#Examples
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a')))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€"),
+                        NameFactory.StringLastIndexOf), CharLiteral.Create('a'), NatLiteral.Create("4")))),
 
                     Return.Create(Nat8Literal.Create("0"))
                 )));
@@ -430,7 +470,11 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("1"), EntityModifier.Reassignable),
                     // for each entry we add to the result its (index+1)^2, original code used printing but we need single number
-                    Loop.CreateForEach("partNumber", null, NameReference.Create("partNumbers"), new IExpression[] {
+                    Loop.CreateForEach("partNumber",
+                        // todo: once foreach supports null as typename, use null
+                        //null, 
+                        NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst),
+                        NameReference.Create("partNumbers"), new IExpression[] {
                         VariableDeclaration.CreateStatement("w", null, ExpressionFactory.Mul("i","i")),
                         IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("rgx",NameFactory.RegexContainsFunctionName),
                             NameReference.Create("partNumber")),new IExpression[]{

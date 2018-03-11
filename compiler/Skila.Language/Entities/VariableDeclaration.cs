@@ -222,6 +222,9 @@ namespace Skila.Language.Entities
             }
             else if (init_eval != null)
             {
+                if (this.InitValue.IsUndef())
+                    ctx.AddError(ErrorCode.MissingTypeName, this);
+
                 this_eval = init_eval;
                 this_aggregate = this.InitValue.Evaluation.Aggregate;
             }
@@ -295,8 +298,11 @@ namespace Skila.Language.Entities
             if (!validateStorage(ctx, this.ContainingType()))
                 ctx.AddError(ErrorCode.NestedValueOfItself, this);
 
-            if (!ctx.Env.Options.AllowEmptyFieldTypeNames && this.Owner is TypeContainerDefinition && this.TypeName == null)
-                ctx.AddError(ErrorCode.MissingTypeName, this);
+            if (this.TypeName == null)
+            {
+                if (!ctx.Env.Options.AllowEmptyFieldTypeNames && this.Owner is TypeContainerDefinition)
+                    ctx.AddError(ErrorCode.MissingTypeName, this);
+            }
 
             if (!ctx.Env.Options.GlobalVariables && this.Owner is Namespace)
                 ctx.AddError(ErrorCode.GlobalVariable, this);
