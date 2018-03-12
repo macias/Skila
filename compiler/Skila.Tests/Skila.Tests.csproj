@@ -53,6 +53,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Execution\Extensions.cs" />
+    <Compile Include="Execution\NameResolution.cs" />
     <Compile Include="Execution\Text.cs" />
     <Compile Include="Execution\Io.cs" />
     <Compile Include="Execution\Concurrency.cs" />

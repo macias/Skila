@@ -74,6 +74,7 @@
     <Compile Include="Entities\Extension.cs" />
     <Compile Include="Entities\Property.Accessor.cs" />
     <Compile Include="ExecutionPath.cs" />
+    <Compile Include="Expressions\Chain.cs" />
     <Compile Include="Expressions\Literals\Real64Literal.cs" />
     <Compile Include="Expressions\Literals\Int16Literal.cs" />
     <Compile Include="Expressions\Literals\IntLiteral.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="ILabelBindable.cs" />
     <Compile Include="Memory.cs" />
     <Compile Include="Tools\Later.cs" />
+    <Compile Include="VariablePrototype.cs" />
     <Compile Include="TypeMatching.cs" />
     <Compile Include="MutabilityFlag.cs" />
     <Compile Include="Entities\IMember.cs" />

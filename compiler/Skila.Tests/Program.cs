@@ -25,7 +25,7 @@ namespace Skila.Tests
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
-                //new Semantics.Flow().ErrorExtendedAssignmentTracking();
+                //new Semantics.Flow().ErrorLinearFlowAfterOptionalDeclaration();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -46,19 +46,20 @@ namespace Skila.Tests
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 //new Execution.Flow().InitializationWithinOptionalAssignment();
-                //new Execution.FunctionCalls().RecursiveCall();
+                new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
-//                new Execution.Io().TODO_CommandLine();
+                //                new Execution.Io().TODO_CommandLine();
                 //new Execution.Library().RealNotANumber();
+                //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.Objects().OptionalAssignment();
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().TODO_StringIterating();
+                //new Execution.Text().StringIterating();
             }
 
-             //if (false)
+            // if (false)
             {
                 const double golden_avg_s = 1.37;
                 const double golden_min_s = 0.00;

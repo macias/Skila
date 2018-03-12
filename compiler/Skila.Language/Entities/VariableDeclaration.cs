@@ -148,7 +148,7 @@ namespace Skila.Language.Entities
                 // x.init()
                 if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization
                     // do not use this optimization for heap objects!
-                    && !block.HeapInitialization)
+                    && !block.IsHeapInitialization)
                 {
                     FunctionCall cons_call = block.InitializationStep;
                     cons_call.DetachFrom(block);
@@ -185,6 +185,11 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId== (17, 300))
+            {
+                ;
+            }
+
             if (this.Evaluation != null)
                 return;
 

@@ -13,7 +13,7 @@ namespace Skila.Tests.Execution
     public class Text
     {
         [TestMethod]
-        public IInterpreter TODO_StringIterating()
+        public IInterpreter StringIterating()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;

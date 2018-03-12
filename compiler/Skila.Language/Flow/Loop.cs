@@ -39,12 +39,15 @@ namespace Skila.Language.Flow
             VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter_name, null,
                 FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
 
+            //IExpression condition;
             string elem_name;
             VariableDeclaration elem_decl;
             if (varName == NameFactory.Sink)
             {
                 elem_name = NameFactory.Sink;
                 elem_decl = null;
+                //condition = ExpressionFactory.OptionalAssignment(NameFactory.SinkReference(),
+                  //  FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
             else
             {
@@ -53,12 +56,20 @@ namespace Skila.Language.Flow
                 body = VariableDeclaration.CreateStatement(varName, varTypeName,
                          NameReference.Create(elem_name))
                          .Concat(body);
+
+                //condition = ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
+                  //  () => FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
 
             // todo: once we have optional declarations use them here 
-            return new Loop(null, new[] { iter_decl, elem_decl }.Where(it => it != null),
-                preCondition: ExpressionFactory.OptionalAssignment(NameReference.Create(elem_name),
+            return new Loop(null, new[] { iter_decl
+                , elem_decl
+            }
+            .Where(it => it != null)
+            ,
+                            preCondition: ExpressionFactory.OptionalAssignment(NameReference.Create(elem_name),
                     FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext))),
+  //              preCondition: condition,
                 body: body,
                 postStep: null, postCondition: null);
         }

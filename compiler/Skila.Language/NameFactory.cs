@@ -49,6 +49,7 @@ namespace Skila.Language
         public const string StringTypeName = "String";
         public const string ChannelTypeName = "Channel";
         public const string OptionTypeName = "Option";
+        public const string OptionTypeParameterMember = "type";
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
         public const string ICountedTypeName = "ICounted";

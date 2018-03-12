@@ -101,6 +101,11 @@ namespace Skila.Interpreter
             return executeAsync(ctx, block.Instructions);
         }
 
+        private Task<ExecValue> executeAsync(ExecutionContext ctx, Chain chain)
+        {
+            return executeAsync(ctx, chain.Instructions);
+        }
+
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IEnumerable<IExpression> instructions)
         {
             ExecValue result = ExecValue.UndefinedExpression;
@@ -275,6 +280,10 @@ namespace Skila.Interpreter
                 else if (node is Block block)
                 {
                     result = await executeAsync(ctx, block).ConfigureAwait(false);
+                }
+                else if (node is Chain chain)
+                {
+                    result = await executeAsync(ctx, chain).ConfigureAwait(false);
                 }
                 else if (node is FunctionDefinition func)
                 {

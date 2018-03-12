@@ -6,7 +6,6 @@ using Skila.Language.Expressions;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using System;
-using Skila.Language.Entities;
 using Skila.Language.Expressions.Literals;
 
 namespace Skila.Language.Flow

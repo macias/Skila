@@ -13,6 +13,33 @@ namespace Skila.Language.Expressions
     {
         public static IEnumerable<IExpression> Nop { get; } = Enumerable.Empty<IExpression>();
 
+        public static IExpression OptionalDeclaration(string name, INameReference typeName, Func<IExpression> rhsOption)
+        {
+            return OptionalDeclaration(new[] { new VariablePrototype(name, typeName) }, new[] { rhsOption });
+        }
+        public static IExpression OptionalDeclaration(IEnumerable<VariablePrototype> variables,
+            IEnumerable<Func<IExpression>> rhsOptions)
+        {
+            // todo: add support for spread
+            if (variables.Count() != rhsOptions.Count())
+                throw new NotImplementedException();
+
+            var decl = new List<VariableDeclaration>();
+            foreach (Tuple<VariablePrototype, Func<IExpression>> pair in variables.SyncZip(rhsOptions))
+            {
+                VariablePrototype lhs = pair.Item1;
+                Func<IExpression> rhs = pair.Item2;
+
+                decl.Add(VariableDeclaration.CreateStatement(lhs.Name,
+                    lhs.TypeName ?? NameReference.Create(rhs(),NameFactory.OptionTypeParameterMember),
+                    null, 
+                    // todo: add support for partial declaration
+                    EntityModifier.Reassignable));
+            }
+
+            return Chain.Create(decl.Concat(OptionalAssignment(variables.Select(it => NameReference.Create(it.Name)),
+                rhsOptions.Select(it => it()))));
+        }
         public static IExpression OptionalAssignment(IExpression lhs, IExpression rhs)
         {
             return OptionalAssignment(new[] { lhs }, new[] { rhs });
@@ -20,7 +47,7 @@ namespace Skila.Language.Expressions
         public static IExpression OptionalAssignment(IEnumerable<IExpression> lhsExpressions, IEnumerable<IExpression> rhsExpressions)
         {
             // todo: add support for spread
-            if (rhsExpressions.Count() != lhsExpressions.Count())
+            if (lhsExpressions.Count() != rhsExpressions.Count())
                 throw new NotImplementedException();
 
             // please note we could have dummy assignments in form
@@ -29,7 +56,7 @@ namespace Skila.Language.Expressions
 
             lhsExpressions = lhsExpressions.Select(lhs => lhs is NameReference lhs_name && lhs_name.IsSink ? null : lhs);
 
-            var names = new List<string>();
+            var temp_names = new List<string>();
             IExpression condition = null;
             foreach (Tuple<IExpression, IExpression> pair in rhsExpressions.SyncZip(lhsExpressions))
             {
@@ -50,7 +77,7 @@ namespace Skila.Language.Expressions
                     curr = OptionIsSome(VariableDeclaration.CreateExpression(temp, null, rhs));
                 }
 
-                names.Add(temp);
+                temp_names.Add(temp);
 
                 if (condition == null)
                     condition = curr;
@@ -61,7 +88,7 @@ namespace Skila.Language.Expressions
             var success_body = new List<IExpression>();
             {
 
-                foreach (Tuple<IExpression, string> pair in lhsExpressions.SyncZip(names))
+                foreach (Tuple<IExpression, string> pair in lhsExpressions.SyncZip(temp_names))
                 {
                     IExpression lhs = pair.Item1;
                     string temp = pair.Item2;

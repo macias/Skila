@@ -14,6 +14,70 @@ namespace Skila.Tests.Semantics
     public class Flow
     {
         [TestMethod]
+        public IErrorReporter ErrorLinearFlowAfterOptionalDeclaration()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            NameReference not_initialized = NameReference.Create("m");
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
+
+                        ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m",null, ()=>NameReference.Create("o"))),
+
+                        // at this point `m` could be not initialized
+                        Return.Create(not_initialized)
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorLinearFlowAfterOptionalAssignment()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            NameReference not_initialized = NameReference.Create("m");
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.IntTypeReference(),
+                Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
+
+                        VariableDeclaration.CreateStatement("o",null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
+
+                        ExpressionFactory.Readout(ExpressionFactory.OptionalAssignment(NameReference.Create("m"), NameReference.Create("o"))),
+
+                        // at this point `m` could be not initialized
+                        Return.Create(not_initialized)
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VariableNotInitialized, not_initialized));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorExtendedAssignmentTracking()
         {
             var env = Language.Environment.Create(new Options()

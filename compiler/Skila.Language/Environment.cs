@@ -942,6 +942,13 @@ namespace Skila.Language
                     NameDefinition.Create(NameFactory.IterableCount, elem_type, VarianceMode.None),
                     NameFactory.SizeTypeReference(),
                     Block.CreateStatement(
+                        
+                        // todo: add this after supporting optional declaration
+                        //VariableDeclaration.CreateStatement("opt_counted",null,ExpressionFactory.DownCast(this_ref(),NameFactory.ICountedTypeReference(MutabilityOverride.Neutral))),
+                        //IfBranch.CreateIf(ExpressionFactory.OptionalDeclaration("counted", null,
+                          //  () => ExpressionFactory.DownCast(this_ref(), NameFactory.ICountedTypeReference(MutabilityOverride.Neutral))),
+                           // Return.Create(NameReference.Create("counted", NameFactory.IterableCount))),
+
                         VariableDeclaration.CreateStatement(count_name, null, NatLiteral.Create("0"), EntityModifier.Reassignable),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                             ExpressionFactory.Inc(count_name)
@@ -1329,6 +1336,7 @@ namespace Skila.Language
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
               TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
+                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type), EntityModifier.Public))
                             .With(has_value_getter)
                             .With(value_getter)
                             .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create(elem_type), Undef.Create()))
