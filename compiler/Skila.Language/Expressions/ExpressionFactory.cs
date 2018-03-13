@@ -31,7 +31,7 @@ namespace Skila.Language.Expressions
                 Func<IExpression> rhs = pair.Item2;
 
                 decl.Add(VariableDeclaration.CreateStatement(lhs.Name,
-                    lhs.TypeName ?? NameReference.Create(rhs(),NameFactory.OptionTypeParameterMember),
+                    lhs.TypeName ?? NameReference.Create(rhs(),BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
                     null, 
                     // todo: add support for partial declaration
                     EntityModifier.Reassignable));

@@ -34,9 +34,17 @@ namespace Skila.Language
         {
             return Create(prefix, name, ExpressionReadMode.ReadRequired, arguments);
         }
+        public static NameReference Create(IExpression prefix, BrowseMode browse, string name, params INameReference[] arguments)
+        {
+            return Create(prefix, browse, name, ExpressionReadMode.ReadRequired, arguments);
+        }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, name, arguments, readMode, isRoot: false);
+            return new NameReference(MutabilityOverride.NotGiven, prefix, BrowseMode.NotGiven, name, arguments, readMode, isRoot: false);
+        }
+        public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode, params INameReference[] arguments)
+        {
+            return new NameReference(MutabilityOverride.NotGiven, prefix, browse, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
         {
@@ -45,12 +53,12 @@ namespace Skila.Language
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
-            return new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            return new NameReference(overrideMutability, prefix, BrowseMode.NotGiven, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
-            var result = new NameReference(overrideMutability, prefix, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            var result = new NameReference(overrideMutability, prefix, BrowseMode.NotGiven, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
@@ -96,13 +104,16 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, NameFactory.RootNamespace,
+        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, BrowseMode.NotGiven,
+            NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
         public int DereferencingCount { get; set; }
         public int DereferencedCount_LEGACY { get; set; }
 
         public bool IsSuperReference => this.Name == NameFactory.SuperFunctionName;
+
+        private readonly BrowseMode browse;
 
         public ExpressionReadMode ReadMode { get; }
 
@@ -113,12 +124,14 @@ namespace Skila.Language
         private NameReference(
             MutabilityOverride overrideMutability,
             IExpression prefix,
+            BrowseMode browse,
             string name,
             IEnumerable<INameReference> templateArguments,
             ExpressionReadMode readMode,
             bool isRoot)
             : base()
         {
+            this.browse = browse;
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
@@ -329,7 +342,8 @@ namespace Skila.Language
                                     if (enclosing_function.Modifier.HasStatic)
                                     {
                                         notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
-                                        entities = filterTargetEntities(entities, it => !(it.Target is IMember) || it.Target.Modifier.HasStatic);
+                                        entities = filterTargetEntities(entities, it => !(it.Target is IMember)
+                                            || it.Target.Modifier.HasStatic);
                                     }
                                     else
                                     {
@@ -408,8 +422,13 @@ namespace Skila.Language
 
         private IEnumerable<EntityInstance> filterCrossAccessEntities(ComputationContext ctx, IEnumerable<EntityInstance> entities)
         {
-            return filterTargetEntities(entities, it => !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                                    || !it.Target.Modifier.HasStatic || ((it.Target is FunctionDefinition func) && func.IsExtension));
+            if (this.browse == BrowseMode.InstanceToStatic)
+                return entities;
+            else
+                return filterTargetEntities(entities, it =>
+                                        !ctx.Env.Options.StaticMemberOnlyThroughTypeName
+                                        || !it.Target.Modifier.HasStatic
+                                        || ((it.Target is FunctionDefinition func) && func.IsExtension));
         }
 
         // this function tries to minimize number of errors -- in case we cannot resolve a name
@@ -601,7 +620,7 @@ namespace Skila.Language
             this_prefix?.DetachFrom(this);
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
-            var result = new NameReference(this.OverrideMutability, this_prefix, this.Name, arguments, this.ReadMode, this.IsRoot);
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.Name, arguments, this.ReadMode, this.IsRoot);
             result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
         }

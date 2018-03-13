@@ -92,6 +92,7 @@
     <Compile Include="INameBindable.cs" />
     <Compile Include="ILabelBindable.cs" />
     <Compile Include="Memory.cs" />
+    <Compile Include="BrowseMode.cs" />
     <Compile Include="Tools\Later.cs" />
     <Compile Include="VariablePrototype.cs" />
     <Compile Include="TypeMatching.cs" />

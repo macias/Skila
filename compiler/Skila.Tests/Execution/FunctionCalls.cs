@@ -264,7 +264,11 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinLimitVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options()
+            {
+                AllowInvalidMainResult = true,
+                DebugThrowOnError = true
+            });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(

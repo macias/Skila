@@ -31,45 +31,29 @@ namespace Skila.Language.Flow
         public static Loop CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
             IEnumerable<IExpression> body)
         {
-            // todo: remove this limitation once we have typedefs and/or optional declaration
-            if (varTypeName == null)
-                throw new ArgumentNullException("Temporarily null type is not supported");
-
             string iter_name = AutoName.Instance.CreateNew("iter");
             VariableDeclaration iter_decl = VariableDeclaration.CreateStatement(iter_name, null,
                 FunctionCall.Create(NameReference.Create(iterable, NameFactory.IterableGetIterator)));
 
-            //IExpression condition;
-            string elem_name;
-            VariableDeclaration elem_decl;
+            IExpression condition;
             if (varName == NameFactory.Sink)
             {
-                elem_name = NameFactory.Sink;
-                elem_decl = null;
-                //condition = ExpressionFactory.OptionalAssignment(NameFactory.SinkReference(),
-                  //  FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
+                condition = ExpressionFactory.OptionalAssignment(NameFactory.SinkReference(),
+                    FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
             else
             {
-                elem_name = AutoName.Instance.CreateNew("elem");
-                elem_decl = VariableDeclaration.CreateStatement(elem_name, varTypeName, Undef.Create(), EntityModifier.Reassignable);
+                string elem_name = AutoName.Instance.CreateNew("elem");
                 body = VariableDeclaration.CreateStatement(varName, varTypeName,
                          NameReference.Create(elem_name))
                          .Concat(body);
 
-                //condition = ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
-                  //  () => FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
+                condition = ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
+                    () => FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
 
-            // todo: once we have optional declarations use them here 
-            return new Loop(null, new[] { iter_decl
-                , elem_decl
-            }
-            .Where(it => it != null)
-            ,
-                            preCondition: ExpressionFactory.OptionalAssignment(NameReference.Create(elem_name),
-                    FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext))),
-  //              preCondition: condition,
+            return new Loop(null, new[] { iter_decl },
+                preCondition: condition,
                 body: body,
                 postStep: null, postCondition: null);
         }
@@ -124,7 +108,9 @@ namespace Skila.Language.Flow
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(Init.Concat(PreCondition), thenPath: Body, postMaybes: PostStep.Concat(PostCondition)));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(Init.Concat(PreCondition),
+                thenPath: Body,
+                postMaybes: PostStep.Concat(PostCondition)));
         }
 
         public override string ToString()

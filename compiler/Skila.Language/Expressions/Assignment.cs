@@ -166,6 +166,8 @@ namespace Skila.Language.Expressions
                     // if assignment to referential type is not done in nested scope, if yes, we assume it is escaping
                     // reference and report an error
                     if (lhs_var.IsFunctionContained() && lhs_var.Scope != this.Scope
+                        // todo: this is lame patch to make current code work, we need proper analysis ASAP
+                        && !(this.RhsValue is NameReference) 
                         && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components)
                         // todo: preserve the typematch (enhance DereferenceCount to full info) so we could here just check
                         // if it is pure transfer, or auto-referencing, instead of again checking types

@@ -175,9 +175,7 @@ namespace Skila.Tests.Execution
 
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
                     Loop.CreateForEach("pt",
-                        // todo: once foreach supports null as typename, use null
-                        NameFactory.PointerTypeReference( NameReference.Create("BasePoint")),
-                        //null,
+                        null,
                         NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("pt","x"))) }),

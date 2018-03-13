@@ -471,9 +471,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("1"), EntityModifier.Reassignable),
                     // for each entry we add to the result its (index+1)^2, original code used printing but we need single number
                     Loop.CreateForEach("partNumber",
-                        // todo: once foreach supports null as typename, use null
-                        //null, 
-                        NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst),
+                        null, 
                         NameReference.Create("partNumbers"), new IExpression[] {
                         VariableDeclaration.CreateStatement("w", null, ExpressionFactory.Mul("i","i")),
                         IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("rgx",NameFactory.RegexContainsFunctionName),

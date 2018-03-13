@@ -843,9 +843,7 @@ namespace Skila.Language
                             NameReference.Create(coll1_name))),
 
                     Loop.CreateForEach(elem_name,
-                        // todo: change it to null when `foreach` supports it
-                        NameFactory.PointerTypeReference(NameReference.Create(elem3_type)),
-                        //null, 
+                        null, 
                         NameReference.Create(coll2_name), new[] {
                         FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                     }),
@@ -942,12 +940,11 @@ namespace Skila.Language
                     NameDefinition.Create(NameFactory.IterableCount, elem_type, VarianceMode.None),
                     NameFactory.SizeTypeReference(),
                     Block.CreateStatement(
-                        
-                        // todo: add this after supporting optional declaration
-                        //VariableDeclaration.CreateStatement("opt_counted",null,ExpressionFactory.DownCast(this_ref(),NameFactory.ICountedTypeReference(MutabilityOverride.Neutral))),
-                        //IfBranch.CreateIf(ExpressionFactory.OptionalDeclaration("counted", null,
-                          //  () => ExpressionFactory.DownCast(this_ref(), NameFactory.ICountedTypeReference(MutabilityOverride.Neutral))),
-                           // Return.Create(NameReference.Create("counted", NameFactory.IterableCount))),
+
+                        IfBranch.CreateIf(ExpressionFactory.OptionalDeclaration("counted", null,
+                            () => ExpressionFactory.DownCast(this_ref(),
+                                NameFactory.ReferenceTypeReference(NameFactory.ICountedTypeReference(MutabilityOverride.Neutral)))),
+                            Return.Create(NameReference.Create("counted", NameFactory.IterableCount))),
 
                         VariableDeclaration.CreateStatement(count_name, null, NatLiteral.Create("0"), EntityModifier.Reassignable),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
