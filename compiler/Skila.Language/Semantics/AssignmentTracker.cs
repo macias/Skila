@@ -14,7 +14,13 @@ namespace Skila.Language.Semantics
         public DebugId DebugId { get; } = new DebugId(typeof(AssignmentTracker));
 #endif
 
+        // this one is for telling if we can read (from initialized? variable)
         private readonly HashSet<VariableDeclaration> initializedVariables;
+        
+        // this one is for telling if we can initialize via assigment local variable
+        private readonly HashSet<VariableDeclaration> assignedVariables;
+        // this one is for telling if assigment is effectively duplicated because it is placed within loop
+        private readonly Dictionary<VariableDeclaration,int> variableLoopLevels;
 
         private static IEqualityComparer<VariableDeclaration> variableDeclarationComparer;
         public AssignmentTracker ThenBranch { get; set; }
@@ -28,12 +34,16 @@ namespace Skila.Language.Semantics
         {
             // binding is done during evaluation, so now we can ignore shadowing option and use references in the dictionary
             this.initializedVariables = new HashSet<VariableDeclaration>(comparer: variableDeclarationComparer);
+            this.assignedVariables = new HashSet<VariableDeclaration>(comparer: variableDeclarationComparer);
+            this.variableLoopLevels = new Dictionary<VariableDeclaration, int>(comparer: variableDeclarationComparer);
         }
 
         private AssignmentTracker(AssignmentTracker src)
         {
             this.initializedVariables = new HashSet<VariableDeclaration>(src.initializedVariables, comparer: variableDeclarationComparer);
-
+            this.assignedVariables = new HashSet<VariableDeclaration>(src.assignedVariables, comparer: variableDeclarationComparer);
+            // this info is fixed per entire function so we can share it
+            this.variableLoopLevels = src.variableLoopLevels;
         }
 
         public AssignmentTracker Clone()
@@ -41,13 +51,17 @@ namespace Skila.Language.Semantics
             return new AssignmentTracker(this);
         }
 
-        internal void Add(VariableDeclaration decl)
+        internal void Add(VariableDeclaration decl,int loopLevel)
         {
+            this.variableLoopLevels.Add(decl, loopLevel);
             if (decl.InitValue != null)
+            {
                 this.initializedVariables.Add(decl);
+                this.assignedVariables.Add(decl); 
+            }
         }
 
-        internal void MergeAssignments()
+        internal void MergeInitializations()
         {
             HashSet<VariableDeclaration> set = ThenBranch?.initializedVariables;
             // first merge the branches
@@ -67,13 +81,22 @@ namespace Skila.Language.Semantics
                 this.initializedVariables.UnionWith(set);
         }
 
+        internal void MergeAssigments()
+        {
+            // this merge is simpler, we just need to know if ever given variable was assigned
+            // because for read-only ones it can be done only once
+            if (ThenBranch != null)
+                this.assignedVariables.UnionWith(ThenBranch.assignedVariables);
+            if (ElseBranch != null)
+                this.assignedVariables.UnionWith(ElseBranch.assignedVariables);
+        }
         public void ResetBranches()
         {
             this.ThenBranch = null;
             this.ElseBranch = null;
         }
 
-        internal void Assigned(IExpression lhs)
+        internal bool AssignedLocal(IExpression lhs,int loopLevel)
         {
             // even if we are in unreachable flow we still set the assignment state to maybe, here is why
             // if (...) then
@@ -85,11 +108,17 @@ namespace Skila.Language.Semantics
             // on the other hand it is harmful for outer scope, because maybe-assignments 
             // will be handled properly anyway
 
-            VariableDeclaration decl = lhs.TryGetTargetEntity<VariableDeclaration>(out NameReference dummy);
-            if (decl != null)
-            {
-                this.initializedVariables.Add(decl);
-            }
+            VariableDeclaration decl = lhs.TryGetTargetEntity<VariableDeclaration>(out NameReference name_ref);
+            if (decl == null || !name_ref.Binding.Match.IsLocal) 
+                return true;
+
+            this.initializedVariables.Add(decl);
+            bool first_assign = this.assignedVariables.Add(decl);
+            if (decl.Modifier.HasReassignable)
+                return true;
+
+            // in case of readonly variables we can assign it only once AND not in loop (because it would be doubled assigment effectively)
+            return first_assign && this.variableLoopLevels[decl] == loopLevel;
         }
 
         public bool TryCanRead(NameReference name, out VariableDeclaration varDeclaration)

@@ -121,11 +121,7 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Loop loop)
         {
-            ExecValue result = await executeAsync(ctx, loop.Init).ConfigureAwait(false);
-            if (!result.IsExpression)
-                return result;
-
-            result = ExecValue.UndefinedExpression;
+            ExecValue result = ExecValue.UndefinedExpression;
 
             while (true)
             {

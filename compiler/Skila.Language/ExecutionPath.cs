@@ -12,23 +12,21 @@ namespace Skila.Language
         public DebugId DebugId { get; }
 #endif
 
-        internal static ExecutionPath Create(IEnumerable<IExpression> path,bool isRepeated = false)
+        internal static ExecutionPath Create(IEnumerable<IExpression> path)
         {
             if (path == null)
                 return null;
             else
-                return new ExecutionPath(path,isRepeated);
+                return new ExecutionPath(path);
         }
 
         private readonly IReadOnlyCollection<IExpression> path;
-        public bool IsRepeated { get; }
 
-        private ExecutionPath(IEnumerable<IExpression> path,bool isRepeated)
+        private ExecutionPath(IEnumerable<IExpression> path)
         {
 #if DEBUG
             this.DebugId = new DebugId(this.GetType());
 #endif
-            this.IsRepeated = isRepeated;
             this.path = path.StoreReadOnly();
         }
 

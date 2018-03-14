@@ -422,12 +422,10 @@ namespace Skila.Language
 
         private IEnumerable<EntityInstance> filterCrossAccessEntities(ComputationContext ctx, IEnumerable<EntityInstance> entities)
         {
-            if (this.browse == BrowseMode.InstanceToStatic)
+            if (this.browse == BrowseMode.InstanceToStatic || !ctx.Env.Options.StaticMemberOnlyThroughTypeName)
                 return entities;
             else
-                return filterTargetEntities(entities, it =>
-                                        !ctx.Env.Options.StaticMemberOnlyThroughTypeName
-                                        || !it.Target.Modifier.HasStatic
+                return filterTargetEntities(entities, it => !it.Target.Modifier.HasStatic
                                         || ((it.Target is FunctionDefinition func) && func.IsExtension));
         }
 

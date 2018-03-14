@@ -30,11 +30,10 @@ namespace Skila.Language.Expressions
                 VariablePrototype lhs = pair.Item1;
                 Func<IExpression> rhs = pair.Item2;
 
+                // partial declaration (initialization will be done later)
                 decl.Add(VariableDeclaration.CreateStatement(lhs.Name,
-                    lhs.TypeName ?? NameReference.Create(rhs(),BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
-                    null, 
-                    // todo: add support for partial declaration
-                    EntityModifier.Reassignable));
+                    lhs.TypeName ?? NameReference.Create(rhs(), BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
+                    null));
             }
 
             return Chain.Create(decl.Concat(OptionalAssignment(variables.Select(it => NameReference.Create(it.Name)),

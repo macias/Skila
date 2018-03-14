@@ -14,18 +14,20 @@ namespace Skila.Language
 
         public static ComputationContext CreateBare(Environment env)
         {
-            return new ComputationContext(env,bare:true);
+            return new ComputationContext(env, bare: true);
         }
 
         public Environment Env { get; }
+        // have to use fields because properties cannot be passed by ref
         internal NameRegistry EvalLocalNames;
         public AssignmentTracker ValAssignTracker;
+        public int ValLoopLevel { get; set; }
 
         public ErrorManager ErrorManager { get; }
 
         private readonly HashSet<INode> visited;
 
-        private ComputationContext(Environment env,bool bare) : this()
+        private ComputationContext(Environment env, bool bare) : this()
         {
             this.Env = env;
             if (!bare)

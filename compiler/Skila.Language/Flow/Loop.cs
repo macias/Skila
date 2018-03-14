@@ -13,22 +13,22 @@ namespace Skila.Language.Flow
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Loop : Node, IExpression, IExecutableScope, IAnchor
     {
-        public static Loop CreateFor(NameDefinition label, IEnumerable<IExpression> init,
+        public static IExpression CreateFor(NameDefinition label, IEnumerable<IExpression> init,
             IExpression condition,
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(label, init, condition, body, postStep: step, postCondition: null);
+            return create(label, init, condition, body, postStep: step, postCondition: null);
         }
-        public static Loop CreateFor(IEnumerable<IExpression> init,
+        public static IExpression CreateFor(IEnumerable<IExpression> init,
             IExpression condition,
             IEnumerable<IExpression> step,
             IEnumerable<IExpression> body)
         {
-            return new Loop(null, init, condition, body, postStep: step, postCondition: null);
+            return create(null, init, condition, body, postStep: step, postCondition: null);
         }
 
-        public static Loop CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
+        public static IExpression CreateForEach(string varName, INameReference varTypeName, IExpression iterable,
             IEnumerable<IExpression> body)
         {
             string iter_name = AutoName.Instance.CreateNew("iter");
@@ -52,10 +52,21 @@ namespace Skila.Language.Flow
                     () => FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
 
-            return new Loop(null, new[] { iter_decl },
+            return create(null, new[] { iter_decl },
                 preCondition: condition,
                 body: body,
                 postStep: null, postCondition: null);
+        }
+
+        private static IExpression create(NameDefinition label,
+            IEnumerable<IExpression> init,
+            IExpression preCondition,
+            IEnumerable<IExpression> body,
+            IEnumerable<IExpression> postStep,
+            IExpression postCondition)
+        {
+            return Block.CreateStatement((init ?? Enumerable.Empty<IExpression>())
+                .Concat(new Loop(label, preCondition, body, postStep, postCondition)));
         }
 
         private bool? isRead;
@@ -65,7 +76,6 @@ namespace Skila.Language.Flow
 
         public NameDefinition Label { get; }
         public NameDefinition Name => this.Label;
-        public IEnumerable<IExpression> Init { get; }
         private IExpression preCondition;
         public IExpression PreCondition => this.preCondition;
         public IEnumerable<IExpression> PostStep { get; }
@@ -74,7 +84,9 @@ namespace Skila.Language.Flow
         private IExpression postCondition;
         public IExpression PostCondition => this.postCondition;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Label }.Concat(Init).Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Label }
+            .Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
+
         private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
 
@@ -85,20 +97,18 @@ namespace Skila.Language.Flow
         public int DereferencingCount { get; set; }
 
         private Loop(NameDefinition label,
-            IEnumerable<IExpression> init,
             IExpression preCondition,
             IEnumerable<IExpression> body,
             IEnumerable<IExpression> postStep,
             IExpression postCondition)
         {
-            // execute init expression, then iterate, each iteration is
+            // each iteration is:
             // pre-condition
             // body
             // step
             // post-condition
 
             this.Label = label;
-            this.Init = (init ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.preCondition = preCondition;
             this.PostStep = (postStep ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
             this.Body = (body ?? Enumerable.Empty<IExpression>()).StoreReadOnly();
@@ -108,7 +118,7 @@ namespace Skila.Language.Flow
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(Init.Concat(PreCondition),
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(PreCondition,
                 thenPath: Body,
                 postMaybes: PostStep.Concat(PostCondition)));
         }

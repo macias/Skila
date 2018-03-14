@@ -20,12 +20,12 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                new Semantics.CompilerProtection().EnvironmentOption2();
+                new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
-                //new Semantics.Flow().ErrorLinearFlowAfterOptionalDeclaration();
+                //new Semantics.Flow().PostponedInitialization();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -42,7 +42,7 @@ namespace Skila.Tests
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 //new Execution.Closures().ClosureRecursiveCall();
-                new Execution.Collections().IteratingOverConcatenatedMixedIterables();
+                //new Execution.Collections().IteratingOverConcatenatedMixedIterables();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 //new Execution.Flow().InitializationWithinOptionalAssignment();
@@ -56,7 +56,7 @@ namespace Skila.Tests
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().RegexContains();
+                //new Execution.Text().RegexContains();
             }
 
             // if (false)

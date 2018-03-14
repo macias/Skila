@@ -275,7 +275,8 @@ namespace Skila.Tests.Semantics
 
             var decl1 = VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null);
             var decl2 = VariableDeclaration.CreateStatement("t", NameFactory.Int64TypeReference(), null);
-            var loop = Loop.CreateFor(NameDefinition.Create("here"),
+            NameDefinition loop_label = NameDefinition.Create("here");
+            var loop = Loop.CreateFor(loop_label,
               init: null,
               condition: null,
               step: null,
@@ -294,7 +295,7 @@ namespace Skila.Tests.Semantics
             Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl1.Name));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, decl2.Name));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop.Label));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, loop_label));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BindableNotUsed, member.Name));
 
             return resolver;

@@ -14,6 +14,106 @@ namespace Skila.Tests.Semantics
     public class Flow
     {
         [TestMethod]
+        public IErrorReporter ErrorPostponedInitialization()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            IExpression second_init_x = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
+            IExpression second_init_y = Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5"));
+            IExpression second_init_z_1 = Assignment.CreateStatement(NameReference.Create("z"), IntLiteral.Create("5"));
+            IExpression second_init_z_2 = Assignment.CreateStatement(NameReference.Create("z"), IntLiteral.Create("5"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    // the point is those variables are not reassingable, yet we don't initialize them on declaration
+                    // but we make incorrect initializations in this test
+                    VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null),
+                    Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5")),
+                    second_init_x,
+
+                    VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null),
+                    IfBranch.CreateIf(BoolLiteral.CreateTrue(),
+                        ExpressionFactory.Nop,
+                        IfBranch.CreateElse(
+                            Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5")))),
+
+                    second_init_y,
+
+                    VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), null),
+
+                    Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
+                        second_init_z_1,
+                    }),
+
+                    second_init_z_2,
+
+                    ExpressionFactory.Readout("x"),
+                    ExpressionFactory.Readout("y"),
+                    ExpressionFactory.Readout("z")
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, second_init_x));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, second_init_y));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, second_init_z_1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, second_init_z_2));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter PostponedInitialization()
+        {
+            var env = Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    // the point is those variables are not reassingable, yet we don't initialize them on declaration
+                    VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null),
+                    Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5")),
+
+                    VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null),
+                    IfBranch.CreateIf(BoolLiteral.CreateTrue(),
+                        Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5")),
+                        IfBranch.CreateElse(
+                            Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5")))),
+
+                    // double loop to check if our computing nested repeated flow for assignment works correctly
+                    Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
+                        Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
+                            VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), null),
+                            Assignment.CreateStatement(NameReference.Create("z"), IntLiteral.Create("5")),
+                            ExpressionFactory.Readout("z")
+                        }),
+                    }),
+
+                    ExpressionFactory.Readout("x"),
+                    ExpressionFactory.Readout("y")
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorLinearFlowAfterOptionalDeclaration()
         {
             var env = Environment.Create(new Options()
@@ -30,7 +130,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                         VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
 
-                        ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m",null, ()=>NameReference.Create("o"))),
+                        ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m", null, () => NameReference.Create("o"))),
 
                         // at this point `m` could be not initialized
                         Return.Create(not_initialized)
@@ -61,7 +161,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                         VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, EntityModifier.Reassignable),
 
-                        VariableDeclaration.CreateStatement("o",null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
+                        VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
 
                         ExpressionFactory.Readout(ExpressionFactory.OptionalAssignment(NameReference.Create("m"), NameReference.Create("o"))),
 

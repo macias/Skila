@@ -52,10 +52,14 @@ namespace Skila.Language.Extensions
             INameRegistryExtension.CreateRegistry(INameRegistryExtension.EnterNode(node, ctx.ValAssignTracker),
                 ref ctx.ValAssignTracker, () => new AssignmentTracker());
 
+            if (node is Loop)
+                ++ctx.ValLoopLevel;
+
+
             {
                 if (node is VariableDeclaration decl)
                 {
-                    ctx.ValAssignTracker?.Add(decl);
+                    ctx.ValAssignTracker?.Add(decl,ctx.ValLoopLevel);
                 }
             }
 
@@ -104,7 +108,8 @@ namespace Skila.Language.Extensions
                     }
 
                     if (expr.Flow.ExhaustiveMaybes)
-                        parent_tracker?.MergeAssignments();
+                        parent_tracker?.MergeInitializations();
+                    parent_tracker?.MergeAssigments();
 
                     result.Combine(branch_results);
                 }

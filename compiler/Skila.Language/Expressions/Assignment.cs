@@ -140,7 +140,11 @@ namespace Skila.Language.Expressions
 
         public override void Validate(ComputationContext ctx)
         {
-            ctx.ValAssignTracker?.Assigned(this.Lhs);
+            if (ctx.ValAssignTracker != null)
+            {
+                if (!ctx.ValAssignTracker.AssignedLocal(this.Lhs,ctx.ValLoopLevel))
+                    ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
+            }
 
             if (!ctx.Env.Options.DiscardingAnyExpressionDuringTests && this.Lhs.IsSink() && !(this.RhsValue is FunctionCall))
                 ctx.AddError(ErrorCode.DiscardingNonFunctionCall, this);
@@ -175,12 +179,15 @@ namespace Skila.Language.Expressions
                         ctx.AddError(ErrorCode.EscapingReference, this);
 
                     FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
-                    bool can_reassign;
+                    // we deal with local assignments using assignment tracker
+                    bool can_reassign = name_ref.Binding.Match.IsLocal;
+                    if (!can_reassign)
                     {
                         TypeDefinition current_type = current_func?.ContainingType();
                         TypeDefinition lhs_owner_type = lhs_var.ContainingType();
-                        can_reassign = lhs_var.Modifier.HasReassignable ||
-                            (current_func != null && current_type == lhs_owner_type
+                        can_reassign = lhs_var.Modifier.HasReassignable 
+                            || name_ref.Binding.Match.IsLocal
+                            || (current_func != null && current_type == lhs_owner_type
                             && (current_func.IsInitConstructor() || current_func.IsZeroConstructor()));
                     }
 
