@@ -82,6 +82,7 @@ namespace Skila.Language
         public FunctionDefinition Utf8StringTrimEnd { get; }
         public FunctionDefinition Utf8StringIndexOfChar { get; }
         public FunctionDefinition Utf8StringLastIndexOfChar { get; }
+        public FunctionDefinition Utf8StringReverse { get; }
         public FunctionDefinition Utf8StringLengthGetter { get; }
 
         public TypeDefinition Utf8StringIteratorType { get; }
@@ -382,7 +383,8 @@ namespace Skila.Language
                     out FunctionDefinition trim_start,
                     out FunctionDefinition trim_end,
                     out FunctionDefinition index_of_char,
-                    out FunctionDefinition last_index_of_char));
+                    out FunctionDefinition last_index_of_char,
+                    out FunctionDefinition reverse));
                 this.Utf8StringCountGetter = count_getter;
                 this.Utf8StringLengthGetter = length_getter;
                 this.Utf8StringAtGetter = at_getter.Cast<FunctionDefinition>();
@@ -390,6 +392,7 @@ namespace Skila.Language
                 this.Utf8StringTrimEnd = trim_end;
                 this.Utf8StringIndexOfChar = index_of_char;
                 this.Utf8StringLastIndexOfChar = last_index_of_char;
+                this.Utf8StringReverse = reverse;
                 this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
@@ -680,7 +683,7 @@ namespace Skila.Language
 
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
             out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd,
-            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar)
+            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar,out FunctionDefinition reverse)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -707,6 +710,9 @@ namespace Skila.Language
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
                     FunctionParameter.Create("index1", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .Modifier(EntityModifier.Native);
+            reverse = FunctionBuilder.Create(NameFactory.StringReverse, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(Undef.Create())))
                 .Modifier(EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
@@ -756,6 +762,7 @@ namespace Skila.Language
                                         NatLiteral.Create("0")))))
                             .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
 
+                            .With(reverse)
 
                                     .With(trimStart)
                                     .With(trimEnd)

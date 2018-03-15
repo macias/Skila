@@ -13,6 +13,118 @@ namespace Skila.Tests.Execution
     public class Text
     {
         [TestMethod]
+        public IInterpreter TODO_ReversingString()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    /*
+                     *   assert("hello".reverse()=="olleh");
+                      assert("".reverse()=="");
+                      assert("-".reverse()=="-");
+                      assert("-+".reverse()=="+-");
+                      assert("123".reverse()=="321");
+
+                     */
+
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("olleh"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello"), NameFactory.StringReverse))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter StringConversions()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    // assert("345.0" to ?Double==345);
+                    ExpressionFactory.AssertEqual(RealLiteral.Create(345),
+                        ExpressionFactory.GetOptionValue(
+                            FunctionCall.Create(NameReference.Create(NameFactory.RealTypeReference(),NameFactory.ParseFunctionName),
+                            StringLiteral.Create("345.0")))),
+
+                    // assert("1,000" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("1,000"))),
+
+                    // assert("1 000" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("1 000"))),
+
+                    // assert("0" to ?Int==0);
+                    ExpressionFactory.AssertEqual(IntLiteral.Create("0"),
+                        ExpressionFactory.GetOptionValue(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("0")))),
+
+                    // assert("-0" to ?Int==0);
+                    ExpressionFactory.AssertEqual(IntLiteral.Create("-0"),
+                        ExpressionFactory.GetOptionValue(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("0")))),
+
+                    // assert("+0" to ?Int==0);
+                    ExpressionFactory.AssertEqual(IntLiteral.Create("+0"),
+                        ExpressionFactory.GetOptionValue(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("0")))),
+
+                    // assert("abc" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("abc"))),
+
+                    // assert("" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create(""))),
+
+                    // assert("-" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("-"))),
+
+                    // assert("+" to ?Int is null);
+                    ExpressionFactory.AssertOptionIsNull(
+                            FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                            StringLiteral.Create("+"))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter StringIterating()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -127,6 +239,16 @@ namespace Skila.Tests.Execution
 
                     ExpressionFactory.AssertEqual(StringLiteral.Create("abc "),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc "), NameFactory.StringTrimStart))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(" abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create(" abc"), NameFactory.StringTrimEnd))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc "), NameFactory.StringTrimEnd))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc  \t"), NameFactory.StringTrimEnd))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create(" abc"), NameFactory.StringTrimStart))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("\t  abc"), NameFactory.StringTrimStart))),
 
                     Return.Create(Nat8Literal.Create("0"))
                 )));

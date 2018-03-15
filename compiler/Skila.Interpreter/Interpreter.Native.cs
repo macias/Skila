@@ -7,6 +7,7 @@ using NaiveLanguageTools.Common;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
 
 namespace Skila.Interpreter
 {
@@ -251,6 +252,19 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"{ExceptionCode.SourceInfo()}");
         }
 
+        // https://stackoverflow.com/a/15111719/210342
+        private static IEnumerable<string> graphemeClusters(string s)
+        {
+            var enumerator = StringInfo.GetTextElementEnumerator(s);
+            while (enumerator.MoveNext())
+            {
+                yield return (string)enumerator.Current;
+            }
+        }
+        private static string reverseGraphemeClusters(string s)
+        {
+            return string.Join("", graphemeClusters(s).Reverse().ToArray());
+        }
         private async Task<ExecValue> executeNativeUtf8StringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
         {
@@ -271,6 +285,13 @@ namespace Skila.Interpreter
             else if (func == ctx.Env.Utf8StringTrimStart)
             {
                 ObjectData result = await createStringAsync(ctx, this_native.TrimStart()).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.Utf8StringReverse)
+            {
+                ObjectData result = await createStringAsync(ctx, reverseGraphemeClusters(this_native)).ConfigureAwait(false);
                 if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);

@@ -138,6 +138,7 @@ namespace Skila.Language
         public const string StringIndexOf = "indexOf";
         public const string StringLastIndexOf = "lastIndexOf";
         public const string StringLength = "length";
+        public const string StringReverse = "reverse";
 
         public const string CharLength = "length";
 

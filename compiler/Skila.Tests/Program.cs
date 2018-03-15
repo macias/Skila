@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                new Semantics.CompilerProtection().Environment();
+               // new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -56,7 +56,7 @@ namespace Skila.Tests
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                //new Execution.Text().RegexContains();
+                new Execution.Text().TODO_ReversingString();
             }
 
             // if (false)
