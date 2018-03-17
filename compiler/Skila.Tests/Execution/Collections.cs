@@ -13,6 +13,51 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter ReverseFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    // let t ITuple<Nat8,Nat8,Nat8> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.Nat8TypeReference(),
+                            NameFactory.Nat8TypeReference(),
+                            // todo: use sink
+                            NameFactory.Nat8TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference()),
+                        Nat8Literal.Create("7"), Nat8Literal.Create("11"))),
+
+                    VariableDeclaration.CreateStatement("w", null,Nat8Literal.Create("3"),EntityModifier.Reassignable),
+
+                    VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                    Loop.CreateForEach("el", NameFactory.Nat8TypeReference(), 
+                        FunctionCall.Create( NameReference.Create("t",NameFactory.ReverseFunctionName)),
+                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),
+                                ExpressionFactory.Mul("w","el"))),
+
+                            ExpressionFactory.IncBy("w",Nat8Literal.Create("2"))
+                            }),
+                    Return.Create(NameReference.Create("acc"))
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter(debugMode: false);
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)(11*3+7*5), result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter FilterFunction()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });

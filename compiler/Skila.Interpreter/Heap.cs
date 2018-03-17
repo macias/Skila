@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
 using Skila.Language.Entities;
+using System.Net;
 
 namespace Skila.Interpreter
 {
@@ -20,7 +21,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private readonly ValueTuple<int, int> debugTraceId =  (-1, -1) ;
+        private readonly ValueTuple<int, int> debugTraceId = (42, 6);
         private int debugActionCount = 0;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
@@ -182,6 +183,9 @@ namespace Skila.Interpreter
             }
             string color = (change == 0 ? "black" : change > 0 ? "green" : "red");
             int margin = count;
+            operation = WebUtility.HtmlEncode(operation);
+            reason = WebUtility.HtmlEncode(reason);
+            comment = WebUtility.HtmlEncode(comment);
             Console.WriteLine($"<p style=\"padding-left:{margin * 2}em\"><span style=\"color: {color};\">{debugActionCount++} <b>{operation} {count}</b></span> {reason} <i>{comment}</i></p>");
         }
 

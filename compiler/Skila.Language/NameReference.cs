@@ -215,45 +215,25 @@ namespace Skila.Language
         private void handleBinding(ComputationContext ctx)
         {
             if (this.Binding.IsComputed)
+                return;
+
+            if (this.DebugId == (3, 8845))
             {
-                if (this.Prefix != null)
-                {
-                    int dereferenced = computeDereferences(ctx, this.Prefix.Evaluation.Components);
-                    this.Prefix.DereferencedCount_LEGACY = dereferenced;
-                    this.DereferencingCount = dereferenced;
-                }
+                ;
             }
-            else
+            ErrorCode errorCode = ErrorCode.ReferenceNotFound;
+            IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
+
+            this.Binding.Set(entities
+                .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability),
+                    it.IsLocal)));
+
+            if (this.Binding.Match.Instance.IsJoker && !this.IsSink
+                // avoid cascade od errors, if prefix failed there is no point in reporting another error
+                && (this.Prefix == null || !this.Prefix.Evaluation.Components.IsJoker))
             {
-                if (this.DebugId == (3, 8845))
-                {
-                    ;
-                }
-                ErrorCode errorCode = ErrorCode.ReferenceNotFound;
-                IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
-
-                this.Binding.Set(entities
-                    .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability),
-                        it.IsLocal)));
-
-                if (this.Binding.Match.Instance.IsJoker && !this.IsSink
-                    // avoid cascade od errors, if prefix failed there is no point in reporting another error
-                    && (this.Prefix == null || !this.Prefix.Evaluation.Components.IsJoker))
-                {
-                    ctx.ErrorManager.AddError(errorCode, this);
-                }
+                ctx.ErrorManager.AddError(errorCode, this);
             }
-        }
-
-        private static int computeDereferences(ComputationContext ctx, IEntityInstance eval)
-        {
-            int dereferenced = 0;
-            eval.EnumerateAll().ForEach(it =>
-            {
-                tryDereference(ctx, it, out int d);
-                dereferenced = Math.Max(d, dereferenced);
-            });
-            return dereferenced;
         }
 
         private IEnumerable<BindingMatch> computeBinding(ComputationContext ctx,
@@ -393,8 +373,8 @@ namespace Skila.Language
                     {
                         ;
                     }
-                    int dereferenced = 0;
-                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate, out dereferenced);
+
+                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
 
                     if (!entities.Any())
@@ -411,9 +391,6 @@ namespace Skila.Language
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
                     entities = filterCrossAccessEntities(ctx, entities);
-
-                    this.Prefix.DereferencedCount_LEGACY = dereferenced;
-                    this.DereferencingCount = dereferenced;
 
                     return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
@@ -602,9 +579,9 @@ namespace Skila.Language
 
         }
 
-        private static EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance, out int dereferenced)
+        private static EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance)
         {
-            dereferenced = ctx.Env.Dereference(entityInstance, out IEntityInstance __eval);
+            int dereferenced = ctx.Env.Dereference(entityInstance, out IEntityInstance __eval);
             if (dereferenced == 0)
                 return entityInstance;
 

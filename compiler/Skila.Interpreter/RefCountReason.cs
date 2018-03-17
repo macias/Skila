@@ -32,6 +32,7 @@ namespace Skila.Interpreter
         FreeField = 1 << 5,
         DropOnCallResult = 1 << 6,
         DroppingLocalPointer = 1 << 7,
-        CommandLine = 1 << 8
+        CommandLine = 1 << 8,
+        DeconstructingVariadic = 1 << 9
     }
 }

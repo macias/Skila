@@ -9,12 +9,20 @@ using Skila.Language.Expressions.Literals;
 
 namespace Skila.Tests.Execution
 {
+    // http://unicode.mayastudios.com/examples/utf8.html
+    // Character Binary code point   Binary UTF-8	Hexadecimal UTF-8
+    // $	     U+0024	             00100100	00100100	24
+    // ¢	     U+00A2	             00000000 10100010	11000010 10100010	C2 A2
+    // €	     U+20AC	             00100000 10101100	11100010 10000010 10101100	E2 82 AC
+    // 𤭢	     U+24B62	         00000010 01001011 01100010	11110000 10100100 10101101 10100010	F0 A4 AD A2
     [TestClass]
     public class Text
     {
+        
         [TestMethod]
-        public IInterpreter TODO_ReversingString()
+        public IInterpreter ReversingString()
         {
+            // https://stackoverflow.com/questions/27331819/whats-the-difference-between-a-character-a-code-point-a-glyph-and-a-grapheme
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
 
@@ -24,18 +32,33 @@ namespace Skila.Tests.Execution
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(
 
-                    /*
-                     *   assert("hello".reverse()=="olleh");
-                      assert("".reverse()=="");
-                      assert("-".reverse()=="-");
-                      assert("-+".reverse()=="+-");
-                      assert("123".reverse()=="321");
-
-                     */
-
+                    // assert("hello".reverse()=="olleh");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("olleh"),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello"), NameFactory.StringReverse))),
 
+                    // assert("".reverse()=="");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create(""), NameFactory.StringReverse))),
+
+                    // assert("-".reverse()=="-");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("-"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("-"), NameFactory.StringReverse))),
+
+                    // assert("-+".reverse()=="+-");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("+-"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("-+"), NameFactory.StringReverse))),
+
+                    // assert("123".reverse()=="321");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("321"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("123"), NameFactory.StringReverse))),
+
+                    // assert("$¢€𤭢".reverse()=="𤭢€¢$");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("𤭢€¢$"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("$¢€𤭢"), NameFactory.StringReverse))),
+
+                    // assert("Les Misérables".reverse()=="selbarésiM seL");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("selbarésiM seL"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("Les Misérables"), NameFactory.StringReverse))),
                     Return.Create(Nat8Literal.Create("0"))
                 )));
 
@@ -249,6 +272,8 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create(" abc"), NameFactory.StringTrimStart))),
                     ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("\t  abc"), NameFactory.StringTrimStart))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("€"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("\t  €"), NameFactory.StringTrimStart))),
 
                     Return.Create(Nat8Literal.Create("0"))
                 )));

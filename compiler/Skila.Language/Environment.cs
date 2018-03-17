@@ -683,7 +683,7 @@ namespace Skila.Language
 
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
             out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd,
-            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar,out FunctionDefinition reverse)
+            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar, out FunctionDefinition reverse)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -850,7 +850,7 @@ namespace Skila.Language
                             NameReference.Create(coll1_name))),
 
                     Loop.CreateForEach(elem_name,
-                        null, 
+                        null,
                         NameReference.Create(coll2_name), new[] {
                         FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                     }),
@@ -915,6 +915,31 @@ namespace Skila.Language
                                      NameReference.Create(elem_type), NameReference.Create(map_type)))));
             }
 
+            FunctionDefinition reverse_func;
+            {
+                // this is ineffective, but until having regular syntax it makes no sense to write sth for speed here
+                const string buffer_name = "buffer";
+                const string elem_name = "map_elem";
+                reverse_func = FunctionBuilder.Create(
+                    NameDefinition.Create(NameFactory.ReverseFunctionName, TemplateParametersBuffer.Create(elem_type).Values),
+                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityOverride.Neutral)),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("cnt",null,
+                            FunctionCall.Create(NameReference.Create(this_ref(),NameFactory.IterableCount)),
+                            EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement(buffer_name, null,
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type),
+                            NameReference.Create("cnt"))),
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                            ExpressionFactory.Dec("cnt"),
+                            Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create(buffer_name),NameReference.Create("cnt")),
+                                NameReference.Create(elem_name))
+                        }),
+                        Return.Create(NameReference.Create(buffer_name))
+                        ))
+                        .Parameters(this_param());
+            }
+
             FunctionDefinition filter_func;
             {
                 const string buffer_name = "buffer";
@@ -967,6 +992,7 @@ namespace Skila.Language
             ext.AddNode(filter_func);
             ext.AddNode(map_func);
             ext.AddNode(count_func);
+            ext.AddNode(reverse_func);
 
             return ext;
         }
@@ -1030,7 +1056,19 @@ namespace Skila.Language
                             ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
                                 NatLiteral.Create("1")))
                         ));
-            TypeDefinition result = TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
+
+            // todo: this is not safe, add initialization with values or repeated value (when we have regular parser)
+            // this is NOT capacity constructor, just hacky way for setting values
+            var sized_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        // this.data = new Chunk<ART>(n);
+                        Assignment.CreateStatement(NameReference.CreateThised(data_field),
+                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                NameReference.Create("n"))),
+                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.IterableCount),NameReference.Create("n"))
+                        ))
+                        .Parameters(FunctionParameter.Create("n",NameFactory.SizeTypeReference()));
+
+            TypeBuilder builder = TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .SetModifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
                     .Parents(NameFactory.IIndexableTypeReference(elem_type))
 
@@ -1042,6 +1080,8 @@ namespace Skila.Language
 
                     // default constructor
                     .With(defaultConstructor)
+
+                    .With(sized_constructor)
 
                     // copy constructor
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
@@ -1060,7 +1100,7 @@ namespace Skila.Language
                         .With(indexer_setter_builder, out IMember indexer_setter_func)
                         .With(indexer_getter_builder));
 
-            return result;
+            return builder;
         }
 
         private static TypeDefinition createChunk(out FunctionDefinition sizeConstructor,

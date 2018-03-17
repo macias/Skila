@@ -342,13 +342,25 @@ namespace Skila.Language.Expressions
         {
             return IncBy(lhs, Nat8Literal.Create("1"));
         }
+        internal static IExpression Dec(Func<IExpression> lhs)
+        {
+            return DecBy(lhs, Nat8Literal.Create("1"));
+        }
         internal static IExpression IncBy(Func<IExpression> lhs, IExpression byExpr)
         {
             return Assignment.CreateStatement(lhs(), Add(lhs(), byExpr));
         }
+        internal static IExpression DecBy(Func<IExpression> lhs, IExpression byExpr)
+        {
+            return Assignment.CreateStatement(lhs(), Sub(lhs(), byExpr));
+        }
         public static IExpression Inc(string name)
         {
             return Inc(() => NameReference.Create(name));
+        }
+        public static IExpression Dec(string name)
+        {
+            return Dec(() => NameReference.Create(name));
         }
         public static IExpression IncBy(string name, string addName)
         {

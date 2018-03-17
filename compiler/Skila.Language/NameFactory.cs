@@ -138,7 +138,7 @@ namespace Skila.Language
         public const string StringIndexOf = "indexOf";
         public const string StringLastIndexOf = "lastIndexOf";
         public const string StringLength = "length";
-        public const string StringReverse = "reverse";
+        public const string StringReverse = ReverseFunctionName;
 
         public const string CharLength = "length";
 
@@ -181,6 +181,7 @@ namespace Skila.Language
         public const string ConcatFunctionName = "concat";
         public const string MapFunctionName = "map";
         public const string FilterFunctionName = "filter";
+        public const string ReverseFunctionName = "reverse";
         public const string AppendFunctionName = "append";
 
         public const string GetTypeFunctionName = "getType";

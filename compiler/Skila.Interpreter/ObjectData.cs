@@ -247,14 +247,14 @@ namespace Skila.Interpreter
             foreach (KeyValuePair<VariableDeclaration, ObjectData> field in this.Fields)
             {
                 // locks are re-entrant, so recursive call is OK here
-                ctx.Heap.TryRelease(ctx, field.Value, passingOut, isPassingOut, reason | RefCountDecReason.FreeField, 
+                ctx.Heap.TryRelease(ctx, field.Value, passingOut, isPassingOut, reason | RefCountDecReason.FreeField,
                     comment: $"{comment}");
             }
 
             if (this.PlainValue is Chunk chunk)
             {
                 for (UInt64 i = 0; i != chunk.Count; ++i)
-                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut, isPassingOut, reason | RefCountDecReason.FreeChunkElem, 
+                    ctx.Heap.TryRelease(ctx, chunk[i], passingOut, isPassingOut, reason | RefCountDecReason.FreeChunkElem,
                         comment: $"{comment}");
             }
 
@@ -324,6 +324,13 @@ namespace Skila.Interpreter
                 else
                     self = self.DereferencedOnce();
             }
+            return self;
+        }
+        internal ObjectData TryDereferenceAnyMany(Language.Environment env)
+        {
+            ObjectData self = this;
+            while (env.IsPointerLikeOfType(self.RunTimeTypeInstance))
+                self = self.DereferencedOnce();
             return self;
         }
         internal bool TryDereferenceMany(Language.Environment env, IExpression parentExpr, IExpression childExpr,
