@@ -59,12 +59,16 @@ namespace Skila.Language.Extensions
             {
                 if (node is VariableDeclaration decl)
                 {
-                    ctx.ValAssignTracker?.Add(decl,ctx.ValLoopLevel);
+                    ctx.ValAssignTracker?.Add(decl, ctx.ValLoopLevel);
                 }
             }
 
             if (node is IExpression expr)
             {
+                if (node.DebugId == (37, 0) || node.DebugId == (19, 277))
+                {
+                    ;
+                }
                 AssignmentTracker parent_tracker = ctx.ValAssignTracker;
 
                 validateExecutionPath(node, expr.Flow.AlwaysPath, ctx, ref result);
@@ -98,9 +102,15 @@ namespace Skila.Language.Extensions
                         // we need to store the branch or kill it, because few lines below we compute intersection of the branches
                         // so we don't want to intersect with some artifact from the previous tracker
                         if (maybes == expr.Flow.ThenMaybePath)
-                            parent_tracker.ThenBranch = branch_result.IsTerminated ? null : ctx.ValAssignTracker;
+                        {
+                            parent_tracker.ThenBranch = branch_result.IsTerminated 
+                                ? null : (ctx.ValAssignTracker.ThenBranch ?? ctx.ValAssignTracker);
+                        }
                         else if (maybes == expr.Flow.ElseMaybePath)
-                            parent_tracker.ElseBranch = branch_result.IsTerminated ? null : ctx.ValAssignTracker;
+                        {
+                            parent_tracker.ElseBranch = branch_result.IsTerminated 
+                                ? null : (ctx.ValAssignTracker.ElseBranch ?? ctx.ValAssignTracker);
+                        }
                         else
                             throw new Exception();
 

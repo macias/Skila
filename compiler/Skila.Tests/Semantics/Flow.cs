@@ -14,6 +14,48 @@ namespace Skila.Tests.Semantics
     public class Flow
     {
         [TestMethod]
+        public IErrorReporter CombiningBranchedInitialization()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DebugThrowOnError = true,
+                DiscardingAnyExpressionDuringTests = true,
+            });
+            var root_ns = env.Root;
+
+            // this test is mimics how optional declarations works with conditions
+
+            // conditionally assigning variable
+            System.Func<string, IfBranch> branched_init = name => IfBranch.CreateIf(BoolLiteral.CreateTrue(),
+                        new[]
+                        {
+                            Assignment.CreateStatement(NameReference.Create(name),BoolLiteral.CreateTrue()),
+                            BoolLiteral.CreateTrue(),
+                        },
+                        IfBranch.CreateElse(BoolLiteral.CreateFalse()));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("maiden",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("a", NameFactory.BoolTypeReference(), null),
+                        VariableDeclaration.CreateStatement("b", NameFactory.BoolTypeReference(), null),
+
+                    IfBranch.CreateIf(ExpressionFactory.And(branched_init("a"),branched_init("b")),new[] {
+                        // at his point both variables should be initialized
+                        ExpressionFactory.Readout("a"),
+                        ExpressionFactory.Readout("b"),
+                    })
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorPostponedInitialization()
         {
             var env = Environment.Create(new Options()

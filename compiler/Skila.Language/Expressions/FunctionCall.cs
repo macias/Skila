@@ -42,6 +42,10 @@ namespace Skila.Language.Expressions
         {
             return Create(name, Enumerable.Empty<FunctionArgument>().ToArray());
         }
+        public static FunctionCall Create(string name, params IExpression[] arguments)
+        {
+            return Create(NameReference.Create(name), arguments);
+        }
         public static FunctionCall Create(IExpression name, params IExpression[] arguments)
         {
             return Create(name, arguments.Select(it => FunctionArgument.Create(it)).ToArray());

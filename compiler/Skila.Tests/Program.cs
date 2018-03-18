@@ -25,7 +25,7 @@ namespace Skila.Tests
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
-               // new Semantics.Flow().ErrorReadingOtherIfBlocks();
+                //new Semantics.Flow().CombiningBranchedInitialization();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
@@ -45,7 +45,7 @@ namespace Skila.Tests
                 //new Execution.Collections().MapFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
-                //new Execution.Flow().InitializationWithinOptionalAssignment();
+                new Execution.Flow().ParallelOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
@@ -56,7 +56,7 @@ namespace Skila.Tests
                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().RegexMatchWithNamedCaptures();
+               // new Execution.Text().RegexMatchWithNamedCaptures();
             }
 
              //if (false)
@@ -76,7 +76,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.41;
+                const double golden_avg_s = 1.44;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

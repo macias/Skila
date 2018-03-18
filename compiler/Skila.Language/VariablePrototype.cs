@@ -7,10 +7,15 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public struct VariablePrototype
     {
+        public static  VariablePrototype Create(string name, INameReference typeName)
+        {
+            return new VariablePrototype(name, typeName);
+        }
+
         public string Name { get; }
         public INameReference TypeName { get; }
 
-        public VariablePrototype(string name,INameReference typeName)
+        private VariablePrototype(string name,INameReference typeName)
         {
             this.Name = name;
             this.TypeName = typeName;

@@ -13,9 +13,22 @@ namespace Skila.Language.Expressions
     {
         public static IEnumerable<IExpression> Nop { get; } = Enumerable.Empty<IExpression>();
 
-        public static IExpression OptionalDeclaration(string name, INameReference typeName, IExpression rhsOption)
+        public static IExpression OptionalDeclaration(string name, INameReference typeName, IExpression rhs)
         {
-            return OptionalDeclaration(new[] { new VariablePrototype(name, typeName) }, new[] { rhsOption });
+            var instructions = new List<IExpression>();
+
+            string temp = AutoName.Instance.CreateNew("opt_temp");
+            instructions.Add(VariableDeclaration.CreateStatement(temp, null, rhs));
+
+            // partial declaration (initialization will be done later)
+            instructions.Add(VariableDeclaration.CreateStatement(name,
+                typeName ?? NameReference.Create(NameReference.Create(temp),
+                    BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
+                null));
+
+            instructions.Add(OptionalAssignment(NameReference.Create(name), NameReference.Create(temp)));
+
+            return Chain.Create(instructions);
         }
         public static IExpression OptionalDeclaration(IEnumerable<VariablePrototype> variables,
             IEnumerable<IExpression> rhsOptions)
@@ -24,37 +37,22 @@ namespace Skila.Language.Expressions
             if (variables.Count() != rhsOptions.Count())
                 throw new NotImplementedException();
 
-            var decl = new List<VariableDeclaration>();
-
-            var temps = new List<string>();
-            // this is bad -- we evaluate ALL rhs to create temporary variables
-            // because we need them twice (for typenames and actual values)
-            // ALL means parallel declarations are corrupted because (for example)
-            // if the first declaration fails initialization the rest should not be even evaluated
-            // todo: improve this code
-            foreach (Tuple<VariablePrototype, IExpression> pair in variables.SyncZip(rhsOptions))
+            // thanks to `and` parallel optional declaration uses shortcut computation
+            // that is, evaluating rhs options stops on the first failure
+            IExpression combined = null;
+            foreach (Tuple<VariablePrototype,IExpression> pair in variables.SyncZip(rhsOptions))
             {
                 VariablePrototype lhs = pair.Item1;
                 IExpression rhs = pair.Item2;
 
-                string t = AutoName.Instance.CreateNew("opt_temp");
-                temps.Add(t);
-                decl.Add(VariableDeclaration.CreateStatement(t, null, rhs));
+                IExpression decl = OptionalDeclaration(lhs.Name, lhs.TypeName, rhs);
+                if (combined == null)
+                    combined = decl;
+                else
+                    combined = And(combined, decl);
             }
 
-            foreach (Tuple<VariablePrototype, string> pair in variables.SyncZip(temps))
-            {
-                VariablePrototype lhs = pair.Item1;
-                string tmp = pair.Item2;
-
-                // partial declaration (initialization will be done later)
-                decl.Add(VariableDeclaration.CreateStatement(lhs.Name,
-                    lhs.TypeName ?? NameReference.Create(NameReference.Create(tmp), BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
-                    null));
-            }
-
-            return Chain.Create(decl.Concat(OptionalAssignment(variables.Select(it => NameReference.Create(it.Name)),
-                temps.Select(it => NameReference.Create(it)))));
+            return combined;
         }
         public static IExpression OptionalAssignment(IExpression lhs, IExpression rhs)
         {
@@ -357,7 +355,7 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.AddOverflowOperator), FunctionArgument.Create(rhs));
         }
-        internal static IExpression Inc(Func<IExpression> lhs)
+        public static IExpression Inc(Func<IExpression> lhs)
         {
             return IncBy(lhs, Nat8Literal.Create("1"));
         }
