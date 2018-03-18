@@ -107,6 +107,10 @@ namespace Skila.Language
 
             if (this.templateArguments.Any(it => it.IsJoker))
             {
+                if (this.DebugId== (37, 699))
+                {
+                    ;
+                }
                 IEnumerable<IEntityInstance> inferred = inferTemplateArgumentsFromExpressions(ctx);
 
                 inferred = inferTemplateArgumentsFromConstraints(ctx, inferred);
@@ -372,10 +376,6 @@ namespace Skila.Language
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            if (this.DebugId == (36, 664))
-            {
-                ;
-            }
             IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters;
 
             var template_param_inference = new Dictionary<TemplateParameter,
@@ -388,6 +388,10 @@ namespace Skila.Language
                     template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments[i], true));
 
 
+            if (this.DebugId == (37, 699))
+            {
+                ;
+            }
             foreach (FunctionArgument arg in this.TrueArguments)
             {
                 IEntityInstance function_param_type = this.GetTransParamEvalByArg(arg);
@@ -464,6 +468,10 @@ namespace Skila.Language
             TemplateDefinition template,
             IEntityInstance argType, IEntityInstance paramType)
         {
+            if (template.DebugId== (6, 149))
+            {
+                ;
+            }
             // three steps logic of dereferencing here
             // (1) we cannot pass references as template arguments, so we dereference the type right away
             bool dereferencing_arg = ctx.Env.IsReferenceOfType(argType);

@@ -18,7 +18,7 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
-        
+
         [TestMethod]
         public IInterpreter ReversingString()
         {
@@ -85,7 +85,7 @@ namespace Skila.Tests.Execution
                     // assert("345.0" to ?Double==345);
                     ExpressionFactory.AssertEqual(RealLiteral.Create(345),
                         ExpressionFactory.GetOptionValue(
-                            FunctionCall.Create(NameReference.Create(NameFactory.RealTypeReference(),NameFactory.ParseFunctionName),
+                            FunctionCall.Create(NameReference.Create(NameFactory.RealTypeReference(), NameFactory.ParseFunctionName),
                             StringLiteral.Create("345.0")))),
 
                     // assert("1,000" to ?Int is null);
@@ -426,7 +426,7 @@ namespace Skila.Tests.Execution
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
                     ExpressionFactory.AssertEqual(StringLiteral.Create("y"),
-                        NameReference.Create("c", NameFactory.CaptureNameFieldName, NameFactory.OptionValue)),
+                        ExpressionFactory.GetOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName))),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -441,7 +441,7 @@ namespace Skila.Tests.Execution
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("1"))),
                     ExpressionFactory.AssertEqual(StringLiteral.Create("m"),
-                        NameReference.Create("c", NameFactory.CaptureNameFieldName, NameFactory.OptionValue)),
+                        ExpressionFactory.GetOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName))),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -456,7 +456,7 @@ namespace Skila.Tests.Execution
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
                                 NatLiteral.Create("2"))),
                     ExpressionFactory.AssertEqual(StringLiteral.Create("d"),
-                        NameReference.Create("c", NameFactory.CaptureNameFieldName, NameFactory.OptionValue)),
+                        ExpressionFactory.GetOptionValue(NameReference.Create("c", NameFactory.CaptureNameFieldName))),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("8"), NameReference.Create("c", NameFactory.CaptureIndexFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"), NameReference.Create("c", NameFactory.CaptureLengthFieldName))
                 ),
@@ -618,7 +618,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("1"), EntityModifier.Reassignable),
                     // for each entry we add to the result its (index+1)^2, original code used printing but we need single number
                     Loop.CreateForEach("partNumber",
-                        null, 
+                        null,
                         NameReference.Create("partNumbers"), new IExpression[] {
                         VariableDeclaration.CreateStatement("w", null, ExpressionFactory.Mul("i","i")),
                         IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("rgx",NameFactory.RegexContainsFunctionName),

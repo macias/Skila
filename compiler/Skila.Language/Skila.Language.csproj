@@ -238,6 +238,7 @@
     <Compile Include="VirtualTable.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Documentation\PatternMatching.md" />
     <None Include="Documentation\Errors.md" />
     <None Include="Documentation\DuckTyping.md" />
     <None Include="Documentation\GarbageCollection.md" />

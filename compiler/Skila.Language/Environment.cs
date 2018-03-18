@@ -8,6 +8,7 @@ using Skila.Language.Extensions;
 using NaiveLanguageTools.Common;
 using System;
 using Skila.Language.Expressions.Literals;
+using System.Diagnostics;
 
 namespace Skila.Language
 {
@@ -808,6 +809,7 @@ namespace Skila.Language
             // todo: after adding parser rewrite it as creating Concat type holding fragments and iterating over their elements
             // this (below) has too many allocations
 
+            // value based version, since we don't need any common type here
             const string elem_type = "CCT";
             const string buffer_name = "buffer";
             const string coll1_name = "coll1";
@@ -833,6 +835,7 @@ namespace Skila.Language
             // todo: after adding parser rewrite it as creating Concat type holding fragments and iterating over their elements
             // this (below) has too many allocations
 
+            // since we need to compute and use common type of arguments we work on pointers
             const string elem1_type = "CCA";
             const string elem2_type = "CCB";
             const string elem3_type = "CCC";
@@ -924,8 +927,8 @@ namespace Skila.Language
                     NameDefinition.Create(NameFactory.ReverseFunctionName, TemplateParametersBuffer.Create(elem_type).Values),
                     NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, MutabilityOverride.Neutral)),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("cnt",null,
-                            FunctionCall.Create(NameReference.Create(this_ref(),NameFactory.IterableCount)),
+                        VariableDeclaration.CreateStatement("cnt", null,
+                            FunctionCall.Create(NameReference.Create(this_ref(), NameFactory.IterableCount)),
                             EntityModifier.Reassignable),
                         VariableDeclaration.CreateStatement(buffer_name, null,
                             ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type),
@@ -974,7 +977,7 @@ namespace Skila.Language
                     Block.CreateStatement(
 
                         IfBranch.CreateIf(ExpressionFactory.OptionalDeclaration("counted", null,
-                            () => ExpressionFactory.DownCast(this_ref(),
+                            ExpressionFactory.DownCast(this_ref(),
                                 NameFactory.ReferenceTypeReference(NameFactory.ICountedTypeReference(MutabilityOverride.Neutral)))),
                             Return.Create(NameReference.Create("counted", NameFactory.IterableCount))),
 
@@ -1064,9 +1067,9 @@ namespace Skila.Language
                         Assignment.CreateStatement(NameReference.CreateThised(data_field),
                             ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
                                 NameReference.Create("n"))),
-                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.IterableCount),NameReference.Create("n"))
+                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.IterableCount), NameReference.Create("n"))
                         ))
-                        .Parameters(FunctionParameter.Create("n",NameFactory.SizeTypeReference()));
+                        .Parameters(FunctionParameter.Create("n", NameFactory.SizeTypeReference()));
 
             TypeBuilder builder = TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .SetModifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
@@ -1186,7 +1189,10 @@ namespace Skila.Language
                             .SetModifier(modifier)
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                                new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), ExpressionReadMode.CannotBeRead) },
+                                new[] {
+                                    FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), 
+                                        ExpressionReadMode.CannotBeRead)
+                                },
                                 Block.CreateStatement()))
                             .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotOperator),
                                 ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
@@ -1198,7 +1204,8 @@ namespace Skila.Language
                                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                         Block.CreateStatement())
                                     .Modifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead)))
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityOverride.Neutral), 
+                                    ExpressionReadMode.CannotBeRead)))
                             ;
         }
 
@@ -1351,42 +1358,35 @@ namespace Skila.Language
 
         private TypeDefinition createOptionType(out FunctionDefinition emptyConstructor, out FunctionDefinition valueConstructor)
         {
-            const string value_field = "value";
-            const string has_value_field = "hasValue";
             const string elem_type = "OPT";
 
             valueConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                                 new[] { FunctionParameter.Create("value", NameReference.Create(elem_type)) },
                                     Block.CreateStatement(new[] {
-                                        Assignment.CreateStatement(NameReference.CreateThised(value_field), NameReference.Create("value")),
-                                        Assignment.CreateStatement(NameReference.CreateThised(has_value_field), BoolLiteral.CreateTrue())
+                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionValue),
+                                            NameReference.Create("value")),
+                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue), 
+                                            BoolLiteral.CreateTrue())
                                     }));
 
             emptyConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                                 null,
                                     Block.CreateStatement(
-                                        Assignment.CreateStatement(NameReference.CreateThised(has_value_field), BoolLiteral.CreateFalse())
+                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue), 
+                                            BoolLiteral.CreateFalse())
                                     ));
-
-            Property has_value_getter = PropertyBuilder.Create(NameFactory.OptionHasValue, NameFactory.BoolTypeReference())
-                                .With(PropertyMemberBuilder.CreateGetter(
-                                    Block.CreateStatement(Return.Create(NameReference.CreateThised(has_value_field)))));
-
-            Property value_getter = PropertyBuilder.Create(NameFactory.OptionValue, NameReference.Create(elem_type))
-                .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(
-                                    ExpressionFactory.AssertTrue(NameReference.CreateThised(has_value_field)),
-                                    Return.Create(NameReference.Create(NameFactory.ThisVariableName, value_field))
-                                )));
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
               TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
-                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type), EntityModifier.Public))
-                            .With(has_value_getter)
-                            .With(value_getter)
-                            .With(VariableDeclaration.CreateStatement(value_field, NameReference.Create(elem_type), Undef.Create()))
-                            .With(VariableDeclaration.CreateStatement(has_value_field, NameFactory.BoolTypeReference(), Undef.Create()))
+                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type), 
+                                EntityModifier.Public))
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type), 
+                                Undef.Create()))
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(), 
+                                Undef.Create()))
                             .With(emptyConstructor)
-                            .With(valueConstructor);
+                            .With(valueConstructor)
+                            ;
         }
 
         private static TypeDefinition createIComparableType()

@@ -291,6 +291,7 @@ namespace Skila.Interpreter
             }
             else if (func == ctx.Env.Utf8StringReverse)
             {
+                // https://en.wikipedia.org/wiki/Combining_character
                 ObjectData result = await createStringAsync(ctx, reverseGraphemeClusters(this_native)).ConfigureAwait(false);
                 if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");

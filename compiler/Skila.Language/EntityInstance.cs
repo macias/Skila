@@ -119,7 +119,12 @@ namespace Skila.Language
         {
             if (this.Evaluation == null)
             {
-                IEntityInstance eval = this.Target.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
+                IEntityInstance eval;
+                if (!this.IsJoker && this.Target is TemplateDefinition)
+                    eval = this.TargetTemplate.Evaluation.Components;
+                else
+                    eval = this.Target.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
+
                 this.Evaluation = eval.TranslateThrough(this);
                 if (this.Evaluation.IsJoker)
                     this.Aggregate = EntityInstance.Joker;

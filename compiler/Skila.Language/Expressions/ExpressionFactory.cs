@@ -13,31 +13,48 @@ namespace Skila.Language.Expressions
     {
         public static IEnumerable<IExpression> Nop { get; } = Enumerable.Empty<IExpression>();
 
-        public static IExpression OptionalDeclaration(string name, INameReference typeName, Func<IExpression> rhsOption)
+        public static IExpression OptionalDeclaration(string name, INameReference typeName, IExpression rhsOption)
         {
             return OptionalDeclaration(new[] { new VariablePrototype(name, typeName) }, new[] { rhsOption });
         }
         public static IExpression OptionalDeclaration(IEnumerable<VariablePrototype> variables,
-            IEnumerable<Func<IExpression>> rhsOptions)
+            IEnumerable<IExpression> rhsOptions)
         {
             // todo: add support for spread
             if (variables.Count() != rhsOptions.Count())
                 throw new NotImplementedException();
 
             var decl = new List<VariableDeclaration>();
-            foreach (Tuple<VariablePrototype, Func<IExpression>> pair in variables.SyncZip(rhsOptions))
+
+            var temps = new List<string>();
+            // this is bad -- we evaluate ALL rhs to create temporary variables
+            // because we need them twice (for typenames and actual values)
+            // ALL means parallel declarations are corrupted because (for example)
+            // if the first declaration fails initialization the rest should not be even evaluated
+            // todo: improve this code
+            foreach (Tuple<VariablePrototype, IExpression> pair in variables.SyncZip(rhsOptions))
             {
                 VariablePrototype lhs = pair.Item1;
-                Func<IExpression> rhs = pair.Item2;
+                IExpression rhs = pair.Item2;
+
+                string t = AutoName.Instance.CreateNew("opt_temp");
+                temps.Add(t);
+                decl.Add(VariableDeclaration.CreateStatement(t, null, rhs));
+            }
+
+            foreach (Tuple<VariablePrototype, string> pair in variables.SyncZip(temps))
+            {
+                VariablePrototype lhs = pair.Item1;
+                string tmp = pair.Item2;
 
                 // partial declaration (initialization will be done later)
                 decl.Add(VariableDeclaration.CreateStatement(lhs.Name,
-                    lhs.TypeName ?? NameReference.Create(rhs(), BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
+                    lhs.TypeName ?? NameReference.Create(NameReference.Create(tmp), BrowseMode.InstanceToStatic, NameFactory.OptionTypeParameterMember),
                     null));
             }
 
             return Chain.Create(decl.Concat(OptionalAssignment(variables.Select(it => NameReference.Create(it.Name)),
-                rhsOptions.Select(it => it()))));
+                temps.Select(it => NameReference.Create(it)))));
         }
         public static IExpression OptionalAssignment(IExpression lhs, IExpression rhs)
         {
@@ -62,21 +79,22 @@ namespace Skila.Language.Expressions
                 IExpression rhs = pair.Item1;
                 IExpression lhs = pair.Item2;
 
-                string temp;
-                IExpression curr;
+                IExpression opt;
 
                 if (lhs == null)
                 {
-                    temp = null;
-                    curr = OptionIsSome(rhs);
+                    temp_names.Add(null);
+                    opt = rhs;
                 }
                 else
                 {
-                    temp = AutoName.Instance.CreateNew("optassign");
-                    curr = OptionIsSome(VariableDeclaration.CreateExpression(temp, null, rhs));
+                    string temp = AutoName.Instance.CreateNew("optassign");
+                    temp_names.Add(temp);
+                    opt = VariableDeclaration.CreateExpression(temp, null, rhs);
                 }
 
-                temp_names.Add(temp);
+
+                IExpression curr = NameReference.Create(opt, BrowseMode.Decompose, NameFactory.OptionHasValue);
 
                 if (condition == null)
                     condition = curr;
@@ -93,7 +111,8 @@ namespace Skila.Language.Expressions
                     string temp = pair.Item2;
 
                     if (lhs != null)
-                        success_body.Add(Assignment.CreateStatement(lhs, GetOptionValue(NameReference.Create(temp))));
+                        success_body.Add(Assignment.CreateStatement(lhs,
+                            NameReference.Create(NameReference.Create(temp), BrowseMode.Decompose, NameFactory.OptionValue)));
                 }
 
                 success_body.Add(BoolLiteral.CreateTrue());
@@ -469,18 +488,14 @@ namespace Skila.Language.Expressions
 
         public static IExpression OptionCoalesce(IExpression option, IExpression fallback)
         {
-            string temp = AutoName.Instance.CreateNew("try_opt");
-            NameReference temp_ref = NameReference.Create(temp);
-            return Block.CreateExpression(new[] {
-                // todo: shouldn't it be a reference to option?
-                VariableDeclaration.CreateStatement(temp, null, option),
-                Ternary(OptionIsSome(temp_ref), GetOptionValue(temp_ref), fallback)
-            });
+            string get_opt = AutoName.Instance.CreateNew("try_opt");
+
+            return Ternary(OptionalDeclaration(get_opt, null, option), NameReference.Create(get_opt), fallback);
         }
 
-        public static NameReference OptionIsSome(IExpression option)
+        public static IExpression OptionIsSome(IExpression option)
         {
-            return NameReference.Create(option, NameFactory.OptionHasValue);
+            return OptionalAssignment(NameFactory.SinkReference(), option);
         }
 
         public static IExpression OptionIsNull(IExpression option)
@@ -488,9 +503,9 @@ namespace Skila.Language.Expressions
             return Not(OptionIsSome(option));
         }
 
-        public static NameReference GetOptionValue(IExpression option)
+        public static IExpression GetOptionValue(IExpression option)
         {
-            return NameReference.Create(option, NameFactory.OptionValue);
+            return OptionCoalesce(option, GenericThrow());
         }
 
     }

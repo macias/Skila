@@ -32,7 +32,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var interpreter = new Interpreter.Interpreter();
-            int task_id = Task.WaitAny(Task.Delay(2000),Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
+            int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(() => interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
 
             return interpreter;
@@ -56,7 +56,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var interpreter = new Interpreter.Interpreter();
-            int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(()=> interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
+            int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(() => interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
             Assert.AreEqual(0, task_id);
 
             return interpreter;
@@ -71,7 +71,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("sender"),
                 ExpressionReadMode.CannotBeRead,
-                NameFactory.UnitTypeReference(),                
+                NameFactory.UnitTypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(Int64Literal.Create("2")))),
@@ -90,7 +90,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
                     ExpressionFactory.AssertOptionIsSome(NameReference.Create("r")),
-                    Return.Create(NameReference.Create("r",NameFactory.OptionValue))
+                    Return.Create(ExpressionFactory.GetOptionValue(NameReference.Create("r")))
                 })));
 
             var interpreter = new Interpreter.Interpreter();

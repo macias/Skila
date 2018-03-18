@@ -40,7 +40,7 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, BrowseMode.NotGiven, name, arguments, readMode, isRoot: false);
+            return new NameReference(MutabilityOverride.NotGiven, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
@@ -53,12 +53,12 @@ namespace Skila.Language
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
-            return new NameReference(overrideMutability, prefix, BrowseMode.NotGiven, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            return new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
-            var result = new NameReference(overrideMutability, prefix, BrowseMode.NotGiven, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            var result = new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
@@ -104,7 +104,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, BrowseMode.NotGiven,
+        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, BrowseMode.None,
             NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
@@ -131,6 +131,10 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
+            if (this.DebugId== (6, 9387))
+            {
+                ;
+            }
             this.browse = browse;
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
@@ -243,7 +247,7 @@ namespace Skila.Language
             IEnumerable<BindingMatch> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
             IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias);
             if (aliases.Any())
-                return aliases.SelectMany(it =>
+                entities = aliases.SelectMany(it =>
                 {
                     var alias = it.Instance.Target.Cast<Alias>();
                     alias.SetIsMemberUsed();
@@ -251,8 +255,11 @@ namespace Skila.Language
                     name_reference.Surfed(ctx);
                     return name_reference.Binding.Matches;
                 });
-            else
-                return entities;
+
+            if (notFoundErrorCode == ErrorCode.StaticMemberAccessInInstanceContext)
+                entities = filterCrossAccessEntities(ctx, entities.Select(it => it.Instance)).Select(it => new BindingMatch(it, isLocal: false));
+
+            return entities;
         }
 
         private IEnumerable<BindingMatch> rawComputeBinding(ComputationContext ctx,
@@ -328,7 +335,6 @@ namespace Skila.Language
                                     else
                                     {
                                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
-                                        entities = filterCrossAccessEntities(ctx, entities);
                                     }
                                 }
 
@@ -343,7 +349,7 @@ namespace Skila.Language
             }
             else // we have prefix
             {
-                if (this.DebugId == (3, 8845))
+                if (this.DebugId == (3, 1219))
                 {
                     ;
                 }
@@ -390,8 +396,6 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    entities = filterCrossAccessEntities(ctx, entities);
-
                     return entities.Select(it => new BindingMatch(it, isLocal: false));
                 }
             }
@@ -399,7 +403,7 @@ namespace Skila.Language
 
         private IEnumerable<EntityInstance> filterCrossAccessEntities(ComputationContext ctx, IEnumerable<EntityInstance> entities)
         {
-            if (this.browse == BrowseMode.InstanceToStatic || !ctx.Env.Options.StaticMemberOnlyThroughTypeName)
+            if (this.browse.HasFlag(BrowseMode.InstanceToStatic) || !ctx.Env.Options.StaticMemberOnlyThroughTypeName)
                 return entities;
             else
                 return filterTargetEntities(entities, it => !it.Target.Modifier.HasStatic
@@ -506,7 +510,8 @@ namespace Skila.Language
                         // testing whether we are targeting current type
                         || !(this).EnclosingScopesToRoot().Contains(binding_target.EnclosingScope<TypeContainerDefinition>())))
                     {
-                        ctx.AddError(ErrorCode.AccessForbidden, this);
+                        if (!this.browse.HasFlag(BrowseMode.Decompose))
+                            ctx.AddError(ErrorCode.AccessForbidden, this);
                     }
                     else if (binding_target is IRestrictedMember member && member.AccessGrants.Any())
                     {
@@ -534,7 +539,8 @@ namespace Skila.Language
                     if (enclosing_type != null && enclosing_type.AvailableEntities.Select(it => it.Target).Contains(member)
                          // in lambdas do not require fully qualified name because user sees it a function
                          // not a method inside closure type
-                         && (enclosing_func == null || !enclosing_func.IsLambdaInvoker))
+                         // and outside functions allow direct name reference (without it/this; it should be OK)
+                         && enclosing_func != null && !enclosing_func.IsLambdaInvoker)
                         ctx.AddError(ErrorCode.MissingThisPrefix, this);
                 }
             }

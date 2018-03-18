@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Skila.Language
 {
@@ -166,8 +167,8 @@ namespace Skila.Language
 
         public const string FileFilePathParameter = "filePath";
 
-        public const string OptionHasValue = "HasValue";
-        public const string OptionValue = "Value";
+        public const string OptionHasValue = "hasValue";
+        public const string OptionValue = "value";
 
         public const string SpreadFunctionName = "spread";
         public const string StoreFunctionName = "store";

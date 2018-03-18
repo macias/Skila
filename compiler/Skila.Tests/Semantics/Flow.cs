@@ -130,7 +130,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(
                         VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
 
-                        ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m", null, () => NameReference.Create("o"))),
+                        ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m", null, NameReference.Create("o"))),
 
                         // at this point `m` could be not initialized
                         Return.Create(not_initialized)

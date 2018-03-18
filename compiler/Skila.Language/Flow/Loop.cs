@@ -49,7 +49,7 @@ namespace Skila.Language.Flow
                          .Concat(body);
 
                 condition = ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
-                    () => FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
+                    FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
 
             return create(null, new[] { iter_decl },

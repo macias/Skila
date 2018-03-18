@@ -463,10 +463,10 @@ namespace Skila.Interpreter
             {
                 if (ret.TailCallOptimization != null)
                 {
-                    Tuple<Variant<object, ExecValue, CallInfo>, IEnumerable<ArgumentGroup>> call_prep = await prepareFunctionCallAsync(ret.TailCallOptimization, ctx).ConfigureAwait(false);
-                    if (call_prep.Item1.Is<ExecValue>())
-                        return call_prep.Item1.As<ExecValue>();
-                    CallInfo call_info = call_prep.Item1.As<CallInfo>();
+                    CallPreparationData call_prep = await prepareFunctionCallAsync(ret.TailCallOptimization, ctx).ConfigureAwait(false);
+                    if (call_prep.Prep.Is<ExecValue>())
+                        return call_prep.Prep.As<ExecValue>();
+                    CallInfo call_info = call_prep.Prep.As<CallInfo>();
 
                     return ExecValue.CreateRecall(call_info);
                 }
@@ -590,25 +590,25 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Spawn spawn)
         {
-            Tuple<Variant<object, ExecValue, CallInfo>, IEnumerable<ArgumentGroup>> call_prep = await prepareFunctionCallAsync(spawn.Call, ctx).ConfigureAwait(false);
-            if (call_prep.Item1.Is<ExecValue>())
-                return call_prep.Item1.As<ExecValue>();
-            CallInfo call_info = call_prep.Item1.As<CallInfo>();
+            CallPreparationData call_prep = await prepareFunctionCallAsync(spawn.Call, ctx).ConfigureAwait(false);
+            if (call_prep.Prep.Is<ExecValue>())
+                return call_prep.Prep.As<ExecValue>();
+            CallInfo call_info = call_prep.Prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
             var ctx_clone = ctx.Clone();
             ctx.Routines.Run(ExecutedAsync(call_info.FunctionTarget, ctx_clone));
-            ArgumentGroup.TryReleaseVariadic(ctx, call_prep.Item2);
+            ArgumentGroup.TryReleaseVariadic(ctx, call_prep.ArgGroups);
 
             return ExecValue.CreateExpression(null);
         }
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            Tuple<Variant<object, ExecValue, CallInfo>, IEnumerable<ArgumentGroup>> call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
-            if (call_prep.Item1.Is<ExecValue>())
-                return call_prep.Item1.As<ExecValue>();
-            CallInfo call_info = call_prep.Item1.As<CallInfo>();
+            CallPreparationData call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
+            if (call_prep.Prep.Is<ExecValue>())
+                return call_prep.Prep.As<ExecValue>();
+            CallInfo call_info = call_prep.Prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
             if (call.DebugId == (20, 333))
@@ -616,7 +616,7 @@ namespace Skila.Interpreter
                 ;
             }
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
-            ArgumentGroup.TryReleaseVariadic(ctx, call_prep.Item2);
+            ArgumentGroup.TryReleaseVariadic(ctx, call_prep.ArgGroups);
             if (ret.IsThrow)
                 return ret;
             ObjectData ret_value = await handleCallResultAsync(ctx, call, ret.RetValue).ConfigureAwait(false);
@@ -669,7 +669,8 @@ namespace Skila.Interpreter
 
             return thisObject;
         }
-        private async Task<Tuple<Variant<object, ExecValue, CallInfo>, IEnumerable<ArgumentGroup>>> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
+
+        private async Task<CallPreparationData> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
             if (call.DebugId == (20, 334))
             {
@@ -696,7 +697,7 @@ namespace Skila.Interpreter
                 {
                     ExecValue this_exec = await ExecutedAsync(call.Resolution.MetaThisArgument.Expression, ctx).ConfigureAwait(false);
                     if (this_exec.IsThrow)
-                        return Tuple.Create(new Variant<object, ExecValue, CallInfo>(this_exec), (IEnumerable<ArgumentGroup>)null);
+                        return new CallPreparationData(this_exec);
 
                     this_ref = await prepareThisAsync(ctx, this_exec.ExprValue, $"{call}").ConfigureAwait(false);
                     this_value = this_ref.TryDereferenceAnyOnce(ctx.Env);
@@ -749,7 +750,7 @@ namespace Skila.Interpreter
             SetupFunctionCallData(ref result, call.Name.TemplateArguments.Select(it => it.Evaluation.Components),
                 this_ref, arguments);
 
-            return Tuple.Create(new Variant<object, ExecValue, CallInfo>(result), args_buffer.AsEnumerable());
+            return new CallPreparationData(result, args_buffer);
         }
 
         private async Task<ObjectData[]> prepareArguments(ExecutionContext ctx, FunctionDefinition targetFunc,

@@ -41,7 +41,7 @@ namespace Skila.Language.Entities
         private readonly EntityInstanceCache instancesCache;
 
         public bool IsComputed { get; protected set; }
-        public EvaluationInfo Evaluation { get; protected set; }
+        public EvaluationInfo Evaluation { get; }
         public ValidationData Validation { get; set; }
         public IEnumerable<NameReference> Includes { get; }
         public EntityModifier Modifier { get; protected set; }
@@ -88,6 +88,8 @@ namespace Skila.Language.Entities
 
             this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
                 overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Create(this)));
+
+            this.Evaluation = EvaluationInfo.Joker;
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
