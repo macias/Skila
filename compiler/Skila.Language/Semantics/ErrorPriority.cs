@@ -29,7 +29,7 @@ namespace Skila.Language.Semantics
             add(ErrorCode.MissingThisPrefix, 
                 ErrorCode.InstanceMemberAccessInStaticContext);
 
-            add(ErrorCode.VirtualFunctionMissingImplementation,
+            add(ErrorCode.BaseFunctionMissingImplementation,
                 ErrorCode.EnumCrossInheritance);
 
             add(ErrorCode.BindableNotUsed,

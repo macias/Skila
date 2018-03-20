@@ -29,7 +29,7 @@ namespace Skila.Tests
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-                //new Semantics.Inheritance().DeepInheritanceWithPrivateInterfaceFunction();
+                //new Semantics.Inheritance().TODO_InheritingConstructorWithSelfType();
                 //new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
@@ -38,14 +38,14 @@ namespace Skila.Tests
                 //new Semantics.Properties().ErrorSettingCustomGetter();
                 // new Semantics.Templates().ErrorCallingTraitMethodOnHost();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
-                //new Semantics.Types().ErrorInOutVariance();
+                //new Semantics.Types().ErrorSelfTypeUsage();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 //new Execution.Closures().ClosureRecursiveCall();
                 //new Execution.Collections().MapFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
-                new Execution.Flow().ParallelOptionalDeclaration();
+               // new Execution.Flow().ParallelOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
@@ -56,12 +56,12 @@ namespace Skila.Tests
                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-               // new Execution.Text().RegexMatchWithNamedCaptures();
+                //new Execution.Text().TODO_SplittingString();
             }
 
              //if (false)
             {
-                const double golden_avg_s = 1.37;
+                const double golden_avg_s = 1.39;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 

@@ -14,6 +14,29 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Types
     {
+        [TestMethod]
+        public IErrorReporter ErrorSelfTypeUsage()
+        {
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var root_ns = env.Root;
+
+            NameReference invalid_self1 = NameFactory.SelfTypeReference();
+            NameReference invalid_self2 = NameFactory.SelfTypeReference();
+
+            // in time probably we will use Self type in more places, but for now we forbid everything we don't support
+            root_ns.AddBuilder(TypeBuilder.Create("What")
+                .With(FunctionBuilder.Create("foo", invalid_self1,
+                    Block.CreateStatement(Return.Create(NameReference.Create("x"))))
+                    .Parameters(FunctionParameter.Create("x", invalid_self2))));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self1));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self2));
+
+            return resolver;
+        }
 
         [TestMethod]
         public IErrorReporter ErrorInOutVariance()
@@ -127,7 +150,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingModifier()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -144,7 +167,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AutoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -161,7 +184,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
@@ -211,7 +234,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             NameReference field_ref1 = NameReference.Create("field");
@@ -222,7 +245,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.RealTypeReference(),
                     Block.CreateStatement(new[] { Return.Create(field_ref1) }))
-                    .Modifier(EntityModifier.Static)));
+                    .SetModifier(EntityModifier.Static)));
 
             NameReference field_ref2 = NameReference.Create("Foo", "field");
 
@@ -244,7 +267,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIncorrectMethodsForType()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
             FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
@@ -255,12 +278,12 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create("bar"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
-                    .Modifier(EntityModifier.Abstract);
+                    .SetModifier(EntityModifier.Abstract);
             FunctionDefinition base_func = FunctionBuilder.Create(
                     NameDefinition.Create("basic"),
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
-                    .Modifier(EntityModifier.Base);
+                    .SetModifier(EntityModifier.Base);
             root_ns.AddBuilder(TypeBuilder.Create("X")
                 .With(func_decl)
                 .With(base_func)

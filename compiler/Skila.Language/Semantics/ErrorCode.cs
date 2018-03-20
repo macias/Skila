@@ -54,7 +54,7 @@
         CannotSpawnWithMutableArgument = 50,
         CannotSpawnOnMutableContext = 51,
         MissingOverrideModifier = 52,
-        VirtualFunctionMissingImplementation = 53,
+        BaseFunctionMissingImplementation = 53,
         NonAbstractTypeWithAbstractMethod = 54,
         SealedTypeWithBaseMethod = 55,
         CannotOverrideSealedMethod = 56,
@@ -122,5 +122,6 @@
         VariadicThisParameter = 118,
         NonReferenceThisParameter = 119,
         UndefinedTemplateArguments = 120,
+        SelfTypeOutsideConstructor = 121,
     }
 }

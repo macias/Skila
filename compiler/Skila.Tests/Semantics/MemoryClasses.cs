@@ -109,12 +109,12 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             FunctionDefinition first_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
-                    .Modifier(EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("y", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead),
                         FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
 
             FunctionDefinition second_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
-                    .Modifier(EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
 
             VariableDeclaration first_field = VariableDeclaration.CreateStatement("a", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
@@ -134,7 +134,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("HelloValue")
                 .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
-                    .Modifier(EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("x", parameter_typename, ExpressionReadMode.CannotBeRead))));
 
             FunctionParameter variadic_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
@@ -142,7 +142,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("HelloVariadic")
                 .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
-                    .Modifier(EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.UnchainBase)
                     .Parameters(variadic_param)));
 
             FunctionParameter optional_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
@@ -150,7 +150,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("HelloOptional")
                 .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
-                    .Modifier(EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.UnchainBase)
                     .Parameters(optional_param)));
 
             VariableDeclaration value_decl = VariableDeclaration.CreateStatement("v", null,
@@ -214,7 +214,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Hi")
                 .With(FunctionBuilder.Create("give", NameFactory.UnitTypeReference(), Block.CreateStatement())
-                    .Modifier(EntityModifier.HeapOnly)));
+                    .SetModifier(EntityModifier.HeapOnly)));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("v", "give"));
             root_ns.AddBuilder(FunctionBuilder.Create(

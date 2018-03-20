@@ -192,7 +192,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] { Return.Create(RealLiteral.Create("3.3")) }))
-                .Modifier(EntityModifier.Static)
+                .SetModifier(EntityModifier.Static)
                 .Build();
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo").With(func_def));
@@ -303,7 +303,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("51"))
                     }))
-                    .Modifier(EntityModifier.Base)));
+                    .SetModifier(EntityModifier.Base)));
 
             NameReference super_function_reference = NameReference.Create(NameFactory.SuperFunctionName);
             root_ns.AddBuilder(TypeBuilder.Create("End")
@@ -315,7 +315,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(super_function_reference))
                     }))
-                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
+                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             FunctionDefinition func = FunctionBuilder.Create(
                 NameDefinition.Create("getB"),
@@ -324,7 +324,7 @@ namespace Skila.Tests.Semantics
                 Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("1"))
                 }))
-            .Modifier(EntityModifier.Override);
+            .SetModifier(EntityModifier.Override);
 
             root_ns.AddBuilder(TypeBuilder.Create("Alter")
                 .Parents("Middle")
@@ -355,7 +355,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("51"))
                     }))
-                    .Modifier(EntityModifier.Base)));
+                    .SetModifier(EntityModifier.Base)));
 
             NameReference super_function_reference = NameReference.Create(NameFactory.BaseVariableName, "getB");
             root_ns.AddBuilder(TypeBuilder.Create("End")
@@ -367,7 +367,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(super_function_reference))
                     }))
-                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
+                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             var resolver = NameResolver.Create(env);
 
@@ -707,7 +707,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                .Modifier(EntityModifier.Static)
+                .SetModifier(EntityModifier.Static)
                 .Build();
             var type_def = root_ns.AddBuilder(TypeBuilder.Create("Foo", "T").With(func_def));
 

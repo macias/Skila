@@ -28,7 +28,7 @@ namespace Skila.Tests.Execution
                 .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
-                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)
+                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))));
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
@@ -72,7 +72,7 @@ namespace Skila.Tests.Execution
                 .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
-                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase)));
+                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")

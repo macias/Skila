@@ -131,7 +131,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutator", "M")
                 .With(FunctionBuilder.Create("violate", NameFactory.UnitTypeReference(), Block.CreateStatement())
-                    .Modifier(EntityModifier.Mutable))
+                    .SetModifier(EntityModifier.Mutable))
                 .SetModifier(EntityModifier.Mutable));
 
             root_ns.AddBuilder(TypeBuilder.Create("Mangler")
@@ -266,7 +266,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(call)))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Mutable)));
+                    .SetModifier(EntityModifier.Mutable)));
 
 
             var resolver = NameResolver.Create(env);
@@ -288,7 +288,7 @@ namespace Skila.Tests.Semantics
                 .With(PropertyBuilder.CreateAutoFull("numi", NameFactory.Int64TypeReference(), null))
                 .With(FunctionBuilder.Create("mutator", NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Mutable)));
+                    .SetModifier(EntityModifier.Mutable)));
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("x", "mutator"));
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("x", "numi"), Int64Literal.Create("5"));
@@ -346,7 +346,7 @@ namespace Skila.Tests.Semantics
             Property property = PropertyBuilder.Create("bar", NameFactory.Int64TypeReference())
                     .WithSetter(body: null);
             FunctionDefinition function = FunctionBuilder.CreateDeclaration("getMe", NameFactory.UnitTypeReference())
-                    .Modifier(EntityModifier.Mutable);
+                    .SetModifier(EntityModifier.Mutable);
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")
                 .SetModifier(EntityModifier.Abstract)
                 .With(property)
@@ -371,7 +371,7 @@ namespace Skila.Tests.Semantics
             Return ret = Return.Create(NameReference.Create("coll"));
             root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("laundering", "T", VarianceMode.None),
                new[] { FunctionParameter.Create("coll",
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", overrideMutability:  MutabilityOverride.ForceMutable))) },
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability:  MutabilityOverride.ForceMutable))) },
                ExpressionReadMode.ReadRequired,
                NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                Block.CreateStatement(new IExpression[] {

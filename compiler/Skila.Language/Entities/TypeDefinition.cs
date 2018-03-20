@@ -241,7 +241,7 @@ namespace Skila.Language.Entities
             {
                 if (!isDerivedByAncestors(missing_impl))
                 {
-                    ctx.AddError(ErrorCode.VirtualFunctionMissingImplementation, this, missing_impl);
+                    ctx.AddError(ErrorCode.BaseFunctionMissingImplementation, this, missing_impl);
                 }
             }
 

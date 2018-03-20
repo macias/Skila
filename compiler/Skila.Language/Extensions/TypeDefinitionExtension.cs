@@ -32,9 +32,12 @@ namespace Skila.Language.Extensions
             EntityInstance baseInstance,
             IEnumerable<FunctionDefinition> derivedFunctions)
         {
+            // constructors are not virtual functions, but anyway we can force in Skila with pinned modifier
+            // that given constructor will be present in all derived types
+
             var result = new List<FunctionDerivation>();
             foreach (FunctionDefinition base_func in baseInstance.TargetType.AllNestedFunctions
-                .Where(it => !it.IsInitConstructor() && !it.IsZeroConstructor()))
+                .Where(fn => !fn.IsAnyConstructor() || fn.Modifier.HasPinned))
             {
                 FunctionDefinition derived_func = derivedFunctions
                     .FirstOrDefault(dfunc => FunctionDefinitionExtension.IsDerivedOf(ctx, dfunc, base_func, baseInstance));

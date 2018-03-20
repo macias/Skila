@@ -48,11 +48,11 @@ namespace Skila.Tests.Semantics
                  ExpressionReadMode.OptionalUse,
                  NameFactory.BoolTypeReference(),
                     Block.CreateStatement(Return.Create(Undef.Create())))
-                    .Modifier(EntityModifier.Pinned);
+                    .SetModifier(EntityModifier.Pinned);
             FunctionDefinition conv3 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
                  NameFactory.StringPointerTypeReference(),
                     Block.CreateStatement(Return.Create(Undef.Create())))
-                    .Modifier(EntityModifier.Pinned)
+                    .SetModifier(EntityModifier.Pinned)
                     .Parameters(FunctionParameter.Create("x",NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
 
             root_ns.AddBuilder(TypeBuilder.Create("Start")

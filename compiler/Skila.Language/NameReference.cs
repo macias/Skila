@@ -272,11 +272,16 @@ namespace Skila.Language
             }
             else if (this.Prefix == null)
             {
-                if (this.Name == NameFactory.SelfFunctionName)
+                if (this.Name == NameFactory.RecurFunctionName)
                 {
                     return new[] { new BindingMatch(this.EnclosingScope<FunctionDefinition>().InstanceOf, isLocal: false) };
                 }
                 else if (this.Name == NameFactory.ItTypeName)
+                {
+                    TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
+                    return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
+                }
+                else if (this.Name == NameFactory.SelfTypeTypeName)
                 {
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
                     return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
@@ -493,7 +498,12 @@ namespace Skila.Language
 
             trySetTargetUsage(this.Binding.Match.Instance);
 
-            if (this.IsSuperReference && this.EnclosingScope<FunctionDefinition>().Modifier.HasUnchainBase)
+            FunctionDefinition enclosing_function = this.EnclosingScope<FunctionDefinition>();
+
+            if (this.Name == NameFactory.SelfTypeTypeName && (enclosing_function == null || !enclosing_function.IsAnyConstructor()))
+                ctx.AddError(ErrorCode.SelfTypeOutsideConstructor, this);
+
+            if (this.IsSuperReference && enclosing_function.Modifier.HasUnchainBase)
                 ctx.AddError(ErrorCode.SuperCallWithUnchainedBase, this);
 
             {

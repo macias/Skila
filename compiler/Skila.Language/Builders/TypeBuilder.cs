@@ -54,7 +54,7 @@ namespace Skila.Language.Builders
                     Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName, ExpressionReadMode.ReadRequired, NameFactory.NatTypeReference(),
                     Block.CreateStatement())
-                    .Modifier(EntityModifier.Native))
+                    .SetModifier(EntityModifier.Native))
                  // when enum inherits an enum it won't call super to check equality
                 .WithEquatableEquals(EntityModifier.UnchainBase)
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
@@ -62,14 +62,14 @@ namespace Skila.Language.Builders
                     Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))
-                    .Modifier(EntityModifier.Native)
+                    .SetModifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.NotEqualOperator),
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))
-                    .Modifier(EntityModifier.Native)
+                    .SetModifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead)))
                     ;
 

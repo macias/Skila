@@ -168,7 +168,7 @@ namespace Skila.Language.Expressions
                 bool is_recall = isRecall(out FunctionDefinition curr_func, out FunctionDefinition binding_func);
                 if (!ctx.Env.Options.AllowNamedSelf && binding_func != null)
                 {
-                    if (this.Name.Name != NameFactory.SelfFunctionName && is_recall)
+                    if (this.Name.Name != NameFactory.RecurFunctionName && is_recall)
                         ctx.ErrorManager.AddError(ErrorCode.NamedRecursiveFunctionReference, this.Name);
                     else if (!this.Name.IsSuperReference && curr_func != null)
                     {

@@ -306,7 +306,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
-            VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.SelfFunctionName, null, Int64Literal.Create("3"));
+            VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.RecurFunctionName, null, Int64Literal.Create("3"));
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("anything"), null,
                 ExpressionReadMode.OptionalUse,

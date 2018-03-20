@@ -71,7 +71,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
                         Return.Create(Int64Literal.Create("2"))
-                    )).Modifier(EntityModifier.Override)));
+                    )).SetModifier(EntityModifier.Override)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -108,7 +108,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("7"))
                 }))
-                .Modifier(EntityModifier.Override))
+                .SetModifier(EntityModifier.Override))
                 .Parents("ISay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
@@ -120,7 +120,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
                         Return.Create(Int64Literal.Create("2"))
-                    )).Modifier(EntityModifier.Override)));
+                    )).SetModifier(EntityModifier.Override)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -155,7 +155,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("7"))
                 }))
-                .Modifier(EntityModifier.Override))
+                .SetModifier(EntityModifier.Override))
                 .Parents("ISay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));
@@ -167,7 +167,7 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
                         Return.Create(Int64Literal.Create("2"))
-                    )).Modifier(EntityModifier.Override)));
+                    )).SetModifier(EntityModifier.Override)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
                 NameDefinition.Create("main"),
@@ -203,7 +203,7 @@ namespace Skila.Tests.Execution
                 Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("2"))
                 }))
-                .Modifier(EntityModifier.Override))
+                .SetModifier(EntityModifier.Override))
                 .Parents("ISay"));
 
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "T"));

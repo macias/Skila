@@ -147,7 +147,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("117"))
                     }))
-                    .Modifier(EntityModifier.Base)));
+                    .SetModifier(EntityModifier.Base)));
 
             root_ns.AddBuilder(TypeBuilder.Create("Z")
                 .With(FunctionBuilder.Create(
@@ -157,7 +157,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                     }))
-                    .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))
+                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase))
                     .Parents(NameReference.Create("Y")));
 
             root_ns.AddBuilder(FunctionBuilder.Create(

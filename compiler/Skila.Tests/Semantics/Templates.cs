@@ -61,7 +61,7 @@ namespace Skila.Tests.Semantics
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(
                         Return.Create(Int64Literal.Create("2"))
-                    )).Modifier(EntityModifier.Override)));
+                    )).SetModifier(EntityModifier.Override)));
 
             IExpression init_value = ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")));
             root_ns.AddBuilder(FunctionBuilder.Create("major",
@@ -282,7 +282,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.CannotBeRead,
                     NameFactory.ReferenceTypeReference(child_elemtype),
                     Block.CreateStatement(Return.Create(Undef.Create())))
-                    .Modifier(EntityModifier.Override);
+                    .SetModifier(EntityModifier.Override);
             TypeDefinition child = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create(child_typename,
                     TemplateParametersBuffer.Create(child_elemtype).Values))
                 .Parents(NameReference.Create(parent_typename, NameReference.Create(child_elemtype)))

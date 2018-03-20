@@ -53,7 +53,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new IExpression[] {
                         Return.Create(RealLiteral.Create("3.3"))
                     }))
-                    .Modifier(EntityModifier.Base)));
+                    .SetModifier(EntityModifier.Base)));
 
             var resolver = NameResolver.Create(env);
 
@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                         constructor_call,
                         Return.Create(RealLiteral.Create("3.3"))
                     }))
-                    .Modifier(EntityModifier.Base)));
+                    .SetModifier(EntityModifier.Base)));
 
             var resolver = NameResolver.Create(env);
 

@@ -76,7 +76,7 @@ namespace Skila.Language.Extensions
                             NameReference.Create(func_field_ref, funcReference.Name,funcReference.TemplateArguments.ToArray()),
                                 function.Parameters.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray()))
                     }))
-                    .Modifier(EntityModifier.Override)
+                    .SetModifier(EntityModifier.Override)
                     .Parameters(trans_parameters.ToArray());
 
 

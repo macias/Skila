@@ -18,6 +18,59 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
+        //[TestMethod]
+        public IInterpreter TODO_SplittingString()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    // assert("hello world".split(" ").count() == 2);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create(" ")),
+                            NameFactory.IterableCount))),
+            // assert("hello world".split(" ").at(0) == "hello");
+            // assert("hello world".split("x").count() == 1);
+            // assert("hello world".split("x").at(0) == "hello world");
+            // assert("hello world".split("h").count() == 2);
+            // assert("hello world".split("h").at(0) == "");
+            // assert("hello world".split("h").at(1) == "ello world");
+
+            // assert(".".split(".").count() == 2);
+            // assert(".".split(".").at(0) == "");
+            // assert(".".split(".").at(1) == "");
+
+            // assert("x".split(".").count() == 1);
+            // assert("x".split(".").at(0) == "x");
+
+            // assert("x".split("ab").count() == 1);
+            // assert("x".split("ab").at(0) == "x");
+
+            // assert("a-b-c".split("-", max: 2).count() == 2);
+            // assert("a-b-c".split("-", max: 2).at(0) == "a");
+            // assert("a-b-c".split("-", max: 2).at(1) == "b-c");
+
+            // assert("a-b-c".split("-", max: 1).count() == 1);
+            // assert("a-b-c".split("-", max: 1).at(0) == "a-b-c");
+
+            Return.Create(Nat8Literal.Create("0"))
+            ))
+            .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
 
         [TestMethod]
         public IInterpreter ReversingString()

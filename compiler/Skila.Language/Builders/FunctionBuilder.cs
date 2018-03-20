@@ -125,7 +125,7 @@ namespace Skila.Language.Builders
             this.body = body;
         }
 
-        public FunctionBuilder Modifier(EntityModifier modifier)
+        public FunctionBuilder SetModifier(EntityModifier modifier)
         {
             if (this.modifier != null || this.build != null)
                 throw new InvalidOperationException();

@@ -28,7 +28,7 @@ namespace Skila.Language.Entities
             return FunctionBuilder.Create(NameFactory.PropertyGetter,
                 ExpressionReadMode.ReadRequired, propertyTypeName,
                 body)
-                .Modifier(modifier)
+                .SetModifier(modifier)
                 .Parameters(parameters);
         }
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
@@ -45,7 +45,7 @@ namespace Skila.Language.Entities
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 body)
-                .Modifier(modifier)
+                .SetModifier(modifier)
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
                         // we add "value" parameter at the end so the name has to be required, 
                         // because we don't know what comes first

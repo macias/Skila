@@ -54,6 +54,7 @@ namespace Skila.Language
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
         public const string ICountedTypeName = "ICounted";
+        public const string ICopyableTypeName = "ICopyable";
         public const string LinqExtensionName = "Linq";
         public const string ChunkTypeName = "Chunk";
         public const string ArrayTypeName = "Array";
@@ -95,10 +96,11 @@ namespace Skila.Language
         public const string RealTypeName = "Real";
         public const string Real64TypeName = "Real64";
         public const string Real32TypeName = "Real32";
-        public const string ThisVariableName = "this";
+        public const string ThisVariableName = "self";
+        public const string SelfTypeTypeName = "Self";
         public const string ItTypeName = "It";
         public const string BaseVariableName = "base";
-        public const string SelfFunctionName = "self";
+        public const string RecurFunctionName = "recur";
         public const string SuperFunctionName = "super";
         public const string SourceCopyConstructorParameter = "source";
         public const string SourceConvConstructorParameter = "value";
@@ -108,6 +110,9 @@ namespace Skila.Language
         public const string OrderingGreater = "greater";
 
         public const string ComparableCompare = "compare";
+
+        public const string ICopyableCopyParameter = "copy";
+        public const string ICopyableCopyFunction = "copy";
 
         public const string CommandLineProgramPath = "program";
         public const string CommandLineArguments = "args";
@@ -140,6 +145,7 @@ namespace Skila.Language
         public const string StringLastIndexOf = "lastIndexOf";
         public const string StringLength = "length";
         public const string StringReverse = ReverseFunctionName;
+        public const string StringSplit = "split";
 
         public const string CharLength = "length";
 
@@ -234,6 +240,10 @@ namespace Skila.Language
         public static NameReference SizeTypeReference()
         {
             return NameReference.Create(NameReference.Root, SizeTypeName);
+        }
+        public static NameReference SelfTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        {
+            return NameReference.Create(mutability, SelfTypeTypeName);
         }
         /* public static NameReference EnumTypeReference()
          {
@@ -359,23 +369,27 @@ namespace Skila.Language
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), ICountedTypeName);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
+        public static NameReference ISequenceTypeReference(INameReference templateTypeName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
+        public static NameReference ISequenceTypeReference(string templateParamName, MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return ISequenceTypeReference(NameReference.Create(templateParamName), overrideMutability);
+            return ISequenceTypeReference(NameReference.Create(templateParamName), mutability);
         }
         public static NameReference IIterableTypeReference(string templateParamName,
             MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return IIterableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIterableTypeReference(NameReference templateParamName,
-            MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
+        public static NameReference ICopyableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
-            return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIterableTypeName,
+            return NameReference.Create(mutability, SystemNamespaceReference(), ICopyableTypeName);
+        }
+        public static NameReference IIterableTypeReference(NameReference templateParamName,
+            MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        {
+            return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
         }
 

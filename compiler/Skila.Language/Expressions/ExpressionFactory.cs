@@ -160,7 +160,7 @@ namespace Skila.Language.Expressions
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             NameReference.Create("obj")))))
-                                            .Modifier(EntityModifier.Override | modifier)
+                                            .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference(MutabilityOverride.Neutral)))));
         }
@@ -195,7 +195,7 @@ namespace Skila.Language.Expressions
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
-                                            .Modifier(EntityModifier.Override | modifier)
+                                            .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
                                                 NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(MutabilityOverride.Neutral)))));
         }

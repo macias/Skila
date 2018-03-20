@@ -26,7 +26,7 @@ namespace Skila.Tests.Execution
                     IfBranch.CreateIf(i_eq_jack,new[]{ Return.Create(NameReference.Create("i")) },
                     // else return self(i+1)
                     IfBranch.CreateElse(new[]{
-                        Return.Create(FunctionCall.Create(NameReference.Create(NameFactory.SelfFunctionName),
+                        Return.Create(FunctionCall.Create(NameReference.Create(NameFactory.RecurFunctionName),
                             FunctionArgument.Create(i_add_1)))
                     }))
                 }))

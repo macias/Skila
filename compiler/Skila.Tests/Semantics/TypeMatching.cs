@@ -131,13 +131,13 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create(NameFactory.ConvertFunctionName),
                     null, ExpressionReadMode.ReadRequired, NameReference.Create("Bar"),
                     Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
-                    .Modifier(EntityModifier.Implicit))
+                    .SetModifier(EntityModifier.Implicit))
                 // added second conversion to check if compiler correctly disambiguate the call
                 .With(FunctionBuilder.Create(
                     NameDefinition.Create(NameFactory.ConvertFunctionName),
                     null, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
-                    .Modifier(EntityModifier.Implicit)));
+                    .SetModifier(EntityModifier.Implicit)));
             var type_bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar")));
 
 
@@ -185,7 +185,7 @@ namespace Skila.Tests.Semantics
                 ExpressionFactory.Readout(is_type_ref)
                 ))
                 .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceTypeReference(
-                    NameFactory.ISequenceTypeReference("G", overrideMutability: MutabilityOverride.Neutral)))));
+                    NameFactory.ISequenceTypeReference("G", mutability: MutabilityOverride.Neutral)))));
 
             var resolver = NameResolver.Create(env);
 

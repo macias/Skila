@@ -85,7 +85,7 @@ namespace Skila.Language
 
             this.ElementTypeName = typeName;
             if (this.IsVariadic)
-                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, overrideMutability: MutabilityOverride.ForceMutable));
+                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, mutability: MutabilityOverride.ForceMutable));
             else
                 this.TypeName = typeName;
 
