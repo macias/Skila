@@ -19,9 +19,9 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EntityInstance : IEntityInstance
     {
-        public static EntityInstance RAW_CreateUnregistered(EntityInstanceCore core, TemplateTranslation translation)
+        public static EntityInstance RAW_CreateUnregistered(EntityInstanceCore core, TemplateTranslation translation, bool asSelf)
         {
-            return new EntityInstance(core, translation);
+            return new EntityInstance(core, translation, asSelf);
         }
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
@@ -37,7 +37,7 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty);
+            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty, asSelf: false);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -46,8 +46,9 @@ namespace Skila.Language
         public MutabilityOverride OverrideMutability => this.Core.OverrideMutability;
 
         public EntityInstanceCore Core { get; }
-
+        public bool AsSelf { get; }
         public TemplateTranslation Translation { get; }
+
 
         public IEntity Target => this.Core.Target;
         public TypeDefinition TargetType => this.Target.CastType();
@@ -59,7 +60,7 @@ namespace Skila.Language
         public EntityInstance Aggregate { get; private set; }
         public IEntityInstance Evaluation { get; private set; }
 
-        private TypeMutability? typeMutability;
+        private TypeMutability? typeMutabilityCache;
 
         private TypeInheritance inheritance;
         public TypeInheritance Inheritance(ComputationContext ctx)
@@ -81,12 +82,14 @@ namespace Skila.Language
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
         private EntityInstance(EntityInstanceCore core,
-            TemplateTranslation translation)
+            TemplateTranslation translation, bool asSelf)
         {
             this.Core = core;
             this.Translation = translation;
+            this.AsSelf = AsSelf;
 
-            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf), target: this, isLocal: false);
+            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                target: this, isLocal: false);
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
 
@@ -151,7 +154,8 @@ namespace Skila.Language
         internal EntityInstance TranslateThroughTraitHost(TypeDefinition trait)
         {
             return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability,
-                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait)).Cast<EntityInstance>();
+                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait),
+                this.AsSelf).Cast<EntityInstance>();
         }
 
         public EntityInstance TranslateThrough(EntityInstance closedTemplate)
@@ -195,7 +199,8 @@ namespace Skila.Language
                 }
 
                 TemplateTranslation combo_translation = TemplateTranslation.Combine(this.Translation, translation);
-                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation);
+                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation,
+                    this.AsSelf);
 
                 return result;
             }
@@ -345,7 +350,7 @@ namespace Skila.Language
 
         public EntityInstance Build(MutabilityOverride mutability)
         {
-            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
+            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, this.AsSelf);
         }
 
         internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityOverride overrideMutability)
@@ -353,7 +358,7 @@ namespace Skila.Language
             TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
 
             return this.Target.GetInstance(templateArguments, overrideMutability,
-                TemplateTranslation.Combine(this.Translation, trans_arg));
+                TemplateTranslation.Combine(this.Translation, trans_arg), this.AsSelf);
         }
 
         public IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
@@ -368,9 +373,9 @@ namespace Skila.Language
 
         public TypeMutability MutabilityOfType(ComputationContext ctx)
         {
-            if (!this.typeMutability.HasValue)
-                this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
-            return this.typeMutability.Value;
+            if (!this.typeMutabilityCache.HasValue)
+                this.typeMutabilityCache = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
+            return this.typeMutabilityCache.Value;
         }
 
         public bool CoreEquals(IEntityInstance other)

@@ -8,7 +8,8 @@ namespace Skila.Language.Entities
         EntityModifier Modifier { get; }
         EntityInstance InstanceOf { get; }
 
-        EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,TemplateTranslation translation);
+        EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
+            TemplateTranslation translation,bool asSelf);
     }
 
 }

@@ -447,7 +447,7 @@ namespace Skila.Language.Expressions
         {
             return FunctionCall.Create(NameReference.Create(lhs, NameFactory.NotEqualOperator), FunctionArgument.Create(rhs));
         }
-        public static IExpression NotEqual(string lhs, string rhs)
+        public static IExpression IsNotEqual(string lhs, string rhs)
         {
             return IsNotEqual(NameReference.Create(lhs), NameReference.Create(rhs));
         }

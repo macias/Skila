@@ -75,16 +75,18 @@ namespace Skila.Language
 
         public TypeDefinition CharType { get; }
         public FunctionDefinition CharLengthGetter { get; }
+        public FunctionDefinition CharToString { get; }
 
         public TypeDefinition Utf8StringType { get; }
         public FunctionDefinition Utf8StringCountGetter { get; }
         public FunctionDefinition Utf8StringAtGetter { get; }
         public FunctionDefinition Utf8StringTrimStart { get; }
         public FunctionDefinition Utf8StringTrimEnd { get; }
-        public FunctionDefinition Utf8StringIndexOfChar { get; }
+        public FunctionDefinition Utf8StringIndexOfString { get; }
         public FunctionDefinition Utf8StringLastIndexOfChar { get; }
         public FunctionDefinition Utf8StringReverse { get; }
         public FunctionDefinition Utf8StringSplit { get; }
+        public FunctionDefinition Utf8StringSlice { get; }
         public FunctionDefinition Utf8StringLengthGetter { get; }
 
         public TypeDefinition Utf8StringIteratorType { get; }
@@ -376,8 +378,11 @@ namespace Skila.Language
             this.BoolType = Root.AddNode(createBool(options));
 
             {
-                this.CharType = Root.AddNode(createChar(options, out FunctionDefinition length_getter));
+                this.CharType = Root.AddNode(createChar(options,
+                    out FunctionDefinition length_getter,
+                    toString: out FunctionDefinition to_string));
                 this.CharLengthGetter = length_getter;
+                this.CharToString = to_string;
             }
             {
                 this.Utf8StringType = this.SystemNamespace.AddNode(createUtf8String(
@@ -386,19 +391,21 @@ namespace Skila.Language
                     out IMember at_getter,
                     out FunctionDefinition trim_start,
                     out FunctionDefinition trim_end,
-                    out FunctionDefinition index_of_char,
+                    out FunctionDefinition index_of_string,
                     out FunctionDefinition last_index_of_char,
                     out FunctionDefinition reverse,
-                    split: out FunctionDefinition split));
+                    split: out FunctionDefinition split,
+                    slice: out FunctionDefinition slice));
                 this.Utf8StringCountGetter = count_getter;
                 this.Utf8StringLengthGetter = length_getter;
                 this.Utf8StringAtGetter = at_getter.Cast<FunctionDefinition>();
                 this.Utf8StringTrimStart = trim_start;
                 this.Utf8StringTrimEnd = trim_end;
-                this.Utf8StringIndexOfChar = index_of_char;
+                this.Utf8StringIndexOfString = index_of_string;
                 this.Utf8StringLastIndexOfChar = last_index_of_char;
                 this.Utf8StringReverse = reverse;
                 this.Utf8StringSplit = split;
+                this.Utf8StringSlice = slice;
                 this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
@@ -465,12 +472,12 @@ namespace Skila.Language
                                     NameFactory.PointerTypeReference(NameFactory.ICopyableTypeReference()))
                                     .SetModifier(EntityModifier.Pinned))
 
-            // todo: resolve Self type at runtime and use this method instead
-                                /*.With(FunctionBuilder.Create(NameFactory.ICopyableCopyFunction,
-                                    NameFactory.PointerTypeReference(NameFactory.ICopyableTypeReference()),
-                                    Block.CreateStatement(Return.Create(ExpressionFactory.HeapConstructor(NameFactory.SelfTypeReference(),
-                                        NameReference.CreateThised())))))
-                                        */
+                                    // todo: resolve Self type at runtime and use this method instead
+                                    /*.With(FunctionBuilder.Create(NameFactory.ICopyableCopyFunction,
+                                        NameFactory.PointerTypeReference(NameFactory.ICopyableTypeReference()),
+                                        Block.CreateStatement(Return.Create(ExpressionFactory.HeapConstructor(NameFactory.SelfTypeReference(),
+                                            NameReference.CreateThised())))))
+                                            */
                                     ;
         }
 
@@ -673,13 +680,17 @@ namespace Skila.Language
                     ;
         }
 
-        private static TypeDefinition createChar(IOptions options, out FunctionDefinition lengthGetter)
+        private static TypeDefinition createChar(IOptions options, out FunctionDefinition lengthGetter, out FunctionDefinition toString)
         {
             Property length_property = PropertyBuilder.Create(NameFactory.CharLength, NameFactory.Nat8TypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native));
 
             lengthGetter = length_property.Getter;
+
+            toString = FunctionBuilder.Create(NameFactory.ConvertFunctionName, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+                .SetModifier(EntityModifier.Native);
 
             EntityModifier modifier = EntityModifier.Native;
             if (options.AtomicPrimitivesMutable)
@@ -698,6 +709,8 @@ namespace Skila.Language
 
                                 .With(length_property)
 
+                                .With(toString)
+
                                 .WithComparableCompare()
                             .With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
                                 ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
@@ -711,8 +724,8 @@ namespace Skila.Language
 
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
             out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd,
-            out FunctionDefinition indexOfChar, out FunctionDefinition lastIndexOfChar, out FunctionDefinition reverse,
-            out FunctionDefinition split)
+            out FunctionDefinition indexOfString, out FunctionDefinition lastIndexOfChar, out FunctionDefinition reverse,
+            out FunctionDefinition split, out FunctionDefinition slice)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -730,11 +743,12 @@ namespace Skila.Language
             trimEnd = FunctionBuilder.Create(NameFactory.StringTrimEnd, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .SetModifier(EntityModifier.Native);
-            indexOfChar = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+            indexOfString = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
+                .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead),
                     FunctionParameter.Create("index", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
+            // todo: change it to work on string instead, as indexOf
             lastIndexOfChar = FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
@@ -743,11 +757,43 @@ namespace Skila.Language
             reverse = FunctionBuilder.Create(NameFactory.StringReverse, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .SetModifier(EntityModifier.Native);
-            split = FunctionBuilder.Create(NameFactory.StringSplit, 
-                    NameFactory.PointerTypeReference( NameFactory.IIterableTypeReference(NameFactory.Utf8StringPointerTypeReference())),
+            slice = FunctionBuilder.Create(NameFactory.StringSlice, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .SetModifier(EntityModifier.Native)
-                .Parameters(FunctionParameter.Create("separator",NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead));
+                .Parameters(FunctionParameter.Create("index", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("length", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .SetModifier(EntityModifier.Native);
+
+            split = FunctionBuilder.Create(NameFactory.StringSplit,
+                                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.Utf8StringPointerTypeReference())),
+                            Block.CreateStatement(
+                                VariableDeclaration.CreateStatement("buffer", null,
+                                    ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.StringPointerTypeReference()))),
+                                VariableDeclaration.CreateStatement("start", null, NatLiteral.Create("0"), EntityModifier.Reassignable),
+
+                                Loop.CreateWhile(ExpressionFactory.OptionalDeclaration("idx", null,
+                                    FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
+                                        NameReference.Create("separator"), NameReference.Create("start"))), new IExpression[] {
+                                        FunctionCall.Create(NameReference.Create( "buffer",NameFactory.AppendFunctionName),
+                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                                            NameReference.Create("start"),
+                                            NameReference.Create("idx"))),
+
+                                        Assignment.CreateStatement(NameReference.Create("start"),
+                                            ExpressionFactory.Add(NameReference.Create("idx"),
+                                            NameReference.Create("separator",NameFactory.StringLength)))
+                                    }),
+
+                                    IfBranch.CreateIf(ExpressionFactory.IsNotEqual(NameReference.Create("start"),
+                                        NameReference.CreateThised(NameFactory.StringLength)),
+                                        FunctionCall.Create(NameReference.Create("buffer", NameFactory.AppendFunctionName),
+                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                                            NameReference.Create("start")))
+                                        ),
+
+                                    Return.Create(NameReference.Create("buffer"))
+
+                                ))
+                            .Parameters(FunctionParameter.Create("separator", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral)));
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
@@ -781,9 +827,18 @@ namespace Skila.Language
                                     ExpressionReadMode.CannotBeRead)))
 
 
-                                    .With(indexOfChar)
-                                    .With(lastIndexOfChar)
-                                    .With(FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                                    .With(indexOfString)
+                                    .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
+                    FunctionCall.ConvCall(NameReference.Create("ch"), NameFactory.StringPointerTypeReference()),
+                    NameReference.Create("index")
+                ))))
+                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference()),
+                    FunctionParameter.Create("index", NameFactory.SizeTypeReference())))
+
+                    .With(lastIndexOfChar)
+
+                    .With(FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
                                         Block.CreateStatement(Return.Create(
                                             FunctionCall.Create(NameReference.CreateThised(NameFactory.StringLastIndexOf),
                                         NameReference.Create("ch"),
@@ -798,6 +853,13 @@ namespace Skila.Language
 
                             .With(reverse)
                             .With(split)
+
+                            .With(slice)
+                                    .With(FunctionBuilder.Create(NameFactory.StringSlice, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                    NameReference.Create("index"),
+                    ExpressionFactory.Sub(NameReference.CreateThised(NameFactory.StringLength), NameReference.Create("index"))))))
+                .Parameters(FunctionParameter.Create("index", NameFactory.SizeTypeReference())))
 
                                     .With(trimStart)
                                     .With(trimEnd)
@@ -1224,7 +1286,7 @@ namespace Skila.Language
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                                 new[] {
-                                    FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(), 
+                                    FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(),
                                         ExpressionReadMode.CannotBeRead)
                                 },
                                 Block.CreateStatement()))
@@ -1238,7 +1300,7 @@ namespace Skila.Language
                                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                         Block.CreateStatement())
                                     .SetModifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityOverride.Neutral), 
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(MutabilityOverride.Neutral),
                                     ExpressionReadMode.CannotBeRead)))
                             ;
         }
@@ -1399,24 +1461,24 @@ namespace Skila.Language
                                     Block.CreateStatement(new[] {
                                         Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionValue),
                                             NameReference.Create("value")),
-                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue), 
+                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue),
                                             BoolLiteral.CreateTrue())
                                     }));
 
             emptyConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
                                 null,
                                     Block.CreateStatement(
-                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue), 
+                                        Assignment.CreateStatement(NameReference.CreateThised(NameFactory.OptionHasValue),
                                             BoolLiteral.CreateFalse())
                                     ));
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
               TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
-                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type), 
+                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type),
                                 EntityModifier.Public))
-                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type), 
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type),
                                 Undef.Create()))
-                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(), 
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
                                 Undef.Create()))
                             .With(emptyConstructor)
                             .With(valueConstructor)
@@ -1757,7 +1819,8 @@ namespace Skila.Language
         public EntityInstance Reference(IEntityInstance instance, MutabilityOverride mutability, TemplateTranslation translation,
             bool viaPointer)
         {
-            return (viaPointer ? this.PointerType : this.ReferenceType).GetInstance(new[] { instance }, mutability, translation);
+            return (viaPointer ? this.PointerType : this.ReferenceType)
+                .GetInstance(new[] { instance }, mutability, translation,asSelf:false);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {

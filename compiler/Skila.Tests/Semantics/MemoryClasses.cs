@@ -60,7 +60,6 @@ namespace Skila.Tests.Semantics
 
             var resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(7, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, decl.TypeName));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, result_typename));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, param_typename));
@@ -68,6 +67,7 @@ namespace Skila.Tests.Semantics
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, param_it_typename));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, bad_dereference));
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.HeapTypeAsValue, decl_it_typename));
+            Assert.AreEqual(7, resolver.ErrorManager.Errors.Count);
 
             return resolver;
         }

@@ -87,7 +87,8 @@ namespace Skila.Language.Entities
         }
 
         public bool IsResultTypeNameInfered { get; }
-        public INameReference ResultTypeName { get; private set; }
+        private FunctionParameter ResultParameter;
+        public INameReference ResultTypeName => this.ResultParameter.TypeName;
         private readonly List<IEntityInstance> resultTypeCandidates;
         public Block UserBody { get; }
         public IReadOnlyList<FunctionParameter> Parameters { get; }
@@ -107,7 +108,7 @@ namespace Skila.Language.Entities
             .Concat(this.Parameters)// parameters have to go before user body, so they are registered for use
             .Concat(this.MetaThisParameter)
             .Concat(UserBody)
-            .Concat(this.ResultTypeName)
+            .Concat(this.ResultParameter)
             .Concat(this.thisNameReference)
             .Where(it => it != null)
             .Concat(this.AccessGrants)
@@ -141,7 +142,7 @@ namespace Skila.Language.Entities
             this.Label = label ?? NameDefinition.Create(name.Name);
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
             this.Parameters = parameters.Indexed().StoreReadOnlyList();
-            this.ResultTypeName = result;
+            setResultParameter(result);
             this.IsResultTypeNameInfered = result == null;
             if (this.IsResultTypeNameInfered)
                 this.resultTypeCandidates = new List<IEntityInstance>();
@@ -161,6 +162,11 @@ namespace Skila.Language.Entities
             this.constructionCompleted = true;
         }
 
+        private void setResultParameter(INameReference result)
+        {
+            this.ResultParameter = FunctionParameter.Create("", result, ExpressionReadMode.OptionalUse);
+        }
+
         public NameReference CreateFunctionInterface()
         {
             return NameFactory.IFunctionTypeReference(this.Parameters.Select(it => it.ElementTypeName)
@@ -175,7 +181,7 @@ namespace Skila.Language.Entities
         internal void InferResultType(ComputationContext ctx)
         {
             if (!this.resultTypeCandidates.Any()) // no returns
-                this.ResultTypeName = ctx.Env.UnitType.InstanceOf.NameOf;
+                setResultParameter(ctx.Env.UnitType.InstanceOf.NameOf);
             else
             {
                 IEntityInstance common = this.resultTypeCandidates.First();
@@ -184,7 +190,7 @@ namespace Skila.Language.Entities
                     if (!TypeMatcher.LowestCommonAncestor(ctx, common, candidate, out common))
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
-                        this.ResultTypeName = EntityInstance.Joker.NameOf;
+                        setResultParameter(EntityInstance.Joker.NameOf);
                         return;
                     }
                 }
@@ -197,12 +203,12 @@ namespace Skila.Language.Entities
                     if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
-                        this.ResultTypeName = EntityInstance.Joker.NameOf;
+                        setResultParameter(EntityInstance.Joker.NameOf);
                         return;
                     }
                 }
 
-                this.ResultTypeName = common.NameOf;
+                setResultParameter(common.NameOf);
             }
         }
 
@@ -283,8 +289,6 @@ namespace Skila.Language.Entities
         public override void Validate(ComputationContext ctx)
         {
             this.ValidateRestrictedMember(ctx);
-
-            this.ResultTypeName.ValidateTypeName(ctx);
 
             TypeDefinition type_owner = this.ContainingType();
 

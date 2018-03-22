@@ -146,6 +146,7 @@ namespace Skila.Language
         public const string StringLength = "length";
         public const string StringReverse = ReverseFunctionName;
         public const string StringSplit = "split";
+        public const string StringSlice = "slice";
 
         public const string CharLength = "length";
 

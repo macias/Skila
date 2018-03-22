@@ -37,8 +37,16 @@ namespace Skila.Tests.Execution
                                 StringLiteral.Create(" ")),
                             NameFactory.IterableCount))),
             // assert("hello world".split(" ").at(0) == "hello");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("hello"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create(" ")),
+                            NameFactory.AtFunctionName),NatLiteral.Create("0"))),
+
+
             // assert("hello world".split("x").count() == 1);
             // assert("hello world".split("x").at(0) == "hello world");
+
             // assert("hello world".split("h").count() == 2);
             // assert("hello world".split("h").at(0) == "");
             // assert("hello world".split("h").at(1) == "ello world");
@@ -53,12 +61,12 @@ namespace Skila.Tests.Execution
             // assert("x".split("ab").count() == 1);
             // assert("x".split("ab").at(0) == "x");
 
-            // assert("a-b-c".split("-", max: 2).count() == 2);
-            // assert("a-b-c".split("-", max: 2).at(0) == "a");
-            // assert("a-b-c".split("-", max: 2).at(1) == "b-c");
+            // assert("a-b-c".split("-", limit: 2).count() == 2);
+            // assert("a-b-c".split("-", limit: 2).at(0) == "a");
+            // assert("a-b-c".split("-", limit: 2).at(1) == "b-c");
 
-            // assert("a-b-c".split("-", max: 1).count() == 1);
-            // assert("a-b-c".split("-", max: 1).at(0) == "a-b-c");
+            // assert("a-b-c".split("-", limit: 1).count() == 1);
+            // assert("a-b-c".split("-", limit: 1).at(0) == "a-b-c");
 
             Return.Create(Nat8Literal.Create("0"))
             ))

@@ -29,7 +29,11 @@ namespace Skila.Language.Semantics
 
         public bool HasError(ErrorCode code, INode node,int count = 1)
         {
-            return this.Errors.Count(it => it.Code == code && it.Node == node)==count;
+            return ErrorCount(code,node)==count;
+        }
+        public int ErrorCount(ErrorCode code, INode node)
+        {
+            return this.Errors.Count(it => it.Code == code && it.Node == node);
         }
         /*public bool HasCode(ErrorCode code)
         {

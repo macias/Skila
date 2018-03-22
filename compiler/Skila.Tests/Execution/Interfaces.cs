@@ -29,7 +29,7 @@ namespace Skila.Tests.Execution
                     // i Int = 7
                     VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(), Int64Literal.Create("7")),
                     // if e!=i and i!=e then return 2
-                    IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.NotEqual("e","i"),ExpressionFactory.NotEqual("e","i")),
+                    IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsNotEqual("e","i"),ExpressionFactory.IsNotEqual("e","i")),
                         new[]{ Return.Create(Int64Literal.Create("2")) }),
                     // return 15
                     Return.Create(Int64Literal.Create("15"))

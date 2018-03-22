@@ -44,6 +44,8 @@ namespace Skila.Language
 
         internal bool Add(ILocalBindable bindable)
         {
+            if (string.IsNullOrEmpty(bindable.Name.Name))
+                return true;
             bool result = this.bag.Add(bindable.Name, new LocalInfo(bindable));
             return result;
         }

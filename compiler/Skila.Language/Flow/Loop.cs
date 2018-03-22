@@ -20,6 +20,18 @@ namespace Skila.Language.Flow
         {
             return create(label, init, condition, body, postStep: step, postCondition: null);
         }
+        public static IExpression CreateWhile(NameDefinition label, 
+            IExpression condition,
+            IEnumerable<IExpression> body)
+        {
+            return create(label, null, condition, body, postStep: null, postCondition: null);
+        }
+        public static IExpression CreateWhile(
+            IExpression condition,
+            IEnumerable<IExpression> body)
+        {
+            return CreateWhile(null, condition, body);
+        }
         public static IExpression CreateFor(IEnumerable<IExpression> init,
             IExpression condition,
             IEnumerable<IExpression> step,

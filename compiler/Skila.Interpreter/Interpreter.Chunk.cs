@@ -15,7 +15,7 @@ namespace Skila.Interpreter
             IEnumerable<ObjectData> elements)
         {
             ObjectData chunk_obj = await createChunk(ctx,
-                ctx.Env.ChunkType.GetInstance(new[] { elementType }, MutabilityOverride.NotGiven, null),
+                ctx.Env.ChunkType.GetInstance(new[] { elementType }, MutabilityOverride.NotGiven, null,asSelf:false),
                 elements.ToArray()).ConfigureAwait(false);
             ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
                 ctx.Env.Reference(chunk_obj.RunTimeTypeInstance, MutabilityOverride.NotGiven, null, viaPointer: true),

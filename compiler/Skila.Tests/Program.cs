@@ -20,17 +20,17 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                 //new Semantics.CompilerProtection().Environment();
+               //  new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
                 //new Semantics.Flow().CombiningBranchedInitialization();
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
-                //new Semantics.FunctionDefinitions().ErrorInvalidMainResultType();
+                //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().TODO_InheritingConstructorWithSelfType();
-                //new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
+                new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
@@ -61,7 +61,7 @@ namespace Skila.Tests
 
              //if (false)
             {
-                const double golden_avg_s = 1.39;
+                const double golden_avg_s = 1.46;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -76,7 +76,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.44;
+                const double golden_avg_s = 1.50;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

@@ -265,6 +265,30 @@ namespace Skila.Interpreter
         {
             return string.Join("", graphemeClusters(s).Reverse().ToArray());
         }
+
+        private async Task<ExecValue> executeNativeCharFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
+            ObjectData thisValue)
+        {
+            char this_native = thisValue.NativeChar;
+
+            if (func == ctx.Env.CharLengthGetter)
+            {
+                ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
+                    (byte)Encoding.UTF8.GetByteCount($"{this_native}")).ConfigureAwait(false);
+                return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.CharToString)
+            {
+                ObjectData result = await createStringAsync(ctx, $"{this_native}").ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
+            else
+                throw new NotImplementedException($"Function {func} is not implemented");
+        }
+
+
         private async Task<ExecValue> executeNativeUtf8StringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
         {
@@ -318,17 +342,34 @@ namespace Skila.Interpreter
                 ObjectData obj_ref = await obj_ch.ReferenceAsync(ctx).ConfigureAwait(false);
                 return ExecValue.CreateReturn(obj_ref);
             }
-            else if (func == ctx.Env.Utf8StringIndexOfChar)
+            else if (func == ctx.Env.Utf8StringSlice)
             {
-                ObjectData arg_char_obj = ctx.FunctionArguments[0];
-                char native_char_arg = arg_char_obj.NativeChar;
+                ObjectData arg_idx_obj = ctx.FunctionArguments[0];
+                int native_idx_arg = (int)arg_idx_obj.NativeNat;
+                ObjectData arg_len_obj = ctx.FunctionArguments[1];
+                int native_len_arg = (int)arg_len_obj.NativeNat;
+
+                byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
+                string sub = Encoding.UTF8.GetString(this_utf8, native_idx_arg, native_len_arg);
+
+                ObjectData result = await createStringAsync(ctx, sub).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.Utf8StringIndexOfString)
+            {
+                ObjectData arg_str_obj = ctx.FunctionArguments[0];
+                if (!arg_str_obj.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_str_val))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                string native_str_arg = arg_str_val.NativeString;
                 ObjectData arg_idx_obj = ctx.FunctionArguments[1];
                 int native_idx_arg = (int)arg_idx_obj.NativeNat;
 
                 byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
                 string sub = Encoding.UTF8.GetString(this_utf8, native_idx_arg, this_utf8.Length - native_idx_arg);
 
-                int idx = sub.IndexOf(native_char_arg, native_idx_arg);
+                int idx = sub.IndexOf(native_str_arg);
 
                 Option<ObjectData> index_obj;
                 if (idx != -1)
@@ -382,21 +423,6 @@ namespace Skila.Interpreter
                 else
                     throw new NotImplementedException($"Function {func} is not implemented");
             }
-        }
-
-        private async Task<ExecValue> executeNativeCharFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
-            ObjectData thisValue)
-        {
-            char this_native = thisValue.NativeChar;
-
-            if (func == ctx.Env.CharLengthGetter)
-            {
-                ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    (byte)Encoding.UTF8.GetByteCount($"{this_native}")).ConfigureAwait(false);
-                return ExecValue.CreateReturn(result);
-            }
-            else
-                throw new NotImplementedException($"Function {func} is not implemented");
         }
 
         private async Task<ExecValue> executeNativeFileFunctionAsync(ExecutionContext ctx, FunctionDefinition func)
@@ -510,8 +536,9 @@ namespace Skila.Interpreter
                 Option<ObjectData> received = await channel.ReceiveAsync().ConfigureAwait(false);
 
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
-                EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, overrideMutability: MutabilityOverride.NotGiven,
-                    translation: null);
+                EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, 
+                    overrideMutability: MutabilityOverride.NotGiven,
+                    translation: null, asSelf:false);
                 ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
                 if (opt_exec.IsThrow)
                     return opt_exec;

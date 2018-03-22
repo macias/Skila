@@ -158,7 +158,7 @@ namespace Skila.Language.Entities
             this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this),asSelf:false));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -169,9 +169,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability, 
-            TemplateTranslation translation)
+            TemplateTranslation translation,bool asSelf)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,asSelf);
         }
 
         public void Validate(ComputationContext ctx)

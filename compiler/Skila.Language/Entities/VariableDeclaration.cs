@@ -63,7 +63,7 @@ namespace Skila.Language.Entities
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this),asSelf:false));
 
             this.closures = new List<TypeDefinition>();
 
@@ -104,9 +104,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation,bool asSelf)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,asSelf);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

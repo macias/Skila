@@ -16,13 +16,15 @@ namespace Skila.Language.Entities
 
         public EntityInstanceCache(IEntity entity, Func<EntityInstance> instanceOfCreator)
         {
-            this.instancesCache = new Dictionary<EntityInstanceCore, Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>>>(EntityInstanceCoreSignatureComparer.Instance);
+            this.instancesCache = new Dictionary<EntityInstanceCore,
+                Tuple<EntityInstance, Dictionary<
+                    TemplateTranslation, EntityInstance>>>(EntityInstanceCoreSignatureComparer.Instance);
             this.entity = entity;
             this.instanceOf = new Later<EntityInstance>(instanceOfCreator);
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation, bool asSelf)
         {
             EntityInstanceCore core = EntityInstanceCore.RAW_CreateUnregistered(entity, arguments, overrideMutability);
 
@@ -30,17 +32,17 @@ namespace Skila.Language.Entities
             if (!this.instancesCache.TryGetValue(core, out family))
             {
                 // this is the base (core) entity instance, by "definition" always without translation
-                EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null);
+                EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null, asSelf: false);
                 family = Tuple.Create(base_instance, new Dictionary<TemplateTranslation, EntityInstance>());
                 this.instancesCache.Add(core, family);
             }
 
             EntityInstance result;
-            if (translation == null)
-                result = family.Item1;
+            if (translation == null && !asSelf)
+                result = family.Item1;//???
             else if (!family.Item2.TryGetValue(translation, out result))
             {
-                result = EntityInstance.RAW_CreateUnregistered(family.Item1.Core, translation);
+                result = EntityInstance.RAW_CreateUnregistered(family.Item1.Core, translation, asSelf);
                 family.Item2.Add(translation, result);
             }
 

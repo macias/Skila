@@ -790,7 +790,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        MutabilityOverride.NotGiven, null),
+                        MutabilityOverride.NotGiven, null,asSelf:false),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
