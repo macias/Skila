@@ -12,11 +12,11 @@ namespace Skila.Interpreter
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class VariableRegistry : ILayeredNameRegistry
     {
-        private readonly ILayerDictionary<ILocalBindable, ObjectData> bag;
+        private readonly ILayerDictionary<INode, ObjectData> bag;
 
         public VariableRegistry(bool shadowing)
         {
-            this.bag = LayerDictionary.Create<ILocalBindable, ObjectData>(shadowing,ReferenceEqualityComparer<ILocalBindable>.Instance);
+            this.bag = LayerDictionary.Create<INode, ObjectData>(shadowing, ReferenceEqualityComparer<INode>.Instance);
         }
 
         public void AddLayer(IScope scope)
@@ -25,12 +25,12 @@ namespace Skila.Interpreter
                 this.bag.PushLayer();
         }
 
-        internal IEnumerable<Tuple<ILocalBindable, ObjectData>> RemoveLayer()
+        internal IEnumerable<Tuple<INode, ObjectData>> RemoveLayer()
         {
             return this.bag.PopLayer();
         }
 
-        internal bool Add(ILocalBindable bindable, ObjectData value)
+        internal bool Add(INode bindable, ObjectData value)
         {
             bool result = this.bag.Add(bindable, value);
             return result;
@@ -49,7 +49,7 @@ namespace Skila.Interpreter
 
         public override string ToString()
         {
-            IReadOnlyList<ILocalBindable> keys = this.bag.Keys.StoreReadOnlyList();
+            IReadOnlyList<ILocalBindable> keys = this.bag.Keys.WhereType<ILocalBindable>().StoreReadOnlyList();
             string result;
             if (keys.Count == 0)
                 result = "<empty>";

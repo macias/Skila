@@ -746,7 +746,7 @@ namespace Skila.Language
             indexOfString = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), Variadic.None, NatLiteral.Create("0"), false, ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
             // todo: change it to work on string instead, as indexOf
             lastIndexOfChar = FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
@@ -770,30 +770,39 @@ namespace Skila.Language
                                     ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.StringPointerTypeReference()))),
                                 VariableDeclaration.CreateStatement("start", null, NatLiteral.Create("0"), EntityModifier.Reassignable),
 
-                                Loop.CreateWhile(ExpressionFactory.OptionalDeclaration("idx", null,
-                                    FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
-                                        NameReference.Create("separator"), NameReference.Create("start"))), new IExpression[] {
+                                Loop.CreateWhile(ExpressionFactory.And(
+                                    ExpressionFactory.IsNotEqual(NatLiteral.Create("0"),NameReference.Create("limit"))
+                                    ,
+                                    ExpressionFactory.OptionalDeclaration("idx", null,
+                                        FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
+                                            NameReference.Create("separator"), NameReference.Create("start")))), 
+                                        
+                                        new IExpression[] {
+                                            ExpressionFactory.Dec("limit"),
+
                                         FunctionCall.Create(NameReference.Create( "buffer",NameFactory.AppendFunctionName),
                                             FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
                                             NameReference.Create("start"),
-                                            NameReference.Create("idx"))),
+                                            ExpressionFactory.Sub("idx","start"))),
 
                                         Assignment.CreateStatement(NameReference.Create("start"),
                                             ExpressionFactory.Add(NameReference.Create("idx"),
                                             NameReference.Create("separator",NameFactory.StringLength)))
                                     }),
 
-                                    IfBranch.CreateIf(ExpressionFactory.IsNotEqual(NameReference.Create("start"),
-                                        NameReference.CreateThised(NameFactory.StringLength)),
-                                        FunctionCall.Create(NameReference.Create("buffer", NameFactory.AppendFunctionName),
-                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
-                                            NameReference.Create("start")))
-                                        ),
+                                    FunctionCall.Create(NameReference.Create("buffer", NameFactory.AppendFunctionName),
+                                        FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                                            NameReference.Create("start"))),
 
                                     Return.Create(NameReference.Create("buffer"))
 
                                 ))
-                            .Parameters(FunctionParameter.Create("separator", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral)));
+                            .Parameters(FunctionParameter.Create("separator", 
+                                NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral)),
+                                // limit of the splits, not parts!
+                                FunctionParameter.Create("limit",NameFactory.SizeTypeReference(),Variadic.None,
+                                    NameReference.Create(NameFactory.SizeTypeReference(),NameFactory.NumMaxValueName),
+                                        isNameRequired:false, modifier:EntityModifier.Reassignable));
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
@@ -834,7 +843,7 @@ namespace Skila.Language
                     NameReference.Create("index")
                 ))))
                 .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference()),
-                    FunctionParameter.Create("index", NameFactory.SizeTypeReference())))
+                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(),Variadic.None,NatLiteral.Create("0"))))
 
                     .With(lastIndexOfChar)
 
@@ -844,13 +853,7 @@ namespace Skila.Language
                                         NameReference.Create("ch"),
                                         NameReference.CreateThised(NameFactory.StringLength)))))
                             .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
-                                    .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
-                                        Block.CreateStatement(Return.Create(
-                                            FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
-                                        NameReference.Create("ch"),
-                                        NatLiteral.Create("0")))))
-                            .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
-
+                                    
                             .With(reverse)
                             .With(split)
 

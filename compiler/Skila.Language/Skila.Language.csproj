@@ -64,6 +64,7 @@
     <Compile Include="Comparers\EntityInstanceCoreSignatureComparer.cs" />
     <Compile Include="Comparers\EntityInstanceCoreComparer.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
+    <Compile Include="Data\Layer.cs" />
     <Compile Include="Data\Tree.cs" />
     <Compile Include="Data\LayerDictionary.Flat.cs" />
     <Compile Include="Data\LayerDictionary.cs" />

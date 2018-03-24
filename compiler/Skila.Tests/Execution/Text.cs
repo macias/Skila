@@ -18,8 +18,116 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Text
     {
-        //[TestMethod]
-        public IInterpreter TODO_SplittingString()
+        [TestMethod]
+        public IInterpreter StringSlicing()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create(""),
+                        NameFactory.StringSlice), NatLiteral.Create("0"))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("abc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc"),
+                        NameFactory.StringSlice), NatLiteral.Create("0"))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc"),
+                        NameFactory.StringSlice), NatLiteral.Create("3"))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("bc"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc"),
+                        NameFactory.StringSlice), NatLiteral.Create("1"))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("b"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("abc"),
+                        NameFactory.StringSlice), NatLiteral.Create("1"), NatLiteral.Create("1"))),
+
+                    //https://en.wikipedia.org/wiki/UTF-8#Examples
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("a€a"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringSlice), NatLiteral.Create("3"))),
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("a€"),
+                        FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringSlice), NatLiteral.Create("3"), NatLiteral.Create("4"))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter StringSearching()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create(""),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'))),
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create("bcd"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'))),
+
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a')))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'), NatLiteral.Create("1")))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("5"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'), NatLiteral.Create("2")))),
+                    ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create("balboa"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'), NatLiteral.Create("6"))),
+
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("0"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("barbara"),
+                        NameFactory.StringIndexOf), StringLiteral.Create("ba")))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("barbara"),
+                        NameFactory.StringIndexOf), StringLiteral.Create("ba"), NatLiteral.Create("1")))),
+
+                    //https://en.wikipedia.org/wiki/UTF-8#Examples
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a')))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("7"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('a'), NatLiteral.Create("4")))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("0"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('€')))),
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("4"),
+                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€a"),
+                        NameFactory.StringIndexOf), CharLiteral.Create('€'), NatLiteral.Create("3")))),
+
+                    Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter SplittingString()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
             var root_ns = env.Root;
@@ -36,39 +144,140 @@ namespace Skila.Tests.Execution
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
                                 StringLiteral.Create(" ")),
                             NameFactory.IterableCount))),
-            // assert("hello world".split(" ").at(0) == "hello");
+                    // assert("hello world".split(" ").at(0) == "hello");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("hello"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
-                                StringLiteral.Create(" ")),
-                            NameFactory.AtFunctionName),NatLiteral.Create("0"))),
+                                StringLiteral.Create(" ")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
 
 
             // assert("hello world".split("x").count() == 1);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create("x")),
+                            NameFactory.IterableCount))),
             // assert("hello world".split("x").at(0) == "hello world");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("hello world"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create("x")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
+
 
             // assert("hello world".split("h").count() == 2);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create("h")), NameFactory.IterableCount))),
             // assert("hello world".split("h").at(0) == "");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create("h")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
             // assert("hello world".split("h").at(1) == "ello world");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("ello world"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
+                                StringLiteral.Create("h")), NameFactory.AtFunctionName), NatLiteral.Create("1"))),
+
 
             // assert(".".split(".").count() == 2);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("."), NameFactory.StringSplit),
+                                StringLiteral.Create(".")), NameFactory.IterableCount))),
             // assert(".".split(".").at(0) == "");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("."), NameFactory.StringSplit),
+                                StringLiteral.Create(".")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
             // assert(".".split(".").at(1) == "");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create(""),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("."), NameFactory.StringSplit),
+                                StringLiteral.Create(".")), NameFactory.AtFunctionName), NatLiteral.Create("1"))),
+
 
             // assert("x".split(".").count() == 1);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
+                                StringLiteral.Create(".")), NameFactory.IterableCount))),
             // assert("x".split(".").at(0) == "x");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("x"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
+                                StringLiteral.Create(".")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
+
 
             // assert("x".split("ab").count() == 1);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
+                                StringLiteral.Create("ab")), NameFactory.IterableCount))),
             // assert("x".split("ab").at(0) == "x");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("x"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
+                                StringLiteral.Create("ab")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
 
-            // assert("a-b-c".split("-", limit: 2).count() == 2);
+
+            // assert("a-b-c".split("-", limit: 2).count() == 3);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.IterableCount))),
             // assert("a-b-c".split("-", limit: 2).at(0) == "a");
-            // assert("a-b-c".split("-", limit: 2).at(1) == "b-c");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("a"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
+            // assert("a-b-c".split("-", limit: 2).at(1) == "b");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("b"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.AtFunctionName), NatLiteral.Create("1"))),
+            // assert("a-b-c".split("-", limit: 2).at(2) == "c");
+            ExpressionFactory.AssertEqual(StringLiteral.Create("c"),
+              FunctionCall.Create(NameReference.Create(
+                FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                  StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.AtFunctionName), NatLiteral.Create("2"))),
 
-            // assert("a-b-c".split("-", limit: 1).count() == 1);
-            // assert("a-b-c".split("-", limit: 1).at(0) == "a-b-c");
 
-            Return.Create(Nat8Literal.Create("0"))
+            // assert("a-b-c".split("-", limit: 1).count() == 2);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("1")), NameFactory.IterableCount))),
+            // assert("a-b-c".split("-", limit: 1).at(0) == "a");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("a"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("1")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
+            // assert("a-b-c".split("-", limit: 1).at(1) == "b-c");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("b-c"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
+                                StringLiteral.Create("-"), NatLiteral.Create("1")), NameFactory.AtFunctionName), NatLiteral.Create("1"))),
+
+
+            // assert("𤭢€¢".split("€").count() == 2);
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("𤭢€¢"), NameFactory.StringSplit),
+                                StringLiteral.Create("€")), NameFactory.IterableCount))),
+            // assert("𤭢€¢".split("€").at(0) == "𤭢");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("𤭢"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("𤭢€¢"), NameFactory.StringSplit),
+                                StringLiteral.Create("€")), NameFactory.AtFunctionName), NatLiteral.Create("0"))),
+            // assert("𤭢€¢".split("€").at(1) == "¢");
+                    ExpressionFactory.AssertEqual(StringLiteral.Create("¢"),
+                        FunctionCall.Create(NameReference.Create(
+                            FunctionCall.Create(NameReference.Create(StringLiteral.Create("𤭢€¢"), NameFactory.StringSplit),
+                                StringLiteral.Create("€")), NameFactory.AtFunctionName), NatLiteral.Create("1"))),
+
+                Return.Create(Nat8Literal.Create("0"))
             ))
             .Include(NameFactory.LinqExtensionReference()));
 

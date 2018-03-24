@@ -27,22 +27,11 @@ namespace Skila.Language.Data
                 layers = new Stack<HashSet<K>>();
             }
 
-            public IEnumerable<IEnumerable<K>> EnumerateLayers()
-            {
-                return this.layers.Reverse(); // from first to last
-            }
             public void PushLayer()
             {
                 layers.Push(new HashSet<K>(comparer));
             }
 
-            /*public L GetLastScope()
-            {
-                if (scopes.Any())
-                    return scopes.Last.Value.Item1;
-                else
-                    return null;
-            }*/
             public IEnumerable<Tuple<K, V>> PopLayer()
             {
                 var result = new List<Tuple<K, V>>();

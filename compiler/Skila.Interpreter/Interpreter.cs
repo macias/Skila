@@ -33,7 +33,7 @@ namespace Skila.Interpreter
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
-            if (func.DebugId == (6, 107))
+            if (func.DebugId ==  (10, 168))
             {
                 ;
             }
@@ -55,16 +55,14 @@ namespace Skila.Interpreter
                     if (i == 0 && func.IsExtension && ctx.ThisArgument != null)
                         arg_data = ctx.ThisArgument;
                     else
+                    {
+                        if (ctx.FunctionArguments[i] == null)
+                            ctx.FunctionArguments[i] = (await ExecutedAsync(param.DefaultValue, ctx).ConfigureAwait(false)).ExprValue;
                         arg_data = ctx.FunctionArguments[i];
-
-                    bool added;
-                    if (arg_data == null)
-                        added = ctx.LocalVariables.Add(param, (await ExecutedAsync(param.DefaultValue, ctx).ConfigureAwait(false)).ExprValue);
-                    else
-                        added = ctx.LocalVariables.Add(param, arg_data);
-
-                    if (!added)
-                        throw new NotImplementedException();
+                    }
+            
+                    if (!ctx.LocalVariables.Add(param, arg_data))
+                        throw new ArgumentException($"{ExceptionCode.SourceInfo()}");
                 }
             }
 
@@ -175,6 +173,10 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IfBranch ifBranch)
         {
+            if (ifBranch.DebugId==(19, 292))
+            {
+                ;
+            }
             ObjectData cond_obj = null;
             if (!ifBranch.IsElse)
             {
@@ -385,13 +387,13 @@ namespace Skila.Interpreter
             ObjectData out_obj = !result.IsExpression
                 || (scope is Block block && !block.IsRead) ? null : result.ExprValue;
 
-            foreach (Tuple<ILocalBindable, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
+            foreach (Tuple<INode, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
             {
-                ILocalBindable bindable = bindable_obj.Item1;
+                ILocalBindable bindable = bindable_obj.Item1 as ILocalBindable;
                 ObjectData obj = bindable_obj.Item2;
 
                 ctx.Heap.TryRelease(ctx, obj, passingOutObject: out_obj, isPassingOut: false, reason: RefCountDecReason.UnwindingStack,
-                    comment: $"elem: {bindable}, scope: {scope}");
+                    comment: $"elem: {(bindable == null ? "«¿tmp¿»" : $"{bindable}")}, scope: {scope}");
             }
         }
 
@@ -605,6 +607,10 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
+            if (call.DebugId==(20, 444))
+            {
+                ;
+            }
             CallPreparationData call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
             if (call_prep.Prep.Is<ExecValue>())
                 return call_prep.Prep.As<ExecValue>();
@@ -672,7 +678,7 @@ namespace Skila.Interpreter
 
         private async Task<CallPreparationData> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId == (20, 334))
+            if (call.DebugId == (20, 443))
             {
                 ;
             }
@@ -790,7 +796,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        MutabilityOverride.NotGiven, null,asSelf:false),
+                        MutabilityOverride.NotGiven, null, asSelf: false),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -1053,19 +1059,18 @@ namespace Skila.Interpreter
                 return await ObjectData.CreateInstanceAsync(ctx, ctx.Env.UnitType.InstanceOf, UnitLiteral.UnitValue).ConfigureAwait(false);
             }
 
+            // add temporary value to register, it will be unwinded with the stack
+            // this is needed for cases when computation is done on fly, like
+            // foo().at(0)
+            // we need the result of the first call pinned down
+            ctx.LocalVariables.Add(node, retValue);
+
             if (isScrappingOffPointer(ctx, node))
             {
-                ObjectData temp = retValue.Dereferenced(node.DereferencedCount_LEGACY);
-                temp = temp.Copy();
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: null, isPassingOut: false,
-                    reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
-                retValue = temp;
+                retValue = retValue.Dereferenced(node.DereferencedCount_LEGACY);
+                retValue = retValue.Copy();
                 for (int i = 0; i < node.DereferencedCount_LEGACY; ++i)
                     retValue = await retValue.ReferenceAsync(ctx).ConfigureAwait(false);
-            }
-            else
-            {
-                ctx.Heap.TryRelease(ctx, retValue, passingOutObject: node.IsRead ? retValue : null, isPassingOut: false, reason: RefCountDecReason.DropOnCallResult, comment: $"{node}");
             }
 
 

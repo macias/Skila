@@ -280,7 +280,7 @@ namespace Skila.Interpreter
             else if (func == ctx.Env.CharToString)
             {
                 ObjectData result = await createStringAsync(ctx, $"{this_native}").ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, $"{this_native}"))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
@@ -308,23 +308,26 @@ namespace Skila.Interpreter
             }
             else if (func == ctx.Env.Utf8StringTrimStart)
             {
-                ObjectData result = await createStringAsync(ctx, this_native.TrimStart()).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                string trimmed = this_native.TrimStart();
+                ObjectData result = await createStringAsync(ctx, trimmed).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, trimmed))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
             else if (func == ctx.Env.Utf8StringReverse)
             {
                 // https://en.wikipedia.org/wiki/Combining_character
-                ObjectData result = await createStringAsync(ctx, reverseGraphemeClusters(this_native)).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                string reversed = reverseGraphemeClusters(this_native);
+                ObjectData result = await createStringAsync(ctx, reversed).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, reversed))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
             else if (func == ctx.Env.Utf8StringTrimEnd)
             {
-                ObjectData result = await createStringAsync(ctx, this_native.TrimEnd()).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                string trimmed = this_native.TrimEnd();
+                ObjectData result = await createStringAsync(ctx, trimmed).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, trimmed))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
@@ -353,7 +356,7 @@ namespace Skila.Interpreter
                 string sub = Encoding.UTF8.GetString(this_utf8, native_idx_arg, native_len_arg);
 
                 ObjectData result = await createStringAsync(ctx, sub).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, ""))
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, sub))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }
@@ -374,7 +377,7 @@ namespace Skila.Interpreter
                 Option<ObjectData> index_obj;
                 if (idx != -1)
                 {
-                    idx = native_idx_arg + Encoding.UTF8.GetByteCount(this_native.Substring(0, idx));
+                    idx = native_idx_arg + Encoding.UTF8.GetByteCount(sub.Substring(0, idx));
                     index_obj = new Option<ObjectData>(await ObjectData.CreateInstanceAsync(ctx, ctx.Env.SizeType.InstanceOf, (UInt64)idx)
                         .ConfigureAwait(false));
                 }

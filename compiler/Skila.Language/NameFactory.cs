@@ -96,7 +96,7 @@ namespace Skila.Language
         public const string RealTypeName = "Real";
         public const string Real64TypeName = "Real64";
         public const string Real32TypeName = "Real32";
-        public const string ThisVariableName = "self";
+        public const string ThisVariableName = "this";
         public const string SelfTypeTypeName = "Self";
         public const string ItTypeName = "It";
         public const string BaseVariableName = "base";

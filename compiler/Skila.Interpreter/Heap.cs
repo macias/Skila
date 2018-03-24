@@ -21,7 +21,7 @@ namespace Skila.Interpreter
 
         // it is legal to have entry with 0 count (it happens on alloc and also on passing out pointers from block expressions)
         private readonly Dictionary<ObjectData, int> refCounts;
-        private readonly ValueTuple<int, int> debugTraceId = (42, 6);
+        private readonly ValueTuple<int, int> debugTraceId = (-1, -1) ;
         private int debugActionCount = 0;
 
         // we track host (C#) diposables created during interpretation just to check on exit if we cleaned all of them
@@ -177,7 +177,7 @@ namespace Skila.Interpreter
         }
         private void print(int count, int change, string operation, string reason, string comment)
         {
-            if (debugActionCount == 7 || debugActionCount == 8)
+            if (debugActionCount == 6)
             {
                 ;
             }
@@ -186,7 +186,8 @@ namespace Skila.Interpreter
             operation = WebUtility.HtmlEncode(operation);
             reason = WebUtility.HtmlEncode(reason);
             comment = WebUtility.HtmlEncode(comment);
-            Console.WriteLine($"<p style=\"padding-left:{margin * 2}em\"><span style=\"color: {color};\">{debugActionCount++} <b>{operation} {count}</b></span> {reason} <i>{comment}</i></p>");
+            Console.WriteLine($"<p style=\"padding-left:{margin * 2}em\"><span style=\"color: {color};\">{debugActionCount} <b>{operation} {count}</b></span> {reason} <i>{comment}</i></p>");
+            ++debugActionCount;
         }
 
     }
