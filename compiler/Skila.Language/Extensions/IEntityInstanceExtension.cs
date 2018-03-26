@@ -24,12 +24,12 @@ namespace Skila.Language.Extensions
         }
 
 
-        public static IEntity Target(this IEntityInstance instance)
+        public static IEntity Target(this IEntityInstance iinstance)
         {
-            if (instance is EntityInstance)
-                return (instance as EntityInstance).Target;
-            else if (instance is EntityInstanceUnion)
-                return (instance as EntityInstanceUnion).Instances.Single().Target();
+            if (iinstance is EntityInstance instance)
+                return instance.Target;
+            else if (iinstance is EntityInstanceUnion union)
+                return union.Instances.Single().Target();
             else
                 throw new NotImplementedException();
         }
@@ -107,9 +107,9 @@ namespace Skila.Language.Extensions
                 foreach (IEntityInstance arg in instance.TemplateArguments)
                 {
                     TypeMutability arg_mutability = arg.MutabilityOfType(ctx);
-                    if (arg_mutability != TypeMutability.Const 
+                    if (arg_mutability != TypeMutability.Const
                         && arg_mutability != TypeMutability.ConstAsSource
-                        && arg_mutability!= TypeMutability.GenericUnknownMutability)
+                        && arg_mutability != TypeMutability.GenericUnknownMutability)
                         return TypeMutability.Mutable;
                 }
 

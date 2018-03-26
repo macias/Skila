@@ -47,8 +47,8 @@ namespace Skila.Interpreter
                 for (int match_idx = 0; match_idx < matches.Count; ++match_idx)
                 {
                     System.Text.RegularExpressions.Match match = matches[match_idx];
-                    ObjectData match_index_val = await createNat64Async(ctx, (UInt64)match.Index).ConfigureAwait(false);
-                    ObjectData match_length_val = await createNat64Async(ctx, (UInt64)match.Length).ConfigureAwait(false);
+                    ObjectData match_start_val = await createNat64Async(ctx, (UInt64)match.Index).ConfigureAwait(false);
+                    ObjectData match_end_val = await createNat64Async(ctx, (UInt64)(match.Index+match.Length)).ConfigureAwait(false);
 
                     ObjectData array_captures_ptr;
 
@@ -78,8 +78,8 @@ namespace Skila.Interpreter
                             {
                                 System.Text.RegularExpressions.Capture cap = group.Captures[cap_idx];
 
-                                ObjectData cap_index_val = await createNat64Async(ctx, (UInt64)cap.Index).ConfigureAwait(false);
-                                ObjectData cap_length_val = await createNat64Async(ctx, (UInt64)cap.Length).ConfigureAwait(false);
+                                ObjectData cap_start_val = await createNat64Async(ctx, (UInt64)cap.Index).ConfigureAwait(false);
+                                ObjectData cap_end_val = await createNat64Async(ctx, (UInt64)(cap.Index+cap.Length)).ConfigureAwait(false);
                                 ObjectData cap_opt_name_val;
                                 {
                                     Option<ObjectData> opt_group_name_obj;
@@ -98,7 +98,7 @@ namespace Skila.Interpreter
                                     cap_opt_name_val = opt_exec.ExprValue;
                                 }
                                 ExecValue capture_obj_exec = await createObject(ctx, false, ctx.Env.CaptureType.InstanceOf,
-                                    ctx.Env.CaptureConstructor, null, cap_index_val, cap_length_val, cap_opt_name_val).ConfigureAwait(false);
+                                    ctx.Env.CaptureConstructor, null, cap_start_val, cap_end_val, cap_opt_name_val).ConfigureAwait(false);
                                 if (capture_obj_exec.IsThrow)
                                     return capture_obj_exec;
                                 ObjectData capture_ref = await capture_obj_exec.ExprValue.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -114,7 +114,7 @@ namespace Skila.Interpreter
                     ObjectData match_val;
                     {
                         ExecValue ret = await createObject(ctx, false, ctx.Env.MatchType.InstanceOf,
-                                ctx.Env.MatchConstructor, null, match_index_val, match_length_val, array_captures_ptr).ConfigureAwait(false);
+                                ctx.Env.MatchConstructor, null, match_start_val, match_end_val, array_captures_ptr).ConfigureAwait(false);
                         ctx.Heap.TryRelease(ctx, array_captures_ptr, null, false, RefCountDecReason.DroppingLocalPointer, "");
 
                         if (ret.IsThrow)

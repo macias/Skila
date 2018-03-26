@@ -347,16 +347,30 @@ namespace Skila.Interpreter
             }
             else if (func == ctx.Env.Utf8StringSlice)
             {
-                ObjectData arg_idx_obj = ctx.FunctionArguments[0];
-                int native_idx_arg = (int)arg_idx_obj.NativeNat;
-                ObjectData arg_len_obj = ctx.FunctionArguments[1];
-                int native_len_arg = (int)arg_len_obj.NativeNat;
+                ObjectData arg_start_obj = ctx.FunctionArguments[0];
+                int native_start_arg = (int)arg_start_obj.NativeNat;
+                ObjectData arg_end_obj = ctx.FunctionArguments[1];
+                int native_end_arg = (int)arg_end_obj.NativeNat;
+                int native_len_arg = native_end_arg-native_start_arg;
 
                 byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
-                string sub = Encoding.UTF8.GetString(this_utf8, native_idx_arg, native_len_arg);
+                string sub = Encoding.UTF8.GetString(this_utf8, native_start_arg, native_len_arg);
 
                 ObjectData result = await createStringAsync(ctx, sub).ConfigureAwait(false);
                 if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, sub))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                return ExecValue.CreateReturn(result);
+            }
+            else if (func == ctx.Env.Utf8StringConcat)
+            {
+                ObjectData arg_str_obj = ctx.FunctionArguments[0];
+                if (!arg_str_obj.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_str_val))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                string native_str_arg = arg_str_val.NativeString;
+
+                string concatenated = this_native + native_str_arg;
+                ObjectData result = await createStringAsync(ctx, concatenated).ConfigureAwait(false);
+                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, concatenated))
                     throw new Exception($"{ExceptionCode.SourceInfo()}");
                 return ExecValue.CreateReturn(result);
             }

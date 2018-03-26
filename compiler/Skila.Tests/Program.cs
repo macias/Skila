@@ -56,10 +56,10 @@ namespace Skila.Tests
                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().SplittingString();
+                new Execution.Text().StringRemoving();
             }
 
-            // if (false)
+             //if (false)
             {
                 const double golden_avg_s = 1.45;
                 const double golden_min_s = 0.00;

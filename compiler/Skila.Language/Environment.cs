@@ -87,6 +87,7 @@ namespace Skila.Language
         public FunctionDefinition Utf8StringReverse { get; }
         public FunctionDefinition Utf8StringSplit { get; }
         public FunctionDefinition Utf8StringSlice { get; }
+        public FunctionDefinition Utf8StringConcat { get; }
         public FunctionDefinition Utf8StringLengthGetter { get; }
 
         public TypeDefinition Utf8StringIteratorType { get; }
@@ -394,8 +395,8 @@ namespace Skila.Language
                     out FunctionDefinition index_of_string,
                     out FunctionDefinition last_index_of_char,
                     out FunctionDefinition reverse,
-                    split: out FunctionDefinition split,
-                    slice: out FunctionDefinition slice));
+                    slice: out FunctionDefinition slice,
+                    concat: out FunctionDefinition concat));
                 this.Utf8StringCountGetter = count_getter;
                 this.Utf8StringLengthGetter = length_getter;
                 this.Utf8StringAtGetter = at_getter.Cast<FunctionDefinition>();
@@ -404,8 +405,8 @@ namespace Skila.Language
                 this.Utf8StringIndexOfString = index_of_string;
                 this.Utf8StringLastIndexOfChar = last_index_of_char;
                 this.Utf8StringReverse = reverse;
-                this.Utf8StringSplit = split;
                 this.Utf8StringSlice = slice;
+                this.Utf8StringConcat = concat;
                 this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
@@ -596,8 +597,8 @@ namespace Skila.Language
         private TypeDefinition createCapture(out FunctionDefinition captureConstructor)
         {
             captureConstructor = ExpressionFactory.BasicConstructor(new[] {
-                        NameFactory.CaptureIndexFieldName,
-                        NameFactory.CaptureLengthFieldName,
+                        NameFactory.CaptureStartFieldName,
+                        NameFactory.CaptureEndFieldName,
                   //      NameFactory.CaptureIdFieldName,
                         NameFactory.CaptureNameFieldName
                     },
@@ -609,8 +610,8 @@ namespace Skila.Language
                     });
 
             return TypeBuilder.Create(NameFactory.CaptureTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIndexFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureLengthFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureStartFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureEndFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
                 //.With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
                     NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst)), Undef.Create()))
@@ -620,9 +621,9 @@ namespace Skila.Language
 
         private TypeDefinition createMatch(out Property matchCapturesProp, out FunctionDefinition matchConstructor)
         {
-            Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchIndexFieldName, NameFactory.SizeTypeReference(),
+            Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchStartFieldName, NameFactory.SizeTypeReference(),
                 Undef.Create());
-            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchLengthFieldName, NameFactory.SizeTypeReference(),
+            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchEndFieldName, NameFactory.SizeTypeReference(),
                 Undef.Create());
             matchCapturesProp = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
                     NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), MutabilityOverride.ForceConst)),
@@ -631,8 +632,8 @@ namespace Skila.Language
             // using constructor with direct initialization of the fields, not properties (no setters anyway)
             matchConstructor = ExpressionFactory.BasicConstructor(
                 new[] {
-                        NameFactory.MatchIndexFieldName,
-                        NameFactory.MatchLengthFieldName,
+                        NameFactory.MatchStartFieldName,
+                        NameFactory.MatchEndFieldName,
                         NameFactory.MatchCapturesFieldName
                     },
                     new[] {
@@ -725,7 +726,7 @@ namespace Skila.Language
         private TypeDefinition createUtf8String(out FunctionDefinition countGetter, out FunctionDefinition lengthGetter,
             out IMember atGetter, out FunctionDefinition trimStart, out FunctionDefinition trimEnd,
             out FunctionDefinition indexOfString, out FunctionDefinition lastIndexOfChar, out FunctionDefinition reverse,
-            out FunctionDefinition split, out FunctionDefinition slice)
+            out FunctionDefinition slice,out FunctionDefinition concat)
         {
             Property count_property = PropertyBuilder.Create(NameFactory.IterableCount, NameFactory.SizeTypeReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
@@ -743,6 +744,11 @@ namespace Skila.Language
             trimEnd = FunctionBuilder.Create(NameFactory.StringTrimEnd, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .SetModifier(EntityModifier.Native);
+            concat = FunctionBuilder.Create(NameFactory.StringConcat, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(Undef.Create())))
+            .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), 
+                ExpressionReadMode.CannotBeRead))
+                .SetModifier(EntityModifier.Native);
             indexOfString = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead),
@@ -759,11 +765,11 @@ namespace Skila.Language
                 .SetModifier(EntityModifier.Native);
             slice = FunctionBuilder.Create(NameFactory.StringSlice, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .Parameters(FunctionParameter.Create("index", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("length", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("end", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
 
-            split = FunctionBuilder.Create(NameFactory.StringSplit,
+            FunctionDefinition split = FunctionBuilder.Create(NameFactory.StringSplit,
                                 NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.Utf8StringPointerTypeReference())),
                             Block.CreateStatement(
                                 VariableDeclaration.CreateStatement("buffer", null,
@@ -771,19 +777,19 @@ namespace Skila.Language
                                 VariableDeclaration.CreateStatement("start", null, NatLiteral.Create("0"), EntityModifier.Reassignable),
 
                                 Loop.CreateWhile(ExpressionFactory.And(
-                                    ExpressionFactory.IsNotEqual(NatLiteral.Create("0"),NameReference.Create("limit"))
+                                    ExpressionFactory.IsNotEqual(NatLiteral.Create("0"), NameReference.Create("limit"))
                                     ,
                                     ExpressionFactory.OptionalDeclaration("idx", null,
                                         FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
-                                            NameReference.Create("separator"), NameReference.Create("start")))), 
-                                        
+                                            NameReference.Create("separator"), NameReference.Create("start")))),
+
                                         new IExpression[] {
                                             ExpressionFactory.Dec("limit"),
 
                                         FunctionCall.Create(NameReference.Create( "buffer",NameFactory.AppendFunctionName),
                                             FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
                                             NameReference.Create("start"),
-                                            ExpressionFactory.Sub("idx","start"))),
+                                            NameReference.Create( "idx"))),
 
                                         Assignment.CreateStatement(NameReference.Create("start"),
                                             ExpressionFactory.Add(NameReference.Create("idx"),
@@ -797,12 +803,27 @@ namespace Skila.Language
                                     Return.Create(NameReference.Create("buffer"))
 
                                 ))
-                            .Parameters(FunctionParameter.Create("separator", 
+                            .Parameters(FunctionParameter.Create("separator",
                                 NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral)),
                                 // limit of the splits, not parts!
-                                FunctionParameter.Create("limit",NameFactory.SizeTypeReference(),Variadic.None,
-                                    NameReference.Create(NameFactory.SizeTypeReference(),NameFactory.NumMaxValueName),
-                                        isNameRequired:false, modifier:EntityModifier.Reassignable));
+                                FunctionParameter.Create("limit", NameFactory.SizeTypeReference(), Variadic.None,
+                                    NameReference.Create(NameFactory.SizeTypeReference(), NameFactory.NumMaxValueName),
+                                        isNameRequired: false, modifier: EntityModifier.Reassignable));
+
+            FunctionDefinition remove = FunctionBuilder.Create(NameFactory.StringRemove,
+                                NameFactory.Utf8StringPointerTypeReference(),
+                            Block.CreateStatement(
+                                Return.Create(
+                                    FunctionCall.Create(
+                                        NameReference.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                                        NatLiteral.Create("0"),NameReference.Create("start")), NameFactory.StringConcat),
+
+                                    FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
+                                        NameReference.Create("end"),NameReference.CreateThised(NameFactory.StringLength)))
+                                        )
+                                ))
+                            .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference()),
+                                FunctionParameter.Create("end", NameFactory.SizeTypeReference()));
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
@@ -835,6 +856,7 @@ namespace Skila.Language
                                     NameFactory.ReferenceTypeReference(NameFactory.ItTypeReference(MutabilityOverride.Neutral)),
                                     ExpressionReadMode.CannotBeRead)))
 
+                                    .With(concat)
 
                                     .With(indexOfString)
                                     .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
@@ -843,7 +865,7 @@ namespace Skila.Language
                     NameReference.Create("index")
                 ))))
                 .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference()),
-                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(),Variadic.None,NatLiteral.Create("0"))))
+                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), Variadic.None, NatLiteral.Create("0"))))
 
                     .With(lastIndexOfChar)
 
@@ -853,16 +875,23 @@ namespace Skila.Language
                                         NameReference.Create("ch"),
                                         NameReference.CreateThised(NameFactory.StringLength)))))
                             .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
-                                    
+
                             .With(reverse)
                             .With(split)
+
+                            .With(remove)
+                                    .With(FunctionBuilder.Create(NameFactory.StringRemove, NameFactory.Utf8StringPointerTypeReference(),
+                Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringRemove),
+                    NameReference.Create("start"),
+                    NameReference.CreateThised(NameFactory.StringLength)))))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference())))
 
                             .With(slice)
                                     .With(FunctionBuilder.Create(NameFactory.StringSlice, NameFactory.Utf8StringPointerTypeReference(),
                 Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
-                    NameReference.Create("index"),
-                    ExpressionFactory.Sub(NameReference.CreateThised(NameFactory.StringLength), NameReference.Create("index"))))))
-                .Parameters(FunctionParameter.Create("index", NameFactory.SizeTypeReference())))
+                    NameReference.Create("start"),
+                    NameReference.CreateThised(NameFactory.StringLength)))))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference())))
 
                                     .With(trimStart)
                                     .With(trimEnd)
@@ -1823,7 +1852,7 @@ namespace Skila.Language
             bool viaPointer)
         {
             return (viaPointer ? this.PointerType : this.ReferenceType)
-                .GetInstance(new[] { instance }, mutability, translation,asSelf:false);
+                .GetInstance(new[] { instance }, mutability, translation, asSelf: false);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {

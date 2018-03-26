@@ -76,8 +76,8 @@ namespace Skila.Language
         public const string FridayDayOfWeekTypeName = "friday";
         public const string SaturdayDayOfWeekTypeName = "saturday";
 
-        public const string CaptureIndexFieldName = "index";
-        public const string CaptureLengthFieldName = "length";
+        public const string CaptureStartFieldName = "start";
+        public const string CaptureEndFieldName = "end";
         public const string CaptureIdFieldName = "id";
         public const string CaptureNameFieldName = "name";
 
@@ -85,8 +85,8 @@ namespace Skila.Language
         public const string NumMaxValueName = "maxValue";
         public const string RealNanName = "nan";
 
-        public const string MatchIndexFieldName = "index";
-        public const string MatchLengthFieldName = "length";
+        public const string MatchStartFieldName = "start";
+        public const string MatchEndFieldName = "end";
         public const string MatchCapturesFieldName = "captures";
 
         public const string RegexPatternFieldName = "pattern";
@@ -141,11 +141,13 @@ namespace Skila.Language
         // don't use terms left/right because it will confuse right-to-left devs
         public const string StringTrimStart = "trimStart";
         public const string StringTrimEnd = "trimEnd";
+        public const string StringConcat = ConcatFunctionName;
         public const string StringIndexOf = "indexOf";
         public const string StringLastIndexOf = "lastIndexOf";
         public const string StringLength = "length";
         public const string StringReverse = ReverseFunctionName;
         public const string StringSplit = "split";
+        public const string StringRemove = "remove";
         public const string StringSlice = "slice";
 
         public const string CharLength = "length";
