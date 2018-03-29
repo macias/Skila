@@ -19,6 +19,47 @@ namespace Skila.Tests.Execution
     public class Text
     {
         [TestMethod]
+        public IInterpreter StringUtf8Encoding()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                NameDefinition.Create("main"),
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+
+                    ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
+                        NameReference.Create(StringLiteral.Create("$"), NameFactory.StringLength)),
+
+                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
+                         NameReference.Create(StringLiteral.Create("¢"), NameFactory.StringLength)),
+
+                     ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
+                         NameReference.Create(StringLiteral.Create("€"), NameFactory.StringLength)),
+
+                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"),
+                         NameReference.Create(StringLiteral.Create("𤭢"), NameFactory.StringLength)),
+
+                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"),
+                         NameReference.Create(StringLiteral.Create("$¢𤭢€"), NameFactory.IIterableCount)),
+
+                     ExpressionFactory.AssertEqual(NatLiteral.Create((System.UInt64)("Les Mise'rables".Length)),
+                         NameReference.Create(StringLiteral.Create("Les Mise\u0301rables"), NameFactory.IIterableCount)),
+
+                     Return.Create(Nat8Literal.Create("0"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter StringRemoving()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -54,7 +95,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(StringLiteral.Create("€x"),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("€a€x"),
                         NameFactory.StringRemove), NatLiteral.Create("3"), NatLiteral.Create("7"))),
-                    
+
                     Return.Create(Nat8Literal.Create("0"))
                 )));
 
@@ -192,7 +233,7 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
                                 StringLiteral.Create(" ")),
-                            NameFactory.IterableCount))),
+                            NameFactory.IIterableCount))),
                     // assert("hello world".split(" ").at(0) == "hello");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("hello"),
                         FunctionCall.Create(NameReference.Create(
@@ -205,7 +246,7 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
                                 StringLiteral.Create("x")),
-                            NameFactory.IterableCount))),
+                            NameFactory.IIterableCount))),
             // assert("hello world".split("x").at(0) == "hello world");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("hello world"),
                         FunctionCall.Create(NameReference.Create(
@@ -217,7 +258,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("hello world"), NameFactory.StringSplit),
-                                StringLiteral.Create("h")), NameFactory.IterableCount))),
+                                StringLiteral.Create("h")), NameFactory.IIterableCount))),
             // assert("hello world".split("h").at(0) == "");
                     ExpressionFactory.AssertEqual(StringLiteral.Create(""),
                         FunctionCall.Create(NameReference.Create(
@@ -234,7 +275,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("."), NameFactory.StringSplit),
-                                StringLiteral.Create(".")), NameFactory.IterableCount))),
+                                StringLiteral.Create(".")), NameFactory.IIterableCount))),
             // assert(".".split(".").at(0) == "");
                     ExpressionFactory.AssertEqual(StringLiteral.Create(""),
                         FunctionCall.Create(NameReference.Create(
@@ -251,7 +292,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
-                                StringLiteral.Create(".")), NameFactory.IterableCount))),
+                                StringLiteral.Create(".")), NameFactory.IIterableCount))),
             // assert("x".split(".").at(0) == "x");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("x"),
                         FunctionCall.Create(NameReference.Create(
@@ -263,7 +304,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("x"), NameFactory.StringSplit),
-                                StringLiteral.Create("ab")), NameFactory.IterableCount))),
+                                StringLiteral.Create("ab")), NameFactory.IIterableCount))),
             // assert("x".split("ab").at(0) == "x");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("x"),
                         FunctionCall.Create(NameReference.Create(
@@ -275,7 +316,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
-                                StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.IterableCount))),
+                                StringLiteral.Create("-"), NatLiteral.Create("2")), NameFactory.IIterableCount))),
             // assert("a-b-c".split("-", limit: 2).at(0) == "a");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("a"),
                         FunctionCall.Create(NameReference.Create(
@@ -297,7 +338,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("a-b-c"), NameFactory.StringSplit),
-                                StringLiteral.Create("-"), NatLiteral.Create("1")), NameFactory.IterableCount))),
+                                StringLiteral.Create("-"), NatLiteral.Create("1")), NameFactory.IIterableCount))),
             // assert("a-b-c".split("-", limit: 1).at(0) == "a");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("a"),
                         FunctionCall.Create(NameReference.Create(
@@ -314,7 +355,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("2"),
                         FunctionCall.Create(NameReference.Create(
                             FunctionCall.Create(NameReference.Create(StringLiteral.Create("𤭢€¢"), NameFactory.StringSplit),
-                                StringLiteral.Create("€")), NameFactory.IterableCount))),
+                                StringLiteral.Create("€")), NameFactory.IIterableCount))),
             // assert("𤭢€¢".split("€").at(0) == "𤭢");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("𤭢"),
                         FunctionCall.Create(NameReference.Create(
@@ -339,7 +380,7 @@ namespace Skila.Tests.Execution
         }
 
         [TestMethod]
-        public IInterpreter ReversingString()
+        public IInterpreter StringReversing()
         {
             // https://stackoverflow.com/questions/27331819/whats-the-difference-between-a-character-a-code-point-a-glyph-and-a-grapheme
             var env = Environment.Create(new Options() { DebugThrowOnError = true });
@@ -375,7 +416,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(StringLiteral.Create("𤭢€¢$"),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("$¢€𤭢"), NameFactory.StringReverse))),
 
-                    // assert("Les Misérables".reverse()=="selbarésiM seL");
+                    // assert("Les Mise\u0301rables".reverse()=="selbare\u0301siM seL");
                     ExpressionFactory.AssertEqual(StringLiteral.Create("selbarésiM seL"),
                         FunctionCall.Create(NameReference.Create(StringLiteral.Create("Les Misérables"), NameFactory.StringReverse))),
                     Return.Create(Nat8Literal.Create("0"))
@@ -627,7 +668,7 @@ namespace Skila.Tests.Execution
                       VariableDeclaration.CreateStatement("matches", null,
                         FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
                       ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
-                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IterableCount))),
+                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IIterableCount))),
 
                         /*
                             assert(matches.at(0).index==0);
@@ -640,7 +681,7 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("m", NameFactory.MatchStartFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("10"), NameReference.Create("m", NameFactory.MatchEndFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
-                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IterableCount))),
+                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IIterableCount))),
 
                         /*
                             assert(matches.at(0).captures.at(0).id==0); // skipped here
@@ -719,7 +760,7 @@ namespace Skila.Tests.Execution
                       VariableDeclaration.CreateStatement("matches", null,
                         FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
                       ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
-                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IterableCount))),
+                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IIterableCount))),
 
                         /*
                             assert(matches.at(0).index==0);
@@ -732,7 +773,7 @@ namespace Skila.Tests.Execution
                         ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("m", NameFactory.MatchStartFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("10"), NameReference.Create("m", NameFactory.MatchEndFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
-                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IterableCount))),
+                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IIterableCount))),
 
                         /*
                             assert(matches.at(0).captures.at(0).id==0); // skipped here
@@ -814,7 +855,7 @@ namespace Skila.Tests.Execution
                       VariableDeclaration.CreateStatement("matches", null,
                         FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
                       ExpressionFactory.AssertEqual(NatLiteral.Create("3"),
-                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IterableCount))),
+                            FunctionCall.Create(NameReference.Create("matches", NameFactory.IIterableCount))),
 
                     /*
                       var m = 0;
@@ -833,7 +874,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("0"), NameReference.Create("m", NameFactory.MatchStartFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("4"), NameReference.Create("m", NameFactory.MatchEndFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
-                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IterableCount))),
+                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IIterableCount))),
 
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
@@ -859,7 +900,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("5"), NameReference.Create("m", NameFactory.MatchStartFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("7"), NameReference.Create("m", NameFactory.MatchEndFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
-                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IterableCount))),
+                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IIterableCount))),
 
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),
@@ -885,7 +926,7 @@ namespace Skila.Tests.Execution
                     ExpressionFactory.AssertEqual(NatLiteral.Create("8"), NameReference.Create("m", NameFactory.MatchStartFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("10"), NameReference.Create("m", NameFactory.MatchEndFieldName)),
                     ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
-                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IterableCount))),
+                        FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.IIterableCount))),
 
                     VariableDeclaration.CreateStatement("c", null,
                             FunctionCall.Create(NameReference.Create("m", NameFactory.MatchCapturesFieldName, NameFactory.AtFunctionName),

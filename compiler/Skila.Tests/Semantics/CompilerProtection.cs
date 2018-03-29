@@ -141,7 +141,7 @@ namespace Skila.Tests.Semantics
             var env = Skila.Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            NameReference func_name = NameReference.Create("b", NameFactory.IterableCount);
+            NameReference func_name = NameReference.Create("b", NameFactory.IIterableCount);
             root_ns.AddBuilder(FunctionBuilder.Create("bad_call", NameFactory.SizeTypeReference(), Block.CreateStatement(
                 // using function like a property (error)
                 // todo: however it should be another error, because this reference should create functor and the error should

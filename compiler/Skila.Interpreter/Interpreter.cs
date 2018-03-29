@@ -33,7 +33,7 @@ namespace Skila.Interpreter
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
-            if (func.DebugId ==  (10, 168))
+            if (func.DebugId == (10, 168))
             {
                 ;
             }
@@ -60,7 +60,7 @@ namespace Skila.Interpreter
                             ctx.FunctionArguments[i] = (await ExecutedAsync(param.DefaultValue, ctx).ConfigureAwait(false)).ExprValue;
                         arg_data = ctx.FunctionArguments[i];
                     }
-            
+
                     if (!ctx.LocalVariables.Add(param, arg_data))
                         throw new ArgumentException($"{ExceptionCode.SourceInfo()}");
                 }
@@ -173,7 +173,7 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IfBranch ifBranch)
         {
-            if (ifBranch.DebugId==(19, 292))
+            if (ifBranch.DebugId == (19, 292))
             {
                 ;
             }
@@ -397,9 +397,11 @@ namespace Skila.Interpreter
             }
         }
 
-        private Task<ExecValue> executeAsync(ExecutionContext ctx, Alloc alloc)
+        private async Task<ExecValue> executeAsync(ExecutionContext ctx, Alloc alloc)
         {
-            return executeAllocObjectAsync(ctx, alloc.InnerTypeName.Evaluation.Components, alloc.Evaluation.Components, null);
+            ExecValue result = await executeAllocObjectAsync(ctx, alloc.InnerTypeName.Evaluation.Components,
+                alloc.Evaluation.Components, null).ConfigureAwait(false);
+            return result;
         }
 
         private static async Task<ObjectData> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName,
@@ -607,7 +609,7 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId==(20, 444))
+            if (call.DebugId == (20, 444))
             {
                 ;
             }
@@ -645,7 +647,8 @@ namespace Skila.Interpreter
             ObjectData this_value = this_exec.ExprValue.TryDereferenceAnyOnce(ctx.Env);
 
             FunctionDefinition prop_func = getTargetFunction(ctx, this_value, this_context.Evaluation, prop.Get(accessor));
-            ExecValue ret = await callNonVariadicFunctionDirectly(ctx, prop_func, null, this_value, arguments).ConfigureAwait(false);
+            ExecValue ret = await callNonVariadicFunctionDirectly(ctx, prop_func, null, this_exec.ExprValue,
+                arguments).ConfigureAwait(false);
 
             if (accessor == Property.Accessor.Setter && ret.RetValue != null)
                 throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");

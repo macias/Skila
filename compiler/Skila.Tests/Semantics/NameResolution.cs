@@ -68,13 +68,13 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(Alias.Create("Boo", NameFactory.Int64TypeReference()))
+                .With(Alias.CreateEager("Boo", NameFactory.Int64TypeReference()))
                 .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("x", NameReference.Create("Boo"), Int64Literal.Create("2")),
                         ExpressionFactory.Readout("x"),
 
-                        Alias.Create("Loc", NameFactory.Int64TypeReference()),
+                        Alias.CreateEager("Loc", NameFactory.Int64TypeReference()),
                         VariableDeclaration.CreateStatement("y", NameReference.Create("Loc"), Int64Literal.Create("3")),
                         ExpressionFactory.Readout("y")
                     ))));

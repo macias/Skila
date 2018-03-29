@@ -10,9 +10,15 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Alias : Expression, IMember, ILocalBindable
     {
-        public static Alias Create(string name, INameReference replacement, EntityModifier modifier = null)
+        private enum Resolution
         {
-            return new Alias(modifier, name, replacement);
+            Eager,
+            Lazy,
+        }
+
+        public static Alias CreateEager(string name, INameReference replacement, EntityModifier modifier = null)
+        {
+            return new Alias(Resolution.Eager, modifier, name, replacement);
         }
 
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -26,20 +32,25 @@ namespace Skila.Language.Entities
             .Where(it => it != null);
 
         public override ExecutionFlow Flow => ExecutionFlow.Empty;
+
+        private readonly Resolution mode;
         public EntityModifier Modifier { get; private set; }
 
-        private Alias(EntityModifier modifier, string name, INameReference replacement)
+        public bool IsImmediate => this.mode == Resolution.Eager;
+
+        private Alias(Resolution resolution, EntityModifier modifier, string name, INameReference replacement)
             : base(ExpressionReadMode.CannotBeRead)
         {
             if (name == null)
                 throw new ArgumentNullException();
 
+            this.mode = resolution;
             this.Modifier = (modifier ?? EntityModifier.None) | EntityModifier.Static;
             this.Name = NameDefinition.Create(name);
             this.Replacement = replacement;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
-                translation: TemplateTranslation.Create(this), asSelf:false));
+                translation: TemplateTranslation.Create(this), asSelf: false));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -66,9 +77,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation,bool asSelf)
+            TemplateTranslation translation, bool asSelf)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,asSelf);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, asSelf);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -88,7 +99,7 @@ namespace Skila.Language.Entities
 
         public override void Validate(ComputationContext ctx)
         {
-            base.Validate(ctx);        
+            base.Validate(ctx);
         }
 
         public void SetIsMemberUsed()

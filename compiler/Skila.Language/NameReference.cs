@@ -245,7 +245,7 @@ namespace Skila.Language
             ref ErrorCode notFoundErrorCode)
         {
             IEnumerable<BindingMatch> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
-            IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias);
+            IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias alias && alias.IsImmediate);
             if (aliases.Any())
                 entities = aliases.SelectMany(it =>
                 {

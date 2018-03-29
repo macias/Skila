@@ -134,7 +134,7 @@ namespace Skila.Language
 
         public const string AtFunctionName = "at";
         public const string PropertyIndexerName = AtFunctionName;
-        public const string IterableCount = "count";
+        public const string IIterableCount = "count";
         public const string IteratorNext = "next";
 
         public const string StringTrim = "trim";

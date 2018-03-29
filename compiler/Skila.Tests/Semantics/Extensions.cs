@@ -36,7 +36,7 @@ namespace Skila.Tests.Semantics
             FunctionParameter variadic_this_param = FunctionParameter.Create("b", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
                 Variadic.Create(2, 3), null, false, EntityModifier.This);
             ext.AddBuilder(FunctionBuilder.Create("variadic_this", NameFactory.SizeTypeReference(), Block.CreateStatement(
-                Return.Create(FunctionCall.Create(NameReference.Create("b", NameFactory.IterableCount)))))
+                Return.Create(FunctionCall.Create(NameReference.Create("b", NameFactory.IIterableCount)))))
                 .Parameters(variadic_this_param)
                 .Include(NameFactory.LinqExtensionReference()));
 

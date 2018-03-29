@@ -129,14 +129,14 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> callNonVariadicFunctionDirectly(ExecutionContext ctx, FunctionDefinition targetFunc,
             IEnumerable<IEntityInstance> templateArguments,
-            ObjectData thisValue, params ObjectData[] arguments)
+            ObjectData thisObject, params ObjectData[] arguments)
         {
             // btw. arguments have to be given in exact order as parameters go
 
             if (targetFunc.Parameters.Any(it => it.IsVariadic))
                 throw new Exception($"{ExceptionCode.SourceInfo()}");
 
-            ObjectData this_ref = await prepareThisAsync(ctx, thisValue, $"{targetFunc}").ConfigureAwait(false);
+            ObjectData this_ref = await prepareThisAsync(ctx, thisObject, $"{targetFunc}").ConfigureAwait(false);
             ObjectData[] args = await prepareArguments(ctx, targetFunc,
                 // that is why this function does not handle variadic, it assumes single argument per parameter
                 arguments.Select(it => ArgumentGroup.Single(it))).ConfigureAwait(false);
@@ -288,6 +288,19 @@ namespace Skila.Interpreter
                 throw new NotImplementedException($"Function {func} is not implemented");
         }
 
+        private static int[] toCodePoints(string str)
+        {
+            // https://stackoverflow.com/a/28155130/210342
+            var codePoints = new List<int>(str.Length);
+            for (int i = 0; i < str.Length; ++i)
+            {
+                codePoints.Add(Char.ConvertToUtf32(str, i));
+                if (Char.IsHighSurrogate(str[i]))
+                    i += 1;
+            }
+
+            return codePoints.ToArray();
+        }
 
         private async Task<ExecValue> executeNativeUtf8StringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
@@ -296,14 +309,16 @@ namespace Skila.Interpreter
 
             if (func == ctx.Env.Utf8StringCountGetter)
             {
+                int[] code_points = toCodePoints(this_native);
                 ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    (UInt64)this_native.Length).ConfigureAwait(false);
+                    (UInt64)code_points.Length).ConfigureAwait(false);
                 return ExecValue.CreateReturn(result);
             }
             else if (func == ctx.Env.Utf8StringLengthGetter)
             {
+                int length = Encoding.UTF8.GetByteCount(this_native);
                 ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
-                    (UInt64)Encoding.UTF8.GetByteCount(this_native)).ConfigureAwait(false);
+                    (UInt64)length).ConfigureAwait(false);
                 return ExecValue.CreateReturn(result);
             }
             else if (func == ctx.Env.Utf8StringTrimStart)

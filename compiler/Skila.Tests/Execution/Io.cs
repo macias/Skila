@@ -90,7 +90,7 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameReference.Create("lines", NameFactory.PropertyIndexerName), NatLiteral.Create("0"))),
                     // 6
                     VariableDeclaration.CreateStatement("len", null,
-                        NameReference.Create("first", NameFactory.IterableCount)),
+                        NameReference.Create("first", NameFactory.IIterableCount)),
                     Return.Create(NameReference.Create("len"))
                 )));
 

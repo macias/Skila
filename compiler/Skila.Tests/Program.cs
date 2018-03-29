@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-               //  new Semantics.CompilerProtection().Environment();
+                new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -56,10 +56,10 @@ namespace Skila.Tests
                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().StringRemoving();
+                new Execution.Text().StringUtf8Encoding();
             }
 
-             //if (false)
+            // if (false)
             {
                 const double golden_avg_s = 1.45;
                 const double golden_min_s = 0.00;
