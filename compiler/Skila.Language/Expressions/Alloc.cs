@@ -45,6 +45,10 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId== (22, 26))
+            {
+                ;
+            }
             if (this.Evaluation == null)
             {
                 this.Evaluation = outcomeTypeName.Evaluation;

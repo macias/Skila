@@ -13,9 +13,9 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public abstract class NameReferenceSet : Node, INameReference
     {
-        public bool IsBindingComputed => this.Names.All(it => it.IsBindingComputed);
-        public IReadOnlyCollection<INameReference> Names { get; }
-        public override IEnumerable<INode> OwnedNodes => this.Names.Select(it => it.Cast<INode>())
+        public bool IsBindingComputed => this.Elements.All(it => it.IsBindingComputed);
+        public IReadOnlyCollection<INameReference> Elements { get; }
+        public override IEnumerable<INode> OwnedNodes => this.Elements.Select(it => it.Cast<INode>())
             .Concat(this.aggregate)
             .Where(it => it != null);
 
@@ -30,8 +30,8 @@ namespace Skila.Language
 
         protected NameReferenceSet(IEnumerable<INameReference> names)
         {
-            this.Names = names.StoreReadOnly();
-            if (!this.Names.Any())
+            this.Elements = names.StoreReadOnly();
+            if (!this.Elements.Any())
                 throw new ArgumentException();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -105,6 +105,17 @@ namespace Skila.Language
         public void Surf(ComputationContext ctx)
         {
             compute(ctx);
+        }
+
+        protected abstract bool hasSymmetricRelation(INameReference other,
+          Func<INameReference, INameReference, bool> relation);
+
+        public bool IsExactlySame(INameReference other, EntityInstance translationTemplate, bool jokerMatchesAll)
+        {
+            if (!jokerMatchesAll)
+                return this == other;
+
+            return hasSymmetricRelation(other, (a, b) => a.IsExactlySame(b,translationTemplate, jokerMatchesAll));
         }
     }
 

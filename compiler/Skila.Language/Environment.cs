@@ -221,7 +221,7 @@ namespace Skila.Language
                     out FunctionDefinition parse_string,
                     this.Int64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.CreateEager(NameFactory.IntTypeName, NameFactory.Int64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.IntTypeName, NameFactory.Int64TypeReference(), EntityModifier.Public));
                 this.Int64ParseStringFunction = parse_string;
             }
             {
@@ -243,8 +243,8 @@ namespace Skila.Language
                    out FunctionDefinition parse_string,
                    this.Nat64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.CreateEager(NameFactory.NatTypeName, NameFactory.Nat64TypeReference(), EntityModifier.Public));
-                this.Root.AddNode(Alias.CreateEager(NameFactory.SizeTypeName, NameFactory.NatTypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.NatTypeName, NameFactory.Nat64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.SizeTypeName, NameFactory.NatTypeReference(), EntityModifier.Public));
                 this.Nat64ParseStringFunction = parse_string;
             }
 
@@ -265,7 +265,7 @@ namespace Skila.Language
                    out FunctionDefinition parse_string,
                    this.Real64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.CreateEager(NameFactory.RealTypeName, NameFactory.Real64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.RealTypeName, NameFactory.Real64TypeReference(), EntityModifier.Public));
                 this.Real64ParseStringFunction = parse_string;
             }
             {
@@ -407,7 +407,7 @@ namespace Skila.Language
                 this.Utf8StringReverse = reverse;
                 this.Utf8StringSlice = slice;
                 this.Utf8StringConcat = concat;
-                this.SystemNamespace.AddNode(Alias.CreateEager(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
+                this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
                     EntityModifier.Public));
             }
 
@@ -469,16 +469,11 @@ namespace Skila.Language
                                         NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral))))
                                     .SetModifier(EntityModifier.Pinned))
 
-                                .With(FunctionBuilder.CreateDeclaration(NameFactory.ICopyableCopyFunction,
-                                    NameFactory.PointerTypeReference(NameFactory.ICopyableTypeReference()))
-                                    .SetModifier(EntityModifier.Pinned))
-
-                                    // todo: resolve Self type at runtime and use this method instead
-                                    /*.With(FunctionBuilder.Create(NameFactory.ICopyableCopyFunction,
+                                    .With(FunctionBuilder.Create(NameFactory.ICopyableCopyFunction,
                                         NameFactory.PointerTypeReference(NameFactory.ICopyableTypeReference()),
                                         Block.CreateStatement(Return.Create(ExpressionFactory.HeapConstructor(NameFactory.SelfTypeReference(),
                                             NameReference.CreateThised())))))
-                                            */
+                                            
                                     ;
         }
 
@@ -1506,7 +1501,7 @@ namespace Skila.Language
 
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.OptionTypeName,
               TemplateParametersBuffer.Create().Add(elem_type, VarianceMode.Out).Values))
-                            .With(Alias.CreateEager(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type),
+                            .With(Alias.Create(NameFactory.OptionTypeParameterMember, NameReference.Create(elem_type),
                                 EntityModifier.Public))
                             .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type),
                                 Undef.Create()))

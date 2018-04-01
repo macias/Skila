@@ -79,6 +79,7 @@ namespace Skila.Language
         public bool HasBasePrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.BaseVariableName;
         public bool HasThisPrefix => this.Prefix is NameReference name_ref && name_ref.Name == NameFactory.ThisVariableName;
 
+        public bool IsSelfTypeName => this.Name == NameFactory.SelfTypeTypeName;
 
         private bool? isRead;
         public bool IsRead { get { return this.isRead.Value; } set { if (this.isRead.HasValue && this.isRead != value) throw new Exception("Internal error"); this.isRead = value; } }
@@ -131,7 +132,7 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
-            if (this.DebugId== (6, 9387))
+            if (this.DebugId == (6, 9387))
             {
                 ;
             }
@@ -245,7 +246,7 @@ namespace Skila.Language
             ref ErrorCode notFoundErrorCode)
         {
             IEnumerable<BindingMatch> entities = rawComputeBinding(ctx, ref notFoundErrorCode).StoreReadOnly();
-            IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias alias && alias.IsImmediate);
+            IEnumerable<BindingMatch> aliases = entities.Where(it => it.Instance.Target is Alias alias);
             if (aliases.Any())
                 entities = aliases.SelectMany(it =>
                 {
@@ -276,12 +277,7 @@ namespace Skila.Language
                 {
                     return new[] { new BindingMatch(this.EnclosingScope<FunctionDefinition>().InstanceOf, isLocal: false) };
                 }
-                else if (this.Name == NameFactory.ItTypeName)
-                {
-                    TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
-                }
-                else if (this.Name == NameFactory.SelfTypeTypeName)
+                else if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
                 {
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
                     return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
@@ -408,7 +404,7 @@ namespace Skila.Language
 
         private IEnumerable<EntityInstance> filterCrossAccessEntities(ComputationContext ctx, IEnumerable<EntityInstance> entities)
         {
-            if (this.browse.HasFlag(BrowseMode.InstanceToStatic) || !ctx.Env.Options.StaticMemberOnlyThroughTypeName)
+            if (this.browse.HasFlag(BrowseMode.InstanceToStatic) || !ctx.Env.Options.StaticMemberOnlyThroughTypeName || this.Prefix == null)
                 return entities;
             else
                 return filterTargetEntities(entities, it => !it.Target.Modifier.HasStatic
@@ -500,8 +496,14 @@ namespace Skila.Language
 
             FunctionDefinition enclosing_function = this.EnclosingScope<FunctionDefinition>();
 
-            if (this.Name == NameFactory.SelfTypeTypeName && (enclosing_function == null || !enclosing_function.IsAnyConstructor()))
-                ctx.AddError(ErrorCode.SelfTypeOutsideConstructor, this);
+            if (this.Name == NameFactory.SelfTypeTypeName)
+            {
+                // allow Self parameters in constructor only (at least for now)
+                FunctionParameter enclosing_param = this.EnclosingNode<FunctionParameter>();
+
+                if (enclosing_function == null || (enclosing_param != null && !enclosing_function.IsAnyConstructor()))
+                    ctx.AddError(ErrorCode.SelfTypeOutsideConstructor, this);
+            }
 
             if (this.IsSuperReference && enclosing_function.Modifier.HasUnchainBase)
                 ctx.AddError(ErrorCode.SuperCallWithUnchainedBase, this);
@@ -676,5 +678,40 @@ namespace Skila.Language
             this.Prefix = prefix;
             this.Prefix.AttachTo(this);
         }
+
+        public bool IsExactlySame(INameReference other, EntityInstance translationTemplate, bool jokerMatchesAll)
+        {
+            if (!jokerMatchesAll)
+                return this == other;
+
+            if (this.Evaluation.Aggregate.IsJoker || other.Evaluation.Aggregate.IsJoker)
+                return true;
+
+            var other_nameref = other as NameReference;
+            if (other_nameref == null)
+                return other.IsExactlySame(this, translationTemplate, jokerMatchesAll);
+
+            if (this.OverrideMutability != other_nameref.OverrideMutability)
+                return false;
+
+            if (this.Name == NameFactory.SelfTypeTypeName && other_nameref.Name == NameFactory.SelfTypeTypeName)
+                return true;
+
+            if (this.TemplateArguments.Count != other_nameref.TemplateArguments.Count)
+                return false;
+
+            for (int i = 0; i < this.TemplateArguments.Count; ++i)
+            {
+                if (!this.TemplateArguments[i].IsExactlySame(other_nameref.TemplateArguments[i], translationTemplate, jokerMatchesAll))
+                    return false;
+            }
+
+            IEntityInstance this_trans_eval = this.Evaluation.Components.TranslateThrough(translationTemplate);
+            if (!this_trans_eval.HasExactlySameTarget(other.Evaluation.Components, jokerMatchesAll))
+                return false;
+
+            return true;
+        }
+
     }
 }

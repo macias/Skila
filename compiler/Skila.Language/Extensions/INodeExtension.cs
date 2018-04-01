@@ -21,6 +21,16 @@ namespace Skila.Language.Extensions
         {
             return node.OwnedNodes.Concat(node.OwnedNodes.SelectMany(it => it.DescendantNodes()));
         }
+        public static IEnumerable<INode> EnclosingNodesToRoot(this INode node)
+        {
+            while (true)
+            {
+                node = node.Owner;
+                if (node == null)
+                    break;
+                yield return node;
+            }
+        }
         public static IEnumerable<IScope> EnclosingScopesToRoot(this INode node)
         {
             while (true)
@@ -35,6 +45,11 @@ namespace Skila.Language.Extensions
             where S : IScope
         {
             return @this.EnclosingScopesToRoot().WhereType<S>().FirstOrDefault();
+        }
+        public static N EnclosingNode<N>(this INode @this)
+            where N : INode
+        {
+            return @this.EnclosingNodesToRoot().WhereType<N>().FirstOrDefault();
         }
         public static bool IsType(this INode @this)
         {

@@ -5,6 +5,7 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Builders;
+using System;
 
 namespace Skila.Language
 {
@@ -27,12 +28,12 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return this.Names.Select(it => it.ToString()).Join("&");
+            return this.Elements.Select(it => it.ToString()).Join("&");
         }
 
         protected override void compute(ComputationContext ctx)
         {
-            IEntityInstance eval = EntityInstanceIntersection.Create(Names.Select(it => it.Evaluation.Components));
+            IEntityInstance eval = EntityInstanceIntersection.Create(Elements.Select(it => it.Evaluation.Components));
 
 
 
@@ -42,7 +43,7 @@ namespace Skila.Language
             bool has_pointer = false;
             var dereferenced_instances = new List<EntityInstance>();
             List<FunctionDefinition> members = new List<FunctionDefinition>();
-            foreach (EntityInstance ____instance in this.Names.Select(it => it.Evaluation.Aggregate))
+            foreach (EntityInstance ____instance in this.Elements.Select(it => it.Evaluation.Aggregate))
             {
                 if (ctx.Env.DereferencedOnce(____instance, out IEntityInstance __instance, out bool via_pointer))
                 {
@@ -81,6 +82,26 @@ namespace Skila.Language
                 dereferenced_instances, members, partialVirtualTables: true);
 
             this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
+        }
+
+        // todo: this is copy from EntityInstanceIntersection, not cool, not cool, REUSE!
+        protected override bool hasSymmetricRelation(INameReference other,
+           Func<INameReference, INameReference, bool> relation)
+        {
+            Func<NameReferenceIntersection, INameReference, bool> check_all
+                = (set, instance) => set.Elements.All(it => relation(instance, it));
+            Func<NameReferenceIntersection, INameReference, bool> check_any
+                = (set, instance) => set.Elements.Any(it => relation(instance, it));
+
+            var other_set = other as NameReferenceIntersection;
+            if (other_set == null)
+                return check_all(this, other);
+            else
+                // when comparing two unions the rule is simple: each instance from this has to have its identical counterpart in the other union
+                // and in reverse, each instance from the other has to have its counterpart in this union, so for example
+                // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
+                return this.Elements.All(it => check_any(other_set, it))
+                    && other_set.Elements.All(it => check_any(this, it));
         }
     }
 

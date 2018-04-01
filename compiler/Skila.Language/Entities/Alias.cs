@@ -10,15 +10,9 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Alias : Expression, IMember, ILocalBindable
     {
-        private enum Resolution
+        public static Alias Create(string name, INameReference replacement, EntityModifier modifier = null)
         {
-            Eager,
-            Lazy,
-        }
-
-        public static Alias CreateEager(string name, INameReference replacement, EntityModifier modifier = null)
-        {
-            return new Alias(Resolution.Eager, modifier, name, replacement);
+            return new Alias( modifier, name, replacement);
         }
 
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -33,18 +27,14 @@ namespace Skila.Language.Entities
 
         public override ExecutionFlow Flow => ExecutionFlow.Empty;
 
-        private readonly Resolution mode;
         public EntityModifier Modifier { get; private set; }
 
-        public bool IsImmediate => this.mode == Resolution.Eager;
-
-        private Alias(Resolution resolution, EntityModifier modifier, string name, INameReference replacement)
+        private Alias(EntityModifier modifier, string name, INameReference replacement)
             : base(ExpressionReadMode.CannotBeRead)
         {
             if (name == null)
                 throw new ArgumentNullException();
 
-            this.mode = resolution;
             this.Modifier = (modifier ?? EntityModifier.None) | EntityModifier.Static;
             this.Name = NameDefinition.Create(name);
             this.Replacement = replacement;

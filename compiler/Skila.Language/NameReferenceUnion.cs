@@ -29,7 +29,7 @@ namespace Skila.Language
 
         protected override void compute(ComputationContext ctx)
         {
-            IEntityInstance eval = EntityInstanceUnion.Create(Names.Select(it => it.Evaluation.Components));
+            IEntityInstance eval = EntityInstanceUnion.Create(Elements.Select(it => it.Evaluation.Components));
 
             // we need to get common members
 
@@ -37,7 +37,7 @@ namespace Skila.Language
             bool has_pointer = false;
             var dereferenced_instances = new List<EntityInstance>();
             List<FunctionDefinition> members = null;
-            foreach (EntityInstance ____instance in this.Names.Select(it => it.Evaluation.Aggregate))
+            foreach (EntityInstance ____instance in this.Elements.Select(it => it.Evaluation.Aggregate))
             {
                 if (ctx.Env.DereferencedOnce(____instance, out IEntityInstance __instance, out bool via_pointer))
                 {
@@ -85,6 +85,24 @@ namespace Skila.Language
 
             this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
 
+        }
+        protected override bool hasSymmetricRelation(INameReference other,
+          Func<INameReference, INameReference, bool> relation)
+        {
+            Func<NameReferenceUnion, INameReference, bool> check_all
+                = (union, instance) => union.Elements.All(it => relation(instance, it));
+            Func<NameReferenceUnion, INameReference, bool> check_any
+                = (union, instance) => union.Elements.Any(it => relation(instance, it));
+
+            var other_union = other as NameReferenceUnion;
+            if (other_union == null)
+                return check_all(this, other);
+            else
+                // when comparing two unions the rule is simple: each instance from this has to have its identical counterpart in the other union
+                // and in reverse, each instance from the other has to have its counterpart in this union, so for example
+                // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
+                return this.Elements.All(it => check_any(other_union, it))
+                    && other_union.Elements.All(it => check_any(this, it));
         }
     }
 

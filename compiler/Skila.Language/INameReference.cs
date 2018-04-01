@@ -6,6 +6,8 @@ namespace Skila.Language
     public interface INameReference : IReferentialName,ISurfable
     {
         bool IsBindingComputed { get; }
+
+        bool IsExactlySame(INameReference otherTypeName, EntityInstance translationTemplate, bool jokerMatchesAll);
     }
 
     public static class INameReferenceExtensions

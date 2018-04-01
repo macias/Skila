@@ -29,7 +29,7 @@ namespace Skila.Language.Extensions
             if (iinstance is EntityInstance instance)
                 return instance.Target;
             else if (iinstance is EntityInstanceUnion union)
-                return union.Instances.Single().Target();
+                return union.Elements.Single().Target();
             else
                 throw new NotImplementedException();
         }

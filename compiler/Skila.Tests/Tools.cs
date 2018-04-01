@@ -29,7 +29,7 @@ namespace Skila.Tests
             if (nameRef is NameReference)
                 return (nameRef as NameReference).Binding;
             else if (nameRef is NameReferenceUnion)
-                return (nameRef as NameReferenceUnion).Names.Single().Binding();
+                return (nameRef as NameReferenceUnion).Elements.Single().Binding();
             else
                 throw new NotImplementedException();
         }

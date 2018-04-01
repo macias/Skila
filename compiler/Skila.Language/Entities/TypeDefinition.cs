@@ -20,7 +20,7 @@ namespace Skila.Language.Entities
         {
             return new TypeDefinition(modifier, allowSlicing, name, constraints,
                 parents, features,
-                typeParameter: null,includes:null);
+                typeParameter: null, includes: null);
         }
         public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
@@ -88,7 +88,7 @@ namespace Skila.Language.Entities
             IEnumerable<NameReference> parents,
             IEnumerable<INode> features,
             TemplateParameter typeParameter,
-            IEnumerable<NameReference> includes) : base(modifier, name, constraints,includes)
+            IEnumerable<NameReference> includes) : base(modifier, name, constraints, includes)
         {
             this.AllowSlicedSubstitution = allowSlicing;
             this.TemplateParameter = typeParameter;

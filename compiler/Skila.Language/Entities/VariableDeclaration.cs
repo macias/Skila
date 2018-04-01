@@ -185,7 +185,7 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId== (17, 300))
+            if (this.DebugId==(18, 62))
             {
                 ;
             }
@@ -195,7 +195,7 @@ namespace Skila.Language.Entities
 
             this.TrapClosure(ctx, ref this.initValue);
 
-            IEntityInstance init_eval = InitValue?.Evaluation?.Components;
+            IEntityInstance init_eval = this.InitValue?.Evaluation?.Components;
 
             IEntityInstance tn_eval = this.TypeName?.Evaluation?.Components;
             if (tn_eval != null

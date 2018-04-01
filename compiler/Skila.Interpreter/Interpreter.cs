@@ -399,13 +399,30 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Alloc alloc)
         {
-            ExecValue result = await executeAllocObjectAsync(ctx, alloc.InnerTypeName.Evaluation.Components,
-                alloc.Evaluation.Components, null).ConfigureAwait(false);
+            if (alloc.DebugId == (21, 26))
+            {
+                ;
+            }
+            IEntityInstance inner_type_eval;
+            IEntityInstance alloc_eval;
+            if (alloc.InnerTypeName.IsSelfTypeName)
+            {
+                inner_type_eval = ctx.ThisArgument.DereferencedOnce().RunTimeTypeInstance;
+                alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+            }
+            else
+            {
+                inner_type_eval = alloc.InnerTypeName.Evaluation.Components;
+                alloc_eval = alloc.Evaluation.Components;
+            }
+
+            ExecValue result = await executeAllocObjectAsync(ctx, inner_type_eval,
+                alloc_eval, null).ConfigureAwait(false);
             return result;
         }
 
-        private static async Task<ObjectData> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName,
-            object value)
+        private static async Task<ObjectData> allocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName,
+            IEntityInstance typeName, object value)
         {
             ObjectData obj = await ObjectData.CreateInstanceAsync(ctx, innerTypeName, value).ConfigureAwait(false);
 
@@ -425,8 +442,8 @@ namespace Skila.Interpreter
             return await ObjectData.CreateInstanceAsync(ctx, typeName, obj).ConfigureAwait(false);
         }
 
-        private async Task<ExecValue> executeAllocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName, IEntityInstance typeName,
-            object value)
+        private async Task<ExecValue> executeAllocObjectAsync(ExecutionContext ctx, IEntityInstance innerTypeName,
+            IEntityInstance typeName, object value)
         {
             ObjectData obj = await allocObjectAsync(ctx, innerTypeName, typeName, value).ConfigureAwait(false);
             return ExecValue.CreateExpression(obj);

@@ -9,8 +9,9 @@
             // we could have overloaded function in base type, and then figuring out
             // which function in derived type inherits from which base function would take longer
             // when we allowed more relaxed matching (i.e. allowing to have supertypes as arguments when deriving)
-            IEntityInstance base_param_type = baseParam.Evaluation.Components.TranslateThrough(baseTemplate);
-            if (!base_param_type.IsExactlySame(derivedParam.Evaluation.Components, jokerMatchesAll: true))
+
+            // note we use names comparison because we need to check for Self
+            if (!baseParam.TypeName.IsExactlySame(derivedParam.TypeName, baseTemplate, jokerMatchesAll: true))
                 return false;
 
             if (baseParam.IsVariadic != derivedParam.IsVariadic)

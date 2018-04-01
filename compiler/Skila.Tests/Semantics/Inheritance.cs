@@ -14,10 +14,14 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Inheritance
     {
-        //[TestMethod]
-        public IErrorReporter TODO_InheritingConstructorWithSelfType()
+        [TestMethod]
+        public IErrorReporter InheritingConstructorWithSelfType()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("What")
@@ -29,7 +33,7 @@ namespace Skila.Tests.Semantics
             TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                 .Parents("What")
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("y")))
-                .SetModifier(EntityModifier.Pinned)
+                .SetModifier(EntityModifier.Pinned | EntityModifier.Override | EntityModifier.UnchainBase)
                     .Parameters(FunctionParameter.Create("y", NameFactory.SelfTypeReference()))));
 
             var resolver = NameResolver.Create(env);
@@ -55,14 +59,14 @@ namespace Skila.Tests.Semantics
                 .Parents("What")
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("y")))
                 .SetModifier(EntityModifier.Pinned)
-                // this is an error, we should preserve using self type
+                    // this is an error, we should preserve using self type
                     .Parameters(FunctionParameter.Create("y", NameReference.Create("Next")))));
 
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
             Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.BaseFunctionMissingImplementation, next_type));
-            
+
             return resolver;
         }
 

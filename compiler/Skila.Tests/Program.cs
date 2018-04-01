@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                new Semantics.CompilerProtection().Environment();
+                //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
@@ -29,8 +29,8 @@ namespace Skila.Tests
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-                //new Semantics.Inheritance().TODO_InheritingConstructorWithSelfType();
-               // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
+                //new Semantics.Inheritance().InheritingConstructorWithSelfType();
+                // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
                 //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
@@ -45,18 +45,18 @@ namespace Skila.Tests
                 //new Execution.Collections().MapFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
-               // new Execution.Flow().ParallelOptionalDeclaration();
+                // new Execution.Flow().ParallelOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().RealNotANumber();
                 //new Execution.NameResolution().GenericTypeAliasing();
-                //new Execution.Objects().ParallelAssignmentWithSpread();
-               //new Execution.Pointers().RefCountsOnReadingFunctionCall();
+                new Execution.Objects().CopyableViaSelfConstructor();
+                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
-                new Execution.Text().StringUtf8Encoding();
+                //new Execution.Text().StringUtf8Encoding();
             }
 
             // if (false)

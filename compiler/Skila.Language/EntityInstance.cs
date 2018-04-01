@@ -241,6 +241,23 @@ namespace Skila.Language
 
             return true;
         }
+        public bool HasExactlySameTarget(IEntityInstance other, bool jokerMatchesAll)
+        {
+            var other_entity = other as EntityInstance;
+            if (other_entity == null)
+                return other.HasExactlySameTarget(this, jokerMatchesAll);
+
+            if (jokerMatchesAll && (this.IsJoker || other_entity.IsJoker))
+                return true;
+
+            if (this.OverrideMutability != other_entity.OverrideMutability)
+                return false;
+            // note we first compare targets, but then arguments count for instances (not targets)
+            if (this.Target != other_entity.Target)
+                return false;
+
+            return true;
+        }
 
         public ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance closedTemplate,
             TemplateParameter param)

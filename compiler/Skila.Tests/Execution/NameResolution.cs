@@ -19,7 +19,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point", "V", VarianceMode.None))
-                .With(Alias.CreateEager("VType", NameReference.Create("V"), EntityModifier.Public)));
+                .With(Alias.Create("VType", NameReference.Create("V"), EntityModifier.Public)));
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameReference.Create("p", "VType"), Undef.Create(), EntityModifier.Reassignable);
             root_ns.AddBuilder(FunctionBuilder.Create("main", NameFactory.Nat8TypeReference(), Block.CreateStatement(
