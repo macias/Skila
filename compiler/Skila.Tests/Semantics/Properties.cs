@@ -75,9 +75,9 @@ namespace Skila.Tests.Semantics
                 )));
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("getter"),
+                "getter",
                 null,
-                ExpressionReadMode.ReadRequired,
+                //@@@ExpressionReadMode.ReadRequired,
                 NameReference.Create("Point"),
                 Block.CreateStatement(new[] { Return.Create(Undef.Create()) })));
 
@@ -110,7 +110,7 @@ namespace Skila.Tests.Semantics
 
             NameReference getter_call = NameReference.Create("p", "x");
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("getter"),
+                "getter",
                 null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
@@ -164,7 +164,7 @@ namespace Skila.Tests.Semantics
                 )));
 
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), Int64Literal.Create("5"));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("notimportant"),
+            root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 

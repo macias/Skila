@@ -192,7 +192,7 @@ namespace Skila.Tests.Semantics
 
             NameReference private_ref = NameReference.Create("p", "x");
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("anything"), null,
+                "anything", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -223,7 +223,7 @@ namespace Skila.Tests.Semantics
             NameReference cross_reference = NameReference.Create(NameFactory.BaseVariableName, "a");
             root_ns.AddBuilder(TypeBuilder.Create("Bank")
                 .Parents("Keeper")
-                .With(FunctionBuilder.Create(NameDefinition.Create("anything"), null,
+                .With(FunctionBuilder.Create("anything", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -248,7 +248,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("anything"), null,
+                "anything", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -279,7 +279,7 @@ namespace Skila.Tests.Semantics
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse());
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("anything"), null,
+                "anything", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -308,7 +308,7 @@ namespace Skila.Tests.Semantics
 
             VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.RecurFunctionName, null, Int64Literal.Create("3"));
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("anything"), null,
+                "anything", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -332,7 +332,7 @@ namespace Skila.Tests.Semantics
 
             var x_ref = NameReference.Create("x");
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foox"),
+                "foox",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 

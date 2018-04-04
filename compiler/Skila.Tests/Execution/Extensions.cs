@@ -26,7 +26,7 @@ namespace Skila.Tests.Execution
                     EntityModifier.This)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -56,7 +56,7 @@ namespace Skila.Tests.Execution
                     EntityModifier.This)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(new IExpression[] {

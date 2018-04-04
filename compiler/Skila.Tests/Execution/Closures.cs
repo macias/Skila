@@ -33,7 +33,7 @@ namespace Skila.Tests.Execution
                 .Parameters(FunctionParameter.Create("i", NameFactory.Nat8TypeReference()));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -56,14 +56,14 @@ namespace Skila.Tests.Execution
             var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
             var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("getIt"),
+            root_ns.AddBuilder(FunctionBuilder.Create("getIt",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] {
                         Return.Create(Int64Literal.Create("2"))
                     })));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -91,13 +91,13 @@ namespace Skila.Tests.Execution
                 .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
-                .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
+                .With(FunctionBuilder.Create("getIt",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] {
                         Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                     }))));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -131,13 +131,13 @@ namespace Skila.Tests.Execution
                 .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable))
-                .With(FunctionBuilder.Create(NameDefinition.Create("getIt"),
+                .With(FunctionBuilder.Create("getIt",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] {
                         Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                     }))));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -166,7 +166,7 @@ namespace Skila.Tests.Execution
             NameReference escaping_lambda = NameReference.Create("x");
             IExpression lambda = FunctionBuilder.CreateLambda(NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] { Return.Create(escaping_lambda) })).Build();
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -196,7 +196,7 @@ namespace Skila.Tests.Execution
 
             IExpression lambda = FunctionBuilder.CreateLambda(null,
                     Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("2")) })).Build();
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("main"),
+            root_ns.AddBuilder(FunctionBuilder.Create("main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

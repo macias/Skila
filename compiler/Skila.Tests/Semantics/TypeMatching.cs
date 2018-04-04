@@ -103,7 +103,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
             IExpression init_value = ExpressionFactory.HeapConstructor("GetAll");
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"),
+                "foo",
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
 
@@ -128,13 +128,13 @@ namespace Skila.Tests.Semantics
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create(NameFactory.ConvertFunctionName),
+                    NameFactory.ConvertFunctionName,
                     null, ExpressionReadMode.ReadRequired, NameReference.Create("Bar"),
                     Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
                     .SetModifier(EntityModifier.Implicit))
                 // added second conversion to check if compiler correctly disambiguate the call
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create(NameFactory.ConvertFunctionName),
+                    NameFactory.ConvertFunctionName,
                     null, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
                     .SetModifier(EntityModifier.Implicit)));
@@ -142,7 +142,7 @@ namespace Skila.Tests.Semantics
 
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("wrapper"),
+                "wrapper",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -179,7 +179,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddNode(decl_dst);
 
             IsType is_type_ref = IsType.Create(NameReference.Create("u"), NameFactory.ISequenceTypeReference("G"));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("more", "G", VarianceMode.None),
+            root_ns.AddBuilder(FunctionBuilder.Create("more", "G", VarianceMode.None,
                 NameFactory.UnitTypeReference(),
                 Block.CreateStatement(
                 ExpressionFactory.Readout(is_type_ref)
@@ -268,7 +268,7 @@ namespace Skila.Tests.Semantics
                 NameFactory.BoolTypeReference() });
             var decl = VariableDeclaration.CreateStatement("foo", typename, initValue: Undef.Create());
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 

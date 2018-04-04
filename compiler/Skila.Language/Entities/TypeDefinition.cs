@@ -7,6 +7,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Comparers;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Builders;
 
 namespace Skila.Language.Entities
 {
@@ -100,14 +101,10 @@ namespace Skila.Language.Entities
 
             // all nodes have to be attached at this point
             setupConstructors();
-
-            constructionCompleted = true;
         }
 
         public override void Surf(ComputationContext ctx)
         {
-            base.Surf(ctx);
-
             this.compute(ctx);
         }
 
@@ -124,6 +121,11 @@ namespace Skila.Language.Entities
             foreach (TypeDefinition trait in this.AssociatedTraits)
                 trait.computeAncestors(ctx, new HashSet<TypeDefinition>());
             computeAncestors(ctx, new HashSet<TypeDefinition>());
+
+            IEnumerable<INode> owned_nodes = this.OwnedNodes.Concat(this.AssociatedTraits.SelectMany(it => it.OwnedNodes));
+            owned_nodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+
+            // --
 
             if (this.Modifier.HasEnum)
             {

@@ -26,12 +26,6 @@ namespace Skila.Language.Extensions
                 return;
             }
 
-
-            IEnumerable<INode> owned_nodes = node.OwnedNodes;
-            if (node is TypeDefinition typedef)
-                owned_nodes = owned_nodes.Concat(typedef.AssociatedTraits.SelectMany(it => it.OwnedNodes));
-
-            owned_nodes.WhereType<ISurfable>().ForEach(it => Surfed(it, ctx));
             node.Surf(ctx);
 
             node.IsSurfed = true;

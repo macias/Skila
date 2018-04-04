@@ -29,5 +29,9 @@ namespace Skila.Language.Entities
             base.Validate(ctx);
 
         }
+        public override void Surf(ComputationContext ctx)
+        {
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+        }
     }
 }

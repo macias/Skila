@@ -24,7 +24,7 @@ namespace Skila.Language.Entities
             return new FunctionDefinition(modifier,
                 name,
                 (NameDefinition)null,
-                constraints, parameters, callMode, result, constructorChainCall: null, body: body,includes:null,friends:null);
+                constraints, parameters, callMode, result, constructorChainCall: null, body: body, includes: null, friends: null);
         }
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
@@ -41,7 +41,7 @@ namespace Skila.Language.Entities
             return new FunctionDefinition(modifier,
                 name,
                                 (NameDefinition)null,
-                constraints, parameters, callMode, result, constructorChainCall, body,includes,friends);
+                constraints, parameters, callMode, result, constructorChainCall, body, includes, friends);
         }
 
         public static FunctionDefinition CreateInitConstructor(
@@ -104,7 +104,7 @@ namespace Skila.Language.Entities
         public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
 
         public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
-            .Concat(this.Label)                               
+            .Concat(this.Label)
             .Concat(this.Parameters)// parameters have to go before user body, so they are registered for use
             .Concat(this.MetaThisParameter)
             .Concat(UserBody)
@@ -135,7 +135,7 @@ namespace Skila.Language.Entities
             Block body,
             IEnumerable<NameReference> includes,
             IEnumerable<LabelReference> friends)
-            : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints,includes)
+            : base(modifier | (body == null ? EntityModifier.Abstract : EntityModifier.None), name, constraints, includes)
         {
             parameters = parameters ?? Enumerable.Empty<FunctionParameter>();
 
@@ -160,6 +160,19 @@ namespace Skila.Language.Entities
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
             this.constructionCompleted = true;
+
+            if (!IsValidMutableName(this.Name.Name, this.Modifier))
+                throw new ArgumentException($"Mutable function has to be marked with name as well {this.Name}");
+        }
+
+        internal static bool IsValidMutableName(string name, EntityModifier modifier)
+        {
+            modifier = modifier ?? EntityModifier.None;
+
+            if (modifier.HasAccessor)
+                return !NameFactory.IsMutableName(name);
+            else
+                return modifier.HasMutable == NameFactory.IsMutableName(name);
         }
 
         private void setResultParameter(INameReference result)
@@ -370,7 +383,7 @@ namespace Skila.Language.Entities
 
         public override void Surf(ComputationContext ctx)
         {
-            base.Surf(ctx);
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))
                 this.CallMode = ExpressionReadMode.OptionalUse;

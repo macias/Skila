@@ -20,7 +20,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             var func_def = FunctionBuilder.Create(
-                NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
+                "foo",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.RealTypeReference(),
                 Block.CreateStatement(new[] { Return.Create(RealLiteral.Create("3.3")) }));
@@ -47,7 +47,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                         virtual_call
                     })))
-                .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
+                .With(FunctionBuilder.Create("foo", null,
                     ExpressionReadMode.OptionalUse,
                     NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {
@@ -75,7 +75,7 @@ namespace Skila.Tests.Semantics
                 .SetModifier(EntityModifier.Base)
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                     Block.CreateStatement()))
-                .With(FunctionBuilder.Create(NameDefinition.Create("foo"), null,
+                .With(FunctionBuilder.Create("foo", null,
                     ExpressionReadMode.OptionalUse,
                     NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {

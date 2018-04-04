@@ -108,6 +108,7 @@ namespace Skila.Language
 
         public void Surf(ComputationContext ctx)
         {
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
             compute(ctx);
         }
 

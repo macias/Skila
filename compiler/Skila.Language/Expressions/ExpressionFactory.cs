@@ -149,7 +149,7 @@ namespace Skila.Language.Expressions
         }
         public static TypeBuilder WithEquatableEquals(this TypeBuilder builder, EntityModifier modifier = null)
         {
-            return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.EqualOperator),
+            return builder.With(FunctionBuilder.Create(NameFactory.EqualOperator,
                                             ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                                             Block.CreateStatement(
                           IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),
@@ -184,7 +184,7 @@ namespace Skila.Language.Expressions
         }
         public static TypeBuilder WithComparableCompare(this TypeBuilder builder, EntityModifier modifier = null)
         {
-            return builder.With(FunctionBuilder.Create(NameDefinition.Create(NameFactory.ComparableCompare),
+            return builder.With(FunctionBuilder.Create(NameFactory.ComparableCompare,
                                             ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
                                             Block.CreateStatement(
                           IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),

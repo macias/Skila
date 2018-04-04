@@ -49,7 +49,7 @@ namespace Skila.Tests.Semantics
                 Undef.Create());
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -218,7 +218,7 @@ namespace Skila.Tests.Semantics
 
             FunctionCall call = FunctionCall.Create(NameReference.Create("v", "give"));
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -254,7 +254,7 @@ namespace Skila.Tests.Semantics
                 initValue: Undef.Create(), modifier: EntityModifier.Static);
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -283,7 +283,7 @@ namespace Skila.Tests.Semantics
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -313,7 +313,7 @@ namespace Skila.Tests.Semantics
                 initValue: NameReference.Create("foo"));
 
             var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("notimportant"),
+                "notimportant",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -337,7 +337,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
 
@@ -345,7 +345,7 @@ namespace Skila.Tests.Semantics
                     FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create( Int64Literal.Create("5")))
                 })));
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"),
+                "foo",
                 ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
 

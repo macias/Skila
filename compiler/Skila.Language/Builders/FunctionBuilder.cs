@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
+using Skila.Language.Extensions;
 
 namespace Skila.Language.Builders
 {
@@ -14,7 +15,7 @@ namespace Skila.Language.Builders
                  Block body,
                  params FunctionParameter[] parameters)
         {
-            FunctionBuilder builder = FunctionBuilder.Create(NameDefinition.Create(NameFactory.LambdaInvoke), 
+            FunctionBuilder builder = FunctionBuilder.Create(NameFactory.LambdaInvoke,
                 ExpressionReadMode.ReadRequired, result, body);
             if (parameters.Any())
                 builder.Parameters(parameters);
@@ -23,7 +24,7 @@ namespace Skila.Language.Builders
 
         public static FunctionBuilder CreateInitConstructor(Block body, FunctionCall constructorChainCall = null)
         {
-            FunctionBuilder builder = Create(NameFactory.InitConstructorNameDefinition(),
+            FunctionBuilder builder = Create(NameFactory.InitConstructorName,
                                 NameFactory.UnitTypeReference(),
                                 body);
 
@@ -32,13 +33,42 @@ namespace Skila.Language.Builders
         }
 
         public static FunctionBuilder Create(
-                   NameDefinition name,
-                   IEnumerable<FunctionParameter> parameters,
+                       string name,
+                       IEnumerable<TemplateParameter> nameParameters,
+           INameReference result,
+           Block body)
+        {
+            return Create(name, nameParameters, ExpressionReadMode.ReadRequired, result, body);
+        }
+
+        public static FunctionBuilder Create(
+                 string name,
+                 IEnumerable<TemplateParameter> nameParameters,
+             ExpressionReadMode callMode,
+             INameReference result,
+             Block body)
+        {
+            return new FunctionBuilder(name, nameParameters, null, callMode, result, body);
+        }
+        public static FunctionBuilder Create(
+                       string name,
+                       string nameParameter,
+                       VarianceMode variance,
                    ExpressionReadMode callMode,
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(name, parameters, callMode, result, body);
+            return new FunctionBuilder(name, TemplateParametersBuffer.Create(variance, nameParameter).Values,
+                null, callMode, result, body);
+        }
+        public static FunctionBuilder Create(
+                       string name,
+                       string nameParameter,
+                       VarianceMode variance,
+                   INameReference result,
+                   Block body)
+        {
+            return Create(name, TemplateParametersBuffer.Create(variance, nameParameter).Values, result, body);
         }
         public static FunctionBuilder Create(
                    string name,
@@ -46,59 +76,49 @@ namespace Skila.Language.Builders
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(NameDefinition.Create(name), null, callMode, result, body);
+            return new FunctionBuilder(name, null, null, callMode, result, body);
         }
         public static FunctionBuilder Create(
                    string name,
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(NameDefinition.Create(name), null, ExpressionReadMode.ReadRequired, result, body);
+            return new FunctionBuilder(name, null, null, ExpressionReadMode.ReadRequired, result, body);
         }
         public static FunctionBuilder CreateDeclaration(
-                       NameDefinition name,
+                       string name,
+                       string nameParameter,
+                       VarianceMode variance,
+                   ExpressionReadMode callMode,
+                   INameReference result)
+        {
+            return new FunctionBuilder(name, TemplateParametersBuffer.Create(variance, nameParameter).Values,
+                null, callMode, result, (Block)null);
+        }
+        public static FunctionBuilder CreateDeclaration(
+                       string name,
+                       IEnumerable<TemplateParameter> nameParameters,
                        ExpressionReadMode callMode,
                        INameReference result)
         {
-            return new FunctionBuilder(name, null, callMode, result, null);
+            return new FunctionBuilder(name, nameParameters, null, callMode, result, null);
         }
         public static FunctionBuilder CreateDeclaration(
-                       NameDefinition name,
+                       string name,
+                       ExpressionReadMode callMode,
+                       INameReference result)
+        {
+            return Create(name, callMode, result, (Block)null);
+        }
+        public static FunctionBuilder CreateDeclaration(
+                       string name,
                        INameReference result)
         {
             return CreateDeclaration(name, ExpressionReadMode.ReadRequired, result);
         }
-        public static FunctionBuilder CreateDeclaration(
-                       string name,
-                       ExpressionReadMode callMode,
-                       INameReference result)
-        {
-            return CreateDeclaration(NameDefinition.Create(name), callMode, result);
-        }
-        public static FunctionBuilder CreateDeclaration(
-                       string name,
-                       INameReference result)
-        {
-            return CreateDeclaration(NameDefinition.Create(name), ExpressionReadMode.ReadRequired, result);
-        }
-        public static FunctionBuilder Create(
-                   NameDefinition name,
-                   ExpressionReadMode callMode,
-                   INameReference result,
-                   Block body)
-        {
-            return new FunctionBuilder(name, null, callMode, result, body);
-        }
 
-        public static FunctionBuilder Create(
-           NameDefinition name,
-           INameReference result,
-           Block body)
-        {
-            return Create(name, ExpressionReadMode.ReadRequired, result, body);
-        }
-
-        private readonly NameDefinition name;
+        private readonly string name;
+        private readonly IEnumerable<TemplateParameter> nameParameters;
         private EntityModifier modifier;
         private IEnumerable<FunctionParameter> parameters;
         private ExpressionReadMode callMode;
@@ -112,13 +132,15 @@ namespace Skila.Language.Builders
         private IEnumerable<LabelReference> friends;
 
         private FunctionBuilder(
-                  NameDefinition name,
+                  string name,
+                  IEnumerable<TemplateParameter> nameParameters,
                   IEnumerable<FunctionParameter> parameters,
                   ExpressionReadMode callMode,
                   INameReference result,
                   Block body)
         {
             this.name = name;
+            this.nameParameters = (nameParameters ?? Enumerable.Empty<TemplateParameter>()).StoreReadOnly();
             this.parameters = parameters;
             this.callMode = callMode;
             this.result = result;
@@ -181,15 +203,23 @@ namespace Skila.Language.Builders
         public FunctionDefinition Build()
         {
             if (build == null)
+            {
+                NameDefinition final_name;
+                if (FunctionDefinition.IsValidMutableName(this.name, this.modifier))
+                    final_name = NameDefinition.Create(name, nameParameters);
+                else
+                    final_name = NameDefinition.Create(NameFactory.MutableName(this.name), nameParameters);
+
                 build = FunctionDefinition.CreateFunction(
                     this.modifier ?? EntityModifier.None,
-                    this.name,
+                    final_name,
                     constraints,
                     parameters ?? Enumerable.Empty<FunctionParameter>(), callMode, result,
                     chainCall,
                     body,
                     includes,
                     friends);
+            }
             return build;
         }
         public static implicit operator FunctionDefinition(FunctionBuilder @this)

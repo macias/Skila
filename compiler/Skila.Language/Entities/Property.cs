@@ -28,7 +28,7 @@ namespace Skila.Language.Entities
             return FunctionBuilder.Create(NameFactory.PropertyGetter,
                 ExpressionReadMode.ReadRequired, propertyTypeName,
                 body)
-                .SetModifier(modifier)
+                .SetModifier(EntityModifier.Accessor | modifier)
                 .Parameters(parameters);
         }
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
@@ -39,7 +39,7 @@ namespace Skila.Language.Entities
         public static FunctionDefinition CreateIndexerSetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, EntityModifier modifier, Block body)
         {
-            modifier |= EntityModifier.Mutable;
+            modifier |= EntityModifier.Mutable | EntityModifier.Accessor;
 
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
@@ -65,7 +65,7 @@ namespace Skila.Language.Entities
         }
         internal static FunctionDefinition CreateGetter(INameReference typeName, Block body, EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(modifier, NameDefinition.Create(NameFactory.PropertyGetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Accessor | modifier, NameDefinition.Create(NameFactory.PropertyGetter),
                 null,
                 null,
                 ExpressionReadMode.ReadRequired,
@@ -74,7 +74,7 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateSetter(INameReference typeName, Block body, EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(modifier | EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Accessor | modifier | EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,
@@ -83,7 +83,8 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateAutoSetter(INameReference typeName,EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(EntityModifier.Mutable | modifier, NameDefinition.Create(NameFactory.PropertySetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Mutable | EntityModifier.Accessor | modifier, 
+                NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,
@@ -231,7 +232,7 @@ namespace Skila.Language.Entities
 
         public void Surf(ComputationContext ctx)
         {
-            ;
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
         }
 
         public FunctionDefinition Get(Accessor accessor)

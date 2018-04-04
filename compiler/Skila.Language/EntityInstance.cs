@@ -275,7 +275,12 @@ namespace Skila.Language
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
-                TypeMatch match = TypeMatcher.Matches(ctx, this, constraint_inherits, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
+                if (this.DebugId == (5, 6455))
+                {
+                    ;
+                }
+                TypeMatch match = TypeMatcher.Matches(ctx, this, constraint_inherits,
+                    TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
                 if (TypeMatch.No == match)
                     return ConstraintMatch.InheritsViolation;
             }

@@ -94,7 +94,7 @@ namespace Skila.Tests.Semantics
             ReinterpretType bad_reinterpret = bad_cast.DescendantNodes().WhereType<ReinterpretType>().Single();
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), null,
+                "foo", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -142,7 +142,7 @@ namespace Skila.Tests.Semantics
                     EntityModifier.Public | EntityModifier.Reassignable))
                     );
 
-            FunctionCall mut_call = FunctionCall.Create(NameReference.CreateThised("f", "m", "violate"));
+            FunctionCall mut_call = FunctionCall.Create(NameReference.CreateThised("f", "m", NameFactory.MutableName( "violate")));
             IExpression assignment = Assignment.CreateStatement(NameReference.CreateThised("f", "m"), Undef.Create());
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                 .With(VariableDeclaration.CreateStatement("f",
@@ -259,7 +259,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            FunctionCall call = FunctionCall.Create(NameReference.CreateThised("mutator"));
+            FunctionCall call = FunctionCall.Create(NameReference.CreateThised(NameFactory.MutableName( "mutator")));
             root_ns.AddBuilder(TypeBuilder.Create("Elka")
                 .SetModifier(EntityModifier.Mutable)
                 .With(FunctionBuilder.Create("innocent", NameFactory.UnitTypeReference(),
@@ -290,7 +290,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement())
                     .SetModifier(EntityModifier.Mutable)));
 
-            FunctionCall call = FunctionCall.Create(NameReference.Create("x", "mutator"));
+            FunctionCall call = FunctionCall.Create(NameReference.Create("x",NameFactory.MutableName( "mutator")));
             IExpression assignment = Assignment.CreateStatement(NameReference.Create("x", "numi"), Int64Literal.Create("5"));
             root_ns.AddBuilder(FunctionBuilder.Create("foo",
                 NameFactory.UnitTypeReference(),
@@ -369,14 +369,13 @@ namespace Skila.Tests.Semantics
 
 
             Return ret = Return.Create(NameReference.Create("coll"));
-            root_ns.AddBuilder(FunctionBuilder.Create(NameDefinition.Create("laundering", "T", VarianceMode.None),
-               new[] { FunctionParameter.Create("coll",
-                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability:  MutabilityOverride.ForceMutable))) },
-               ExpressionReadMode.ReadRequired,
+            root_ns.AddBuilder(FunctionBuilder.Create("laundering", "T", VarianceMode.None,
                NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T")),
                Block.CreateStatement(new IExpression[] {
                        ret
-               })));
+               }))
+               .Parameters(FunctionParameter.Create("coll",
+                    NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability: MutabilityOverride.ForceMutable)))));
 
 
             var resolver = NameResolver.Create(env);
@@ -399,7 +398,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create("Untouchable"));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), null,
+                "foo", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -436,7 +435,7 @@ namespace Skila.Tests.Semantics
             NameReference init_value_x = NameReference.Create("x");
             NameReference init_value_y = NameReference.Create("y");
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), null,
+                "foo", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -475,7 +474,7 @@ namespace Skila.Tests.Semantics
 
             IExpression mutable_init = ExpressionFactory.HeapConstructor(NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), null,
+                "foo", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -566,7 +565,7 @@ namespace Skila.Tests.Semantics
             // Bar is mutable type, so we cannot construct Point<Bar> since Point requires immutable type
             NameReference wrong_type = NameReference.Create("Point", NameReference.Create("Bar"));
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), null,
+                "foo", null,
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 

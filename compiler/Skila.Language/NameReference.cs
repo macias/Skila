@@ -170,6 +170,8 @@ namespace Skila.Language
 
         public void Surf(ComputationContext ctx)
         {
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+
             compute(ctx);
         }
 
@@ -436,34 +438,36 @@ namespace Skila.Language
         }
         public void Validate(ComputationContext ctx)
         {
-            ConstraintMatch mismatch = ConstraintMatch.Yes;
-            this.Binding.Filter(instance =>
             {
-                ConstraintMatch m = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, instance);
-                if (m == ConstraintMatch.Yes)
-                    return true;
-                else
+                ConstraintMatch mismatch = ConstraintMatch.Yes;
+                this.Binding.Filter(instance =>
                 {
-                    mismatch = m;
-                    return false;
-                }
-            });
+                    ConstraintMatch m = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, instance);
+                    if (m == ConstraintMatch.Yes)
+                        return true;
+                    else
+                    {
+                        mismatch = m;
+                        return false;
+                    }
+                });
 
-            if (!this.Binding.Matches.Any())
-            {
-                if (mismatch == ConstraintMatch.BaseViolation)
-                    ctx.AddError(ErrorCode.ViolatedBaseConstraint, this);
-                else if (mismatch == ConstraintMatch.MutabilityViolation)
-                    ctx.AddError(ErrorCode.ViolatedConstConstraint, this);
-                else if (mismatch == ConstraintMatch.InheritsViolation)
-                    ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
-                else if (mismatch == ConstraintMatch.MissingFunction)
-                    ctx.AddError(ErrorCode.ViolatedHasFunctionConstraint, this);
-                // todo: added in a rush, polish this scenario
-                else if (mismatch == ConstraintMatch.UndefinedTemplateArguments)
-                    ctx.AddError(ErrorCode.UndefinedTemplateArguments, this);
-                else if (mismatch != ConstraintMatch.Yes)
-                    throw new Exception("Internal error");
+                if (!this.Binding.Matches.Any())
+                {
+                    if (mismatch == ConstraintMatch.BaseViolation)
+                        ctx.AddError(ErrorCode.ViolatedBaseConstraint, this);
+                    else if (mismatch == ConstraintMatch.MutabilityViolation)
+                        ctx.AddError(ErrorCode.ViolatedConstConstraint, this);
+                    else if (mismatch == ConstraintMatch.InheritsViolation)
+                        ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
+                    else if (mismatch == ConstraintMatch.MissingFunction)
+                        ctx.AddError(ErrorCode.ViolatedHasFunctionConstraint, this);
+                    // todo: added in a rush, polish this scenario
+                    else if (mismatch == ConstraintMatch.UndefinedTemplateArguments)
+                        ctx.AddError(ErrorCode.UndefinedTemplateArguments, this);
+                    else if (mismatch != ConstraintMatch.Yes)
+                        throw new Exception("Internal error");
+                }
             }
 
             /*  {

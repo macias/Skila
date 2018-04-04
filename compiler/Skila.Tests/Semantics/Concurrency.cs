@@ -22,18 +22,18 @@ namespace Skila.Tests.Semantics
                 .SetModifier(EntityModifier.Mutable)
                 .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, 
                     EntityModifier.Public | EntityModifier.Reassignable))
-                .With(FunctionBuilder.Create(NameDefinition.Create("empty"), new[] {
-                    FunctionParameter.Create("p",NameFactory.PointerTypeReference(NameReference.Create("Point")),Variadic.None,
-                        null,isNameRequired:false, usageMode: ExpressionReadMode.CannotBeRead)}, 
+                .With(FunctionBuilder.Create("empty", 
                         ExpressionReadMode.CannotBeRead,
                 NameFactory.UnitTypeReference(),
                         
-                        Block.CreateStatement())));
+                        Block.CreateStatement())
+                        .Parameters(FunctionParameter.Create("p", NameFactory.PointerTypeReference(NameReference.Create("Point")), Variadic.None,
+                        null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead))));
 
             FunctionArgument mutable_arg = FunctionArgument.Create(NameReference.Create("r"));
             NameReference mutable_method = NameReference.Create("r", "empty");
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

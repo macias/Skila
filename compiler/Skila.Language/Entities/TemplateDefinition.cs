@@ -136,9 +136,6 @@ namespace Skila.Language.Entities
         }
 
 
-        public virtual void Surf(ComputationContext ctx)
-        {
-
-        }
+        public abstract void Surf(ComputationContext ctx);
     }
 }

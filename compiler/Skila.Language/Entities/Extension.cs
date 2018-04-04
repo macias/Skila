@@ -20,5 +20,10 @@ namespace Skila.Language.Entities
         {
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
+
+        public override void Surf(ComputationContext ctx)
+        {
+            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+        }
     }
 }

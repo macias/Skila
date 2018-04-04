@@ -13,10 +13,9 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
-        public IInterpreter CopyableViaSelfConstructor()
+        public IInterpreter RuntimeSelfTypeResolution()
         {
-            // the purpose of this test is to check if `ICopyable` correctly resolves and call `*Self` constructor
-            // on `copy` method, effective type is resolved at runtime
+            // the purpose of this test is to check whether `Self` is correctly resolved and appropriate constructor is called
 
             var env = Language.Environment.Create(new Options()
             {
@@ -25,31 +24,47 @@ namespace Skila.Tests.Execution
             });
             var root_ns = env.Root;
 
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IDuplicate"))
+
+                                .With(FunctionBuilder.CreateInitConstructor(null)
+                                    .Parameters(FunctionParameter.Create("cp",
+                                        NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral))))
+                                    .SetModifier(EntityModifier.Pinned))
+
+                                    .With(FunctionBuilder.Create("copy",
+                                        NameFactory.PointerTypeReference(NameReference.Create("IDuplicate")),
+                                        Block.CreateStatement(Return.Create(ExpressionFactory.HeapConstructor(NameFactory.SelfTypeReference(),
+                                            NameReference.CreateThised())))))
+                                    );
+
             root_ns.AddBuilder(TypeBuilder.Create("Carbon")
-                .Parents(NameFactory.ICopyableTypeReference())
-                // default constructor
+                .Parents(NameReference.Create("IDuplicate"))
                 .With(VariableDeclaration.CreateStatement("x",NameFactory.Nat8TypeReference(),null,EntityModifier.Public))
-                // copy constructor (derived from ICopyable)
+                // default constructor
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
-                    Assignment.CreateStatement(NameReference.CreateThised("x"),Nat8Literal.Create("5")))))
-                
+                    Assignment.CreateStatement(NameReference.CreateThised("x"),Nat8Literal.Create("7")))))
+
+                    // copy constructor (derived)
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("7"))))
                     .SetModifier(EntityModifier.Pinned | EntityModifier.Override | EntityModifier.UnchainBase)
-                    .Parameters(FunctionParameter.Create(NameFactory.ICopyableCopyParameter,
+                    .Parameters(FunctionParameter.Create("cp",
                         NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral)),
-                            ExpressionReadMode.CannotBeRead))));
+                            ExpressionReadMode.CannotBeRead)))
+
+                            );
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Carbon")),
 
-                    // we call "copy" method on ICopyable which should in turn call copy constructor
+                    // we call "copy" method which should in turn call copy constructor
                     VariableDeclaration.CreateStatement("b",null,
-                        FunctionCall.Create(NameReference.Create("a",NameFactory.ICopyableCopyFunction))),
+                        FunctionCall.Create(NameReference.Create("a","copy"))),
 
                     // we should get our type back and the value we set in our copy constructor
                     IfBranch.CreateIf( ExpressionFactory.OptionalDeclaration("c",null,ExpressionFactory.DownCast(NameReference.Create("b"),
@@ -128,7 +143,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -179,7 +194,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -231,7 +246,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -262,7 +277,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -304,7 +319,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -334,7 +349,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -362,7 +377,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -394,7 +409,7 @@ namespace Skila.Tests.Execution
                 .With(VariableDeclaration.CreateStatement("y", NameFactory.Int64TypeReference(), null,
                     EntityModifier.Public | EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -422,7 +437,7 @@ namespace Skila.Tests.Execution
                 .With(EnumCaseBuilder.Create("small", "big")));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -481,7 +496,7 @@ namespace Skila.Tests.Execution
                     EntityModifier.Public | EntityModifier.Reassignable)));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

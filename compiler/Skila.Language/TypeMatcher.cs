@@ -71,6 +71,7 @@ namespace Skila.Language
                 }
             }
 
+
             if (ctx.Env.IsReferenceOfType(target))
             {
                 if (ctx.Env.IsPointerLikeOfType(input))
@@ -113,6 +114,7 @@ namespace Skila.Language
                 }
             }
 
+
             {
                 IEnumerable<FunctionDefinition> out_conv = input.TargetType.ImplicitOutConverters().StoreReadOnly();
                 bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;
@@ -142,7 +144,7 @@ namespace Skila.Language
 
                 foreach (TypeAncestor inherited_input in input_family)
                 {
-                    if (inherited_input.AncestorInstance.DebugId==(10, 7603) && target.DebugId==(10, 7607))
+                    if (inherited_input.AncestorInstance.DebugId == (5, 44) && target.DebugId == (5, 44))
                     {
                         ;
                     }
@@ -178,7 +180,7 @@ namespace Skila.Language
 
             if (target.TargetsTemplateParameter)
             {
-                if (input.DebugId==(10, 4898) && target.DebugId==(10, 897))
+                if (input.DebugId == (10, 4898) && target.DebugId == (10, 897))
                 {
                     ;
                 }
@@ -201,7 +203,7 @@ namespace Skila.Language
         private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability, EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
-            if (input.DebugId==(10, 7603) && target.DebugId== (10, 7607))
+            if (input.DebugId == (10, 7603) && target.DebugId == (10, 7607))
             {
                 ;
             }

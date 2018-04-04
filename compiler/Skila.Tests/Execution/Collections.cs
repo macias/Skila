@@ -19,7 +19,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(
@@ -66,7 +66,7 @@ namespace Skila.Tests.Execution
             const string elem_name = "my_elem";
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("below"),
+                "below",
                 NameFactory.BoolTypeReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
@@ -74,7 +74,7 @@ namespace Skila.Tests.Execution
                 .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
@@ -117,7 +117,7 @@ namespace Skila.Tests.Execution
             const string elem_name = "my_elem";
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("pow"),
+                "pow",
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("x", "x"))
@@ -125,7 +125,7 @@ namespace Skila.Tests.Execution
                 .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(
@@ -187,7 +187,7 @@ namespace Skila.Tests.Execution
                     .Parameters(FunctionParameter.Create("b", NameFactory.Int64TypeReference()))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -244,7 +244,7 @@ namespace Skila.Tests.Execution
             const string elem_name = "my_elem";
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -289,7 +289,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -327,7 +327,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -363,7 +363,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -400,7 +400,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -442,7 +442,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

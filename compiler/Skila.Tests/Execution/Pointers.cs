@@ -20,7 +20,7 @@ namespace Skila.Tests.Execution
 
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -58,7 +58,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("provider"),
+                "provider",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(new IExpression[] {
@@ -69,7 +69,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -96,7 +96,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("provider"),
+                "provider",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                 Block.CreateStatement(new IExpression[] {
@@ -106,7 +106,7 @@ namespace Skila.Tests.Execution
                 })));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -130,7 +130,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -160,7 +160,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("inc"),
+                "inc",
                 ExpressionReadMode.ReadRequired,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -168,7 +168,7 @@ namespace Skila.Tests.Execution
                 }))
                 .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference())));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -193,7 +193,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -218,7 +218,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -245,7 +245,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -294,7 +294,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -333,7 +333,7 @@ namespace Skila.Tests.Execution
             var root_ns = env.Root;
 
             var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("inc"),
+                "inc",
                 ExpressionReadMode.ReadRequired,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -346,7 +346,7 @@ namespace Skila.Tests.Execution
                 }))
                 .Parameters(FunctionParameter.Create("n", NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()))));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -381,7 +381,7 @@ namespace Skila.Tests.Execution
                 .With(VariableDeclaration.CreateStatement("n", NameFactory.PointerTypeReference(NameReference.Create("Chain")),
                     Undef.Create(), EntityModifier.Public | EntityModifier.Reassignable)));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

@@ -233,7 +233,7 @@ namespace Skila.Tests.Semantics
 
             IExpression init_value = ExpressionFactory.HeapConstructor("First", NameReference.Create("First", "Mon"));
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("some"),
+                "some",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -513,27 +513,27 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("foo"),
+                    "foo",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference()))
-                .With(FunctionBuilder.Create(NameDefinition.Create("fin"),
+                .With(FunctionBuilder.Create("fin",
                     ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
                     Block.CreateStatement()))
-                .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
+                .With(FunctionBuilder.CreateDeclaration("bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference()))
                 .SetModifier(EntityModifier.Interface));
 
             FunctionDefinition bar_impl = FunctionBuilder.Create(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                     }));
             FunctionDefinition fin_impl = FunctionBuilder.Create(
-                    NameDefinition.Create("fin"),
+                    "fin",
                     ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -561,7 +561,7 @@ namespace Skila.Tests.Semantics
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Inter")
-                .With(FunctionBuilder.CreateDeclaration(NameDefinition.Create("bar"),
+                .With(FunctionBuilder.CreateDeclaration("bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference()))
                 .SetModifier(EntityModifier.Interface));
@@ -591,21 +591,21 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                     .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                 .SetModifier(EntityModifier.Interface));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
+                .With(FunctionBuilder.Create("bar",
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                     Block.CreateStatement(new[] {
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
                     }))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))
                     .SetModifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IX")));
 
@@ -626,7 +626,7 @@ namespace Skila.Tests.Semantics
                 .Add("T")
                 .Values))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference())
                     .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
@@ -635,13 +635,13 @@ namespace Skila.Tests.Semantics
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
                 .Add("V").Values))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("V"), usageMode: ExpressionReadMode.CannotBeRead) },
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                     }))
+                    .Parameters(FunctionParameter.Create("x", NameReference.Create("V"), usageMode: ExpressionReadMode.CannotBeRead))
                     .SetModifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IX", NameReference.Create("V"))));
 
@@ -661,14 +661,14 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IMyInterface",
                     TemplateParametersBuffer.Create().Add("TI").Values))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MyImpl",
                     TemplateParametersBuffer.Create().Add("MV").Values))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
                     Block.CreateStatement(new[] {
@@ -694,11 +694,11 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IMyInterface",
                     TemplateParametersBuffer.Create().Add("TI").Values))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameReference.Create("TI")))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("foo"),
+                    "foo",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
 
@@ -708,7 +708,7 @@ namespace Skila.Tests.Semantics
             // V -> &V
             // &V -> V
             FunctionDefinition func1_impl = FunctionBuilder.Create(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
                     Block.CreateStatement(new[] {
@@ -716,7 +716,7 @@ namespace Skila.Tests.Semantics
                     }))
                     .SetModifier(EntityModifier.Override);
             FunctionDefinition func2_impl = FunctionBuilder.Create(
-                    NameDefinition.Create("foo"),
+                    "foo",
                     ExpressionReadMode.OptionalUse,
                     NameReference.Create("MV"),
                     Block.CreateStatement(new[] {
@@ -749,7 +749,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IBar",
                 TemplateParametersBuffer.Create("TA").Values))
                 .With(FunctionBuilder.CreateDeclaration(
-                    NameDefinition.Create("barend", TemplateParametersBuffer.Create("FA").Values),
+                    "barend", "FA", VarianceMode.None,
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference())
                     .Constraints(ConstraintBuilder.Create("FA").Inherits(NameReference.Create("TA")))
@@ -758,14 +758,14 @@ namespace Skila.Tests.Semantics
             TypeDefinition type_impl = root_ns.AddBuilder(
                 TypeBuilder.Create(NameDefinition.Create("Impl", TemplateParametersBuffer.Create("TB").Values))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("barend", TemplateParametersBuffer.Create("FB").Values),
-                    new[] { FunctionParameter.Create("x", NameReference.Create("TB"),
-                        usageMode: ExpressionReadMode.CannotBeRead) },
+                    "barend", TemplateParametersBuffer.Create("FB").Values,
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                     }))
+                    .Parameters(FunctionParameter.Create("x", NameReference.Create("TB"),
+                        usageMode: ExpressionReadMode.CannotBeRead))
                     .Constraints(ConstraintBuilder.Create("FB").Inherits(NameReference.Create("TB")))
                     .SetModifier(EntityModifier.Override))
                 .Parents(NameReference.Create("IBar", NameReference.Create("TB"))));

@@ -10,6 +10,8 @@ namespace Skila.Language
         // something user cannot use as a symbol
         private const string magicMarker = "'";
 
+        private const string mutableMarker = "¡";
+
         public const string RootNamespace = ":root:";
         public const string SystemNamespace = "System";
         public const string ConcurrencyNamespace = "Concurrency";
@@ -54,7 +56,6 @@ namespace Skila.Language
         public const string ExceptionTypeName = "Exception";
         public const string ISequenceTypeName = "ISequence";
         public const string ICountedTypeName = "ICounted";
-        public const string ICopyableTypeName = "ICopyable";
         public const string LinqExtensionName = "Linq";
         public const string ChunkTypeName = "Chunk";
         public const string ArrayTypeName = "Array";
@@ -111,9 +112,6 @@ namespace Skila.Language
 
         public const string ComparableCompare = "compare";
 
-        public const string ICopyableCopyParameter = "copy";
-        public const string ICopyableCopyFunction = "copy";
-
         public const string CommandLineProgramPath = "program";
         public const string CommandLineArguments = "args";
 
@@ -135,7 +133,7 @@ namespace Skila.Language
         public const string AtFunctionName = "at";
         public const string PropertyIndexerName = AtFunctionName;
         public const string IIterableCount = "count";
-        public const string IteratorNext = "next";
+        public static readonly string IteratorNext = MutableName("next");
 
         public const string StringTrim = "trim";
         // don't use terms left/right because it will confuse right-to-left devs
@@ -192,7 +190,7 @@ namespace Skila.Language
         public const string MapFunctionName = "map";
         public const string FilterFunctionName = "filter";
         public const string ReverseFunctionName = "reverse";
-        public const string AppendFunctionName = "append";
+        public static readonly string AppendFunctionName = MutableName("append");
 
         public const string GetTypeFunctionName = "getType";
 
@@ -380,15 +378,13 @@ namespace Skila.Language
         {
             return ISequenceTypeReference(NameReference.Create(templateParamName), mutability);
         }
+
         public static NameReference IIterableTypeReference(string templateParamName,
             MutabilityOverride overrideMutability = MutabilityOverride.NotGiven)
         {
             return IIterableTypeReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference ICopyableTypeReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
-        {
-            return NameReference.Create(mutability, SystemNamespaceReference(), ICopyableTypeName);
-        }
+
         public static NameReference IIterableTypeReference(NameReference templateParamName,
             MutabilityOverride mutability = MutabilityOverride.NotGiven)
         {
@@ -400,6 +396,7 @@ namespace Skila.Language
         {
             return ChunkTypeReference(NameReference.Create(templateParamName));
         }
+
         public static NameReference ChunkTypeReference(INameReference templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
@@ -538,6 +535,16 @@ namespace Skila.Language
             // todo: Skila1 supported the notion of dynamic "this type", Skila-3 should also have it
             // so once we have time to do it this method will help us fast track all the use cases to replace
             return NameReference.Create(mutability, typeName);
+        }
+
+        public static string MutableName(string s)
+        {
+            return mutableMarker + s;
+        }
+
+        public static bool IsMutableName(string s)
+        {
+            return s.StartsWith(mutableMarker);
         }
     }
 }

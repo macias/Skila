@@ -40,7 +40,7 @@ namespace Skila.Tests.Execution
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -82,7 +82,7 @@ namespace Skila.Tests.Execution
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -127,7 +127,7 @@ namespace Skila.Tests.Execution
                 )));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -166,7 +166,7 @@ namespace Skila.Tests.Execution
                     new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
                 )));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -204,7 +204,7 @@ namespace Skila.Tests.Execution
                     new[] { Property.CreateAutoSetter(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference())) }
                 )));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(new IExpression[] {

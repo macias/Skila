@@ -29,16 +29,16 @@ namespace Skila.Tests
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-                //new Semantics.Inheritance().InheritingConstructorWithSelfType();
+                new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-                //new Semantics.Mutability().ErrorTransitiveMutabilityTypePassing();
+                //new Semantics.Mutability().ErrorAbusingForcedConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                // new Semantics.Templates().ErrorCallingTraitMethodOnHost();
+                // new Semantics.Templates().InternalDirectTranslationTables();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
-                //new Semantics.Types().ErrorSelfTypeUsage();
+                //new Semantics.Types().AutoDefaultConstructor();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 //new Execution.Closures().ClosureRecursiveCall();
@@ -52,7 +52,7 @@ namespace Skila.Tests
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().RealNotANumber();
                 //new Execution.NameResolution().GenericTypeAliasing();
-                new Execution.Objects().CopyableViaSelfConstructor();
+                //new Execution.Objects().RuntimeSelfTypeResolution();
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
@@ -61,7 +61,7 @@ namespace Skila.Tests
 
             // if (false)
             {
-                const double golden_avg_s = 1.45;
+                const double golden_avg_s = 1.49;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -76,7 +76,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.49;
+                const double golden_avg_s = 1.52;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

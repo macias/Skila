@@ -25,7 +25,7 @@ namespace Skila.Tests.Semantics
             NameReference typename = NameReference.Create("IX");
             NameReference cons_ref;
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("foo"), Enumerable.Empty<FunctionParameter>(),
+                "foo", 
                 ExpressionReadMode.OptionalUse,
                 NameFactory.UnitTypeReference(),
 
@@ -75,24 +75,24 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
                  .With(FunctionBuilder.CreateDeclaration(
-                     NameDefinition.Create("bar"),
+                     "bar",
                      ExpressionReadMode.OptionalUse,
                      NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
                      .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
                  .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
             root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
-                    new[] { FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead) },
+                .With(FunctionBuilder.Create("bar",
                     ExpressionReadMode.OptionalUse,
                     // subtype of original result typename -- this is legal
                     NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
                     Block.CreateStatement(new[] {
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
-                    }))));
+                    }))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -146,7 +146,7 @@ namespace Skila.Tests.Semantics
             // even with duck typing we cannot make the assigment because slicing is forbidden in all cases
             VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value);
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {

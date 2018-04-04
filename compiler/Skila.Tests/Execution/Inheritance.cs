@@ -27,7 +27,7 @@ namespace Skila.Tests.Execution
                 .Parents("Weekend"));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.NatTypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -73,7 +73,7 @@ namespace Skila.Tests.Execution
             NameReferenceUnion union = NameReferenceUnion.Create(NameFactory.PointerTypeReference(NameReference.Create("GetNeg")),
                 NameFactory.PointerTypeReference(NameReference.Create("GetPos")));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -125,7 +125,7 @@ namespace Skila.Tests.Execution
                 NameFactory.PointerTypeReference(NameReference.Create("IGetNeg")),
                 NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -155,7 +155,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("MyBase")
                 .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("bar"),
+                    "bar",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -164,7 +164,7 @@ namespace Skila.Tests.Execution
                     .SetModifier(EntityModifier.Base)));
 
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("SomeChild")
-                .With(FunctionBuilder.Create(NameDefinition.Create("bar"),
+                .With(FunctionBuilder.Create("bar",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -174,7 +174,7 @@ namespace Skila.Tests.Execution
                 .Parents(NameReference.Create("MyBase")));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
@@ -205,7 +205,7 @@ namespace Skila.Tests.Execution
                 .Parents("IBase")
                 .SetModifier(EntityModifier.Base)
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("getA"),
+                    "getA",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -213,7 +213,7 @@ namespace Skila.Tests.Execution
                     }))
                     .SetModifier(EntityModifier.Override))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("getB"),
+                    "getB",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -224,7 +224,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("End")
                 .Parents("Middle")
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("getA"),
+                    "getA",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -232,7 +232,7 @@ namespace Skila.Tests.Execution
                     }))
                     .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase))
                 .With(FunctionBuilder.Create(
-                    NameDefinition.Create("getB"),
+                    "getB",
                     ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
@@ -244,7 +244,7 @@ namespace Skila.Tests.Execution
                     .SetModifier(EntityModifier.Override)));
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                NameDefinition.Create("main"),
+                "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
