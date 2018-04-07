@@ -231,9 +231,7 @@ namespace Skila.Language
             ErrorCode errorCode = ErrorCode.ReferenceNotFound;
             IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
 
-            this.Binding.Set(entities
-                .Select(it => new BindingMatch(EntityInstance.Create(ctx, it.Instance, this.TemplateArguments, this.OverrideMutability),
-                    it.IsLocal)));
+            this.Binding.Set(entities);
 
             if (this.Binding.Match.Instance.IsJoker && !this.IsSink
                 // avoid cascade od errors, if prefix failed there is no point in reporting another error
@@ -281,8 +279,12 @@ namespace Skila.Language
                 }
                 else if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
                 {
+                    if (this.DebugId== (6, 9796))
+                    {
+                        ;
+                    }
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { new BindingMatch(enclosing_type.InstanceOf, isLocal: false) };
+                    return new[] { new BindingMatch(enclosing_type.InstanceOf.Build(this.OverrideMutability), isLocal: false) };
                 }
                 else if (this.Name == NameFactory.BaseVariableName)
                 {
@@ -347,15 +349,23 @@ namespace Skila.Language
                         }
                     }
 
-                    return entities.Select(it => new BindingMatch(it, isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
                 }
             }
             else // we have prefix
             {
-                if (this.DebugId == (3, 1219))
+                if (this.DebugId ==  (6, 9446))
                 {
                     ;
                 }
+
+                EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
+
+                if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
+                {
+                    return new[] { new BindingMatch(prefix_instance, isLocal: false) };
+                }
+
                 EntityFindMode find_mode = this.isPropertyIndexerCallReference
                     ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
 
@@ -374,7 +384,7 @@ namespace Skila.Language
                     if (target_instance.Target is TypeDefinition typedef)
                         entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
-                    return entities.Select(it => new BindingMatch(it, isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
                 }
                 else
                 {
@@ -383,7 +393,6 @@ namespace Skila.Language
                         ;
                     }
 
-                    EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
 
                     if (!entities.Any())
@@ -399,7 +408,7 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    return entities.Select(it => new BindingMatch(it, isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
                 }
             }
         }
@@ -569,36 +578,6 @@ namespace Skila.Language
                 foreach (INameReference arg in this.TemplateArguments)
                     if (ctx.Env.IsReferenceOfType(arg.Evaluation.Components))
                         ctx.AddError(ErrorCode.ReferenceAsTypeArgument, arg);
-        }
-
-        public void ValidateTypeNameVariance(ComputationContext ctx, VarianceMode typeNamePosition)
-        {
-            // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
-
-            TypeDefinition typedef = this.Binding.Match.Instance.TargetType;
-
-            if (typedef.IsTemplateParameter)
-            {
-                TemplateParameter param = typedef.TemplateParameter;
-                TemplateDefinition template = param.EnclosingScope<TemplateDefinition>();
-                if (this.EnclosingScopesToRoot().Contains(template))
-                {
-                    bool covariant_in_immutable = param.Variance == VarianceMode.Out
-                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == TypeMutability.ConstAsSource);
-
-                    // don't report errors for covariant types which are used in immutable template types
-                    if (!covariant_in_immutable &&
-                        typeNamePosition.PositionCollides(param.Variance))
-                        ctx.AddError(ErrorCode.VarianceForbiddenPosition, this, param);
-                }
-            }
-            else
-                for (int i = 0; i < typedef.Name.Parameters.Count; ++i)
-                {
-                    this.TemplateArguments[i].Cast<NameReference>().ValidateTypeNameVariance(ctx,
-                        typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance));
-                }
-
         }
 
         private static EntityInstance tryDereference(ComputationContext ctx, EntityInstance entityInstance)

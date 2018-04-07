@@ -5,6 +5,7 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using Skila.Language.Semantics;
 
 namespace Skila.Language
 {
@@ -19,25 +20,31 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EntityInstance : IEntityInstance
     {
-        public static EntityInstance RAW_CreateUnregistered(EntityInstanceCore core, TemplateTranslation translation, bool asSelf)
+        public static EntityInstance RAW_CreateUnregistered(EntityInstanceCore core, TemplateTranslation translation)
         {
-            return new EntityInstance(core, translation, asSelf);
+            return new EntityInstance(core, translation);
         }
 
-        internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
+        /*internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
             IEnumerable<INameReference> arguments, MutabilityOverride overrideMutability)
         {
             if (arguments.Any(it => !it.IsBindingComputed))
                 throw new ArgumentException("Type parameter binding was not computed.");
 
             return targetInstance.Build(arguments.Select(it => it.Evaluation.Components), overrideMutability);
+        }*/
+
+        internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
+    IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability)
+        {
+            return targetInstance.Build(arguments, overrideMutability);
         }
 
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty, asSelf: false);
+            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -46,7 +53,6 @@ namespace Skila.Language
         public MutabilityOverride OverrideMutability => this.Core.OverrideMutability;
 
         public EntityInstanceCore Core { get; }
-        public bool AsSelf { get; }
         public TemplateTranslation Translation { get; }
 
 
@@ -82,11 +88,10 @@ namespace Skila.Language
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
         private EntityInstance(EntityInstanceCore core,
-            TemplateTranslation translation, bool asSelf)
+            TemplateTranslation translation)
         {
             this.Core = core;
             this.Translation = translation;
-            this.AsSelf = AsSelf;
 
             this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
                 target: this, isLocal: false);
@@ -154,8 +159,7 @@ namespace Skila.Language
         internal EntityInstance TranslateThroughTraitHost(TypeDefinition trait)
         {
             return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability,
-                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait),
-                this.AsSelf).Cast<EntityInstance>();
+                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait)).Cast<EntityInstance>();
         }
 
         public EntityInstance TranslateThrough(EntityInstance closedTemplate)
@@ -199,8 +203,7 @@ namespace Skila.Language
                 }
 
                 TemplateTranslation combo_translation = TemplateTranslation.Combine(this.Translation, translation);
-                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation,
-                    this.AsSelf);
+                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation);
 
                 return result;
             }
@@ -372,7 +375,7 @@ namespace Skila.Language
 
         public EntityInstance Build(MutabilityOverride mutability)
         {
-            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, this.AsSelf);
+            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
         }
 
         internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityOverride overrideMutability)
@@ -380,7 +383,11 @@ namespace Skila.Language
             TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
 
             return this.Target.GetInstance(templateArguments, overrideMutability,
-                TemplateTranslation.Combine(this.Translation, trans_arg), this.AsSelf);
+                TemplateTranslation.Combine(this.Translation, trans_arg));
+        }
+        internal EntityInstance Build(IEnumerable<INameReference> templateArguments, MutabilityOverride overrideMutability)
+        {
+            return Build(templateArguments.Select(it => it.Evaluation.Components), overrideMutability);
         }
 
         public IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
@@ -407,6 +414,39 @@ namespace Skila.Language
 
             EntityInstance instance = other.Cast<EntityInstance>();
             return this.Core == instance.Core;
+        }
+
+        public bool ValidateTypeVariance(ComputationContext ctx,INode placement, VarianceMode typeNamePosition)
+        {
+            // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
+
+            TypeDefinition typedef = this.TargetType;
+
+            if (typedef.IsTemplateParameter)
+            {
+                TemplateParameter param = typedef.TemplateParameter;
+                TemplateDefinition template = param.EnclosingScope<TemplateDefinition>();
+                if (placement.EnclosingScopesToRoot().Contains(template))
+                {
+                    bool covariant_in_immutable = param.Variance == VarianceMode.Out
+                        && (template.IsFunction() || template.CastType().InstanceOf.MutabilityOfType(ctx) == TypeMutability.ConstAsSource);
+
+                    // don't report errors for covariant types which are used in immutable template types
+                    if (!covariant_in_immutable &&
+                        typeNamePosition.PositionCollides(param.Variance))
+                        return false;
+                }
+            }
+            else
+                for (int i = 0; i < typedef.Name.Parameters.Count; ++i)
+                {
+                    if (!this.TemplateArguments[i].ValidateTypeVariance(ctx,
+                        placement,
+                        typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance)))
+                        return false;
+                }
+
+            return true;
         }
     }
 }

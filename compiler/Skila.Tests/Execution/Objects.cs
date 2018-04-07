@@ -13,6 +13,224 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter CallingImplicitConstMethodOnHeapOnlyPointer()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
+            var root_ns = env.Root;
+
+
+            TypeDefinition type_def = root_ns.AddBuilder(TypeBuilder.Create("Carbon")
+                .SetModifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Nat8TypeReference(), null, EntityModifier.Public | EntityModifier.Reassignable))
+
+                // default constructor
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                    Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("7")))))
+
+                // copy constructor
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("7"))))
+                    .Parameters(FunctionParameter.Create("cp",
+                        NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral)),
+                            ExpressionReadMode.CannotBeRead)))
+
+                // this is a mutable method
+                .With(FunctionBuilder.Create("turtle", NameFactory.UnitTypeReference(), Block.CreateStatement(
+                    Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("13"))
+                    ))
+                    .SetModifier(EntityModifier.Mutable))
+
+                            );
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.HeapConstructor("Carbon")),
+
+                    // calling const-method (which currently is auto created)
+                    VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
+
+                    VariableDeclaration.CreateStatement("r",null,
+                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+
+                        Return.Create(NameReference.Create("r"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)6, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter CallingImplicitConstMethodOnValueOnHeap()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
+            var root_ns = env.Root;
+
+
+            TypeDefinition type_def = root_ns.AddBuilder(TypeBuilder.Create("Carbon")
+                .SetModifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Nat8TypeReference(), null, EntityModifier.Public | EntityModifier.Reassignable))
+
+                // this is a mutable method
+                .With(FunctionBuilder.Create("turtle", NameFactory.UnitTypeReference(), Block.CreateStatement(
+                    Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("13"))
+                    ))
+                    .SetModifier(EntityModifier.Mutable))
+
+                            );
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.HeapConstructor("Carbon")),
+
+                    // calling const-method (which currently is auto created)
+                    VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
+
+                    VariableDeclaration.CreateStatement("r",null,
+                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+
+                        Return.Create(NameReference.Create("r"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)13, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter CallingImplicitConstMethodOnValueOnStack()
+        {
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
+            var root_ns = env.Root;
+
+
+            TypeDefinition type_def = root_ns.AddBuilder(TypeBuilder.Create("Carbon")
+                .SetModifier(EntityModifier.Mutable)
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Nat8TypeReference(), null, EntityModifier.Public | EntityModifier.Reassignable))
+
+                // this is a mutable method
+                .With(FunctionBuilder.Create("turtle",NameFactory.UnitTypeReference(),Block.CreateStatement(
+                    Assignment.CreateStatement(NameReference.CreateThised("x"),Nat8Literal.Create("13"))
+                    ))
+                    .SetModifier(EntityModifier.Mutable))
+
+                            );
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Carbon")),
+
+                    // calling const-method (which currently is auto created)
+                    VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
+
+                    VariableDeclaration.CreateStatement("r",null,
+                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+
+                        Return.Create(NameReference.Create("r"))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)13, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter RuntimeSelfTypeResolutionOnExternalObject()
+        {
+            // the purpose of this test is to check whether `Self` is correctly resolved and appropriate constructor is called
+            // when used on external object
+
+            var env = Language.Environment.Create(new Options()
+            {
+                DiscardingAnyExpressionDuringTests = true,
+                DebugThrowOnError = true
+            });
+            var root_ns = env.Root;
+
+
+            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("IDuplicate"))
+
+                                .With(FunctionBuilder.CreateInitConstructor(null)
+                                    .Parameters(FunctionParameter.Create("cp",
+                                        NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral))))
+                                    .SetModifier(EntityModifier.Pinned))
+                                    );
+
+            root_ns.AddBuilder(TypeBuilder.Create("Carbon")
+                .Parents(NameReference.Create("IDuplicate"))
+                .With(VariableDeclaration.CreateStatement("x", NameFactory.Nat8TypeReference(), null, EntityModifier.Public))
+                // default constructor
+                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                    Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("7")))))
+
+                    // copy constructor (derived)
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("7"))))
+                    .SetModifier(EntityModifier.Pinned | EntityModifier.Override | EntityModifier.UnchainBase)
+                    .Parameters(FunctionParameter.Create("cp",
+                        NameFactory.ReferenceTypeReference(NameFactory.SelfTypeReference(MutabilityOverride.Neutral)),
+                            ExpressionReadMode.CannotBeRead)))
+
+                            );
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("a",NameFactory.PointerTypeReference(NameReference.Create("IDuplicate")),
+                        ExpressionFactory.HeapConstructor("Carbon")),
+
+                    // we create a copy using `Self` type on external object 
+                    VariableDeclaration.CreateStatement("b",null,
+                        ExpressionFactory.HeapConstructor(NameReference.Create("a",NameFactory.SelfTypeTypeName),NameReference.Create("a"))),
+
+                    // we should get our type back and the value we set in our copy constructor
+                    IfBranch.CreateIf( ExpressionFactory.OptionalDeclaration("c",null,ExpressionFactory.DownCast(NameReference.Create("b"),
+                        NameFactory.PointerTypeReference(NameReference.Create("Carbon")))),
+                        Return.Create(NameReference.Create("c","x")),
+                        IfBranch.CreateElse(Return.Create(Nat8Literal.Create("100"))))
+                })));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)7, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter RuntimeSelfTypeResolution()
         {
             // the purpose of this test is to check whether `Self` is correctly resolved and appropriate constructor is called

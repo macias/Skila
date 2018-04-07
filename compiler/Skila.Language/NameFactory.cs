@@ -542,6 +542,11 @@ namespace Skila.Language
             return mutableMarker + s;
         }
 
+        public static string UnmutableName(string s)
+        {
+            return s.Substring(mutableMarker.Length);
+        }
+
         public static bool IsMutableName(string s)
         {
             return s.StartsWith(mutableMarker);

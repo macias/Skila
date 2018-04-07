@@ -86,7 +86,7 @@ namespace Skila.Interpreter
                 thisValue.Assign(await ObjectData.CreateInstanceAsync(ctx, thisValue.RunTimeTypeInstance, (byte)0).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
-            else if (func.IsCopyInitConstructor())
+            else if (func.IsCopyInitConstructor(ctx.CreateBareComputation()))
             {
                 thisValue.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);

@@ -67,7 +67,7 @@ namespace Skila.Interpreter
 
             IEnumerable<EntityInstance> source_types = new[] { runtime_instance };
             if (!isStatic)
-                source_types = source_types.Concat(runtime_instance.PrimaryAncestors(ComputationContext.CreateBare(ctx.Env)));
+                source_types = source_types.Concat(runtime_instance.PrimaryAncestors(ctx.CreateBareComputation()));
 
             foreach (EntityInstance type_instance in source_types)
             {
@@ -291,7 +291,7 @@ namespace Skila.Interpreter
         internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance },
-                overrideMutability: MutabilityOverride.NotGiven, translation: null,asSelf:false), this);
+                overrideMutability: MutabilityOverride.NotGiven, translation: null), this);
         }
 
         internal bool TryDereferenceAnyOnce(Language.Environment env, out ObjectData dereferenced)

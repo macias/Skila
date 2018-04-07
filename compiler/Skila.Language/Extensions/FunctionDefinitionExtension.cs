@@ -52,7 +52,7 @@ namespace Skila.Language.Extensions
         }
         public static bool IsInitConstructor(this IEntity @this)
         {
-            return @this is FunctionDefinition &&  @this.Name.Name == NameFactory.InitConstructorName;
+            return @this is FunctionDefinition && @this.Name.Name == NameFactory.InitConstructorName;
         }
         public static bool IsNewConstructor(this IEntity @this)
         {
@@ -66,10 +66,17 @@ namespace Skila.Language.Extensions
         {
             return @this.IsInitConstructor() && @this.Parameters.Count == 0;
         }
-        public static bool IsCopyInitConstructor(this FunctionDefinition @this)
+        public static bool IsCopyInitConstructor(this FunctionDefinition @this, ComputationContext ctx)
         {
-            return @this.IsInitConstructor() && @this.Parameters.Count == 1
-                && @this.Parameters.Single().TypeName.Evaluation.Components == @this.ContainingType().InstanceOf;
+            if (!@this.IsInitConstructor() || @this.Parameters.Count != 1)
+                return false;
+
+            IEntityInstance param_type = @this.Parameters.Single().TypeName.Evaluation.Components;
+            EntityInstance containing_type = @this.ContainingType().InstanceOf;
+            TypeMatch match = param_type.MatchesTarget(ctx, containing_type,
+                TypeMatching.Create(duckTyping: false, allowSlicing: false).WithIgnoredMutability(true));
+
+            return match.HasFlag(TypeMatch.Same);
         }
 
         internal static bool IsOverloadedDuplicate(FunctionDefinition f1, FunctionDefinition f2)
@@ -172,7 +179,7 @@ namespace Skila.Language.Extensions
 
             {
                 IEntityInstance base_result_type = baseFunc.ResultTypeName.Evaluation.Components.TranslateThrough(baseTemplate);
-                TypeMatch match = derivedFunc.ResultTypeName.Evaluation.Components.MatchesTarget(ctx, base_result_type, 
+                TypeMatch match = derivedFunc.ResultTypeName.Evaluation.Components.MatchesTarget(ctx, base_result_type,
                     TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
                 if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     return false;

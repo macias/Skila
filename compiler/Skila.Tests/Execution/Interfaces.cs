@@ -71,7 +71,6 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(
                     "bar",
                     null,
-                 //@@@   ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("33"))
@@ -80,7 +79,6 @@ namespace Skila.Tests.Execution
             TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
                 .With(FunctionBuilder.Create("bar",
                     null,
-                    //@@@ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
@@ -132,7 +130,6 @@ namespace Skila.Tests.Execution
                 .With(FunctionBuilder.Create(
                     "bar",
                     null,
-                    //@@@ExpressionReadMode.ReadRequired,
                     NameFactory.Int64TypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("33"))

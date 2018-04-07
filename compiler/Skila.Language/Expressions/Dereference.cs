@@ -59,7 +59,7 @@ namespace Skila.Language.Expressions
         {
             base.Validate(ctx);
 
-            this.typename.ValidateTypeName(ctx,this);
+            this.typename.ValidateHeapTypeName(ctx,this);
         }
 
         public override bool IsLValue(ComputationContext ctx)

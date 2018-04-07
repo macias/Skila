@@ -14,7 +14,6 @@ namespace Skila.Language.Comparers
         {
             return x.Name == y.Name;
         }
-
         public int GetHashCode(ITemplateName obj)
         {
             return obj.Name.GetHashCode();

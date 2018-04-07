@@ -320,9 +320,9 @@ namespace Skila.Language.Entities
 
             if (!this.IsAnyConstructor())
             {
-                foreach (NameReference typename in this.Parameters.Select(it => it.TypeName))
+                foreach (INameReference typename in this.Parameters.Select(it => it.TypeName))
                     typename.ValidateTypeNameVariance(ctx, VarianceMode.In);
-                this.ResultTypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx, VarianceMode.Out);
+                this.ResultTypeName.ValidateTypeNameVariance(ctx, VarianceMode.Out);
             }
 
             if (!ctx.Env.Options.AllowInvalidMainResult && this == ctx.Env.MainFunction && this.ResultTypeName.Evaluation.Components != ctx.Env.Nat8Type.InstanceOf)

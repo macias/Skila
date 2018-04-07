@@ -40,7 +40,7 @@ namespace Skila.Language.Entities
             this.Replacement = replacement;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
-                translation: TemplateTranslation.Create(this), asSelf: false));
+                translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -67,9 +67,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation, bool asSelf)
+            TemplateTranslation translation)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, asSelf);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

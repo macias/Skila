@@ -570,7 +570,7 @@ namespace Skila.Interpreter
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
                 EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, 
                     overrideMutability: MutabilityOverride.NotGiven,
-                    translation: null, asSelf:false);
+                    translation: null);
                 ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
                 if (opt_exec.IsThrow)
                     return opt_exec;
@@ -616,7 +616,7 @@ namespace Skila.Interpreter
                 this_value.Assign(await ObjectData.CreateInstanceAsync(ctx, this_value.RunTimeTypeInstance, false).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
-            else if (func.IsCopyInitConstructor())
+            else if (func.IsCopyInitConstructor(ctx.CreateBareComputation()))
             {
                 this_value.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);

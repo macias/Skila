@@ -87,7 +87,7 @@ namespace Skila.Language.Entities
             }
 
             this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
-                overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Create(this), asSelf:false));
+                overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Create(this)));
 
             this.Evaluation = EvaluationInfo.Joker;
         }
@@ -116,9 +116,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation,bool asSelf)
+            TemplateTranslation translation)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,asSelf);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public override string ToString()

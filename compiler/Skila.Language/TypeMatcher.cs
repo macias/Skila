@@ -27,7 +27,8 @@ namespace Skila.Language
             return vtable != null;
         }
 
-        private static bool strictTemplateMatches(ComputationContext ctx, EntityInstance input, EntityInstance target, TypeMatching matching)
+        private static bool strictTemplateMatches(ComputationContext ctx, EntityInstance input, EntityInstance target, 
+            TypeMatching matching)
         {
             if (input.Target != target.Target)
                 return false;

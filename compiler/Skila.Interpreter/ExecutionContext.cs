@@ -61,5 +61,10 @@ namespace Skila.Interpreter
                 throw new System.Exception($"Internal error {ExceptionCode.SourceInfo()}");
             return this.FunctionArguments[param.Index];
         }
+
+        internal ComputationContext CreateBareComputation()
+        {
+            return ComputationContext.CreateBare(this.Env);
+        }
     }
 }

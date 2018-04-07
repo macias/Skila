@@ -24,7 +24,7 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation, bool asSelf)
+            TemplateTranslation translation)
         {
             EntityInstanceCore core = EntityInstanceCore.RAW_CreateUnregistered(entity, arguments, overrideMutability);
 
@@ -32,17 +32,17 @@ namespace Skila.Language.Entities
             if (!this.instancesCache.TryGetValue(core, out family))
             {
                 // this is the base (core) entity instance, by "definition" always without translation
-                EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null, asSelf: false);
+                EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null);
                 family = Tuple.Create(base_instance, new Dictionary<TemplateTranslation, EntityInstance>());
                 this.instancesCache.Add(core, family);
             }
 
             EntityInstance result;
-            if (translation == null && !asSelf)
-                result = family.Item1;//???
+            if (translation == null)
+                result = family.Item1;
             else if (!family.Item2.TryGetValue(translation, out result))
             {
-                result = EntityInstance.RAW_CreateUnregistered(family.Item1.Core, translation, asSelf);
+                result = EntityInstance.RAW_CreateUnregistered(family.Item1.Core, translation);
                 family.Item2.Add(translation, result);
             }
 

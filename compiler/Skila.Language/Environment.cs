@@ -1823,7 +1823,7 @@ namespace Skila.Language
             bool viaPointer)
         {
             return (viaPointer ? this.PointerType : this.ReferenceType)
-                .GetInstance(new[] { instance }, mutability, translation, asSelf: false);
+                .GetInstance(new[] { instance }, mutability, translation);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {

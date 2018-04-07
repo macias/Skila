@@ -407,8 +407,20 @@ namespace Skila.Interpreter
             IEntityInstance alloc_eval;
             if (alloc.InnerTypeName.IsSelfTypeName)
             {
-                inner_type_eval = ctx.ThisArgument.DereferencedOnce().RunTimeTypeInstance;
-                alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+                if (alloc.InnerTypeName.Prefix == null)
+                {
+                    inner_type_eval = ctx.ThisArgument.DereferencedOnce().RunTimeTypeInstance;
+                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+                }
+                else // Self on external object
+                {
+                    ExecValue prefix_exec = await ExecutedAsync(alloc.InnerTypeName.Prefix, ctx).ConfigureAwait(false);
+                    if (!prefix_exec.IsExpression)
+                        return prefix_exec;
+                    ObjectData prefix_obj = prefix_exec.ExprValue.TryDereferenceAnyMany(ctx.Env);
+                    inner_type_eval = prefix_obj.RunTimeTypeInstance;
+                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+                }
             }
             else
             {
@@ -565,7 +577,7 @@ namespace Skila.Interpreter
             bool dummy = false;
             // todo: make something more intelligent with computation context
             IEntityInstance rhs_typename = isType.RhsTypeName.Evaluation.Components.TranslateThrough(ref dummy, ctx.Translation);
-            bool result = IsType.MatchTypes(ComputationContext.CreateBare(ctx.Env), lhs_obj.RunTimeTypeInstance, rhs_typename);
+            bool result = IsType.MatchTypes(ctx.CreateBareComputation(), lhs_obj.RunTimeTypeInstance, rhs_typename);
             if (!result)
             {
                 ;
@@ -816,7 +828,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        MutabilityOverride.NotGiven, null, asSelf: false),
+                        MutabilityOverride.NotGiven, null),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -1029,6 +1041,10 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, VariableDeclaration decl)
         {
+            if (decl.DebugId==(17, 375))
+            {
+                ;
+            }
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(await ObjectData.CreateEmptyAsync(ctx, decl.Evaluation.Aggregate).ConfigureAwait(false));

@@ -77,7 +77,6 @@ namespace Skila.Tests.Semantics
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                 "getter",
                 null,
-                //@@@ExpressionReadMode.ReadRequired,
                 NameReference.Create("Point"),
                 Block.CreateStatement(new[] { Return.Create(Undef.Create()) })));
 

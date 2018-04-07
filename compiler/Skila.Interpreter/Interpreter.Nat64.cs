@@ -96,7 +96,7 @@ namespace Skila.Interpreter
                 thisValue.Assign(await createNat64Async(ctx, 0UL).ConfigureAwait(false));
                 return ExecValue.CreateReturn(null);
             }
-            else if (func.IsCopyInitConstructor())
+            else if (func.IsCopyInitConstructor(ctx.CreateBareComputation()))
             {
                 thisValue.Assign(ctx.FunctionArguments.Single());
                 return ExecValue.CreateReturn(null);

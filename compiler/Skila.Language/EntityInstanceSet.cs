@@ -151,6 +151,13 @@ namespace Skila.Language
                 this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
             return this.typeMutability.Value;
         }
-    }
 
+        public bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition)
+        {
+            return this.EnumerateAll().All(it => it.ValidateTypeVariance(ctx,
+                       placement,
+                       typeNamePosition));
+        }
+
+    }
 }

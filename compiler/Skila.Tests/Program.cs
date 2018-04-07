@@ -29,10 +29,10 @@ namespace Skila.Tests
                 //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
-                new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
+                //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-                //new Semantics.Mutability().ErrorAbusingForcedConst();
+                new Semantics.Mutability().ErrorAbusingForcedConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
@@ -52,7 +52,7 @@ namespace Skila.Tests
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().RealNotANumber();
                 //new Execution.NameResolution().GenericTypeAliasing();
-                //new Execution.Objects().RuntimeSelfTypeResolution();
+                //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().HasConstraintWithValue();
@@ -61,7 +61,7 @@ namespace Skila.Tests
 
             // if (false)
             {
-                const double golden_avg_s = 1.49;
+                const double golden_avg_s = 1.46;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -76,7 +76,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.52;
+                const double golden_avg_s = 1.50;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

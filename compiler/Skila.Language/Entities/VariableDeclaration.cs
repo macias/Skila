@@ -63,7 +63,7 @@ namespace Skila.Language.Entities
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
-                translation: TemplateTranslation.Create(this),asSelf:false));
+                translation: TemplateTranslation.Create(this)));
 
             this.closures = new List<TypeDefinition>();
 
@@ -104,9 +104,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
-            TemplateTranslation translation,bool asSelf)
+            TemplateTranslation translation)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,asSelf);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -324,7 +324,7 @@ namespace Skila.Language.Entities
                         // consider Foo<T> with field f, type T
                         // can I pass instance of Foo<U> (U extends T) somewhere?
                         // sure, as long the field cannot be reassigned (otherwise the receiver could reset it to T, while callee would expect U)
-                        this.TypeName.Cast<NameReference>().ValidateTypeNameVariance(ctx,
+                        this.TypeName.ValidateTypeNameVariance(ctx,
                             this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
                     }
                 }
@@ -340,7 +340,7 @@ namespace Skila.Language.Entities
                 }
             }
 
-            this.TypeName?.ValidateTypeName(ctx);
+            this.TypeName?.ValidateHeapTypeName(ctx);
         }
 
         public void SetIsMemberUsed()
