@@ -302,12 +302,42 @@ namespace Skila.Interpreter
             return codePoints.ToArray();
         }
 
+        private async Task<ExecValue> assignedNativeString(ExecutionContext ctx, ObjectData thisValue,string s)
+        {
+            ObjectData obj = await ObjectData.CreateInstanceAsync(ctx, ctx.Env.Utf8StringType.InstanceOf, s).ConfigureAwait(false);
+            thisValue.Assign(obj);
+            return ExecValue.CreateReturn(null);
+        }
+
         private async Task<ExecValue> executeNativeUtf8StringFunctionAsync(ExecutionContext ctx, FunctionDefinition func,
             ObjectData thisValue)
         {
             string this_native = thisValue.NativeString;
 
-            if (func == ctx.Env.Utf8StringCountGetter)
+            if (func == ctx.Env.Utf8StringCopyConstructor)
+            {
+                ObjectData arg_str_obj = ctx.FunctionArguments[0];
+                if (!arg_str_obj.TryDereferenceAnyOnce(ctx.Env, out ObjectData arg_str_val))
+                    throw new Exception($"{ExceptionCode.SourceInfo()}");
+                string native_str_arg = arg_str_val.NativeString;
+
+                return await assignedNativeString(ctx, thisValue, native_str_arg).ConfigureAwait(false);
+            }
+            else if (func == ctx.Env.Utf8StringRemove)
+            {
+                ObjectData arg_start_obj = ctx.FunctionArguments[0];
+                int native_start_arg = (int)arg_start_obj.NativeNat;
+                ObjectData arg_end_obj = ctx.FunctionArguments[1];
+                int native_end_arg = (int)arg_end_obj.NativeNat;
+                int native_len_arg = native_end_arg - native_start_arg;
+
+                byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
+                string rest = Encoding.UTF8.GetString(this_utf8, 0,native_start_arg)
+                    + Encoding.UTF8.GetString(this_utf8, native_start_arg+ native_len_arg,this_utf8.Length-(native_start_arg + native_len_arg));
+
+                return await assignedNativeString(ctx, thisValue, rest).ConfigureAwait(false);
+            }
+            else if (func == ctx.Env.Utf8StringCountGetter)
             {
                 int[] code_points = toCodePoints(this_native);
                 ObjectData result = await ObjectData.CreateInstanceAsync(ctx, func.ResultTypeName.Evaluation.Components,
@@ -324,27 +354,18 @@ namespace Skila.Interpreter
             else if (func == ctx.Env.Utf8StringTrimStart)
             {
                 string trimmed = this_native.TrimStart();
-                ObjectData result = await createStringAsync(ctx, trimmed).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, trimmed))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                return ExecValue.CreateReturn(result);
+                return await assignedNativeString(ctx, thisValue, trimmed).ConfigureAwait(false);
             }
             else if (func == ctx.Env.Utf8StringReverse)
             {
                 // https://en.wikipedia.org/wiki/Combining_character
                 string reversed = reverseGraphemeClusters(this_native);
-                ObjectData result = await createStringAsync(ctx, reversed).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, reversed))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                return ExecValue.CreateReturn(result);
+                return await assignedNativeString(ctx, thisValue, reversed).ConfigureAwait(false);
             }
             else if (func == ctx.Env.Utf8StringTrimEnd)
             {
                 string trimmed = this_native.TrimEnd();
-                ObjectData result = await createStringAsync(ctx, trimmed).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, trimmed))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                return ExecValue.CreateReturn(result);
+                return await assignedNativeString(ctx, thisValue, trimmed).ConfigureAwait(false);
             }
             else if (func == ctx.Env.Utf8StringAtGetter)
             {
@@ -384,10 +405,7 @@ namespace Skila.Interpreter
                 string native_str_arg = arg_str_val.NativeString;
 
                 string concatenated = this_native + native_str_arg;
-                ObjectData result = await createStringAsync(ctx, concatenated).ConfigureAwait(false);
-                if (!ctx.Heap.TryInc(ctx, result, RefCountIncReason.NewString, concatenated))
-                    throw new Exception($"{ExceptionCode.SourceInfo()}");
-                return ExecValue.CreateReturn(result);
+                return await assignedNativeString(ctx, thisValue, concatenated).ConfigureAwait(false);
             }
             else if (func == ctx.Env.Utf8StringIndexOfString)
             {

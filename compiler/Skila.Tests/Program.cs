@@ -32,7 +32,7 @@ namespace Skila.Tests
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-                new Semantics.Mutability().ErrorAbusingForcedConst();
+               // new Semantics.Mutability().ErrorAbusingForcedConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();

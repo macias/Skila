@@ -97,6 +97,12 @@ namespace Skila.Language
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
 
+        public FunctionParameter CloneAsReadable()
+        {
+            return new FunctionParameter(ExpressionReadMode.ReadRequired, this.Name.Name, this.ElementTypeName,
+                this.Variadic, this.DefaultValue, this.Modifier, this.IsNameRequired);
+        }
+
         public override string ToString()
         {
             string variadic_str = this.Variadic.ToString();
