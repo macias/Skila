@@ -1083,6 +1083,47 @@ namespace Skila.Language
                                 NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
                                      NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
             }
+            FunctionDefinition any_func;
+            {
+                const string pred_name = "pred";
+                const string elem_name = "any_elem";
+                any_func = FunctionBuilder.Create(
+                    NameFactory.AnyFunctionName, elem_type, VarianceMode.None,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                            IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
+                                Return.Create(BoolLiteral.CreateTrue())
+                            })
+                        }),
+                                Return.Create(BoolLiteral.CreateFalse())
+                        ))
+                        .Parameters(this_param(),
+                            FunctionParameter.Create(pred_name,
+                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+            }
+            FunctionDefinition all_func;
+            {
+                const string pred_name = "pred";
+                const string elem_name = "all_elem";
+                all_func = FunctionBuilder.Create(
+                    NameFactory.AllFunctionName, elem_type, VarianceMode.None,
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                            IfBranch.CreateIf(ExpressionFactory.Not( FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name))),new[]{
+                                Return.Create(BoolLiteral.CreateFalse())
+                            })
+                        }),
+                                Return.Create(BoolLiteral.CreateTrue())
+                        ))
+                        .Parameters(this_param(),
+                            FunctionParameter.Create(pred_name,
+                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+            }
+
             FunctionDefinition count_func;
             {
                 const string count_name = "cnt";
@@ -1112,6 +1153,8 @@ namespace Skila.Language
             ext.AddNode(map_func);
             ext.AddNode(count_func);
             ext.AddNode(reverse_func);
+            ext.AddNode(all_func);
+            ext.AddNode(any_func);
 
             return ext;
         }

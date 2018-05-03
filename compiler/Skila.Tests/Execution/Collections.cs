@@ -13,6 +13,178 @@ namespace Skila.Tests.Execution
     public class Collections
     {
         [TestMethod]
+        public IInterpreter AllFailureFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "below",
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                            NameFactory.Int64TypeReference(),
+                            // todo: use sink
+                            NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                        Int64Literal.Create("6"), Int64Literal.Create("2"))),
+
+                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter(debugMode: false);
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter AllSuccessFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "below",
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                            NameFactory.Int64TypeReference(),
+                            // todo: use sink
+                            NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                        Int64Literal.Create("4"), Int64Literal.Create("2"))),
+
+                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter(debugMode: false);
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter AnyFailureFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "below",
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                            NameFactory.Int64TypeReference(),
+                            // todo: use sink
+                            NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                        Int64Literal.Create("6"), Int64Literal.Create("7"))),
+
+                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
+                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter(debugMode: false);
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter AnySuccessFunction()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "below",
+                NameFactory.BoolTypeReference(),
+                Block.CreateStatement(
+                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                    ))
+                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    // let t *ITuple<Int,Int,Int> = (6,2)
+                    VariableDeclaration.CreateStatement("t",
+                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                            NameFactory.Int64TypeReference(),
+                            // todo: use sink
+                            NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                            // todo: use sink for all of them
+                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                        Int64Literal.Create("6"), Int64Literal.Create("2"))),
+
+                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName), 
+                        NameReference.Create("below")),Nat8Literal.Create("9"),Nat8Literal.Create("0")))
+                ))
+                .Include(NameFactory.LinqExtensionReference()));
+
+            var interpreter = new Interpreter.Interpreter(debugMode: false);
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter ReverseFunction()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true });

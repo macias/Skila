@@ -42,7 +42,7 @@ namespace Skila.Tests
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 //new Execution.Closures().ClosureRecursiveCall();
-                //new Execution.Collections().MapFunction();
+                new Execution.Collections().AllFailureFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 // new Execution.Flow().ParallelOptionalDeclaration();
@@ -76,7 +76,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.50;
+                const double golden_avg_s = 1.51;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

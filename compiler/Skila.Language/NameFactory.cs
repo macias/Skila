@@ -190,6 +190,8 @@ namespace Skila.Language
         public const string MapFunctionName = "map";
         public const string FilterFunctionName = "filter";
         public const string ReverseFunctionName = "reverse";
+        public const string AnyFunctionName = "any";
+        public const string AllFunctionName = "all";
         public static readonly string AppendFunctionName = MutableName("append");
 
         public const string GetTypeFunctionName = "getType";
