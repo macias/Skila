@@ -56,7 +56,7 @@ namespace Skila.Language.Builders
         private Property build;
         private readonly string name;
         public NameReference ValueTypeName { get; }
-        private readonly EntityModifier modifier;
+        private EntityModifier modifier;
         public IEnumerable<FunctionParameter> Params { get; private set; }
 
         private PropertyBuilder(string name, NameReference valueTypeName, EntityModifier modifier)
@@ -89,6 +89,15 @@ namespace Skila.Language.Builders
                 throw new InvalidOperationException();
 
             this.Params = parameters;
+            return this;
+        }
+
+        public PropertyBuilder SetModifier(EntityModifier modifier)
+        {
+            if (this.modifier != null || this.build != null)
+                throw new InvalidOperationException();
+
+            this.modifier = modifier;
             return this;
         }
 
@@ -126,6 +135,15 @@ namespace Skila.Language.Builders
                 throw new Exception();
 
             field = Property.CreateAutoField(this.ValueTypeName, initValue, modifier);
+            this.fields.Add(field);
+
+            return this;
+        }
+        public PropertyBuilder With(VariableDeclaration field)
+        {
+            if (build != null)
+                throw new Exception();
+
             this.fields.Add(field);
 
             return this;

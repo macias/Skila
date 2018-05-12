@@ -125,7 +125,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression OptionOf(INameReference typeName, IExpression value, Memory memory = Memory.Stack)
         {
-            return Constructor(NameFactory.OptionTypeReference(typeName), memory, value);
+            return ConstructorCall.Constructor(NameFactory.OptionTypeReference(typeName), memory, value).Build();
         }
         public static IExpression OptionEmpty(string typeName, Memory memory = Memory.Stack)
         {
@@ -133,7 +133,7 @@ namespace Skila.Language.Expressions
         }
         public static IExpression OptionEmpty(INameReference typeName, Memory memory = Memory.Stack)
         {
-            return Constructor(NameFactory.OptionTypeReference(typeName), memory);
+            return ConstructorCall.Constructor(NameFactory.OptionTypeReference(typeName), memory).Build();
         }
         public static FunctionDefinition BasicConstructor(string[] names, INameReference[] typenames)
         {
@@ -235,60 +235,36 @@ namespace Skila.Language.Expressions
 
         public static IExpression HeapConstructor(string innerTypeName, params IExpression[] arguments)
         {
-            return HeapConstructor(NameReference.Create(innerTypeName), arguments);
+            return ConstructorCall.HeapConstructor(innerTypeName, arguments).Build();
         }
         public static IExpression HeapConstructor(NameReference innerTypeName)
         {
-            return HeapConstructor(innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
-            /*
-#if USE_NEW_CONS
-            return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName));
-#else
-            NameReference dummy;
-            return constructorCall(innerTypeName, out dummy, true);
-#endif*/
+            return ConstructorCall.HeapConstructor(innerTypeName).Build();
         }
         public static IExpression HeapConstructor(NameReference innerTypeName, params IExpression[] arguments)
         {
-            return HeapConstructor(innerTypeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return ConstructorCall.HeapConstructor(innerTypeName, arguments).Build();
         }
         public static IExpression HeapConstructor(NameReference innerTypeName, params FunctionArgument[] arguments)
         {
-#if USE_NEW_CONS
-            return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName), arguments);
-#else
-            NameReference dummy;
-            return constructorCall(innerTypeName, out dummy, Memory.Heap, arguments);
-#endif
+            return ConstructorCall.HeapConstructor(innerTypeName, arguments).Build();
         }
 
-        public static IExpression Constructor(NameReference typeName, Memory memory)
-        {
-            return Constructor(typeName, memory, new FunctionArgument[] { });
-        }
         public static IExpression StackConstructor(NameReference typeName)
         {
-            return StackConstructor(typeName, new FunctionArgument[] { });
+            return ConstructorCall.StackConstructor(typeName).Build();
         }
         public static IExpression StackConstructor(string typeName, params FunctionArgument[] arguments)
         {
-            return StackConstructor(NameReference.Create(typeName), arguments);
+            return ConstructorCall.StackConstructor(typeName, arguments).Build();
         }
         public static IExpression StackConstructor(string typeName)
         {
-            return StackConstructor(NameReference.Create(typeName));
+            return ConstructorCall.StackConstructor(typeName).Build();
         }
         public static IExpression StackConstructor(string typeName, params IExpression[] arguments)
         {
-            return Constructor(typeName, Memory.Stack, arguments);
-        }
-        public static IExpression Constructor(string typeName, Memory memory, params IExpression[] arguments)
-        {
-            return Constructor(NameReference.Create(typeName), memory, arguments);
-        }
-        public static IExpression Constructor(NameReference typeName, Memory memory, params IExpression[] arguments)
-        {
-            return Constructor(typeName, memory, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return ConstructorCall.StackConstructor(typeName, arguments).Build();
         }
         public static IExpression Tuple(params IExpression[] arguments)
         {
@@ -308,43 +284,16 @@ namespace Skila.Language.Expressions
         }
         public static IExpression StackConstructor(NameReference typeName, params IExpression[] arguments)
         {
-            return StackConstructor(typeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
-        }
-        public static IExpression Constructor(NameReference typeName, Memory memory, params FunctionArgument[] arguments)
-        {
-            NameReference dummy;
-            return constructorCall(typeName, out dummy, memory, arguments);
+            return ConstructorCall.StackConstructor(typeName, arguments).Build();
         }
         public static IExpression StackConstructor(NameReference typeName, params FunctionArgument[] arguments)
         {
-            NameReference dummy;
-            return constructorCall(typeName, out dummy, Memory.Stack, arguments);
+            return ConstructorCall.StackConstructor(typeName, arguments).Build();
         }
         public static IExpression StackConstructor(NameReference typeName, out NameReference constructorReference,
             params FunctionArgument[] arguments)
         {
-            return constructorCall(typeName, out constructorReference, Memory.Stack, arguments);
-        }
-        private static IExpression constructorCall(NameReference typeName,
-            // todo: hack, we don't have nice error translation from generic error to more specific one
-            out NameReference constructorReference,
-            Memory memory,
-            params FunctionArgument[] arguments)
-        {
-            string local_this = AutoName.Instance.CreateNew("cons_obj");
-            var var_ref = NameReference.Create(local_this);
-            constructorReference = NameReference.Create(var_ref, NameFactory.InitConstructorName);
-
-            var var_decl = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, memory));
-            var init_call = FunctionCall.Constructor(constructorReference, arguments);
-
-            return Block.CreateInitialization(
-                // __this__ = alloc()
-                var_decl,
-                // __this__.init(args)
-                init_call,
-                // --> __this__
-                var_ref);
+            return ConstructorCall.StackConstructor(typeName, out constructorReference, arguments).Build();
         }
 
         public static IExpression Add(IExpression lhs, IExpression rhs)

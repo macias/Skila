@@ -32,8 +32,9 @@ namespace Skila.Tests
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-               // new Semantics.Mutability().ErrorAbusingForcedConst();
+                // new Semantics.Mutability().ErrorAbusingForcedConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
+                new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
                 // new Semantics.Templates().InternalDirectTranslationTables();
@@ -42,7 +43,7 @@ namespace Skila.Tests
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 //new Execution.Closures().ClosureRecursiveCall();
-                new Execution.Collections().AllFailureFunction();
+                //new Execution.Collections().AllFailureFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 // new Execution.Flow().ParallelOptionalDeclaration();
@@ -52,6 +53,7 @@ namespace Skila.Tests
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().RealNotANumber();
                 //new Execution.NameResolution().GenericTypeAliasing();
+                //new Execution.ObjectInitialization().InitializingWithCustomSetter();
                 //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
                 //new Execution.Pointers().RefCountsOnReadingFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();

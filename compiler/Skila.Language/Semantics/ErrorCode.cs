@@ -123,5 +123,6 @@
         NonReferenceThisParameter = 119,
         UndefinedTemplateArguments = 120,
         SelfTypeOutsideConstructor = 121,
+        PostInitializedCustomGetter = 122,
     }
 }

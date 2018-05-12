@@ -44,9 +44,11 @@ namespace Skila.Language.Expressions
         {
             return constructor(Purpose.Regular, ExpressionReadMode.ReadRequired,null, body);
         }
-        public static Block CreateInitialization(VariableDeclaration decl, FunctionCall init, NameReference outcome)
+        public static Block CreateInitialization(VariableDeclaration decl, FunctionCall init, 
+            IEnumerable<IExpression> objectInitialization, NameReference outcome)
         {
-            return constructor(Purpose.Initialization, ExpressionReadMode.ReadRequired, null,new IExpression[] { decl, init, outcome });
+            return constructor(Purpose.Initialization, ExpressionReadMode.ReadRequired, null,
+                new IExpression[] { decl, init }.Concat(objectInitialization).Concat(outcome));
         }
 
         internal FunctionCall constructorChainCall { get; private set; } // used in constructors
