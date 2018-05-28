@@ -30,7 +30,7 @@ namespace Skila.Language.Builders
             this.name = name;
         }
 
-        public ConstraintBuilder Modifier(EntityModifier modifier)
+        public ConstraintBuilder SetModifier(EntityModifier modifier)
         {
             if (this.modifier != null || this.build != null)
                 throw new InvalidOperationException();

@@ -198,7 +198,7 @@
     <Compile Include="Extensions\IExpressionExtension.cs" />
     <Compile Include="TypeInheritance.cs" />
     <Compile Include="CallResolution.cs" />
-    <Compile Include="FunctionParameter.cs" />
+    <Compile Include="Entities\FunctionParameter.cs" />
     <Compile Include="Semantics\Error.cs" />
     <Compile Include="Semantics\ErrorCode.cs" />
     <Compile Include="EntityInstanceUnion.cs" />

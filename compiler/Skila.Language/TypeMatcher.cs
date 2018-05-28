@@ -241,17 +241,22 @@ namespace Skila.Language
 
         internal static bool MutabilityMatches(TypeMutability inputMutability, TypeMutability targetMutability)
         {
+            if (inputMutability.HasFlag(TypeMutability.Reassignable))
+                inputMutability ^= TypeMutability.Reassignable;
+            if (targetMutability.HasFlag(TypeMutability.Reassignable))
+                targetMutability ^= TypeMutability.Reassignable;
+
             switch (inputMutability)
             {
                 case TypeMutability.DualConstMutable: return true;
 
-                case TypeMutability.Const:
+                case TypeMutability.ForceConst:
                 case TypeMutability.ConstAsSource:
-                    return targetMutability != TypeMutability.Mutable && targetMutability != TypeMutability.GenericUnknownMutability;
+                    return targetMutability != TypeMutability.ForceMutable && targetMutability != TypeMutability.GenericUnknownMutability;
 
-                case TypeMutability.Mutable:
+                case TypeMutability.ForceMutable:
                 case TypeMutability.GenericUnknownMutability:
-                    return targetMutability != TypeMutability.ConstAsSource && targetMutability != TypeMutability.Const;
+                    return targetMutability != TypeMutability.ConstAsSource && targetMutability != TypeMutability.ForceConst;
 
                 case TypeMutability.ReadOnly: return targetMutability == TypeMutability.ReadOnly;
 
@@ -330,7 +335,7 @@ namespace Skila.Language
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
-                result = ctx.Env.Reference(result, MutabilityOverride.NotGiven, null, via_pointer);
+                result = ctx.Env.Reference(result, MutabilityOverride.None, null, via_pointer);
             return result != null;
         }
 

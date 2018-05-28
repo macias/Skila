@@ -15,6 +15,72 @@ namespace Skila.Tests.Semantics
     public class Templates
     {
         [TestMethod]
+        public IErrorReporter ErrorAssigningToNonReassignableData()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            IExpression assign = Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    assign
+                ))
+                .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
+                    FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
+
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AssigningToNonReassignableData, assign));
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorSwapNonReassignableValues()
+        {
+            var env = Environment.Create(new Options() { });
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
+                NameFactory.UnitTypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
+                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
+                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("b")), NameReference.Create("t"))
+                ))
+                .Constraints(ConstraintBuilder.Create("T")
+                    .SetModifier(EntityModifier.Reassignable))
+                .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
+                    FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
+
+
+            FunctionCall swap_call = FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b"));
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2")),
+                    VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17")),
+                    // error: both values are const
+                    swap_call,
+                    Return.Create(ExpressionFactory.Sub("a", "b"))
+                )));
+
+            var resolver = NameResolver.Create(env);
+
+            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ViolatedAssignabilityConstraint, swap_call.Name));
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorDisabledProtocols()
         {
             // just testing if disabling protocols (default) option really works
@@ -133,7 +199,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options() { });
             var root_ns = env.Root;
 
-            TemplateConstraint constraints = ConstraintBuilder.Create("BOO").Modifier(EntityModifier.Const);
+            TemplateConstraint constraints = ConstraintBuilder.Create("BOO").SetModifier(EntityModifier.Const);
             root_ns.AddBuilder(TypeBuilder.Create("Greeter", "BOO")
                 .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.UnitTypeReference(),
                     Block.CreateStatement())
@@ -167,7 +233,7 @@ namespace Skila.Tests.Semantics
             TypeDefinition missing_host = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MissMe", "Y", VarianceMode.None))
                 .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("Y")
-                    .Modifier(EntityModifier.Const)));
+                    .SetModifier(EntityModifier.Const)));
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Almost", "T", VarianceMode.None)));
 
@@ -178,7 +244,7 @@ namespace Skila.Tests.Semantics
                 .With(trait_constructor)
                 .With(trait_field)
                 .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const)));
+                    .SetModifier(EntityModifier.Const)));
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Inheriting", "T", VarianceMode.None)));
 
@@ -187,7 +253,7 @@ namespace Skila.Tests.Semantics
                 .Parents(parent_impl)
                 .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const)));
+                    .SetModifier(EntityModifier.Const)));
 
             var resolver = NameResolver.Create(env);
 
@@ -213,7 +279,7 @@ namespace Skila.Tests.Semantics
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
                 .SetModifier(EntityModifier.Trait)
                 .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const)));
+                    .SetModifier(EntityModifier.Const)));
 
             var resolver = NameResolver.Create(env);
 
@@ -478,7 +544,7 @@ namespace Skila.Tests.Semantics
 
                 Block.CreateStatement())
                 .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const)
+                    .SetModifier(EntityModifier.Const)
                     .Inherits(parent_constraint)));
 
             var resolver = NameResolver.Create(env);

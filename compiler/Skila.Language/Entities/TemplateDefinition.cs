@@ -87,7 +87,7 @@ namespace Skila.Language.Entities
             }
 
             this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
-                overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Create(this)));
+                overrideMutability: MutabilityOverride.None, translation: TemplateTranslation.Create(this)));
 
             this.Evaluation = EvaluationInfo.Joker;
         }

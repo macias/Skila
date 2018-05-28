@@ -105,7 +105,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckDeepVirtualCallInterface()
         {
-            return duckDeepVirtualCall(new Options() { DebugThrowOnError = true, InterfaceDuckTyping = true, AllowInvalidMainResult = true });
+            return duckDeepVirtualCall(new Options()
+            {
+                DebugThrowOnError = true,
+                InterfaceDuckTyping = true,
+                AllowInvalidMainResult = true
+            });
         }
 
         [TestMethod]
@@ -162,7 +167,8 @@ namespace Skila.Tests.Execution
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,
+                        EntityModifier.Reassignable),
                     VariableDeclaration.CreateStatement("o",NameFactory.PointerTypeReference(NameReference.Create("Y")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Z"))),
                     Assignment.CreateStatement(NameReference.Create("i"),NameReference.Create("o")),

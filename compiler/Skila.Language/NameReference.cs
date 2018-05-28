@@ -40,11 +40,11 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
+            return new NameReference(MutabilityOverride.None, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.NotGiven, prefix, browse, name, arguments, readMode, isRoot: false);
+            return new NameReference(MutabilityOverride.None, prefix, browse, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
         {
@@ -66,7 +66,7 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target, bool isLocal)
         {
-            return Create(MutabilityOverride.NotGiven, prefix, name, arguments, target, isLocal);
+            return Create(MutabilityOverride.None, prefix, name, arguments, target, isLocal);
         }
 
         public static NameReference CreateBaseInitReference()
@@ -105,7 +105,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityOverride.NotGiven, null, BrowseMode.None,
+        public static NameReference Root => new NameReference(MutabilityOverride.None, null, BrowseMode.None,
             NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
@@ -132,10 +132,6 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
-            if (this.DebugId == (6, 9387))
-            {
-                ;
-            }
             this.browse = browse;
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
@@ -210,7 +206,7 @@ namespace Skila.Language
                 if (this.Prefix != null)
                 {
                     TypeMutability prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
-                    if (prefix_mutability == TypeMutability.Const)
+                    if (prefix_mutability == TypeMutability.ForceConst)
                     {
                         eval = eval.Rebuild(ctx, MutabilityOverride.ForceConst);
                         aggregate = aggregate.Rebuild(ctx, MutabilityOverride.ForceConst).Cast<EntityInstance>();
@@ -224,10 +220,6 @@ namespace Skila.Language
             if (this.Binding.IsComputed)
                 return;
 
-            if (this.DebugId == (3, 8845))
-            {
-                ;
-            }
             ErrorCode errorCode = ErrorCode.ReferenceNotFound;
             IEnumerable<BindingMatch> entities = computeBinding(ctx, ref errorCode);
 
@@ -279,10 +271,6 @@ namespace Skila.Language
                 }
                 else if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
                 {
-                    if (this.DebugId== (6, 9796))
-                    {
-                        ;
-                    }
                     TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
                     return new[] { new BindingMatch(enclosing_type.InstanceOf.Build(this.OverrideMutability), isLocal: false) };
                 }
@@ -354,11 +342,6 @@ namespace Skila.Language
             }
             else // we have prefix
             {
-                if (this.DebugId ==  (6, 9446))
-                {
-                    ;
-                }
-
                 EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
 
                 if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
@@ -388,11 +371,6 @@ namespace Skila.Language
                 }
                 else
                 {
-                    if (this.DebugId == (3, 8845))
-                    {
-                        ;
-                    }
-
                     IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
 
                     if (!entities.Any())
@@ -466,7 +444,9 @@ namespace Skila.Language
                     if (mismatch == ConstraintMatch.BaseViolation)
                         ctx.AddError(ErrorCode.ViolatedBaseConstraint, this);
                     else if (mismatch == ConstraintMatch.MutabilityViolation)
-                        ctx.AddError(ErrorCode.ViolatedConstConstraint, this);
+                        ctx.AddError(ErrorCode.ViolatedMutabilityConstraint, this);
+                    else if (mismatch == ConstraintMatch.AssignabilityViolation)
+                        ctx.AddError(ErrorCode.ViolatedAssignabilityConstraint, this);
                     else if (mismatch == ConstraintMatch.InheritsViolation)
                         ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
                     else if (mismatch == ConstraintMatch.MissingFunction)

@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TestingSamePointers()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true,DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
             var root_ns = env.Root;
 
 
@@ -241,24 +241,33 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ExplicitDereferencing()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options()
+            {
+                AllowInvalidMainResult = true,
+                DebugThrowOnError = true
+            });
             var root_ns = env.Root;
 
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x", 
+                    NameFactory.PointerTypeReference(NameFactory.Int64TypeReference(MutabilityOverride.Reassignable)),
+                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
+                            FunctionArgument.Create(Int64Literal.Create("4"))), EntityModifier.Reassignable);
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                 "main",
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Int64TypeReference(),
                 Block.CreateStatement(new IExpression[] {
                     // x *Int = new Int(4)
-                    VariableDeclaration.CreateStatement("x",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(),
-                            FunctionArgument.Create(Int64Literal.Create("4"))),EntityModifier.Reassignable),
+                    decl,
                     // y *Int = x
-                    VariableDeclaration.CreateStatement("y",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()), NameReference.Create("x")),
+                    VariableDeclaration.CreateStatement("y",NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()), 
+                        NameReference.Create("x")),
                     // *x = 7 // y <- 7
                     Assignment.CreateStatement(Dereference.Create( NameReference.Create("x")),Int64Literal.Create("7")),
                     // z *Int
-                    VariableDeclaration.CreateStatement("z", NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()), null, EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("z", 
+                        NameFactory.PointerTypeReference(NameFactory.Int64TypeReference( MutabilityOverride.Reassignable)), 
+                        null, EntityModifier.Reassignable),
                     // z = x
                     Assignment.CreateStatement(NameReference.Create("z"), NameReference.Create("x")),
                     // v = y + z  // 14
@@ -371,7 +380,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NestedRefCountings()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")

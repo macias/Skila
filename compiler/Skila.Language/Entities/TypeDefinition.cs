@@ -40,8 +40,6 @@ namespace Skila.Language.Entities
                 modifier |= EntityModifier.Protocol;
             else
                 modifier |= EntityModifier.Base | EntityModifier.Interface;
-            if (!modifier.HasConst)
-                modifier |= EntityModifier.Mutable;
             return new TypeDefinition(modifier, false, NameDefinition.Create(typeParameter.Name), null,
                 typeParameter.Constraint.InheritsNames, typeParameter.Constraint.HasFunctions,
                 typeParameter, includes: null);
@@ -119,10 +117,6 @@ namespace Skila.Language.Entities
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId== (3, 49))
-            {
-                ;
-            }
             foreach (TypeDefinition trait in this.AssociatedTraits)
                 trait.computeAncestors(ctx, new HashSet<TypeDefinition>());
             computeAncestors(ctx, new HashSet<TypeDefinition>());
@@ -433,14 +427,14 @@ namespace Skila.Language.Entities
 
             {
                 TypeMutability current_mutability = this.InstanceOf.MutabilityOfType(ctx);
-                if (current_mutability != TypeMutability.Mutable)
+                if (current_mutability != TypeMutability.ForceMutable)
                 {
                     // the above check is more than checking just a flag
                     // for template types the mutability depends on parameter constraints
                     foreach (NameReference parent in this.ParentNames)
                     {
                         TypeMutability parent_mutability = parent.Evaluation.Components.MutabilityOfType(ctx);
-                        if (parent_mutability == TypeMutability.Mutable)
+                        if (parent_mutability == TypeMutability.ForceMutable)
                             ctx.AddError(ErrorCode.InheritanceMutabilityViolation, parent);
                     }
                 }
@@ -453,9 +447,9 @@ namespace Skila.Language.Entities
                     if (field.Modifier.HasReassignable)
                         ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
                     TypeMutability field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
-                    if (field_eval_mutability != TypeMutability.ConstAsSource
-                        && field_eval_mutability != TypeMutability.GenericUnknownMutability
-                        && field_eval_mutability != TypeMutability.Const)
+                    if (!field_eval_mutability.HasFlag(TypeMutability.ConstAsSource)
+                        && !field_eval_mutability.HasFlag( TypeMutability.GenericUnknownMutability)
+                        && !field_eval_mutability.HasFlag(TypeMutability.ForceConst))
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions

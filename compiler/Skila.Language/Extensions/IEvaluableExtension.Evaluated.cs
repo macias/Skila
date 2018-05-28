@@ -32,11 +32,6 @@ namespace Skila.Language.Extensions
             if (evalCall == EvaluationCall.AdHocCrossJump)
                 ctx.EvalLocalNames = null;
 
-            if (node.DebugId==(10, 697))
-            {
-                ;
-            }
-
             INameRegistryExtension.EnterNode(node, ref ctx.EvalLocalNames, () => new NameRegistry(ctx.Env.Options.ScopeShadowing));
 
             {

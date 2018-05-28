@@ -44,7 +44,7 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityOverride.NotGiven, translation: TemplateTranslation.Empty);
+            overrideMutability: MutabilityOverride.None, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
@@ -98,10 +98,15 @@ namespace Skila.Language
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
 
-        internal void AddDuckVirtualTable(EntityInstance target, VirtualTable vtable)
+        internal void AddDuckVirtualTable(ComputationContext ctx, EntityInstance target, VirtualTable vtable)
         {
             if (vtable == null)
                 throw new Exception("Internal error");
+
+            if (target.OverrideMutability.HasFlag(MutabilityOverride.Reassignable))
+            {
+               target = target.Rebuild(ctx,  target.OverrideMutability ^ MutabilityOverride.Reassignable).Cast<EntityInstance>();
+            }
             this.duckVirtualTables.Add(target, vtable);
         }
         public bool TryGetDuckVirtualTable(EntityInstance target, out VirtualTable vtable)
@@ -270,10 +275,12 @@ namespace Skila.Language
 
             TypeMutability arg_mutability = this.MutabilityOfType(ctx);
             if (param.Constraint.Modifier.HasConst
-                && arg_mutability != TypeMutability.Const && arg_mutability != TypeMutability.ConstAsSource)
+                && arg_mutability != TypeMutability.ForceConst && arg_mutability != TypeMutability.ConstAsSource)
                 return ConstraintMatch.MutabilityViolation;
-            else if (param.Constraint.Modifier.HasMutable && arg_mutability != TypeMutability.Mutable)
+            else if (param.Constraint.Modifier.HasMutable && arg_mutability != TypeMutability.ForceMutable)
                 return ConstraintMatch.MutabilityViolation;
+            else if (param.Constraint.Modifier.HasReassignable && !arg_mutability.HasFlag(TypeMutability.Reassignable))
+                return ConstraintMatch.AssignabilityViolation;
 
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
@@ -375,6 +382,9 @@ namespace Skila.Language
 
         public EntityInstance Build(MutabilityOverride mutability)
         {
+            if (mutability == MutabilityOverride.Reassignable)
+                mutability |= this.OverrideMutability;
+
             return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
         }
 
@@ -416,7 +426,7 @@ namespace Skila.Language
             return this.Core == instance.Core;
         }
 
-        public bool ValidateTypeVariance(ComputationContext ctx,INode placement, VarianceMode typeNamePosition)
+        public bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition)
         {
             // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
 

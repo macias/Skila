@@ -55,7 +55,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TypeUnion()
         {
-            var env = Environment.Create(new Options() { AllowProtocols = true, AllowInvalidMainResult = true , DebugThrowOnError = true});
+            var env = Environment.Create(new Options()
+            {
+                AllowProtocols = true,
+                AllowInvalidMainResult = true,
+                DebugThrowOnError = true
+            });
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")

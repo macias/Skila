@@ -108,7 +108,7 @@ namespace Skila.Language.Builders
             this.parents = parents.Concat(this.parents??Enumerable.Empty<NameReference>()).StoreReadOnly();
             return this;
         }
-        public NameReference CreateTypeNameReference(MutabilityOverride mutability = MutabilityOverride.NotGiven)
+        public NameReference CreateTypeNameReference(MutabilityOverride mutability = MutabilityOverride.None)
         {
             return this.name.CreateNameReference(prefix: null, mutability: mutability);
         }

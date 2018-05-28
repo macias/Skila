@@ -171,6 +171,13 @@ namespace Skila.Language.Expressions
                 }
             }
 
+            if (this.Lhs is Dereference)
+            {
+                TypeMutability lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
+                if (!lhs_mutability.HasFlag( TypeMutability.Reassignable))
+                    ctx.AddError(ErrorCode.AssigningToNonReassignableData,this);
+            }
+
             {
                 IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
                 if (lhs_var != null)
@@ -222,7 +229,7 @@ namespace Skila.Language.Expressions
                             // and then call mutable method making "const" guarantee invalid
 
                             TypeMutability this_mutability = name_ref.Prefix.Evaluation.Components.MutabilityOfType(ctx);
-                            if (this_mutability != TypeMutability.Mutable)
+                            if (!this_mutability.HasFlag(TypeMutability.ForceMutable))
                                 ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
                         }
                     }

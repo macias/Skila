@@ -138,10 +138,6 @@ namespace Skila.Language
         {
             FunctionDefinition target_function = targetFunctionInstance.Target.CastFunction();
 
-            if (target_function.DebugId == (6, 688))
-            {
-                ;
-            }
             List<int> argParamMapping = Enumerable.Repeat(noMapping, arguments.Count).ToList();
 
             {
@@ -232,10 +228,6 @@ namespace Skila.Language
         {
             foreach (FunctionArgument arg in this.TrueArguments)
             {
-                if (arg.DebugId == (25, 1039))
-                {
-                    ;
-                }
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
                 TypeMatch match = arg.Evaluation.Components.MatchesTarget(ctx, param_eval,
@@ -468,10 +460,6 @@ namespace Skila.Language
             TemplateDefinition template,
             IEntityInstance argType, IEntityInstance paramType)
         {
-            if (template.DebugId== (6, 149))
-            {
-                ;
-            }
             // three steps logic of dereferencing here
             // (1) we cannot pass references as template arguments, so we dereference the type right away
             bool dereferencing_arg = ctx.Env.IsReferenceOfType(argType);

@@ -571,6 +571,8 @@ namespace Skila.Language
 
         private TypeDefinition createCapture(out FunctionDefinition captureConstructor)
         {
+            MutabilityOverride mutability_override = this.Options.AtomicPrimitivesMutable ? MutabilityOverride.ForceConst : MutabilityOverride.None;
+
             captureConstructor = ExpressionFactory.BasicConstructor(new[] {
                         NameFactory.CaptureStartFieldName,
                         NameFactory.CaptureEndFieldName,
@@ -578,15 +580,16 @@ namespace Skila.Language
                         NameFactory.CaptureNameFieldName
                     },
                     new[] {
-                        NameFactory.SizeTypeReference(),
-                        NameFactory.SizeTypeReference(),
+                        NameFactory.SizeTypeReference(mutability_override),
+                        NameFactory.SizeTypeReference(mutability_override),
                     //    NameFactory.SizeTypeReference(),
                         NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst))
                     });
 
+
             return TypeBuilder.Create(NameFactory.CaptureTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureStartFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureEndFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureStartFieldName, NameFactory.SizeTypeReference(mutability_override), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureEndFieldName, NameFactory.SizeTypeReference(mutability_override), Undef.Create()))
                 //.With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureNameFieldName,
                     NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst)), Undef.Create()))
@@ -596,9 +599,11 @@ namespace Skila.Language
 
         private TypeDefinition createMatch(out Property matchCapturesProp, out FunctionDefinition matchConstructor)
         {
-            Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchStartFieldName, NameFactory.SizeTypeReference(),
+            MutabilityOverride mutability_override = this.Options.AtomicPrimitivesMutable ? MutabilityOverride.ForceConst : MutabilityOverride.None;
+
+            Property index_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchStartFieldName, NameFactory.SizeTypeReference(mutability_override),
                 Undef.Create());
-            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchEndFieldName, NameFactory.SizeTypeReference(),
+            Property count_prop = PropertyBuilder.CreateAutoGetter(NameFactory.MatchEndFieldName, NameFactory.SizeTypeReference(mutability_override),
                 Undef.Create());
             matchCapturesProp = PropertyBuilder.CreateAutoGetter(NameFactory.MatchCapturesFieldName,
                     NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), MutabilityOverride.ForceConst)),
@@ -612,8 +617,8 @@ namespace Skila.Language
                         NameFactory.MatchCapturesFieldName
                     },
                     new[] {
-                        NameFactory.SizeTypeReference(),
-                        NameFactory.SizeTypeReference(),
+                        NameFactory.SizeTypeReference(mutability_override),
+                        NameFactory.SizeTypeReference(mutability_override),
                         NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(),
                             MutabilityOverride.ForceConst))
                     });
@@ -975,9 +980,9 @@ namespace Skila.Language
                     }),
                     Return.Create(NameReference.Create(buffer_name))
                     ))
-                .Constraints(ConstraintBuilder.Create(elem1_type).Modifier(EntityModifier.HeapOnly),
-                    ConstraintBuilder.Create(elem2_type).Modifier(EntityModifier.HeapOnly),
-                    ConstraintBuilder.Create(elem3_type).BaseOf(elem1_type, elem2_type).Modifier(EntityModifier.HeapOnly))
+                .Constraints(ConstraintBuilder.Create(elem1_type).SetModifier(EntityModifier.HeapOnly),
+                    ConstraintBuilder.Create(elem2_type).SetModifier(EntityModifier.HeapOnly),
+                    ConstraintBuilder.Create(elem3_type).BaseOf(elem1_type, elem2_type).SetModifier(EntityModifier.HeapOnly))
                 .Parameters(FunctionParameter.Create(coll1_name,
                     NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem1_type),
                         MutabilityOverride.Neutral))),
@@ -1387,6 +1392,8 @@ namespace Skila.Language
             out FunctionDefinition parseString,
             params IMember[] extras)
         {
+            MutabilityOverride mutability_override = options.AtomicPrimitivesMutable ? MutabilityOverride.ForceConst : MutabilityOverride.None;
+
             parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, NameFactory.OptionTypeReference(NameFactory.ItTypeReference()),
                     ExpressionFactory.BodyReturnUndef())
                     .Parameters(FunctionParameter.Create("s", NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
@@ -1402,9 +1409,9 @@ namespace Skila.Language
                       .SetModifier(modifier)
                       .With(parseString)
                       .With(extras)
-                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(),
+                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(mutability_override),
                           minValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
-                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItTypeReference(),
+                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItTypeReference(mutability_override),
                           maxValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
                       .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                           null, Block.CreateStatement()))
@@ -1492,7 +1499,7 @@ namespace Skila.Language
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChannelTypeName,
                     TemplateParametersBuffer.Create().Add("T").Values))
                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native)
-                .Constraints(ConstraintBuilder.Create("T").Modifier(EntityModifier.Const))
+                .Constraints(ConstraintBuilder.Create("T").SetModifier(EntityModifier.Const))
                 // default constructor
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
@@ -1518,6 +1525,8 @@ namespace Skila.Language
 
         private TypeDefinition createOptionType(out FunctionDefinition emptyConstructor, out FunctionDefinition valueConstructor)
         {
+            MutabilityOverride mutability_override = this.Options.AtomicPrimitivesMutable ? MutabilityOverride.ForceConst : MutabilityOverride.None;
+
             const string elem_type = "OPT";
 
             valueConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Public,
@@ -1542,7 +1551,7 @@ namespace Skila.Language
                                 EntityModifier.Public))
                             .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type),
                                 Undef.Create()))
-                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(),
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(mutability_override),
                                 Undef.Create()))
                             .With(emptyConstructor)
                             .With(valueConstructor)

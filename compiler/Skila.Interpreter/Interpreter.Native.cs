@@ -109,7 +109,7 @@ namespace Skila.Interpreter
         {
             IEntityInstance outer_typename = typename;
             if (onHeap)
-                outer_typename = ctx.Env.Reference(typename, MutabilityOverride.NotGiven, null, viaPointer: true);
+                outer_typename = ctx.Env.Reference(typename, MutabilityOverride.None, null, viaPointer: true);
             ObjectData this_object = await allocObjectAsync(ctx, typename, outer_typename, null).ConfigureAwait(false);
 
             // it is local variable so we need to inc ref count
@@ -587,7 +587,7 @@ namespace Skila.Interpreter
 
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
                 EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, 
-                    overrideMutability: MutabilityOverride.NotGiven,
+                    overrideMutability: MutabilityOverride.None,
                     translation: null);
                 ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
                 if (opt_exec.IsThrow)

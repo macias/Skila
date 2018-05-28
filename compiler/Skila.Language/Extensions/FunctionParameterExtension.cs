@@ -1,4 +1,6 @@
-﻿namespace Skila.Language.Extensions
+﻿using Skila.Language.Entities;
+
+namespace Skila.Language.Extensions
 {
     public static class FunctionParameterExtension
     {

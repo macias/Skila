@@ -39,7 +39,7 @@ namespace Skila.Language.Entities
             this.Name = NameDefinition.Create(name);
             this.Replacement = replacement;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.None,
                 translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));

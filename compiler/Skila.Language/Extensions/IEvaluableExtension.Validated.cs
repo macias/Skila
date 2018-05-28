@@ -65,10 +65,6 @@ namespace Skila.Language.Extensions
 
             if (node is IExpression expr)
             {
-                if (node.DebugId == (37, 0) || node.DebugId == (19, 277))
-                {
-                    ;
-                }
                 AssignmentTracker parent_tracker = ctx.ValAssignTracker;
 
                 validateExecutionPath(node, expr.Flow.AlwaysPath, ctx, ref result);

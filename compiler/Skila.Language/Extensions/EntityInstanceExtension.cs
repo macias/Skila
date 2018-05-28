@@ -72,7 +72,7 @@ namespace Skila.Language.Extensions
                 if (mapping != null)
                 {
                     vtable = new VirtualTable(mapping, is_partial);
-                    input.AddDuckVirtualTable(target, vtable);
+                    input.AddDuckVirtualTable(ctx,target, vtable);
                 }
             }
 

@@ -46,14 +46,16 @@ namespace Skila.Language.Extensions
         }
 
         public static bool DataTransfer(this IEvaluable @this, ComputationContext ctx, ref IExpression source,
-            IEntityInstance targetTypeName)
+            IEntityInstance targetTypeName, bool ignoreMutability = false)
         {
             if (source == null)
                 return true;
 
             IEntityInstance src_type = source.Evaluation.Components;
 
-            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, 
+                TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)
+                .WithIgnoredMutability(ignoreMutability));
 
             if (match == TypeMatch.No)
             {

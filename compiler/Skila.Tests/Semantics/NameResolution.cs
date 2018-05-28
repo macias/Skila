@@ -96,7 +96,7 @@ namespace Skila.Tests.Semantics
 
             TypeDefinition second_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None))
                 .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const)));
+                    .SetModifier(EntityModifier.Const)));
 
             var resolver = NameResolver.Create(env);
 

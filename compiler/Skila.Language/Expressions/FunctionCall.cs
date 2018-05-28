@@ -98,10 +98,6 @@ namespace Skila.Language.Expressions
             get { return this.dereferencedCount; }
             set
             {
-                if (this.DebugId==(20, 352))
-                {
-                    ;
-                }
                 this.dereferencedCount = value;
             }
         }
@@ -198,7 +194,7 @@ namespace Skila.Language.Expressions
                 // and then call mutable method making "const" guarantee invalid
 
                 TypeMutability this_mutability = this.Resolution.MetaThisArgument.Expression.Evaluation.Components.MutabilityOfType(ctx);
-                if (this_mutability != TypeMutability.Mutable && this.Resolution.TargetFunction.Modifier.HasMutable)
+                if (!this_mutability.HasFlag(TypeMutability.ForceMutable) && this.Resolution.TargetFunction.Modifier.HasMutable)
                     ctx.AddError(ErrorCode.AlteringNonMutableInstance, this);
             }
 
@@ -261,10 +257,6 @@ namespace Skila.Language.Expressions
                 }
                 else
                 {
-                    if (this.DebugId == (20, 352))
-                    {
-                        ;
-                    }
                     IEnumerable<CallResolution> targets = matches
                         .Select(it => CallResolution.Create(ctx, this.Name.TemplateArguments, this,
                             createCallContext(ctx, this.Name, it.TargetFunction), targetFunctionInstance: it))

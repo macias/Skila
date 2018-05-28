@@ -43,7 +43,7 @@
         MutableFieldInImmutableType = 39,
         GlobalMutableVariable = 40,
         InheritanceMutabilityViolation = 41,
-        ViolatedConstConstraint = 42,
+        ViolatedMutabilityConstraint = 42,
         ViolatedBaseConstraint = 43,
         ViolatedInheritsConstraint = 44,
         PropertyMultipleAccessors = 45,
@@ -124,5 +124,7 @@
         UndefinedTemplateArguments = 120,
         SelfTypeOutsideConstructor = 121,
         PostInitializedCustomGetter = 122,
+        AssigningToNonReassignableData = 123,
+        ViolatedAssignabilityConstraint = 124,
     }
 }

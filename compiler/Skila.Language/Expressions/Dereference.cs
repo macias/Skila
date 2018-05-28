@@ -43,15 +43,16 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                IEntityInstance inner;
-                if (!ctx.Env.Dereferenced(Expr.Evaluation.Components, out inner))
+                if (!ctx.Env.Dereferenced(Expr.Evaluation.Components, out IEntityInstance inner_comp))
                     ctx.AddError(ErrorCode.DereferencingValue, this.Expr);
 
-                this.typename = inner.NameOf;
+                ctx.Env.Dereferenced(Expr.Evaluation.Aggregate, out IEntityInstance inner_aggr);
+
+                this.typename = inner_comp.NameOf;
                 this.typename.AttachTo(this);
                 this.typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
-                this.Evaluation = typename.Evaluation;
+                this.Evaluation = new EvaluationInfo(inner_comp, inner_aggr.Cast<EntityInstance>());
             }
         }
 

@@ -54,6 +54,10 @@ namespace Skila.Language.Extensions
         public static TypeMutability ComputeMutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
             HashSet<IEntityInstance> visited)
         {
+            if (@this.DebugId == (5, 8844))
+            {
+                ;
+            }
             // we have to use cache with visited types, because given type A can have a field of type A, 
             // which would lead to infinite checking
 
@@ -79,7 +83,7 @@ namespace Skila.Language.Extensions
         {
             Entities.IEntity target = instance.Target;
             if (!target.IsType()) // namespace
-                return TypeMutability.ReadOnly;
+                return TypeMutability.ConstAsSource;
 
             if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
@@ -88,32 +92,56 @@ namespace Skila.Language.Extensions
             }
             else
             {
-                switch (instance.OverrideMutability)
+                MutabilityOverride override_mutability = instance.OverrideMutability;
+                TypeMutability mask = TypeMutability.None;
+                if (instance.OverrideMutability.HasFlag(MutabilityOverride.Reassignable))
                 {
-                    case MutabilityOverride.ForceMutable: return TypeMutability.Mutable;
-                    case MutabilityOverride.ForceConst: return TypeMutability.Const;
-                    case MutabilityOverride.DualConstMutable: return TypeMutability.DualConstMutable;
-                    case MutabilityOverride.Neutral: return TypeMutability.ReadOnly;
+                    mask = TypeMutability.Reassignable;
+                    override_mutability ^= MutabilityOverride.Reassignable;
                 }
 
-                if (target.Modifier.HasMutable)
+                switch (override_mutability)
                 {
-                    if (instance.TargetsTemplateParameter)
-                        return TypeMutability.GenericUnknownMutability;
-                    else
-                        return TypeMutability.Mutable;
+                    case MutabilityOverride.ForceMutable: return TypeMutability.ForceMutable | mask;
+                    case MutabilityOverride.ForceConst: return TypeMutability.ForceConst | mask;
+                    case MutabilityOverride.DualConstMutable: return TypeMutability.DualConstMutable | mask;
+                    case MutabilityOverride.Neutral: return TypeMutability.ReadOnly | mask;
                 }
+
+
+                if (target.Modifier.HasMutable)
+                    return TypeMutability.ForceMutable | mask;
 
                 foreach (IEntityInstance arg in instance.TemplateArguments)
                 {
                     TypeMutability arg_mutability = arg.MutabilityOfType(ctx);
-                    if (arg_mutability != TypeMutability.Const
+                    if (arg_mutability != TypeMutability.ForceConst
                         && arg_mutability != TypeMutability.ConstAsSource
                         && arg_mutability != TypeMutability.GenericUnknownMutability)
-                        return TypeMutability.Mutable;
+                        return TypeMutability.ForceMutable | mask;
                 }
 
-                return TypeMutability.ConstAsSource;
+                const TypeMutability default_mutability = TypeMutability.ConstAsSource;
+
+                if (instance.TargetsTemplateParameter)
+                {
+                    TypeMutability mutability = TypeMutability.None;
+                    if (instance.TemplateParameterTarget.Constraint.Modifier.HasMutable)
+                        mutability |= TypeMutability.ForceMutable;
+                    if (instance.TemplateParameterTarget.Constraint.Modifier.HasConst)
+                        mutability |= TypeMutability.ForceConst;
+                    if (instance.TemplateParameterTarget.Constraint.Modifier.HasReassignable)
+                        mutability |= TypeMutability.Reassignable;
+
+                    if (mutability != TypeMutability.None)
+                    {
+                        if (mutability == TypeMutability.Reassignable)
+                            mutability |= default_mutability;
+                        return mutability | mask;
+                    }
+                }
+
+                return default_mutability | mask;
             }
         }
     }

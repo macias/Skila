@@ -62,7 +62,7 @@ namespace Skila.Language.Entities
             this.initValue = initValue;
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.None,
                 translation: TemplateTranslation.Create(this)));
 
             this.closures = new List<TypeDefinition>();
@@ -185,11 +185,6 @@ namespace Skila.Language.Entities
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId==(18, 62))
-            {
-                ;
-            }
-
             if (this.Evaluation != null)
                 return;
 
@@ -249,6 +244,13 @@ namespace Skila.Language.Entities
                     this_eval = this_eval.Rebuild(ctx, MutabilityOverride.ForceMutable);
                     this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceMutable).Cast<EntityInstance>();
                 }
+                else if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
+                {
+                    MutabilityOverride mutability_override = MutabilityOverride.Reassignable;
+                    if (tn_eval != null && this.TypeName is NameReference name_ref)
+                        mutability_override |= name_ref.OverrideMutability;
+                    this_eval = this_eval.Rebuild(ctx, mutability_override);
+                }
             }
 
             this.Evaluation = new EvaluationInfo(this_eval, this_aggregate);
@@ -292,7 +294,7 @@ namespace Skila.Language.Entities
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
                 TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
-                if (mutability != TypeMutability.Const && mutability != TypeMutability.ConstAsSource)
+                if (!mutability.HasFlag(TypeMutability.ForceConst) && !mutability.HasFlag(TypeMutability.ConstAsSource))
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
             }
 

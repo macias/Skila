@@ -1,4 +1,5 @@
-﻿using Skila.Language.Extensions;
+﻿using Skila.Language.Entities;
+using Skila.Language.Extensions;
 using System;
 using System.Diagnostics;
 

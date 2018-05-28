@@ -32,12 +32,12 @@ namespace Skila.Tests
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-                // new Semantics.Mutability().ErrorAbusingForcedConst();
+                //new Semantics.Mutability().ErrorForcingConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
-                new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
+                //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                // new Semantics.Templates().InternalDirectTranslationTables();
+                //  new Semantics.Templates().ErrorSwapNonReassignableValues();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().AutoDefaultConstructor();
                 //new Semantics.Variables().ErrorInvalidVariable();
@@ -48,22 +48,22 @@ namespace Skila.Tests
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 // new Execution.Flow().ParallelOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
-                //new Execution.Inheritance().TypeUnion();
-                //new Execution.Interfaces().DuckVirtualCallWithGenericBaseProtocol();
+                //new Execution.Inheritance().InheritingEnums();
+                //new Execution.Interfaces().DuckDeepVirtualCallInterface();
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().RealNotANumber();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
                 //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
-                //new Execution.Pointers().RefCountsOnReadingFunctionCall();
+                //new Execution.Pointers().ExplicitDereferencing();
                 //new Execution.Properties().AutoPropertiesWithPointers();
-                //new Execution.Templates().HasConstraintWithValue();
+                //new Execution.Templates().SwapPointers();
                 //new Execution.Text().StringUtf8Encoding();
             }
 
             // if (false)
             {
-                const double golden_avg_s = 1.46;
+                const double golden_avg_s = 1.47;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 

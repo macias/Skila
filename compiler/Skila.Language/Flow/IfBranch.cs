@@ -121,7 +121,7 @@ namespace Skila.Language.Flow
 
 
                     this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>());
-                    this.DataTransfer(ctx, ref this.condition, ctx.Env.BoolType.InstanceOf);
+                    this.DataTransfer(ctx, ref this.condition, ctx.Env.BoolType.InstanceOf, ignoreMutability: true);
 
                 }
             }

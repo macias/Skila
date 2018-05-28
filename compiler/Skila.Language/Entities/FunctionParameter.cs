@@ -8,7 +8,7 @@ using Skila.Language.Comparers;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
 
-namespace Skila.Language
+namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class FunctionParameter : Node, IEntityVariable, IIndexed, ILocalBindable, ISurfable
@@ -91,7 +91,7 @@ namespace Skila.Language
 
             this.defaultValue = defaultValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.NotGiven,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.None,
                 translation: TemplateTranslation.Create(this)));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));

@@ -33,10 +33,6 @@ namespace Skila.Interpreter
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
-            if (func.DebugId == (10, 168))
-            {
-                ;
-            }
             ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
 
             // in case of the extension within the function we use first parameter as regular one
@@ -173,10 +169,6 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, IfBranch ifBranch)
         {
-            if (ifBranch.DebugId == (19, 292))
-            {
-                ;
-            }
             ObjectData cond_obj = null;
             if (!ifBranch.IsElse)
             {
@@ -266,10 +258,6 @@ namespace Skila.Interpreter
 
             while (true)
             {
-                if (node.DebugId == (6, 201))
-                {
-                    ;
-                }
                 INameRegistryExtension.EnterNode(node, ref ctx.LocalVariables, () => new VariableRegistry(ctx.Env.Options.ScopeShadowing));
 
                 ExecValue result;
@@ -380,10 +368,6 @@ namespace Skila.Interpreter
 
         private static void exitScope(ExecutionContext ctx, IScope scope, ExecValue result)
         {
-            if (scope.DebugId == (6, 686))
-            {
-                ;
-            }
             ObjectData out_obj = !result.IsExpression
                 || (scope is Block block && !block.IsRead) ? null : result.ExprValue;
 
@@ -399,10 +383,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, Alloc alloc)
         {
-            if (alloc.DebugId == (21, 26))
-            {
-                ;
-            }
             IEntityInstance inner_type_eval;
             IEntityInstance alloc_eval;
             if (alloc.InnerTypeName.IsSelfTypeName)
@@ -477,7 +457,7 @@ namespace Skila.Interpreter
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return allocObjectAsync(ctx,
                 ctx.Env.Utf8StringType.InstanceOf,
-                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, MutabilityOverride.NotGiven, null, viaPointer: true),
+                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, MutabilityOverride.None, null, viaPointer: true),
                 value);
         }
 
@@ -638,20 +618,12 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId == (20, 444))
-            {
-                ;
-            }
             CallPreparationData call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
             if (call_prep.Prep.Is<ExecValue>())
                 return call_prep.Prep.As<ExecValue>();
             CallInfo call_info = call_prep.Prep.As<CallInfo>();
             call_info.Apply(ref ctx);
 
-            if (call.DebugId == (20, 333))
-            {
-                ;
-            }
             ExecValue ret = await ExecutedAsync(call_info.FunctionTarget, ctx).ConfigureAwait(false);
             ArgumentGroup.TryReleaseVariadic(ctx, call_prep.ArgGroups);
             if (ret.IsThrow)
@@ -710,10 +682,6 @@ namespace Skila.Interpreter
 
         private async Task<CallPreparationData> prepareFunctionCallAsync(FunctionCall call, ExecutionContext ctx)
         {
-            if (call.DebugId == (20, 443))
-            {
-                ;
-            }
             ObjectData this_ref;
             FunctionDefinition target_func;
 
@@ -828,7 +796,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        MutabilityOverride.NotGiven, null),
+                        MutabilityOverride.None, null),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -1020,10 +988,6 @@ namespace Skila.Interpreter
                 }
                 else
                 {
-                    if (assign.DebugId == (26, 314))
-                    {
-                        ;
-                    }
                     ObjectData rhs_obj = dereferenceWithRefInc(ctx, rhs_val.ExprValue, assign, assign.RhsValue);
 
                     lhs = await ExecutedAsync(assign.Lhs, ctx).ConfigureAwait(false);
@@ -1041,10 +1005,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, VariableDeclaration decl)
         {
-            if (decl.DebugId==(17, 375))
-            {
-                ;
-            }
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(await ObjectData.CreateEmptyAsync(ctx, decl.Evaluation.Aggregate).ConfigureAwait(false));

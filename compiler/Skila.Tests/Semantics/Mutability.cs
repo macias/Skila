@@ -232,16 +232,19 @@ namespace Skila.Tests.Semantics
 
             NameReference rhs_value = NameReference.Create("a");
 
+            IExpression assign = Assignment.CreateStatement(NameReference.Create("x"), rhs_value);
+
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("x",
+                            NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst), StringLiteral.Create("hi"),
+                            EntityModifier.Reassignable);
             root_ns.AddBuilder(FunctionBuilder.Create("innocent",
                     NameFactory.UnitTypeReference(),
                     Block.CreateStatement(
                         // this is ok, we are assigning literal here
-                        VariableDeclaration.CreateStatement("x",
-                            NameFactory.StringPointerTypeReference(MutabilityOverride.ForceConst), StringLiteral.Create("hi"),
-                            EntityModifier.Reassignable),
+                        decl,
                         VariableDeclaration.CreateStatement("a", null, StringLiteral.Create("no")),
                         // this is not ok, we are assigning mutable to const
-                        Assignment.CreateStatement(NameReference.Create("x"), rhs_value),
+                        assign,
                         ExpressionFactory.Readout("x")
                         )));
 
@@ -559,7 +562,7 @@ namespace Skila.Tests.Semantics
             TypeDefinition point_type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point",
                     TemplateParametersBuffer.Create().Add("T").Values))
                .Constraints(ConstraintBuilder.Create("T")
-                    .Modifier(EntityModifier.Const))
+                    .SetModifier(EntityModifier.Const))
                .With(field));
 
             // Bar is mutable type, so we cannot construct Point<Bar> since Point requires immutable type
@@ -580,7 +583,7 @@ namespace Skila.Tests.Semantics
             var resolver = NameResolver.Create(env);
 
             Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ViolatedConstConstraint, wrong_type));
+            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ViolatedMutabilityConstraint, wrong_type));
 
             return resolver;
         }

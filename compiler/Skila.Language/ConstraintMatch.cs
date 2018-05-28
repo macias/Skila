@@ -8,5 +8,6 @@
         InheritsViolation,
         MissingFunction,
         UndefinedTemplateArguments,
+        AssignabilityViolation,
     }
 }
