@@ -12,86 +12,11 @@ namespace Skila.Tests.Execution
     [TestClass]
     public class Templates
     {
-        [TestMethod]
-        public IInterpreter SwapPointers()
-        {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
-            var root_ns = env.Root;
-
-            root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
-                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
-                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("b")), NameReference.Create("t"))
-                ))
-                .Constraints(ConstraintBuilder.Create("T")
-                    .SetModifier(EntityModifier.Reassignable))
-                .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
-                    FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
-
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", null,
-                        ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference( MutabilityOverride.Reassignable), Nat8Literal.Create("2"))),
-                    VariableDeclaration.CreateStatement("b", null,
-                        ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference( MutabilityOverride.Reassignable), Nat8Literal.Create("17"))),
-                    FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b")),
-                    Return.Create(ExpressionFactory.Sub("a", "b"))
-                )));
-
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)15, result.RetValue.PlainValue);
-
-            return interpreter;
-        }
-
-        [TestMethod]
-        public IInterpreter SwapValues()
-        {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
-            var root_ns = env.Root;
-
-            root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
-                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
-                    Assignment.CreateStatement(Dereference.Create(NameReference.Create("b")), NameReference.Create("t"))
-                ))
-                .Constraints(ConstraintBuilder.Create("T")
-                    .SetModifier(EntityModifier.Reassignable))
-                .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
-                    FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
-
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2"), EntityModifier.Reassignable),
-                    VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17"), EntityModifier.Reassignable),
-                    FunctionCall.Create("swap",NameReference.Create("a"),NameReference.Create("b")),
-                    Return.Create(ExpressionFactory.Sub("a","b"))
-                )));
-
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)15, result.RetValue.PlainValue);
-
-            return interpreter;
-        }
 
         [TestMethod]
         public IInterpreter ResolvingGenericArgumentInRuntime()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("oracle", "O", VarianceMode.None,
@@ -129,7 +54,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CheckingHostTraitRuntimeType()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -173,7 +98,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CheckingTraitRuntimeType()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -220,7 +145,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CallingTraitMethodViaInterface()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -268,7 +193,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CallingTraitMethod()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -315,7 +240,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter HasConstraintWithPointer()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true, DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
@@ -362,7 +287,7 @@ namespace Skila.Tests.Execution
                 AllowInvalidMainResult = true,
                 AllowProtocols = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",

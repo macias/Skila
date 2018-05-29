@@ -95,24 +95,24 @@ namespace Skila.Language.Entities
                 }));
         }
 
-        public static Property Create(string name,
+        public static Property Create(IOptions options, string name,
             INameReference typeName,
             IEnumerable<VariableDeclaration> fields,
             IEnumerable<FunctionDefinition> getters,
             IEnumerable<FunctionDefinition> setters,
             EntityModifier modifier = null)
         {
-            return new Property(modifier, name, null, typeName, fields, getters, setters);
+            return new Property(options,modifier, name, null, typeName, fields, getters, setters);
         }
 
-        public static Property CreateIndexer(
+        public static Property CreateIndexer(IOptions options,
             INameReference typeName,
             IEnumerable<VariableDeclaration> fields,
             IEnumerable<FunctionDefinition> getters,
             IEnumerable<FunctionDefinition> setters,
             EntityModifier modifier = null)
         {
-            return Create(NameFactory.PropertyIndexerName, typeName, fields, getters, setters, modifier);
+            return Create(options, NameFactory.PropertyIndexerName, typeName, fields, getters, setters, modifier);
         }
 
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -145,7 +145,7 @@ namespace Skila.Language.Entities
 
         public bool IsMemberUsed { get; private set; }
 
-        private Property(EntityModifier modifier, string name, IEnumerable<FunctionParameter> parameters, INameReference typeName,
+        private Property(IOptions options, EntityModifier modifier, string name, IEnumerable<FunctionParameter> parameters, INameReference typeName,
             IEnumerable<VariableDeclaration> fields, IEnumerable<FunctionDefinition> getters, IEnumerable<FunctionDefinition> setters)
         {
             if (name == null)
@@ -156,7 +156,7 @@ namespace Skila.Language.Entities
             this.Fields = (fields ?? Enumerable.Empty<VariableDeclaration>()).StoreReadOnly();
             this.getters = (getters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
-            this.Modifier = (this.Setter == null ? EntityModifier.None : EntityModifier.Reassignable) | modifier;
+            this.Modifier = (this.Setter == null ? EntityModifier.None : options.ReassignableModifier()) | modifier;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.None,
                 translation: TemplateTranslation.Create(this)));

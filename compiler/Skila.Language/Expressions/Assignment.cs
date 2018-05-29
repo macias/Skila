@@ -16,16 +16,16 @@ namespace Skila.Language.Expressions
     {
         public static IExpression CreateStatement(string lhs, string rhsValue)
         {
-            return create(ExpressionReadMode.CannotBeRead, NameReference.Create(lhs), NameReference.Create(rhsValue), 
+            return create(ExpressionReadMode.CannotBeRead, NameReference.Create(lhs), NameReference.Create(rhsValue),
                 isPostInitialization: false);
         }
         public static IExpression CreateStatement(IExpression lhs, IExpression rhsValue)
         {
-            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue,isPostInitialization:false);
+            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue, isPostInitialization: false);
         }
         public static Assignment CreateInitialization(IExpression lhs, IExpression rhsValue)
         {
-            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue,isPostInitialization:true).Cast<Assignment>();
+            return create(ExpressionReadMode.CannotBeRead, lhs, rhsValue, isPostInitialization: true).Cast<Assignment>();
         }
         public static IExpression CreateStatement(IEnumerable<IExpression> lhs, IEnumerable<IExpression> rhsValue)
         {
@@ -39,7 +39,7 @@ namespace Skila.Language.Expressions
         {
             return create(ExpressionReadMode.ReadRequired, lhs, rhsValue);
         }
-        private static IExpression create(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue,bool isPostInitialization)
+        private static IExpression create(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue, bool isPostInitialization)
         {
             if (lhs is FunctionCall call && call.IsIndexer)
             {
@@ -49,7 +49,7 @@ namespace Skila.Language.Expressions
                 return call.ConvertIndexerIntoSetter(rhsValue);
             }
             else
-                return new Assignment(readMode, lhs, rhsValue,isPostInitialization);
+                return new Assignment(readMode, lhs, rhsValue, isPostInitialization);
         }
         private static IExpression create(ExpressionReadMode readMode, IEnumerable<IExpression> lhsExpr,
             IEnumerable<IExpression> rhsValue)
@@ -120,7 +120,7 @@ namespace Skila.Language.Expressions
 
         private readonly bool isPostInitialization;
 
-        private Assignment(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue,bool isPostInitialization)
+        private Assignment(ExpressionReadMode readMode, IExpression lhs, IExpression rhsValue, bool isPostInitialization)
             : base(readMode)
         {
             // C#-like object initialization -- `new Point() { X = 5, Y = 7 }`
@@ -152,7 +152,7 @@ namespace Skila.Language.Expressions
         {
             if (ctx.ValAssignTracker != null)
             {
-                if (!ctx.ValAssignTracker.AssignedLocal(this.Lhs,ctx.ValLoopLevel))
+                if (!ctx.ValAssignTracker.AssignedLocal(ctx, this.Lhs))
                     ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
             }
 
@@ -174,8 +174,8 @@ namespace Skila.Language.Expressions
             if (this.Lhs is Dereference)
             {
                 TypeMutability lhs_mutability = this.Lhs.Evaluation.Components.MutabilityOfType(ctx);
-                if (!lhs_mutability.HasFlag( TypeMutability.Reassignable))
-                    ctx.AddError(ErrorCode.AssigningToNonReassignableData,this);
+                if (!lhs_mutability.HasFlag(ctx.Env.Options.ReassignableTypeMutability()))
+                    ctx.AddError(ErrorCode.AssigningToNonReassignableData, this);
             }
 
             {
@@ -188,7 +188,7 @@ namespace Skila.Language.Expressions
                     // reference and report an error
                     if (lhs_var.IsFunctionContained() && lhs_var.Scope != this.Scope
                         // todo: this is lame patch to make current code work, we need proper analysis ASAP
-                        && !(this.RhsValue is NameReference) 
+                        && !(this.RhsValue is NameReference)
                         && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components)
                         // todo: preserve the typematch (enhance DereferenceCount to full info) so we could here just check
                         // if it is pure transfer, or auto-referencing, instead of again checking types
@@ -202,7 +202,7 @@ namespace Skila.Language.Expressions
                     {
                         TypeDefinition current_type = current_func?.ContainingType();
                         TypeDefinition lhs_owner_type = lhs_var.ContainingType();
-                        can_reassign = lhs_var.Modifier.HasReassignable 
+                        can_reassign = lhs_var.Modifier.Has(ctx.Env.Options.ReassignableModifier())
                             || (lhs_var.Modifier.HasPostInitialization && this.isPostInitialization)
                             || name_ref.Binding.Match.IsLocal
                             || (current_func != null && current_type == lhs_owner_type
@@ -213,8 +213,8 @@ namespace Skila.Language.Expressions
                         ctx.AddError(ErrorCode.CannotReassignReadOnlyVariable, this);
                     else
                     {
-                        if (lhs_var is Property prop && prop.Setter == null 
-                            && !prop.Getter.Modifier.HasAutoGenerated 
+                        if (lhs_var is Property prop && prop.Setter == null
+                            && !prop.Getter.Modifier.HasAutoGenerated
                             // custom getter cannot have post initialization in the first place
                             && !this.isPostInitialization)
                             ctx.AddError(ErrorCode.CannotAssignCustomProperty, this);

@@ -96,7 +96,7 @@ namespace Skila.Language.Semantics
             this.ElseBranch = null;
         }
 
-        internal bool AssignedLocal(IExpression lhs,int loopLevel)
+        internal bool AssignedLocal(ComputationContext ctx, IExpression lhs)
         {
             // even if we are in unreachable flow we still set the assignment state to maybe, here is why
             // if (...) then
@@ -117,8 +117,15 @@ namespace Skila.Language.Semantics
             if (decl.Modifier.HasReassignable)
                 return true;
 
+            if (ctx.Env.Options.SingleMutability)
+            {
+                TypeMutability mutability = decl.Evaluation.Components.MutabilityOfType(ctx);
+                if (mutability.HasFlag(TypeMutability.ForceMutable))
+                    return true;
+            }
+
             // in case of readonly variables we can assign it only once AND not in loop (because it would be doubled assigment effectively)
-            return first_assign && this.variableLoopLevels[decl] == loopLevel;
+            return first_assign && this.variableLoopLevels[decl] == ctx.ValLoopLevel;
         }
 
         public bool TryCanRead(NameReference name, out VariableDeclaration varDeclaration)

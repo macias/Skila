@@ -28,9 +28,8 @@ namespace Skila.Language.Expressions
 
         public IExpression Expr { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr,typename }.Where(it => it != null);
+        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr }.Where(it => it != null);
 
-        private INameReference typename;
         private Mode mode;
 
         private AddressOf(Mode mode, IExpression expr)
@@ -56,21 +55,19 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                INameReference inner = Expr.Evaluation.Components.NameOf;
                 if (this.mode == Mode.Pointer)
-                    typename = NameFactory.PointerTypeReference(inner);
+                    this.Evaluation = new EvaluationInfo(ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Components }, 
+                            MutabilityOverride.None, null), 
+                        ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Aggregate }, MutabilityOverride.None, null)); 
                 else if (ctx.Env.IsReferenceOfType(Expr.Evaluation.Components))
                 {
-                    this.typename = inner;
+                    this.Evaluation = Expr.Evaluation;
                     this.mode = Mode.None;
                 }
                 else
-                    typename = NameFactory.ReferenceTypeReference(inner);
-
-                typename.AttachTo(this);
-                typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
-
-                this.Evaluation = typename.Evaluation;
+                    this.Evaluation = new EvaluationInfo(ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Components }, 
+                            MutabilityOverride.None, null),
+                        ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Aggregate }, MutabilityOverride.None, null));
 
                 Expr.ValidateValueExpression(ctx);
 

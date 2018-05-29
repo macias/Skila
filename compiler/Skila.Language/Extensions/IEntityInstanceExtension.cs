@@ -53,11 +53,7 @@ namespace Skila.Language.Extensions
 
         public static TypeMutability ComputeMutabilityOfType(this IEntityInstance @this, ComputationContext ctx,
             HashSet<IEntityInstance> visited)
-        {
-            if (@this.DebugId == (5, 8844))
-            {
-                ;
-            }
+        {            
             // we have to use cache with visited types, because given type A can have a field of type A, 
             // which would lead to infinite checking
 

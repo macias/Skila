@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TraitFunctionCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -46,7 +46,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallInterface()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true, DebugThrowOnError = true });
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace Skila.Tests.Execution
                 InterfaceDuckTyping = false,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         private IInterpreter duckVirtualCall(IOptions options)
@@ -110,7 +110,7 @@ namespace Skila.Tests.Execution
                 DebugThrowOnError = true,
                 InterfaceDuckTyping = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace Skila.Tests.Execution
                 AllowProtocols = true,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         private IInterpreter duckDeepVirtualCall(IOptions options)
@@ -186,7 +186,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallWithGenericBaseInterface()
         {
-            return duckVirtualCallWithGenericBase(new Options() { DebugThrowOnError = true, InterfaceDuckTyping = true, AllowInvalidMainResult = true });
+            return duckVirtualCallWithGenericBase(new Options()
+            {
+                DebugThrowOnError = true,
+                InterfaceDuckTyping = true,
+                AllowInvalidMainResult = true
+            }.DisableSingleMutability());
         }
 
         [TestMethod]
@@ -198,7 +203,7 @@ namespace Skila.Tests.Execution
                 InterfaceDuckTyping = false,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         private IInterpreter duckVirtualCallWithGenericBase(IOptions options)

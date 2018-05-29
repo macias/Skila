@@ -15,12 +15,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InitializingWithCustomSetter()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.Create("x", NameFactory.Nat8TypeReference())
+                .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8TypeReference())
                     .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8TypeReference(), null, EntityModifier.Reassignable))
                     .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))
                     .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.Create("f"),
@@ -49,11 +49,11 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InitializingWithObjectInitialization()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(PropertyBuilder.CreateAutoGetter("x", NameFactory.Nat8TypeReference())
+                .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference())
                     .SetModifier(EntityModifier.PostInitialization))
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                     Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
@@ -82,11 +82,11 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InitializingWithGetter()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(PropertyBuilder.CreateAutoGetter("x", NameFactory.Nat8TypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference()))
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                     Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
                     ))));

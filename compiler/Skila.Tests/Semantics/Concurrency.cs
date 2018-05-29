@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSpawningMutables()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")

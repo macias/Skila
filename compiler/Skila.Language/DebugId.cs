@@ -16,7 +16,7 @@ namespace Skila.Language
         {
             this.id = getId(type);
 
-            if (this== (3, 676))
+            if (this==  (34, 10))
             {
                 ;
             }

@@ -15,7 +15,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSettingCustomGetter()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // we can assign property using getter (only in constructor) but getter has to be auto-generated, 
@@ -24,7 +24,7 @@ namespace Skila.Tests.Semantics
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.Create("x", NameFactory.IntTypeReference())
+                .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntTypeReference())
                     .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                     assign
@@ -41,10 +41,10 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorGetterOverridesNothing()
         {
-            var env = Language.Environment.Create(new Options());
+            var env = Language.Environment.Create(new Options().DisableSingleMutability());
             var root_ns = env.Root;
 
-            Property property = PropertyBuilder.Create("getMe", NameFactory.Int64TypeReference())
+            Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
                     .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                         .Modifier(EntityModifier.Override));
 
@@ -63,12 +63,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningRValue()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
                     new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
@@ -97,12 +97,12 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringGetter()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.Create("x", NameFactory.Int64TypeReference())
+                .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64TypeReference())
                     .WithAutoField(Int64Literal.Create("1"), EntityModifier.Reassignable)
                     .WithAutoGetter()
                     .WithAutoSetter()));
@@ -129,13 +129,13 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMultipleAccessors()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()), mul_getter },
                     new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
@@ -152,11 +152,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAlteringReadOnlyProperty()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1")) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
                     setters: null

@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningToNonReassignableData()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression assign = Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b"));
@@ -42,7 +42,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSwapNonReassignableValues()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
@@ -58,6 +58,7 @@ namespace Skila.Tests.Semantics
                     FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
 
 
+            VariableDeclaration decl = VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2"));
             FunctionCall swap_call = FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b"));
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -65,7 +66,7 @@ namespace Skila.Tests.Semantics
                 ExpressionReadMode.OptionalUse,
                 NameFactory.Nat8TypeReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2")),
+                    decl,
                     VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17")),
                     // error: both values are const
                     swap_call,
@@ -84,7 +85,7 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorDisabledProtocols()
         {
             // just testing if disabling protocols (default) option really works
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
@@ -110,7 +111,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter PassingTraitAsIncorrectInterface()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -150,7 +151,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingTraitMethodOnHost()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -196,7 +197,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMisplacedConstraint()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             TemplateConstraint constraints = ConstraintBuilder.Create("BOO").SetModifier(EntityModifier.Const);
@@ -216,7 +217,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTraitDefinition()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -271,7 +272,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter BasicTraitDefinition()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
@@ -291,7 +292,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TranslationTableOfInferredCommonTypes()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             TemplateParameter template_param = TemplateParametersBuffer.Create("T").Values.Single();
@@ -327,7 +328,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InternalDirectTranslationTables()
         {
-            var env = Environment.Create(new Options() { MiniEnvironment = true });
+            var env = Environment.Create(new Options() { MiniEnvironment = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             const string parent_typename = "Oldman";
@@ -371,7 +372,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InternalIndirectTranslationTables()
         {
-            var env = Environment.Create(new Options() { MiniEnvironment = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { MiniEnvironment = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             const string proxy_typename = "Proxy";
@@ -432,7 +433,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPassingReferenceAsTypeArgument()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("proxy",
@@ -465,7 +466,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("part",
@@ -498,7 +499,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InferredTemplateArgumentsOnConstraints()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("part",
@@ -531,7 +532,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingConstConstraint()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mut").SetModifier(EntityModifier.Mutable));
@@ -559,7 +560,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingTypesConstraint()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Parent")
@@ -590,7 +591,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorHasConstraint()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",

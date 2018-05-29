@@ -21,7 +21,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringUtf8Encoding()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -62,7 +62,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringRemoving()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -110,7 +110,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringSlicing()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -158,7 +158,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringSearching()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -219,7 +219,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter SplittingString()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -383,7 +383,7 @@ namespace Skila.Tests.Execution
         public IInterpreter StringReversing()
         {
             // https://stackoverflow.com/questions/27331819/whats-the-difference-between-a-character-a-code-point-a-glyph-and-a-grapheme
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -433,7 +433,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringConversions()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -510,7 +510,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringIterating()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -542,7 +542,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringSearchingBackwards()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -603,7 +603,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringTrimming()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -649,7 +649,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RegexMatchWithLimits()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -741,7 +741,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RegexMatchWithNamedCaptures()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -836,7 +836,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RegexMatchWithAnonymousCaptures()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -951,7 +951,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RegexContains()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

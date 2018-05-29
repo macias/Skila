@@ -20,7 +20,7 @@ namespace Skila.Tests.Semantics
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // this test is mimics how optional declarations works with conditions
@@ -61,7 +61,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options()
             {
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression second_init_x = Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5"));
@@ -118,7 +118,7 @@ namespace Skila.Tests.Semantics
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("maiden",
@@ -161,7 +161,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options()
             {
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference not_initialized = NameReference.Create("m");
@@ -192,7 +192,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options()
             {
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference not_initialized = NameReference.Create("m");
@@ -225,7 +225,7 @@ namespace Skila.Tests.Semantics
             var env = Language.Environment.Create(new Options()
             {
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // this test is mimics how optional assignment works with conditions
@@ -281,7 +281,7 @@ namespace Skila.Tests.Semantics
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // this test is mimics how optional assignment works with conditions
@@ -339,7 +339,7 @@ namespace Skila.Tests.Semantics
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("maiden",
@@ -369,7 +369,7 @@ namespace Skila.Tests.Semantics
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -453,7 +453,7 @@ namespace Skila.Tests.Semantics
             var env = Environment.Create(new Options()
             {
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("f", NameFactory.BoolTypeReference(),
@@ -509,7 +509,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingUninitializedWithConditionalAssignment()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var decl = VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null, EntityModifier.Reassignable);
@@ -539,7 +539,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingUninitializedWithConditionalBreak()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference var_ref = NameReference.Create("s");
@@ -576,7 +576,7 @@ namespace Skila.Tests.Semantics
             // to make sure it is gone, we run the test twice with reversed commands
             foreach (bool reverse_order in new[] { false, true })
             {
-                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
                 var root_ns = env.Root;
 
                 NameReference var_ref = NameReference.Create("s");
@@ -638,7 +638,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReadingInitializedAfterConditionalBreak()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var if_break = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { LoopInterrupt.CreateBreak() });
@@ -672,7 +672,7 @@ namespace Skila.Tests.Semantics
         {
             // this one is correct, because in one branch we exit from function, in other we do the assignment
 
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var return_or_assign = IfBranch.CreateIf(BoolLiteral.CreateFalse(),
@@ -699,7 +699,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConditionalReturn()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { Return.Create(Int64Literal.Create("5")) },
@@ -722,7 +722,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableCodeAfterReturn()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var dead_return = Return.Create(RealLiteral.Create("3.3"));
@@ -748,7 +748,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableCodeAfterBreak()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var dead_step = ExpressionFactory.Readout("i");
@@ -779,7 +779,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableCodeAfterBreakSingleReport()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var dead_return = Return.Create();
@@ -814,7 +814,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingReturn()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var dead_return = Return.Create(RealLiteral.Create("3.3"));
@@ -837,7 +837,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReturnOutsideFunction()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var ret = Return.Create(BoolLiteral.CreateTrue());
@@ -856,7 +856,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingMixedIf()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var cond = BoolLiteral.CreateTrue();
@@ -879,7 +879,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingIfWithoutElse()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var cond = BoolLiteral.CreateTrue();
@@ -900,7 +900,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNonBoolIfCondition()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var str_literal = RealLiteral.Create("3.3");
@@ -921,7 +921,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNonBoolForCondition()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var str_literal = RealLiteral.Create("3.3");
@@ -944,7 +944,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperLoopBreaking()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var loop = Loop.CreateFor(NameDefinition.Create("foo"),
@@ -967,7 +967,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnreachableStepLoopBreaking()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var step = ExpressionFactory.Readout("x");
@@ -990,7 +990,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReachableStepLoopContinue()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var step = ExpressionFactory.Readout("x");
@@ -1011,7 +1011,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorBreakOutsideLoop()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var brk = LoopInterrupt.CreateBreak();
@@ -1033,7 +1033,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMultipleElse()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var cond = BoolLiteral.CreateTrue();
@@ -1055,7 +1055,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingOtherIfBlocks()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var wrong_name_ref = NameReference.Create("y");

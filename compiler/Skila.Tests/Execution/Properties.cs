@@ -16,7 +16,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OverridingMethodWithIndexerGetter()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
@@ -34,7 +34,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")
                 .SetModifier(EntityModifier.Base)
-                .With(PropertyBuilder.CreateIndexer(NameFactory.Int64TypeReference())
+                .With(PropertyBuilder.CreateIndexer(env.Options,NameFactory.Int64TypeReference())
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
@@ -61,7 +61,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OverridingMethodWithGetter()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
@@ -77,7 +77,7 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(TypeBuilder.Create("Last")
                 .Parents("Middle")
                 .SetModifier(EntityModifier.Base)
-                .With(PropertyBuilder.Create("getMe", NameFactory.Int64TypeReference())
+                .With(PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
                     .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                         .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
@@ -102,7 +102,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter Indexer()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IEnumerable<FunctionParameter> property_parameters = new[] { FunctionParameter.Create("idx", NameFactory.Int64TypeReference()) };
@@ -110,7 +110,7 @@ namespace Skila.Tests.Execution
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.CreateIndexer(property_typename,
+                .With(Property.CreateIndexer(env.Options, property_typename,
                     new[] { VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), Int64Literal.Create("1"),
                         EntityModifier.Reassignable) },
                     new[] { Property.CreateIndexerGetter(property_typename, property_parameters,
@@ -155,12 +155,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AutoProperties()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
                     new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
@@ -191,12 +191,12 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AutoPropertiesWithPointers()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.PointerTypeReference(  NameFactory.Nat8TypeReference()),
+                .With(Property.Create(env.Options, "x", NameFactory.PointerTypeReference(  NameFactory.Nat8TypeReference()),
                     new[] { Property.CreateAutoField(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference()),
                         ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),  Nat8Literal.Create("1")), 
                         EntityModifier.Reassignable) },

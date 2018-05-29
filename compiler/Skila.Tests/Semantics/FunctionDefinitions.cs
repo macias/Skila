@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInvalidMainResultType()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference result_typename = NameFactory.UnitTypeReference();
@@ -38,7 +38,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInvalidConverters()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition conv1 = FunctionBuilder.Create(NameFactory.ConvertFunctionName,
@@ -74,7 +74,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCannotInferResultType()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression lambda = FunctionBuilder.CreateLambda(null,
@@ -106,7 +106,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ProperReturning()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             var func_def_int = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -130,7 +130,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReturning()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             Return empty_return = Return.Create();
@@ -158,7 +158,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AnonymousVariadicParameters()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(), null,
@@ -186,7 +186,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorVariadicParametersInvalidLimits()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var param1 = FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.Create(4, 3), null,
@@ -212,7 +212,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter NonConflictingOverload()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -242,7 +242,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConflictingVariadicOverload()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -272,7 +272,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingOverlappingOptionalOverload()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -303,7 +303,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDefaultUndef()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             Undef default_value = Undef.Create();
@@ -327,7 +327,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConflictingAdditionalOptionalOverload()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -354,7 +354,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateSpecializationOverload()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -382,7 +382,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringParameters()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionParameter parameter = FunctionParameter.Create("x", NameFactory.Int64TypeReference());
@@ -403,7 +403,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingDisabledParameters()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference param_ref = NameReference.Create("x");

@@ -32,12 +32,12 @@ namespace Skila.Tests
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
                 //new Semantics.MethodDefinitions().Basics();
-                //new Semantics.Mutability().ErrorForcingConst();
+               // new Semantics.Mutability().ErrorAssigningMutableToImmutable();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                //  new Semantics.Templates().ErrorSwapNonReassignableValues();
+                 // new Semantics.Templates().ErrorSwapNonReassignableValues();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().AutoDefaultConstructor();
                 //new Semantics.Variables().ErrorInvalidVariable();
@@ -51,7 +51,8 @@ namespace Skila.Tests
                 //new Execution.Inheritance().InheritingEnums();
                 //new Execution.Interfaces().DuckDeepVirtualCallInterface();
                 //new Execution.Io().CommandLine();
-                //new Execution.Library().RealNotANumber();
+                //new Execution.Library().StringToInt();
+                new Execution.Mutability().SwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
                 //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();

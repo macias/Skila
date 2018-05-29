@@ -19,7 +19,7 @@ namespace Skila.Tests.Execution
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -77,7 +77,7 @@ namespace Skila.Tests.Execution
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -124,7 +124,7 @@ namespace Skila.Tests.Execution
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -174,7 +174,7 @@ namespace Skila.Tests.Execution
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -239,7 +239,7 @@ namespace Skila.Tests.Execution
             {
                 DiscardingAnyExpressionDuringTests = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -306,7 +306,7 @@ namespace Skila.Tests.Execution
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("main",
@@ -357,7 +357,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OverflowAddition()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -388,7 +388,7 @@ namespace Skila.Tests.Execution
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
@@ -440,7 +440,7 @@ namespace Skila.Tests.Execution
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true,
                 DiscardingAnyExpressionDuringTests = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Tiny")
@@ -490,7 +490,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TestingTypeInfo()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -532,7 +532,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CorruptedParallelAssignmentWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -562,7 +562,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelAssignmentWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -590,7 +590,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelAssignment()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
 
@@ -617,7 +617,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AccessingObjectFields()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -648,7 +648,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter UsingEnums()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Sizing")
@@ -676,7 +676,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ConstructorChaining()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition base_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,

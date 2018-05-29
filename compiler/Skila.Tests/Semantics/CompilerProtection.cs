@@ -18,7 +18,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Environment()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
 
             var resolver = NameResolver.Create(env);
 
@@ -34,7 +34,7 @@ namespace Skila.Tests.Semantics
             {
                 DebugThrowOnError = true,
                 StaticMemberOnlyThroughTypeName = true
-            });
+            }.DisableSingleMutability());
 
             var resolver = NameResolver.Create(env);
 
@@ -46,7 +46,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter MiniEnvironment()
         {
-            var env = Language.Environment.Create(new Options() { MiniEnvironment = true, DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { MiniEnvironment = true, DebugThrowOnError = true }.DisableSingleMutability());
 
             var resolver = NameResolver.Create(env);
 
@@ -58,7 +58,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Internals()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() {}.DisableSingleMutability());
 
             var resolver = NameResolver.Create(env);
 
@@ -70,7 +70,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularConversion()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.Out))
@@ -95,7 +95,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CrossRecursiveCalls()
         {
-            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("foo")
@@ -122,7 +122,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularMutabilityCheck()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
@@ -138,7 +138,7 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorUsingFunctionAsProperty()
         {
             // when writing this test compiler crashed when the function was called like a property
-            var env = Skila.Language.Environment.Create(new Options() { });
+            var env = Skila.Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference func_name = NameReference.Create("b", NameFactory.IIterableCount);
@@ -163,7 +163,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConflictingTypeNameWithAlias()
         {
-            var env = Language.Environment.Create(new Options() {});
+            var env = Language.Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Whatever")

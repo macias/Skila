@@ -82,7 +82,9 @@ namespace Skila.Language
                     int target_dereferences = ctx.Env.Dereference(target, out IEntityInstance inner_target_type);
                     int input_dereferences = ctx.Env.Dereference(input, out IEntityInstance inner_input_type);
 
-                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching.WithSlicing(true));
+                    TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching
+                        .WithSlicing(true)
+                        .WithMutabilityCheckRequest(true));
                     if (target_dereferences > input_dereferences && m != TypeMatch.No)
                         m |= TypeMatch.ImplicitReference;
                     return m;
@@ -91,7 +93,9 @@ namespace Skila.Language
                 {
                     ctx.Env.Dereferenced(target, out IEntityInstance inner_target_type);
 
-                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, matching.WithSlicing(true));
+                    TypeMatch m = input.MatchesTarget(ctx, inner_target_type, matching
+                        .WithSlicing(true)
+                        .WithMutabilityCheckRequest(true));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m | TypeMatch.ImplicitReference;
                 }
@@ -113,6 +117,8 @@ namespace Skila.Language
                     if (m.Passed)
                         return m | TypeMatch.AutoDereference;
                 }
+                else
+                    matching = matching.WithMutabilityCheckRequest(true);
             }
 
 
@@ -217,7 +223,7 @@ namespace Skila.Language
                 // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
                 TypeMutability target_mutability = target.MutabilityOfType(ctx);
-                if (!matching.IgnoreMutability
+                if (matching.CheckMutability
                     && !MutabilityMatches(inputMutability, target_mutability))
                 {
                     match = TypeMatch.Mismatched(mutability: true);

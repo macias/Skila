@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ClosureRecursiveCall()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression i_eq_jack = ExpressionFactory.IsEqual(NameReference.Create("i"), NameReference.Create("jack"));
@@ -53,7 +53,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter EmptyClosure()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create("getIt",
@@ -84,7 +84,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ImplicitClosureWithValue()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
@@ -124,7 +124,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ImplicitClosureWithPointer()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Beep")
@@ -160,7 +160,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter PassingLocalVariables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference escaping_lambda = NameReference.Create("x");
@@ -191,7 +191,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ResultTypeInference()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression lambda = FunctionBuilder.CreateLambda(null,

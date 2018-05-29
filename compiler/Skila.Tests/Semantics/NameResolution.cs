@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAccessNotGranted()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference forbidden_access = NameReference.CreateThised("x");
@@ -64,7 +64,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter NameAliasing()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -89,7 +89,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuplicateType()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
@@ -109,7 +109,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingIt()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -130,7 +130,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMissingThis()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -176,7 +176,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAccessForbidden()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -212,7 +212,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCrossReferencingBaseMember()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Keeper")
@@ -244,7 +244,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ScopeShadowing()
         {
-            var env = Environment.Create(new Options() { ScopeShadowing = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { ScopeShadowing = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -274,7 +274,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorScopeShadowing()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse());
@@ -303,7 +303,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReservedKeyword()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             VariableDeclaration decl = VariableDeclaration.CreateExpression(NameFactory.RecurFunctionName, null, Int64Literal.Create("3"));
@@ -327,7 +327,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingBeforeDefinition()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -354,7 +354,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCircularReference()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var x_ref = NameReference.Create("x");
@@ -372,7 +372,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDuplicatedName()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), Int64Literal.Create("1"),
@@ -390,7 +390,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceToNestedTarget()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // reference to nested target
@@ -406,7 +406,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingQualifiedReferenceInSameNamespace()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -423,7 +423,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorResolvingUnqualifiedReferenceToNestedNamespace()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -443,7 +443,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingUnqualifiedReferenceWithinSameNamespace()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -459,7 +459,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ResolvingForDuplicatedType()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -479,7 +479,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TemplateResolving()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

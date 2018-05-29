@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RealDividingByZeroWithoutNaNs()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -44,7 +44,7 @@ namespace Skila.Tests.Execution
             // and this way remove them from the language (similarly to null pointers)
             // https://stackoverflow.com/questions/5394424/causes-for-nan-in-c-application-that-do-no-raise-a-floating-point-exception
             // https://stackoverflow.com/questions/2941611/can-i-make-gcc-tell-me-when-a-calculation-results-in-nan-or-inf-at-runtime
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -69,7 +69,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DateDayOfWeek()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -96,7 +96,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringToInt()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

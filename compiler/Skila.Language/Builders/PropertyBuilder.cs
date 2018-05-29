@@ -9,15 +9,15 @@ namespace Skila.Language.Builders
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class PropertyBuilder : IBuilder<Property>
     {
-        public static PropertyBuilder CreateAutoGetter(string name, NameReference typename,
+        public static PropertyBuilder CreateAutoGetter(IOptions options, string name, NameReference typename,
                 IExpression initValue = null)
         {
-            return CreateAutoGetter(name, typename, out PropertyMembers dummy, initValue);
+            return CreateAutoGetter(options, name, typename, out PropertyMembers dummy, initValue);
         }
-        public static PropertyBuilder CreateAutoGetter(string name, NameReference typename,
+        public static PropertyBuilder CreateAutoGetter(IOptions options,string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(name, typename)
+            PropertyBuilder builder = PropertyBuilder.Create(options,name, typename)
                 .WithAutoField(initValue, EntityModifier.None, out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter);
 
@@ -25,11 +25,11 @@ namespace Skila.Language.Builders
 
             return builder;
         }
-        public static PropertyBuilder CreateAutoFull(string name, NameReference typename,
+        public static PropertyBuilder CreateAutoFull(IOptions options, string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(name, typename)
-                .WithAutoField(initValue, EntityModifier.Reassignable, out VariableDeclaration field)
+            PropertyBuilder builder = PropertyBuilder.Create(options,name, typename)
+                .WithAutoField(initValue, options.ReassignableModifier(), out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter)
                 .WithAutoSetter(out FunctionDefinition setter);
 
@@ -37,30 +37,32 @@ namespace Skila.Language.Builders
 
             return builder;
         }
-        public static PropertyBuilder CreateAutoFull(string name, NameReference typename, IExpression initValue = null)
+        public static PropertyBuilder CreateAutoFull(IOptions options, string name, NameReference typename, IExpression initValue = null)
         {
-            return CreateAutoFull(name, typename, out PropertyMembers dummy, initValue);
+            return CreateAutoFull(options,name, typename, out PropertyMembers dummy, initValue);
         }
-        public static PropertyBuilder Create(string name, NameReference typename, EntityModifier modifier = null)
+        public static PropertyBuilder Create(IOptions options, string name, NameReference typename, EntityModifier modifier = null)
         {
-            return new PropertyBuilder(name, typename, modifier);
+            return new PropertyBuilder(options, name, typename, modifier);
         }
-        public static PropertyBuilder CreateIndexer(NameReference valueTypeName, EntityModifier modifier = null)
+        public static PropertyBuilder CreateIndexer(IOptions options, NameReference valueTypeName, EntityModifier modifier = null)
         {
-            return new PropertyBuilder(null, valueTypeName, modifier);
+            return new PropertyBuilder(options, null, valueTypeName, modifier);
         }
 
         private readonly List<VariableDeclaration> fields;
         private readonly List<FunctionDefinition> getters;
         private readonly List<FunctionDefinition> setters;
         private Property build;
+        private readonly IOptions options;
         private readonly string name;
         public NameReference ValueTypeName { get; }
         private EntityModifier modifier;
         public IEnumerable<FunctionParameter> Params { get; private set; }
 
-        private PropertyBuilder(string name, NameReference valueTypeName, EntityModifier modifier)
+        private PropertyBuilder(IOptions options, string name, NameReference valueTypeName, EntityModifier modifier)
         {
+            this.options = options;
             this.name = name;
             this.ValueTypeName = valueTypeName;
             this.modifier = modifier;
@@ -75,9 +77,9 @@ namespace Skila.Language.Builders
             if (build == null)
             {
                 if (this.name == null)
-                    build = Property.CreateIndexer(this.ValueTypeName, fields, getters, setters, modifier);
+                    build = Property.CreateIndexer(options, this.ValueTypeName, fields, getters, setters, modifier);
                 else
-                    build = Property.Create(this.name, this.ValueTypeName, fields, getters, setters, modifier);
+                    build = Property.Create(options, this.name, this.ValueTypeName, fields, getters, setters, modifier);
             }
 
             return build;

@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsSameOnValues()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDereferencingValue()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             Int64Literal value = Int64Literal.Create("3");
@@ -64,7 +64,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorDiscardingNonFunctionCall()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression discard = ExpressionFactory.Readout("c");
@@ -90,7 +90,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCastingToSet()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReferenceUnion type_set = NameReferenceUnion.Create(
@@ -119,7 +119,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAddressingRValue()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             Int64Literal int_literal = Int64Literal.Create("1");
@@ -148,7 +148,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ReadingIfAsExpression()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
@@ -168,7 +168,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUsingNonValue()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference non_value = NameFactory.Int64TypeReference();
@@ -187,7 +187,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringFunctionResult()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -213,7 +213,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningSimpleRValues()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -244,7 +244,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningCompoundRValues()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -275,7 +275,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorReadingFunctionVoidResult()
         {
-            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -303,7 +303,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorUnusedExpression()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -331,13 +331,13 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSelfAssignment()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
             root_ns.AddBuilder(TypeBuilder.Create("Oint")
                 .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create("x", NameFactory.Int64TypeReference(),
+                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
                     new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), null, EntityModifier.Reassignable) },
                     new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
                     new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) })));

@@ -15,11 +15,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCustomGetterWithInitialization()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // error: custom getter (with no setter) + post initialization
-            Property property = PropertyBuilder.Create("x", NameFactory.Nat8TypeReference())
+            Property property = PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8TypeReference())
                     .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Nat8Literal.Create("3")))))
                     .SetModifier(EntityModifier.PostInitialization);
 
@@ -50,11 +50,11 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInitializingWithGetter()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(PropertyBuilder.CreateAutoGetter("x", NameFactory.Nat8TypeReference()))
+                .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference()))
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                     Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
                     ))));

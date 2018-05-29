@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StaticCallStaticDispatch()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             Extension ext = root_ns.AddNode(Extension.Create("Hq"));
@@ -45,7 +45,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InstanceCallStaticDispatch()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             Extension ext = root_ns.AddNode(Extension.Create());

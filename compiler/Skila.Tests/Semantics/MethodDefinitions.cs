@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter Basics()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             var func_def = FunctionBuilder.Create(
@@ -37,7 +37,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorVirtualCallInsideConstructor()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionCall virtual_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "foo"));
@@ -66,7 +66,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingConstructorFromBody()
         {
-            var env = Environment.Create(new Options() {});
+            var env = Environment.Create(new Options() {}.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionCall constructor_call = FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName,

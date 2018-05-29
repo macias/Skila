@@ -239,10 +239,21 @@ namespace Skila.Language.Entities
             else
             {
                 TypeMutability mutability = this_eval.MutabilityOfType(ctx);
-                if (mutability == TypeMutability.DualConstMutable)
+                if (tn_eval == null)
                 {
-                    this_eval = this_eval.Rebuild(ctx, MutabilityOverride.ForceMutable);
-                    this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceMutable).Cast<EntityInstance>();
+                    if (this.Modifier.HasMutable)
+                    {
+                        this_eval = this_eval.Rebuild(ctx, MutabilityOverride.ForceMutable);
+                        this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceMutable).Cast<EntityInstance>();
+                    }
+                    else if (mutability == TypeMutability.DualConstMutable)
+                    {
+                        MutabilityOverride this_override = MutabilityOverride.ForceConst;
+                        if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
+                            this_override |= MutabilityOverride.Reassignable;
+                        this_eval = this_eval.Rebuild(ctx, this_override);
+                        this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceConst).Cast<EntityInstance>();
+                    }
                 }
                 else if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
                 {
@@ -285,6 +296,9 @@ namespace Skila.Language.Entities
         public override void Validate(ComputationContext ctx)
         {
             base.Validate(ctx);
+
+            if (ctx.Env.Options.SingleMutability && this.Modifier.HasReassignable)
+                throw new ArgumentException("Cannot have both");
 
             this.ValidateRestrictedMember(ctx);
             InitValue?.ValidateValueExpression(ctx);

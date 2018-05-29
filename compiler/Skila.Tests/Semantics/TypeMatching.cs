@@ -21,7 +21,7 @@ namespace Skila.Tests.Semantics
                 DiscardingAnyExpressionDuringTests = true,
                 // we test this option here or more precisely duck typing
                 InterfaceDuckTyping = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // please note it is not the interface is empty (it is not because IObject is not empty), 
@@ -50,7 +50,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsTypeAlienSealed()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
@@ -79,7 +79,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { AllowProtocols = true, DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { AllowProtocols = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -123,7 +123,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
@@ -168,7 +168,7 @@ namespace Skila.Tests.Semantics
                 GlobalVariables = true,
                 RelaxedMode = true,
                 DiscardingAnyExpressionDuringTests = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -198,7 +198,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTestingKnownTypes()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -218,7 +218,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorTestingMismatchedTypes()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -239,7 +239,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter TypeTesting()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -259,7 +259,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -287,7 +287,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorPassingValues()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -308,7 +308,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AssigningUndef()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create(),
@@ -323,7 +323,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter PassingPointers()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true });
+            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -343,7 +343,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter InheritanceMatching()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -383,7 +383,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ConstraintsMatching()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 
@@ -440,7 +440,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter UnionMatching()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
             var system_ns = env.SystemNamespace;
 

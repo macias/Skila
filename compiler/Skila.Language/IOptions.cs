@@ -34,6 +34,10 @@ namespace Skila.Language
         bool AllowRealMagic { get; } // nans + infinity
         bool AllowNamedSelf { get; }
         bool AtomicPrimitivesMutable { get; }
+
+        // when false -- there is a difference between mutating data and reassigning
+        // when true -- mutability dictates everything, either variable can be reassigned/mutated, or not at all
+        bool SingleMutability { get; }
     }
 
     public static class IOptionsExtension
@@ -47,5 +51,24 @@ namespace Skila.Language
                             .Select(it => it.Name)
                             .OrderBy(it => it);
         }
+
+        public static EntityModifier ReassignableModifier<T>(this T options)
+            where T : IOptions
+        {
+            return options.SingleMutability ? EntityModifier.Mutable : EntityModifier.Reassignable;
+        }
+
+        public static TypeMutability ReassignableTypeMutability<T>(this T options)
+            where T : IOptions
+        {
+            return options.SingleMutability ? TypeMutability.ForceMutable : TypeMutability.Reassignable;
+        }
+
+        public static MutabilityOverride ReassignableMutabilityOverride<T>(this T options)
+            where T : IOptions
+        {
+            return options.SingleMutability ? MutabilityOverride.ForceMutable : MutabilityOverride.Reassignable;
+        }
+        
     }
 }

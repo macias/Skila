@@ -16,7 +16,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingConstructor()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -53,7 +53,7 @@ namespace Skila.Tests.Semantics
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
@@ -65,7 +65,7 @@ namespace Skila.Tests.Semantics
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true,
                 AllowProtocols = true,
-            });
+            }.DisableSingleMutability());
         }
 
         private IErrorReporter duckTyping(IOptions options)
@@ -117,7 +117,7 @@ namespace Skila.Tests.Semantics
                 InterfaceDuckTyping = true,
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         [TestMethod]
@@ -129,7 +129,7 @@ namespace Skila.Tests.Semantics
                 InterfaceDuckTyping = false,
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true
-            });
+            }.DisableSingleMutability());
         }
 
         private IErrorReporter errorDuckTypingValues(IOptions options)

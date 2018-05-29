@@ -167,6 +167,16 @@ namespace Skila.Language
                 return new EntityModifier(a, b);
         }
 
+        public bool Has(EntityModifier modifier)
+        {
+            int count = EnumExtensions.GetValues<ModifierIndex>().Count();
+            for (int i = 0; i < count; ++i)
+                if (modifier.flags[i] > 0 && this.flags[i] == 0)
+                    return false;
+
+            return true;
+        }
+
         internal bool SameAccess(EntityModifier other)
         {
             return this.HasPublic == other.HasPublic

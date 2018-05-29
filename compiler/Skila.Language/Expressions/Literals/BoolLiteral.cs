@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions.Literals
         public bool Value { get; }
 
         private BoolLiteral(bool value)
-            : base(value ? "true" : "false", NameFactory.BoolTypeReference( ))
+            : base(value ? "true" : "false", NameFactory.BoolTypeReference(  ))
         {
             this.Value = value;
         }

@@ -17,7 +17,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSelfTypeUsage()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference invalid_self1 = NameFactory.SelfTypeReference();
@@ -41,7 +41,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInOutVariance()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference fielda_typename = NameReference.Create("TA");
@@ -56,8 +56,8 @@ namespace Skila.Tests.Semantics
                     new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
                 .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
                 .With(VariableDeclaration.CreateStatement("fb", fieldb_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
-                .With(PropertyBuilder.CreateAutoFull("adata", propa_typename, Undef.Create()))
-                .With(PropertyBuilder.CreateAutoFull("bdata", propb_typename, Undef.Create())));
+                .With(PropertyBuilder.CreateAutoFull(env.Options, "adata", propa_typename, Undef.Create()))
+                .With(PropertyBuilder.CreateAutoFull(env.Options, "bdata", propb_typename, Undef.Create())));
 
             var resolver = NameResolver.Create(env);
 
@@ -73,7 +73,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CatVarianceExample() // Programming in Scala, 2nd ed, p. 399
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference result_typename = NameReference.Create("Cat",
@@ -96,7 +96,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularPointerNesting()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
@@ -121,7 +121,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCircularValueNesting()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true });
+            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             VariableDeclaration decl1 = VariableDeclaration.CreateStatement("s", NameReference.Create("Form"), null, EntityModifier.Private);
@@ -149,7 +149,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingModifier()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -166,7 +166,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AutoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
@@ -183,7 +183,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() { });
+            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
@@ -207,7 +207,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorStaticMemberReference()
         {
-            var env = Environment.Create(new Options() { StaticMemberOnlyThroughTypeName = true });
+            var env = Environment.Create(new Options() { StaticMemberOnlyThroughTypeName = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Foo")
@@ -215,7 +215,7 @@ namespace Skila.Tests.Semantics
                     EntityModifier.Static | EntityModifier.Public)));
 
             NameReference field_ref = NameReference.Create("f", "field");
-            root_ns.AddBuilder(FunctionBuilder.Create("foo", 
+            root_ns.AddBuilder(FunctionBuilder.Create("foo",
                                 ExpressionReadMode.OptionalUse,
                                 NameFactory.RealTypeReference(),
                                 Block.CreateStatement(new IExpression[] {
@@ -233,7 +233,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             NameReference field_ref1 = NameReference.Create("field");
@@ -248,7 +248,7 @@ namespace Skila.Tests.Semantics
 
             NameReference field_ref2 = NameReference.Create("Foo", "field");
 
-            root_ns.AddBuilder(FunctionBuilder.Create("some_func", 
+            root_ns.AddBuilder(FunctionBuilder.Create("some_func",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.RealTypeReference(),
                     Block.CreateStatement(new IExpression[] {
@@ -266,7 +266,7 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIncorrectMethodsForType()
         {
-            var env = Environment.Create(new Options() { });
+            var env = Environment.Create(new Options() { }.DisableSingleMutability());
             var root_ns = env.Root;
 
             FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(

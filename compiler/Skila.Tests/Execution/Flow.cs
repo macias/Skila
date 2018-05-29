@@ -18,7 +18,7 @@ namespace Skila.Tests.Execution
             var env = Language.Environment.Create(new Options()
             {
                 DebugThrowOnError = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
@@ -58,7 +58,7 @@ namespace Skila.Tests.Execution
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("Mutator")
@@ -119,7 +119,7 @@ namespace Skila.Tests.Execution
             {
                 DebugThrowOnError = true,
                 DiscardingAnyExpressionDuringTests = true,
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             // this test is a bit tougher than regular opt.assignment, because variables will be 
@@ -166,7 +166,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ThrowingException()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -198,7 +198,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IfBranches()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true });
+            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

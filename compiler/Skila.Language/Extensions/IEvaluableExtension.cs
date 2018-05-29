@@ -81,7 +81,8 @@ namespace Skila.Language.Extensions
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
                 IEntityInstance source_eval = source.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
-                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
+                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, 
+                    allowSlicing: true));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception($"Internal error: matching result {m}");
             }

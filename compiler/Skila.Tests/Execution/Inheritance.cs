@@ -15,7 +15,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InheritingEnums()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
@@ -60,7 +60,7 @@ namespace Skila.Tests.Execution
                 AllowProtocols = true,
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true
-            });
+            }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("GetPos")
@@ -102,7 +102,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TypeIntersection()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, AllowProtocols = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true, AllowProtocols = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -154,7 +154,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter VirtualCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.Create("MyBase")
@@ -199,7 +199,7 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter VirtualCallAtBase()
         {
-            var env = Environment.Create(new Options() { ReferencingBase = true, AllowInvalidMainResult = true, DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { ReferencingBase = true, AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
             var root_ns = env.Root;
 
             root_ns.AddBuilder(TypeBuilder.CreateInterface("IBase")
