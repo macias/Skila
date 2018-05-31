@@ -18,11 +18,15 @@ namespace Skila.Language.Builders
 
         public static ConstructorCall HeapConstructor(string innerTypeName, params IExpression[] arguments)
         {
-            return HeapConstructor(NameReference.Create(innerTypeName), arguments);
+            return HeapConstructor(TypeMutability.None, NameReference.Create(innerTypeName),  arguments);
+        }
+        public static ConstructorCall HeapConstructor(string innerTypeName,TypeMutability mutability, params IExpression[] arguments)
+        {
+            return HeapConstructor(mutability, NameReference.Create(innerTypeName), arguments);
         }
         public static ConstructorCall HeapConstructor(NameReference innerTypeName)
         {
-            return HeapConstructor(innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
+            return HeapConstructor(TypeMutability.None, innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
             /*
 #if USE_NEW_CONS
             return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName));
@@ -31,17 +35,17 @@ namespace Skila.Language.Builders
             return constructorCall(innerTypeName, out dummy, true);
 #endif*/
         }
-        public static ConstructorCall HeapConstructor(NameReference innerTypeName, params IExpression[] arguments)
+        public static ConstructorCall HeapConstructor(TypeMutability mutability, NameReference innerTypeName,  params IExpression[] arguments)
         {
-            return HeapConstructor(innerTypeName, arguments.Select(it => FunctionArgument.Create(it)).ToArray());
+            return HeapConstructor(mutability, innerTypeName,  arguments.Select(it => FunctionArgument.Create(it)).ToArray());
         }
-        public static ConstructorCall HeapConstructor(NameReference innerTypeName, params FunctionArgument[] arguments)
+        public static ConstructorCall HeapConstructor(TypeMutability mutability, NameReference innerTypeName, params FunctionArgument[] arguments)
         {
 #if USE_NEW_CONS
             return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName), arguments);
 #else
             NameReference dummy;
-            return new ConstructorCall(innerTypeName, out dummy, Memory.Heap, arguments);
+            return new ConstructorCall(innerTypeName, out dummy, Memory.Heap, mutability, arguments);
 #endif
         }
 
@@ -96,29 +100,31 @@ namespace Skila.Language.Builders
         public static ConstructorCall Constructor(NameReference typeName, Memory memory, params FunctionArgument[] arguments)
         {
             NameReference dummy;
-            return new ConstructorCall(typeName, out dummy, memory, arguments);
+            return new ConstructorCall(typeName, out dummy, memory, TypeMutability.None, arguments);
         }
         public static ConstructorCall StackConstructor(NameReference typeName, params FunctionArgument[] arguments)
         {
             NameReference dummy;
-            return new ConstructorCall(typeName, out dummy, Memory.Stack, arguments);
+            return new ConstructorCall(typeName, out dummy, Memory.Stack, TypeMutability.None, arguments);
         }
-        public static ConstructorCall StackConstructor(NameReference typeName, out NameReference constructorReference,
+        public static ConstructorCall StackConstructor(NameReference typeName, 
+            out NameReference constructorReference,
             params FunctionArgument[] arguments)
         {
-            return new ConstructorCall(typeName, out constructorReference, Memory.Stack, arguments);
+            return new ConstructorCall(typeName, out constructorReference, Memory.Stack, TypeMutability.None, arguments);
         }
         private ConstructorCall(NameReference typeName,
             // todo: hack, we don't have nice error translation from generic error to more specific one
             out NameReference constructorReference,
             Memory memory,
+            TypeMutability mutability,
             params FunctionArgument[] arguments)
         {
             string local_this = AutoName.Instance.CreateNew("cons_obj");
             this.varReference = NameReference.Create(local_this);
             constructorReference = NameReference.Create(varReference, NameFactory.InitConstructorName);
 
-            this.varDeclaration = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, memory));
+            this.varDeclaration = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, memory, mutability));
             this.initCall = FunctionCall.Constructor(constructorReference, arguments);
 
             this.objectInitialization = new List<IExpression>();

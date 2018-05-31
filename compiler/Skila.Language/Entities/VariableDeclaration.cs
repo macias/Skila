@@ -62,7 +62,7 @@ namespace Skila.Language.Entities
             this.initValue = initValue;
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, MutabilityOverride.None,
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
                 translation: TemplateTranslation.Create(this)));
 
             this.closures = new List<TypeDefinition>();
@@ -103,7 +103,7 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
             TemplateTranslation translation)
         {
             return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
@@ -231,6 +231,11 @@ namespace Skila.Language.Entities
             else
                 ctx.AddError(ErrorCode.MissingTypeAndValue, this);
 
+            if (this.DebugId== (17, 382))
+            {
+                ;
+            }
+
             if (this_eval == null)
             {
                 this_eval = EntityInstance.Joker;
@@ -238,29 +243,30 @@ namespace Skila.Language.Entities
             }
             else
             {
-                TypeMutability mutability = this_eval.MutabilityOfType(ctx);
+                TypeMutability mutability = this_eval.SurfaceMutabilityOfType(ctx);
                 if (tn_eval == null)
                 {
                     if (this.Modifier.HasMutable)
                     {
-                        this_eval = this_eval.Rebuild(ctx, MutabilityOverride.ForceMutable);
-                        this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceMutable).Cast<EntityInstance>();
+                        this_eval = this_eval.Rebuild(ctx, TypeMutability.ForceMutable);
+                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceMutable).Cast<EntityInstance>();
                     }
                     else if (mutability == TypeMutability.DualConstMutable)
                     {
-                        MutabilityOverride this_override = MutabilityOverride.ForceConst;
+                        TypeMutability this_override = TypeMutability.ForceConst;
                         if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
-                            this_override |= MutabilityOverride.Reassignable;
+                            this_override |= TypeMutability.Reassignable;
                         this_eval = this_eval.Rebuild(ctx, this_override);
-                        this_aggregate = this_aggregate.Rebuild(ctx, MutabilityOverride.ForceConst).Cast<EntityInstance>();
+                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceConst).Cast<EntityInstance>();
                     }
                 }
-                else if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
+                else if (!mutability.HasFlag(ctx.Env.Options.ReassignableTypeMutability())
+                    && this.Modifier.Has(ctx.Env.Options.ReassignableModifier()))
                 {
-                    MutabilityOverride mutability_override = MutabilityOverride.Reassignable;
+                    TypeMutability mutability_override = ctx.Env.Options.ReassignableTypeMutability();
                     if (tn_eval != null && this.TypeName is NameReference name_ref)
                         mutability_override |= name_ref.OverrideMutability;
-                    this_eval = this_eval.Rebuild(ctx, mutability_override);
+                    this_eval = this_eval.Rebuild(ctx, mutability_override, deep: false);
                 }
             }
 
@@ -306,10 +312,13 @@ namespace Skila.Language.Entities
             if ((this.IsTypeContained() && this.Modifier.HasStatic) || this.isGlobalVariable())
             {
                 if (this.Modifier.HasReassignable)
-                    ctx.AddError(ErrorCode.GlobalReassignableVariable, this);
-                TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
-                if (!mutability.HasFlag(TypeMutability.ForceConst) && !mutability.HasFlag(TypeMutability.ConstAsSource))
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
+                else 
+                {
+                    TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
+                    if (!mutability.HasFlag(TypeMutability.ForceConst) && !mutability.HasFlag(TypeMutability.ConstAsSource))
+                        ctx.AddError(ErrorCode.GlobalMutableVariable, this);
+                }
             }
 
             // only for constructor call allow to have non-reference
@@ -341,7 +350,7 @@ namespace Skila.Language.Entities
                         // can I pass instance of Foo<U> (U extends T) somewhere?
                         // sure, as long the field cannot be reassigned (otherwise the receiver could reset it to T, while callee would expect U)
                         this.TypeName.ValidateTypeNameVariance(ctx,
-                            this.Modifier.HasReassignable ? VarianceMode.None : VarianceMode.Out);
+                        this.IsReassignable(ctx) ? VarianceMode.None : VarianceMode.Out);
                     }
                 }
             }
@@ -364,5 +373,19 @@ namespace Skila.Language.Entities
             this.IsMemberUsed = true;
         }
 
+        public bool IsReassignable(ComputationContext ctx)
+        {
+            if (this.Modifier.HasReassignable)
+                return true;
+
+            if (ctx.Env.Options.SingleMutability)
+            {
+                TypeMutability mutability = this.Evaluation.Components.SurfaceMutabilityOfType(ctx);
+                if (mutability.HasFlag(TypeMutability.ForceMutable))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

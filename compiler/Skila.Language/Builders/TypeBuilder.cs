@@ -63,14 +63,14 @@ namespace Skila.Language.Builders
                         Return.Create(Undef.Create())
                     }))
                     .SetModifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameFactory.NotEqualOperator,
                     ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))
                     .SetModifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(MutabilityOverride.Neutral), ExpressionReadMode.CannotBeRead)))
+                    .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead)))
                     ;
 
             return builder;
@@ -108,7 +108,7 @@ namespace Skila.Language.Builders
             this.parents = parents.Concat(this.parents??Enumerable.Empty<NameReference>()).StoreReadOnly();
             return this;
         }
-        public NameReference CreateTypeNameReference(MutabilityOverride mutability = MutabilityOverride.None)
+        public NameReference CreateTypeNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return this.name.CreateNameReference(prefix: null, mutability: mutability);
         }

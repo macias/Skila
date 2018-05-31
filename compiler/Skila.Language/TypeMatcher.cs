@@ -300,11 +300,19 @@ namespace Skila.Language
         {
             bool a_dereferenced, b_dereferenced;
             bool via_pointer = false;
+            TypeMutability mutability_override = TypeMutability.None;
             {
                 a_dereferenced = ctx.Env.DereferencedOnce(anyTypeA, out IEntityInstance deref_a, out bool a_via_pointer);
                 b_dereferenced = ctx.Env.DereferencedOnce(anyTypeA, out IEntityInstance deref_b, out bool b_via_pointer);
                 if (a_dereferenced && b_dereferenced)
                 {
+                    TypeMutability mutability_a = anyTypeA.SurfaceMutabilityOfType(ctx);
+                    TypeMutability mutability_b = anyTypeB.SurfaceMutabilityOfType(ctx);
+                    if (mutability_a == mutability_b)
+                        mutability_override = mutability_a;
+                    else
+                        mutability_override = TypeMutability.ReadOnly;
+
                     anyTypeA = deref_a;
                     anyTypeB = deref_b;
                     via_pointer = a_via_pointer && b_via_pointer;
@@ -341,7 +349,8 @@ namespace Skila.Language
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
-                result = ctx.Env.Reference(result, MutabilityOverride.None, null, via_pointer);
+//                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
+            result = ctx.Env.Reference(result, mutability_override, null, via_pointer);
             return result != null;
         }
 

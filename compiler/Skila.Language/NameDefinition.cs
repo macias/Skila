@@ -54,7 +54,7 @@ namespace Skila.Language
             return NameReference.Create(prefix, this.Name,
                 this.Parameters.Select(it => NameReference.Create(it.Name)), targetInstance, isLocal);
         }
-        public NameReference CreateNameReference(IExpression prefix, MutabilityOverride mutability)
+        public NameReference CreateNameReference(IExpression prefix, TypeMutability mutability)
         {
             return NameReference.Create(mutability, prefix, this.Name,
                 this.Parameters.Select(it => NameReference.Create(it.Name)), target: null, isLocal: false);

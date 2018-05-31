@@ -40,22 +40,22 @@ namespace Skila.Language
         }
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.None, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
+            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
         }
         public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode, params INameReference[] arguments)
         {
-            return new NameReference(MutabilityOverride.None, prefix, browse, name, arguments, readMode, isRoot: false);
+            return new NameReference(TypeMutability.None, prefix, browse, name, arguments, readMode, isRoot: false);
         }
-        public static NameReference Create(MutabilityOverride overrideMutability, string name, params INameReference[] arguments)
+        public static NameReference Create(TypeMutability overrideMutability, string name, params INameReference[] arguments)
         {
             return Create(overrideMutability, null, name, arguments);
         }
-        public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
+        public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
             return new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
         }
-        public static NameReference Create(MutabilityOverride overrideMutability, IExpression prefix, string name,
+        public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
             var result = new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
@@ -66,7 +66,7 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, IEnumerable<INameReference> arguments,
             EntityInstance target, bool isLocal)
         {
-            return Create(MutabilityOverride.None, prefix, name, arguments, target, isLocal);
+            return Create(TypeMutability.None, prefix, name, arguments, target, isLocal);
         }
 
         public static NameReference CreateBaseInitReference()
@@ -86,7 +86,7 @@ namespace Skila.Language
 
         bool INameReference.IsBindingComputed => this.Binding.IsComputed;
 
-        public MutabilityOverride OverrideMutability { get; }
+        public TypeMutability OverrideMutability { get; }
         public bool IsRoot { get; }
         public IExpression Prefix { get; private set; }
         public string Name { get; }
@@ -105,7 +105,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(MutabilityOverride.None, null, BrowseMode.None,
+        public static NameReference Root => new NameReference(TypeMutability.None, null, BrowseMode.None,
             NameFactory.RootNamespace,
             Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
@@ -123,7 +123,7 @@ namespace Skila.Language
         private bool isPropertyIndexerCallReference => this.Owner is FunctionCall call && call.Callee == this && call.IsIndexer;
 
         private NameReference(
-            MutabilityOverride overrideMutability,
+            TypeMutability overrideMutability,
             IExpression prefix,
             BrowseMode browse,
             string name,
@@ -208,8 +208,8 @@ namespace Skila.Language
                     TypeMutability prefix_mutability = this.Prefix.Evaluation.Components.MutabilityOfType(ctx);
                     if (prefix_mutability == TypeMutability.ForceConst)
                     {
-                        eval = eval.Rebuild(ctx, MutabilityOverride.ForceConst);
-                        aggregate = aggregate.Rebuild(ctx, MutabilityOverride.ForceConst).Cast<EntityInstance>();
+                        eval = eval.Rebuild(ctx, TypeMutability.ForceConst);
+                        aggregate = aggregate.Rebuild(ctx, TypeMutability.ForceConst).Cast<EntityInstance>();
                     }
                 }
             }
@@ -446,7 +446,7 @@ namespace Skila.Language
                     else if (mismatch == ConstraintMatch.MutabilityViolation)
                         ctx.AddError(ErrorCode.ViolatedMutabilityConstraint, this);
                     else if (mismatch == ConstraintMatch.AssignabilityViolation)
-                        ctx.AddError(ErrorCode.ViolatedAssignabilityConstraint, this);
+                        ctx.AddError(ErrorCode.ViolatedMutabilityConstraint, this);
                     else if (mismatch == ConstraintMatch.InheritsViolation)
                         ctx.AddError(ErrorCode.ViolatedInheritsConstraint, this);
                     else if (mismatch == ConstraintMatch.MissingFunction)

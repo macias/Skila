@@ -20,8 +20,10 @@ namespace Skila.Language
         public bool IsJoker => this.Elements.All(it => it.IsJoker);
 
         private TypeMutability? typeMutability;
+        private TypeMutability? directTypeMutability;
 
         public INameReference NameOf { get; }
+        public INameReference PureNameOf { get; }
 
         protected EntityInstanceSet(IEnumerable<IEntityInstance> instances)
         {
@@ -33,6 +35,7 @@ namespace Skila.Language
             // since all entity instances are singletons
             this.Elements = instances.ToHashSet(EntityInstanceCoreComparer.Instance);
             this.NameOf = NameReferenceUnion.Create(this.Elements.Select(it => it.NameOf));
+            this.PureNameOf = NameReferenceUnion.Create(this.Elements.Select(it => it.PureNameOf));
             if (!this.Elements.Any())
                 throw new ArgumentException();
         }
@@ -150,6 +153,12 @@ namespace Skila.Language
             if (!this.typeMutability.HasValue)
                 this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
             return this.typeMutability.Value;
+        }
+        public TypeMutability SurfaceMutabilityOfType(ComputationContext ctx)
+        {
+            if (!this.directTypeMutability.HasValue)
+                this.directTypeMutability = this.ComputeSurfaceMutabilityOfType(ctx);
+            return this.directTypeMutability.Value;
         }
 
         public bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition)

@@ -35,7 +35,7 @@ namespace Skila.Language
         }*/
 
         internal static EntityInstance Create(ComputationContext ctx, EntityInstance targetInstance,
-    IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability)
+    IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability)
         {
             return targetInstance.Build(arguments, overrideMutability);
         }
@@ -44,13 +44,13 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
         public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null,
-            overrideMutability: MutabilityOverride.None, translation: TemplateTranslation.Empty);
+            overrideMutability: TypeMutability.None, translation: TemplateTranslation.Empty);
 
         public bool IsJoker => this.Target == TypeDefinition.Joker;
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
-        public MutabilityOverride OverrideMutability => this.Core.OverrideMutability;
+        public TypeMutability OverrideMutability => this.Core.OverrideMutability;
 
         public EntityInstanceCore Core { get; }
         public TemplateTranslation Translation { get; }
@@ -67,6 +67,7 @@ namespace Skila.Language
         public IEntityInstance Evaluation { get; private set; }
 
         private TypeMutability? typeMutabilityCache;
+        private TypeMutability? surfaceTypeMutabilityCache;
 
         private TypeInheritance inheritance;
         public TypeInheritance Inheritance(ComputationContext ctx)
@@ -83,7 +84,9 @@ namespace Skila.Language
         public bool IsTypeImplementation => this.Target.IsType() && this.TargetType.IsTypeImplementation;
 
         INameReference IEntityInstance.NameOf => this.NameOf;
+        INameReference IEntityInstance.PureNameOf => this.PureNameOf;
         public NameReference NameOf { get; }
+        public NameReference PureNameOf { get; }
 
         private readonly Dictionary<EntityInstance, VirtualTable> duckVirtualTables;
 
@@ -93,7 +96,12 @@ namespace Skila.Language
             this.Core = core;
             this.Translation = translation;
 
-            this.NameOf = NameReference.Create(null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+            this.NameOf = NameReference.Create(
+                core.OverrideMutability,
+                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                target: this, isLocal: false);
+            this.PureNameOf = NameReference.Create(
+                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
                 target: this, isLocal: false);
             this.duckVirtualTables = new Dictionary<EntityInstance, VirtualTable>();
         }
@@ -103,9 +111,9 @@ namespace Skila.Language
             if (vtable == null)
                 throw new Exception("Internal error");
 
-            if (target.OverrideMutability.HasFlag(MutabilityOverride.Reassignable))
+            if (target.OverrideMutability.HasFlag(TypeMutability.Reassignable))
             {
-               target = target.Rebuild(ctx,  target.OverrideMutability ^ MutabilityOverride.Reassignable).Cast<EntityInstance>();
+               target = target.Rebuild(ctx,  target.OverrideMutability ^ TypeMutability.Reassignable).Cast<EntityInstance>();
             }
             this.duckVirtualTables.Add(target, vtable);
         }
@@ -273,7 +281,7 @@ namespace Skila.Language
             if (this.TargetsTemplateParameter && this.TemplateParameterTarget == param)
                 return ConstraintMatch.Yes;
 
-            TypeMutability arg_mutability = this.MutabilityOfType(ctx);
+            TypeMutability arg_mutability = this.SurfaceMutabilityOfType(ctx);
             if (param.Constraint.Modifier.HasConst
                 && arg_mutability != TypeMutability.ForceConst && arg_mutability != TypeMutability.ConstAsSource)
                 return ConstraintMatch.MutabilityViolation;
@@ -380,22 +388,22 @@ namespace Skila.Language
 
         }
 
-        public EntityInstance Build(MutabilityOverride mutability)
+        public EntityInstance Build(TypeMutability mutability)
         {
-            if (mutability == MutabilityOverride.Reassignable)
+            if (mutability == TypeMutability.Reassignable)
                 mutability |= this.OverrideMutability;
 
             return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation);
         }
 
-        internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, MutabilityOverride overrideMutability)
+        internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, TypeMutability overrideMutability)
         {
             TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
 
             return this.Target.GetInstance(templateArguments, overrideMutability,
                 TemplateTranslation.Combine(this.Translation, trans_arg));
         }
-        internal EntityInstance Build(IEnumerable<INameReference> templateArguments, MutabilityOverride overrideMutability)
+        internal EntityInstance Build(IEnumerable<INameReference> templateArguments, TypeMutability overrideMutability)
         {
             return Build(templateArguments.Select(it => it.Evaluation.Components), overrideMutability);
         }
@@ -415,6 +423,13 @@ namespace Skila.Language
             if (!this.typeMutabilityCache.HasValue)
                 this.typeMutabilityCache = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
             return this.typeMutabilityCache.Value;
+        }
+
+        public TypeMutability SurfaceMutabilityOfType(ComputationContext ctx)
+        {
+            if (!this.surfaceTypeMutabilityCache.HasValue)
+                this.surfaceTypeMutabilityCache = this.ComputeSurfaceMutabilityOfType(ctx);
+            return this.surfaceTypeMutabilityCache.Value;
         }
 
         public bool CoreEquals(IEntityInstance other)

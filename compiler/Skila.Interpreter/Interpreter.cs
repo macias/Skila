@@ -457,7 +457,7 @@ namespace Skila.Interpreter
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return allocObjectAsync(ctx,
                 ctx.Env.Utf8StringType.InstanceOf,
-                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, MutabilityOverride.None, null, viaPointer: true),
+                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, TypeMutability.None, null, viaPointer: true),
                 value);
         }
 
@@ -796,7 +796,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        MutabilityOverride.None, null),
+                        TypeMutability.None, null),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);

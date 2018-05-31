@@ -395,8 +395,8 @@ namespace Skila.Language.Entities
                         ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleReferenceField, decl);
 
                     VariableDeclaration primary = ref_fields.FirstOrDefault();
-                    if (primary != null && primary.Modifier.HasReassignable)
-                        ctx.AddError(ErrorCode.ReferenceFieldCannotBeReassignable, primary);
+                        if (primary != null && primary.Modifier.Has(ctx.Env.Options.ReassignableModifier()))
+                            ctx.AddError(ErrorCode.ReferenceFieldCannotBeReassignable, primary);
                 }
             }
 
@@ -445,12 +445,15 @@ namespace Skila.Language.Entities
                 foreach (VariableDeclaration field in this.AllNestedFields)
                 {
                     if (field.Modifier.HasReassignable)
-                        ctx.AddError(ErrorCode.ReassignableFieldInImmutableType, field);
-                    TypeMutability field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
-                    if (!field_eval_mutability.HasFlag(TypeMutability.ConstAsSource)
-                        && !field_eval_mutability.HasFlag( TypeMutability.GenericUnknownMutability)
-                        && !field_eval_mutability.HasFlag(TypeMutability.ForceConst))
                         ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
+                    else
+                    {
+                        TypeMutability field_eval_mutability = field.Evaluation.Components.MutabilityOfType(ctx);
+                        if (!field_eval_mutability.HasFlag(TypeMutability.ConstAsSource)
+                            && !field_eval_mutability.HasFlag(TypeMutability.GenericUnknownMutability)
+                            && !field_eval_mutability.HasFlag(TypeMutability.ForceConst))
+                            ctx.AddError(ErrorCode.MutableFieldInImmutableType, field);
+                    }
                 }
                 foreach (FunctionDefinition func in this.NestedFunctions
                     .Where(it => it.Modifier.HasMutable))

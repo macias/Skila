@@ -15,25 +15,29 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSettingCustomGetter()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            // we can assign property using getter (only in constructor) but getter has to be auto-generated, 
-            // here it is custom code, thus it is illegal
-            IExpression assign = Assignment.CreateStatement(NameReference.CreateThised("x"), IntLiteral.Create("3"));
+                // we can assign property using getter (only in constructor) but getter has to be auto-generated, 
+                // here it is custom code, thus it is illegal
+                IExpression assign = Assignment.CreateStatement(NameReference.CreateThised("x"), IntLiteral.Create("3"));
 
-            root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .SetModifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntTypeReference())
-                    .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
-                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
-                    assign
-                    ))));
+                root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntTypeReference())
+                        .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                        assign
+                        ))));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotAssignCustomProperty, assign));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotAssignCustomProperty, assign));
+            }
 
             return resolver;
         }
@@ -41,21 +45,25 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorGetterOverridesNothing()
         {
-            var env = Language.Environment.Create(new Options().DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options().SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
-                    .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
-                        .Modifier(EntityModifier.Override));
+                Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
+                        .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
+                            .Modifier(EntityModifier.Override));
 
-            var type = root_ns.AddBuilder(TypeBuilder.Create("Last")
-                .SetModifier(EntityModifier.Base)
-                .With(property));
+                var type = root_ns.AddBuilder(TypeBuilder.Create("Last")
+                    .SetModifier(EntityModifier.Base)
+                    .With(property));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, property.Getter));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NothingToOverride, property.Getter));
+            }
 
             return resolver;
         }
@@ -63,33 +71,38 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAssigningRValue()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                    new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
-                    new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
-                    new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
-                )));
+                var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), 
+                            env.Options.ReassignableModifier()) },
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
+                    )));
 
-            var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                "getter",
-                null,
-                NameReference.Create("Point"),
-                Block.CreateStatement(new[] { Return.Create(Undef.Create()) })));
+                var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "getter",
+                    null,
+                    NameReference.Create("Point"),
+                    Block.CreateStatement(new[] { Return.Create(Undef.Create()) })));
 
-            NameReference field_ref = NameReference.Create(FunctionCall.Create(NameReference.Create("getter")), "x");
-            root_ns.AddNode(Block.CreateStatement(new IExpression[] {
+                NameReference field_ref = NameReference.Create(FunctionCall.Create(NameReference.Create("getter")), "x");
+                root_ns.AddNode(Block.CreateStatement(new IExpression[] {
                 // error: assigning to r-value
                 Assignment.CreateStatement(field_ref,Int64Literal.Create("3")),
             }));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AssigningRValue, field_ref));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.AssigningRValue, field_ref));
+            }
 
             return resolver;
         }
@@ -97,31 +110,35 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIgnoringGetter()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .SetModifier(EntityModifier.Mutable)
-                .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64TypeReference())
-                    .WithAutoField(Int64Literal.Create("1"), EntityModifier.Reassignable)
-                    .WithAutoGetter()
-                    .WithAutoSetter()));
+                root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64TypeReference())
+                        .WithAutoField(Int64Literal.Create("1"), env.Options.ReassignableModifier())
+                        .WithAutoGetter()
+                        .WithAutoSetter()));
 
-            NameReference getter_call = NameReference.Create("p", "x");
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "getter",
-                null,
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                NameReference getter_call = NameReference.Create("p", "x");
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "getter",
+                    null,
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
                     getter_call
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ExpressionValueNotUsed, getter_call));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ExpressionValueNotUsed, getter_call));
+            }
 
             return resolver;
         }
@@ -129,22 +146,27 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMultipleAccessors()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
-            var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .SetModifier(EntityModifier.Mutable)
-                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                    new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), EntityModifier.Reassignable) },
-                    new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()), mul_getter },
-                    new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
-                )));
+                FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
+                var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), 
+                            env.Options.ReassignableModifier()) },
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()), mul_getter },
+                        new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
+                    )));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PropertyMultipleAccessors, mul_getter));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PropertyMultipleAccessors, mul_getter));
+            }
 
             return resolver;
         }
@@ -152,31 +174,35 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorAlteringReadOnlyProperty()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                    new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1")) },
-                    new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
-                    setters: null
-                )));
+                var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1")) },
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
+                        setters: null
+                    )));
 
-            IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), Int64Literal.Create("5"));
-            root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), Int64Literal.Create("5"));
+                root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new IExpression[] {
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p", NameReference.Create("Point"), Undef.Create()),
                     assignment,
-                })));
+                    })));
 
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, assignment));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.CannotReassignReadOnlyVariable, assignment));
+            }
 
             return resolver;
         }

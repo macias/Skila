@@ -17,23 +17,27 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorSelfTypeUsage()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            NameReference invalid_self1 = NameFactory.SelfTypeReference();
-            NameReference invalid_self2 = NameFactory.SelfTypeReference();
+                NameReference invalid_self1 = NameFactory.SelfTypeReference();
+                NameReference invalid_self2 = NameFactory.SelfTypeReference();
 
-            // in time probably we will use Self type in more places, but for now we forbid everything we don't support
-            root_ns.AddBuilder(TypeBuilder.Create("What")
-                .With(FunctionBuilder.Create("foo", invalid_self1,
-                    Block.CreateStatement(Return.Create(NameReference.Create("x"))))
-                    .Parameters(FunctionParameter.Create("x", invalid_self2))));
+                // in time probably we will use Self type in more places, but for now we forbid everything we don't support
+                root_ns.AddBuilder(TypeBuilder.Create("What")
+                    .With(FunctionBuilder.Create("foo", invalid_self1,
+                        Block.CreateStatement(Return.Create(NameReference.Create("x"))))
+                        .Parameters(FunctionParameter.Create("x", invalid_self2))));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self1));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self2));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self1));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SelfTypeOutsideConstructor, invalid_self2));
+            }
 
             return resolver;
         }
@@ -41,31 +45,38 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInOutVariance()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            NameReference fielda_typename = NameReference.Create("TA");
-            NameReference fieldb_typename = NameReference.Create("TB");
-            NameReference propa_typename = NameReference.Create("TA");
-            NameReference propb_typename = NameReference.Create("TB");
-            root_ns.AddBuilder(TypeBuilder.Create(
-                NameDefinition.Create(NameFactory.TupleTypeName,
-                TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
-                .SetModifier(EntityModifier.Mutable)
-                .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
-                    new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
-                .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
-                .With(VariableDeclaration.CreateStatement("fb", fieldb_typename, Undef.Create(), EntityModifier.Reassignable | EntityModifier.Public))
-                .With(PropertyBuilder.CreateAutoFull(env.Options, "adata", propa_typename, Undef.Create()))
-                .With(PropertyBuilder.CreateAutoFull(env.Options, "bdata", propb_typename, Undef.Create())));
+                NameReference fielda_typename = NameReference.Create("TA");
+                NameReference fieldb_typename = NameReference.Create("TB");
+                NameReference propa_typename = NameReference.Create("TA");
+                NameReference propb_typename = NameReference.Create("TB");
+                root_ns.AddBuilder(TypeBuilder.Create(
+                    NameDefinition.Create(NameFactory.TupleTypeName,
+                    TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
+                        new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
+                    .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(),
+                        env.Options.ReassignableModifier() | EntityModifier.Public))
+                    .With(VariableDeclaration.CreateStatement("fb", fieldb_typename, Undef.Create(),
+                        env.Options.ReassignableModifier() | EntityModifier.Public))
+                    .With(PropertyBuilder.CreateAutoFull(env.Options, "adata", propa_typename, Undef.Create()))
+                    .With(PropertyBuilder.CreateAutoFull(env.Options, "bdata", propb_typename, Undef.Create())));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fielda_typename));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fieldb_typename));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propa_typename));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propb_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fielda_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fieldb_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propa_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propb_typename));
+                Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -73,22 +84,26 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CatVarianceExample() // Programming in Scala, 2nd ed, p. 399
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            NameReference result_typename = NameReference.Create("Cat",
-                        NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T")), NameReference.Create("U"));
+                NameReference result_typename = NameReference.Create("Cat",
+                            NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T")), NameReference.Create("U"));
 
-            root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("Cat", TemplateParametersBuffer.Create()
-                .Add("T", VarianceMode.In).Add("U", VarianceMode.Out).Values))
-                .With(FunctionBuilder.CreateDeclaration("meow", "W", VarianceMode.In, ExpressionReadMode.ReadRequired, result_typename)
-                    .Parameters(FunctionParameter.Create("volume", NameReference.Create("T")),
-                        FunctionParameter.Create("listener",
-                            NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T"))))));
+                root_ns.AddBuilder(TypeBuilder.CreateInterface(NameDefinition.Create("Cat", TemplateParametersBuffer.Create()
+                    .Add("T", VarianceMode.In).Add("U", VarianceMode.Out).Values))
+                    .With(FunctionBuilder.CreateDeclaration("meow", "W", VarianceMode.In, ExpressionReadMode.ReadRequired, result_typename)
+                        .Parameters(FunctionParameter.Create("volume", NameReference.Create("T")),
+                            FunctionParameter.Create("listener",
+                                NameReference.Create("Cat", NameReference.Create("U"), NameReference.Create("T"))))));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -96,24 +111,28 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter CircularPointerNesting()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
-                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
-                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
-                .With(VariableDeclaration.CreateStatement("s", NameFactory.PointerTypeReference(NameReference.Create("Form")),
-                Undef.Create(), EntityModifier.Private)));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
+                    .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                    .With(VariableDeclaration.CreateStatement("s", NameFactory.PointerTypeReference(NameReference.Create("Form")),
+                    Undef.Create(), EntityModifier.Private)));
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
-                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
-                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
-                .With(VariableDeclaration.CreateStatement("f", NameFactory.PointerTypeReference(NameReference.Create("Shape")),
-                Undef.Create(), EntityModifier.Private)));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
+                    .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                    .With(VariableDeclaration.CreateStatement("f", NameFactory.PointerTypeReference(NameReference.Create("Shape")),
+                    Undef.Create(), EntityModifier.Private)));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -121,26 +140,30 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCircularValueNesting()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            VariableDeclaration decl1 = VariableDeclaration.CreateStatement("s", NameReference.Create("Form"), null, EntityModifier.Private);
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
-                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
-                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
-                .With(decl1));
+                VariableDeclaration decl1 = VariableDeclaration.CreateStatement("s", NameReference.Create("Form"), null, EntityModifier.Private);
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
+                    .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                    .With(decl1));
 
-            VariableDeclaration decl2 = VariableDeclaration.CreateStatement("f", NameReference.Create("Shape"), null, EntityModifier.Private);
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
-                .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
-                    Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
-                .With(decl2));
+                VariableDeclaration decl2 = VariableDeclaration.CreateStatement("f", NameReference.Create("Shape"), null, EntityModifier.Private);
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
+                    .With(FunctionBuilder.Create("reader", NameFactory.UnitTypeReference(),
+                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                    .With(decl2));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl1));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl2));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl1));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NestedValueOfItself, decl2));
+            }
 
             return resolver;
         }
@@ -149,16 +172,20 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorConflictingModifier()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .SetModifier(EntityModifier.Const | EntityModifier.Mutable));
+                var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
+                    .SetModifier(EntityModifier.Const | EntityModifier.Mutable));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConflictingModifier, type_def.Modifier));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ConflictingModifier, type_def.Modifier));
+            }
 
             return resolver;
         }
@@ -166,16 +193,20 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter AutoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, EntityModifier.Public)));
+                var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
+                    .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null, EntityModifier.Public)));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(type_def.HasDefaultPublicConstructor());
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(type_def.HasDefaultPublicConstructor());
+            }
 
             return resolver;
         }
@@ -183,23 +214,27 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorNoDefaultConstructor()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
-                .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
-                    new[] { FunctionParameter.Create("a", NameFactory.Int64TypeReference(),
+                var bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar"))
+                    .With(FunctionDefinition.CreateInitConstructor(EntityModifier.None,
+                        new[] { FunctionParameter.Create("a", NameFactory.Int64TypeReference(),
                         Variadic.None, null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead) },
-                    Block.CreateStatement())));
-            VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null,
-                EntityModifier.Public);
-            var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
-                .With(field_decl));
+                        Block.CreateStatement())));
+                VariableDeclaration field_decl = VariableDeclaration.CreateStatement("x", NameReference.Create("Bar"), null,
+                    EntityModifier.Public);
+                var type_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Point"))
+                    .With(field_decl));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NoDefaultConstructor, field_decl));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NoDefaultConstructor, field_decl));
+            }
 
             return resolver;
         }
@@ -207,25 +242,29 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorStaticMemberReference()
         {
-            var env = Environment.Create(new Options() { StaticMemberOnlyThroughTypeName = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { StaticMemberOnlyThroughTypeName = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null,
-                    EntityModifier.Static | EntityModifier.Public)));
+                root_ns.AddBuilder(TypeBuilder.Create("Foo")
+                    .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null,
+                        EntityModifier.Static | EntityModifier.Public)));
 
-            NameReference field_ref = NameReference.Create("f", "field");
-            root_ns.AddBuilder(FunctionBuilder.Create("foo",
-                                ExpressionReadMode.OptionalUse,
-                                NameFactory.RealTypeReference(),
-                                Block.CreateStatement(new IExpression[] {
+                NameReference field_ref = NameReference.Create("f", "field");
+                root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                                    ExpressionReadMode.OptionalUse,
+                                    NameFactory.RealTypeReference(),
+                                    Block.CreateStatement(new IExpression[] {
                                     VariableDeclaration.CreateStatement("f",NameReference.Create("Foo"),Undef.Create()),
                                     Return.Create(field_ref) })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.StaticMemberAccessInInstanceContext, field_ref));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.StaticMemberAccessInInstanceContext, field_ref));
+            }
 
             return resolver;
         }
@@ -233,32 +272,36 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorInstanceMemberReference()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            NameReference field_ref1 = NameReference.Create("field");
+                NameReference field_ref1 = NameReference.Create("field");
 
-            root_ns.AddBuilder(TypeBuilder.Create("Foo")
-                .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null, EntityModifier.Public))
-                .With(FunctionBuilder.Create("foo",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
-                    Block.CreateStatement(new[] { Return.Create(field_ref1) }))
-                    .SetModifier(EntityModifier.Static)));
+                root_ns.AddBuilder(TypeBuilder.Create("Foo")
+                    .With(VariableDeclaration.CreateStatement("field", NameFactory.RealTypeReference(), null, EntityModifier.Public))
+                    .With(FunctionBuilder.Create("foo",
+                        ExpressionReadMode.OptionalUse,
+                        NameFactory.RealTypeReference(),
+                        Block.CreateStatement(new[] { Return.Create(field_ref1) }))
+                        .SetModifier(EntityModifier.Static)));
 
-            NameReference field_ref2 = NameReference.Create("Foo", "field");
+                NameReference field_ref2 = NameReference.Create("Foo", "field");
 
-            root_ns.AddBuilder(FunctionBuilder.Create("some_func",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
-                    Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create("some_func",
+                        ExpressionReadMode.OptionalUse,
+                        NameFactory.RealTypeReference(),
+                        Block.CreateStatement(new IExpression[] {
                                     Return.Create(field_ref2) })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref1));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref2));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref1));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.InstanceMemberAccessInStaticContext, field_ref2));
+            }
 
             return resolver;
         }
@@ -266,34 +309,38 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIncorrectMethodsForType()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
-                    "foo",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference());
-            FunctionDefinition abstract_func = FunctionBuilder.Create(
-                    "bar",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
-                    .SetModifier(EntityModifier.Abstract);
-            FunctionDefinition base_func = FunctionBuilder.Create(
-                    "basic",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
-                    .SetModifier(EntityModifier.Base);
-            root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(func_decl)
-                .With(base_func)
-                .With(abstract_func));
+                FunctionDefinition func_decl = FunctionBuilder.CreateDeclaration(
+                        "foo",
+                        ExpressionReadMode.OptionalUse,
+                        NameFactory.Int64TypeReference());
+                FunctionDefinition abstract_func = FunctionBuilder.Create(
+                        "bar",
+                        ExpressionReadMode.OptionalUse,
+                        NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
+                        .SetModifier(EntityModifier.Abstract);
+                FunctionDefinition base_func = FunctionBuilder.Create(
+                        "basic",
+                        ExpressionReadMode.OptionalUse,
+                        NameFactory.Int64TypeReference(), Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("3")) }))
+                        .SetModifier(EntityModifier.Base);
+                root_ns.AddBuilder(TypeBuilder.Create("X")
+                    .With(func_decl)
+                    .With(base_func)
+                    .With(abstract_func));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, func_decl));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, abstract_func));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SealedTypeWithBaseMethod, base_func));
+                Assert.AreEqual(3, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, func_decl));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.NonAbstractTypeWithAbstractMethod, abstract_func));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.SealedTypeWithBaseMethod, base_func));
+            }
 
             return resolver;
         }

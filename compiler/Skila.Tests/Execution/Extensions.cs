@@ -15,29 +15,33 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StaticCallStaticDispatch()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            Extension ext = root_ns.AddNode(Extension.Create("Hq"));
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
-                Return.Create(ExpressionFactory.Mul("x", "x"))))
-                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
-                    EntityModifier.This)));
+                Extension ext = root_ns.AddNode(Extension.Create("Hq"));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Mul("x", "x"))))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                        EntityModifier.This)));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",null,Nat8Literal.Create("5")),
                     Return.Create(FunctionCall.Create(NameReference.Create("Hq","paf"),NameReference.Create("i")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)25, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)25, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -45,29 +49,33 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InstanceCallStaticDispatch()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            Extension ext = root_ns.AddNode(Extension.Create());
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
-                Return.Create(ExpressionFactory.Mul("x", "x"))))
-                .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
-                    EntityModifier.This)));
+                Extension ext = root_ns.AddNode(Extension.Create());
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                    Return.Create(ExpressionFactory.Mul("x", "x"))))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                        EntityModifier.This)));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",null,Nat8Literal.Create("5")),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","paf")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)25, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)25, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

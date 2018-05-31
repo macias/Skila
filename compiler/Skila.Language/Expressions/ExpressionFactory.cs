@@ -40,7 +40,7 @@ namespace Skila.Language.Expressions
             // thanks to `and` parallel optional declaration uses shortcut computation
             // that is, evaluating rhs options stops on the first failure
             IExpression combined = null;
-            foreach (Tuple<VariablePrototype,IExpression> pair in variables.SyncZip(rhsOptions))
+            foreach (Tuple<VariablePrototype, IExpression> pair in variables.SyncZip(rhsOptions))
             {
                 VariablePrototype lhs = pair.Item1;
                 IExpression rhs = pair.Item2;
@@ -156,13 +156,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(BoolLiteral.CreateTrue()) }),
                           // let obj = cmp cast? Self
                           VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityOverride.Neutral)))),
+                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             NameReference.Create("obj")))))
                                             .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference(MutabilityOverride.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference(TypeMutability.ReadOnly)))));
         }
         public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
         {
@@ -191,13 +191,13 @@ namespace Skila.Language.Expressions
                                 new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(MutabilityOverride.Neutral)))),
+                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
                                             .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(MutabilityOverride.Neutral)))));
+                                                NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(TypeMutability.ReadOnly)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -243,11 +243,19 @@ namespace Skila.Language.Expressions
         }
         public static IExpression HeapConstructor(NameReference innerTypeName, params IExpression[] arguments)
         {
-            return ConstructorCall.HeapConstructor(innerTypeName, arguments).Build();
+            return ConstructorCall.HeapConstructor(TypeMutability.None, innerTypeName,  arguments).Build();
+        }
+        public static IExpression HeapConstructor(TypeMutability mutability, NameReference innerTypeName, params IExpression[] arguments)
+        {
+            return ConstructorCall.HeapConstructor(mutability, innerTypeName,  arguments).Build();
         }
         public static IExpression HeapConstructor(NameReference innerTypeName, params FunctionArgument[] arguments)
         {
-            return ConstructorCall.HeapConstructor(innerTypeName, arguments).Build();
+            return ConstructorCall.HeapConstructor(TypeMutability.None, innerTypeName,  arguments).Build();
+        }
+        public static IExpression HeapConstructor(NameReference innerTypeName, TypeMutability mutability, params FunctionArgument[] arguments)
+        {
+            return ConstructorCall.HeapConstructor(mutability, innerTypeName,  arguments).Build();
         }
 
         public static IExpression StackConstructor(NameReference typeName)
@@ -350,7 +358,7 @@ namespace Skila.Language.Expressions
         }
         public static IExpression Sub(string lhs, string rhs)
         {
-            return Sub(NameReference.Create(lhs),NameReference.Create(rhs));
+            return Sub(NameReference.Create(lhs), NameReference.Create(rhs));
         }
         public static IExpression Sub(IExpression lhs, IExpression rhs)
         {

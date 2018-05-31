@@ -30,7 +30,8 @@ namespace Skila.Language
             VariableDeclaration field;
             if (!this.escapingVariableToFieldMapping.TryGetValue(localVariable, out field))
             {
-                field = VariableDeclaration.CreateStatement(localVariable.Name.Name, localVariable.Evaluation.Components.NameOf,
+                field = VariableDeclaration.CreateStatement(localVariable.Name.Name, 
+                    localVariable.Evaluation.Components.PureNameOf,
                     Undef.Create());
                 this.escapingVariableToFieldMapping.Add(localVariable, field);
             }

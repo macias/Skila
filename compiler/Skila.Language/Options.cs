@@ -43,47 +43,19 @@ namespace Skila.Language
         public bool AllowProtocols { get; set; }
         public bool AllowRealMagic { get; set; }
         public bool AtomicPrimitivesMutable { get; set; }
-        private bool? singleMutability;
-        public bool SingleMutability
-        {
-            get
-            {
-                if (!this.singleMutability.HasValue)
-                    throw new Exception();
-
-                return this.singleMutability.Value;
-            }
-        }
+        public bool SingleMutability { get; private set; }
 
         public Options()
         {
-
+            this.SingleMutability = true;
         }
 
         public Options SetSingleMutability(bool value)
         {
-            if (this.singleMutability.HasValue)
-                throw new Exception();
-
-            this.singleMutability = value;
+            this.SingleMutability = value;
             return this;
         }
-        public Options EnableSingleMutability()
-        {
-            if (this.singleMutability.HasValue)
-                throw new Exception();
 
-            this.singleMutability = true;
-            return this;
-        }
-        public Options DisableSingleMutability()
-        {
-            if (this.singleMutability.HasValue)
-                throw new Exception();
-
-            this.singleMutability = false;
-            return this;
-        }
         public override string ToString()
         {
             return this.GetEnabledProperties().Join(", ");

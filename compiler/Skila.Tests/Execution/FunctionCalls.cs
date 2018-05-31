@@ -15,33 +15,37 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StoringSequenceAsSequence()
         {
-            // todo: add analogous test with storing iterable as sequence
+            var interpreter = new Interpreter.Interpreter();
 
-            // yes, this test seems like pointless thing but it is important nevertheless because
-            // we have to check if conversion does NOT happen
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                // todo: add analogous test with storing iterable as sequence
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                // yes, this test seems like pointless thing but it is important nevertheless because
+                // we have to check if conversion does NOT happen
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     ExpressionFactory.InitializeIndexable("x",Int64Literal.Create("-6"),Int64Literal.Create("8")),
                     // conversion should NOT happen
                     VariableDeclaration.CreateStatement("stored",null,
                         FunctionCall.Create( NameFactory.StoreFunctionReference(),NameReference.Create("x"))),
                     Return.Create(ExpressionFactory.Ternary(IsSame.Create("x","stored"),Nat8Literal.Create("2"),Nat8Literal.Create("7")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -49,26 +53,30 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OptionalNoLimitsVariadicFunction()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create("provider", NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("x", null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
-                            FunctionArgument.Create(NatLiteral.Create("2")))),
-                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(NatLiteral.Create("0"))),
-                        Int64Literal.Create("-6")),
-                    Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(NatLiteral.Create("1"))),
-                        Int64Literal.Create("8")),
-                    Return.Create(NameReference.Create("x"))
-                    )));
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create("provider", NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("x", null,
+                            ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                                FunctionArgument.Create(NatLiteral.Create("2")))),
+                        Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(NatLiteral.Create("0"))),
+                            Int64Literal.Create("-6")),
+                        Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(NatLiteral.Create("1"))),
+                            Int64Literal.Create("8")),
+                        Return.Create(NameReference.Create("x"))
+                        )));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -77,22 +85,22 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(),
-                    FunctionCall.Create(NameReference.Create("provider")), isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(),
+                        FunctionCall.Create(NameReference.Create("provider")), isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create("sum")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -100,14 +108,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinMaxLimitVariadicFunction()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -116,22 +128,22 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         Int64Literal.Create("-6"),Int64Literal.Create("8")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -139,14 +151,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinLimitVariadicFunction()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -155,22 +171,22 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         Int64Literal.Create("-6"),Int64Literal.Create("8")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -178,14 +194,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NoLimitsVariadicFunction()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -194,22 +214,22 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         Int64Literal.Create("-6"),Int64Literal.Create("8")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -217,14 +237,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinMaxLimitVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -233,30 +257,30 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-6")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("1"))),
                         Int64Literal.Create("8")),
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         FunctionArgument.Create( Spread.Create(NameReference.Create("x")))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -264,18 +288,22 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MinLimitVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create(new Options()
-            {
-                AllowInvalidMainResult = true,
-                DebugThrowOnError = true
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options()
+                {
+                    AllowInvalidMainResult = true,
+                    DebugThrowOnError = true
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -284,30 +312,30 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(2), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-6")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("1"))),
                         Int64Literal.Create("8")),
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         FunctionArgument.Create( Spread.Create(NameReference.Create("x")))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -315,14 +343,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter NoLimitsVariadicFunctionWithSpread()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "sum",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "sum",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let i0 = n.at(0)
                     VariableDeclaration.CreateStatement("i0",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("0")))),
@@ -331,45 +363,48 @@ namespace Skila.Tests.Execution
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
                     Return.Create(ExpressionFactory.Add("i0","i1"))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(), null, isNameRequired: false)));
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.Create(), null, isNameRequired: false)));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-6")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("1"))),
                         Int64Literal.Create("8")),
                     Return.Create(FunctionCall.Create(NameReference.Create("sum"),
                         FunctionArgument.Create( Spread.Create(NameReference.Create("x")))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
 
-
         [TestMethod]
         public IInterpreter LambdaRecursiveCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
-            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
-            FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
+                IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
+                FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new[] {
                     // if i==2 then return i
                     IfBranch.CreateIf(i_eq_2,new[]{ Return.Create(NameReference.Create("i")) },
                     // else return self(i+1)
@@ -377,22 +412,22 @@ namespace Skila.Tests.Execution
                         Return.Create(FunctionCall.Create(NameReference.Create(NameFactory.RecurFunctionName),
                             FunctionArgument.Create(i_add_1)))
                     }))
-                }))
-                .Parameters(FunctionParameter.Create("i", NameFactory.Int64TypeReference()));
+                    }))
+                    .Parameters(FunctionParameter.Create("i", NameFactory.Int64TypeReference()));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // Immediately-Invoked Function Expression (IIEFE) in Javascript world
                     Return.Create(FunctionCall.Create(lambda,FunctionArgument.Create(Int64Literal.Create("0"))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -400,15 +435,19 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RecursiveCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
-            IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
-            root_ns.AddBuilder(FunctionBuilder.Create("foo",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
+                IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
+                root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new[] {
                     // if i==2 then return i
                     IfBranch.CreateIf(i_eq_2,new[]{ Return.Create(NameReference.Create("i")) },
                     // else return self(i+1)
@@ -416,21 +455,21 @@ namespace Skila.Tests.Execution
                         Return.Create(FunctionCall.Create(NameReference.Create(NameFactory.RecurFunctionName),
                             FunctionArgument.Create(i_add_1)))
                     }))
-                }))
-                .Parameters(FunctionParameter.Create("i", NameFactory.Int64TypeReference())));
+                    }))
+                    .Parameters(FunctionParameter.Create("i", NameFactory.Int64TypeReference())));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create(Int64Literal.Create("0"))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -438,22 +477,27 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RawMethods()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create( Int64Literal.Create("1"),NameFactory.AddOperator),
                     FunctionArgument.Create(Int64Literal.Create("1"))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -461,32 +505,37 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ReturningUnit()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "getMe",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "getMe",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create()
-                })));
+                    })));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("u",NameFactory.UnitTypeReference(),
                         FunctionCall.Create(NameReference.Create("getMe"))),
                     ExpressionFactory.Readout("u"),
                     Return.Create(Int64Literal.Create("2"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -494,37 +543,41 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter OptionalParameters()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                .SetModifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(),
-                    Int64Literal.Create("2"), EntityModifier.Reassignable))
-                .With(FunctionBuilder.Create("pass",
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(),
+                        Int64Literal.Create("2"), env.Options.ReassignableModifier()))
+                    .With(FunctionBuilder.Create("pass",
+                        ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
                         Return.Create(NameReference.Create("v"))
-                    }))
-                    .Parameters(FunctionParameter.Create("v", NameFactory.Int64TypeReference(), Variadic.None,
-                            FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "getme")), isNameRequired: false)))
-                .With(FunctionBuilder.Create("getme", null,
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
+                        }))
+                        .Parameters(FunctionParameter.Create("v", NameFactory.Int64TypeReference(), Variadic.None,
+                                FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "getme")), isNameRequired: false)))
+                    .With(FunctionBuilder.Create("getme", null,
+                        ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
                         Return.Create(NameReference.Create(NameFactory.ThisVariableName, "x"))
-                    }))));
+                        }))));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("p","pass")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -532,30 +585,34 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter UsingFunctionParameter()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
-                "inc",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "inc",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     Return.Create(FunctionCall.Create(NameReference.Create( NameReference.Create("n"),NameFactory.AddOperator),
                     FunctionArgument.Create(Int64Literal.Create("1"))))
-                }))
-                .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.None, null, isNameRequired: false)));
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                    }))
+                    .Parameters(FunctionParameter.Create("n", NameFactory.Int64TypeReference(), Variadic.None, null, isNameRequired: false)));
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                      Return.Create( FunctionCall.Create(NameReference.Create("inc"),FunctionArgument.Create( Int64Literal.Create("1"))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -563,39 +620,43 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter LocalVariablesLeakCheck()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "last",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "last",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("z",null,Int64Literal.Create("2")),
                     Return.Create( NameReference.Create( "z"))
-                })));
+                    })));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "pass",
-                ExpressionReadMode.ReadRequired,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "pass",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("z",null,Int64Literal.Create("0")),
                     VariableDeclaration.CreateStatement("t",null,FunctionCall.Create( NameReference.Create("last"))),
                     Return.Create(ExpressionFactory.Add(NameReference.Create("z"),NameReference.Create("t")))
-                })));
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                    })));
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                      Return.Create( FunctionCall.Create(NameReference.Create("pass")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

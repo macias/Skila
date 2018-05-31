@@ -30,41 +30,41 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                // new Semantics.MemoryClasses().ErrorHeapTypeAsValue();
+                // new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
-               // new Semantics.Mutability().ErrorAssigningMutableToImmutable();
+                //new Semantics.Mutability().ErrorMutableGlobalVariables();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                 // new Semantics.Templates().ErrorSwapNonReassignableValues();
+                // new Semantics.Templates().ErrorSwapNonReassignableValues();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
-                //new Semantics.Types().AutoDefaultConstructor();
+                //new Semantics.Types().ErrorInOutVariance();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
-                //new Execution.Closures().ClosureRecursiveCall();
+                //new Execution.Closures().PassingLocalVariables();
                 //new Execution.Collections().AllFailureFunction();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 // new Execution.Flow().ParallelOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
-                //new Execution.Inheritance().InheritingEnums();
+                //new Execution.Inheritance().TypeUnion();
                 //new Execution.Interfaces().DuckDeepVirtualCallInterface();
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().StringToInt();
-                new Execution.Mutability().SwapValues();
+               new Execution.Mutability().SwapPointers();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
                 //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
-                //new Execution.Pointers().ExplicitDereferencing();
+                //new Execution.Pointers().DereferenceOnAssignment();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().SwapPointers();
                 //new Execution.Text().StringUtf8Encoding();
             }
 
-            // if (false)
+           // if (false)
             {
-                const double golden_avg_s = 1.47;
+                const double golden_avg_s = 3.00;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -79,7 +79,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.51;
+                const double golden_avg_s = 3.03;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

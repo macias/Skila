@@ -107,7 +107,11 @@ namespace Skila.Language
 
             if (this.templateArguments.Any(it => it.IsJoker))
             {
-                if (this.DebugId== (37, 699))
+                if (this.DebugId== (40, 747))
+                {
+                    ;
+                }
+                if (argumentsProvider.DebugId== (20, 369))
                 {
                     ;
                 }

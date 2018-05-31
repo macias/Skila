@@ -15,24 +15,29 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RealDividingByZeroWithoutNaNs()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(5.0)),
-                    VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(0.0)),
-                    ExpressionFactory.Readout(ExpressionFactory.Divide("a","b")),
-                    Return.Create(Nat8Literal.Create("2"))
-                )));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.IsTrue(result.IsThrow);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }
+                    .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(5.0)),
+                        VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(0.0)),
+                        ExpressionFactory.Readout(ExpressionFactory.Divide("a", "b")),
+                        Return.Create(Nat8Literal.Create("2"))
+                    )));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.IsTrue(result.IsThrow);
+            }
 
             return interpreter;
         }
@@ -40,28 +45,32 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter RealNotANumber()
         {
-            // at this point Skila adheres to the standard but maybe should raise an exception for every NaN
-            // and this way remove them from the language (similarly to null pointers)
-            // https://stackoverflow.com/questions/5394424/causes-for-nan-in-c-application-that-do-no-raise-a-floating-point-exception
-            // https://stackoverflow.com/questions/2941611/can-i-make-gcc-tell-me-when-a-calculation-results-in-nan-or-inf-at-runtime
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a",null,Real64Literal.Create(double.NaN)),
-                    VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(double.NaN)),
-                    Return.Create(ExpressionFactory.Ternary(ExpressionFactory.IsEqual("a","b"),
-                        Nat8Literal.Create("15"),Nat8Literal.Create("2")))
-                )));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                // at this point Skila adheres to the standard but maybe should raise an exception for every NaN
+                // and this way remove them from the language (similarly to null pointers)
+                // https://stackoverflow.com/questions/5394424/causes-for-nan-in-c-application-that-do-no-raise-a-floating-point-exception
+                // https://stackoverflow.com/questions/2941611/can-i-make-gcc-tell-me-when-a-calculation-results-in-nan-or-inf-at-runtime
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(double.NaN)),
+                        VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(double.NaN)),
+                        Return.Create(ExpressionFactory.Ternary(ExpressionFactory.IsEqual("a", "b"),
+                            Nat8Literal.Create("15"), Nat8Literal.Create("2")))
+                    )));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual((byte)2, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -69,26 +78,30 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DateDayOfWeek()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.NatTypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.NatTypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("d",null,ExpressionFactory.StackConstructor(NameFactory.DateTypeReference(),
                         // it is Friday
                         Int16Literal.Create("2017"),Nat8Literal.Create("12"),Nat8Literal.Create("29"))),
-                    VariableDeclaration.CreateStatement("i",null, 
+                    VariableDeclaration.CreateStatement("i",null,
                         FunctionCall.ConvCall( NameReference.Create("d",NameFactory.DateDayOfWeekProperty),NameFactory.NatTypeReference())),
                     Return.Create(NameReference.Create("i"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(5UL, result.RetValue.PlainValue);
+                Assert.AreEqual(5UL, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -96,26 +109,31 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter StringToInt()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true , AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
+                    .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2")),
                     VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(),ExpressionFactory.GetOptionValue(
                         FunctionCall.Create(NameReference.Create( NameFactory.Int64TypeReference(),NameFactory.ParseFunctionName),
                             NameReference.Create("s"))
                         )),
                     Return.Create(NameReference.Create("i"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

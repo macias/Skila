@@ -16,33 +16,37 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter DuckTypingOnEmptyInterface()
         {
-            var env = Environment.Create(new Options()
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
             {
-                DiscardingAnyExpressionDuringTests = true,
-                // we test this option here or more precisely duck typing
-                InterfaceDuckTyping = true
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
+                var env = Environment.Create(new Options()
+                {
+                    DiscardingAnyExpressionDuringTests = true,
+                    // we test this option here or more precisely duck typing
+                    InterfaceDuckTyping = true
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            // please note it is not the interface is empty (it is not because IObject is not empty), 
-            // but it does not add anything, so in this sense it is empty
-            root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
+                // please note it is not the interface is empty (it is not because IObject is not empty), 
+                // but it does not add anything, so in this sense it is empty
+                root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
 
-            root_ns.AddBuilder(FunctionBuilder.Create("foo",
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()), Undef.Create()),
-                    // should be legal despite duck typing, i.e. we should not error that the types are exchangable
-                    // they are in sense of duck typing but checking if the type IS another type should be duck-free
-                    ExpressionFactory.Readout(IsType.Create(NameReference.Create("x"), NameReference.Create("IWhat"))),
-                    VariableDeclaration.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("IWhat")), Undef.Create()),
-                    ExpressionFactory.Readout(IsSame.Create(NameReference.Create("x"), NameReference.Create("y")))
-            )));
+                root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()), Undef.Create()),
+                        // should be legal despite duck typing, i.e. we should not error that the types are exchangable
+                        // they are in sense of duck typing but checking if the type IS another type should be duck-free
+                        ExpressionFactory.Readout(IsType.Create(NameReference.Create("x"), NameReference.Create("IWhat"))),
+                        VariableDeclaration.CreateStatement("y", NameFactory.PointerTypeReference(NameReference.Create("IWhat")), Undef.Create()),
+                        ExpressionFactory.Readout(IsSame.Create(NameReference.Create("x"), NameReference.Create("y")))
+                )));
 
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -50,28 +54,32 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorIsTypeAlienSealed()
         {
-            var env = Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
+                root_ns.AddBuilder(TypeBuilder.CreateInterface("IWhat"));
 
-            root_ns.AddBuilder(TypeBuilder.Create("What")
-                .Parents("IWhat"));
+                root_ns.AddBuilder(TypeBuilder.Create("What")
+                    .Parents("IWhat"));
 
-            // comparison does not make sense, because string is sealed and it is not possible to be given interface
-            IsType is_type = IsType.Create(NameReference.Create("x"), NameFactory.StringTypeReference());
-            root_ns.AddBuilder(FunctionBuilder.Create("foo",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference("IWhat"), Undef.Create()),
-                    Return.Create(is_type)
-            )));
+                // comparison does not make sense, because string is sealed and it is not possible to be given interface
+                IsType is_type = IsType.Create(NameReference.Create("x"), NameFactory.StringTypeReference());
+                root_ns.AddBuilder(FunctionBuilder.Create("foo",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference("IWhat"), Undef.Create()),
+                        Return.Create(is_type)
+                )));
 
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
+            }
 
             return resolver;
         }
@@ -79,43 +87,48 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorMatchingIntersection()
         {
-            var env = Environment.Create(new Options() { AllowProtocols = true, DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { AllowProtocols = true,
+                    DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
-                .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
+                    .With(FunctionBuilder.CreateDeclaration("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
-            root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetNeg")
-                .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetNeg")
+                    .With(FunctionBuilder.CreateDeclaration("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
 
-            root_ns.AddBuilder(TypeBuilder.Create("GetAll")
-                .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                root_ns.AddBuilder(TypeBuilder.Create("GetAll")
+                    .With(FunctionBuilder.Create("getSome", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("3"))
-                    })))
-                .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                        })))
+                    .With(FunctionBuilder.Create("getMore", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("-1"))
-                    }))));
+                        }))));
 
-            NameReferenceIntersection intersection = NameReferenceIntersection.Create(
-                NameFactory.PointerTypeReference(NameReference.Create("IGetNeg")),
-                NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
-            IExpression init_value = ExpressionFactory.HeapConstructor("GetAll");
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "foo",
-                ExpressionReadMode.CannotBeRead,
-                NameFactory.UnitTypeReference(),
+                NameReferenceIntersection intersection = NameReferenceIntersection.Create(
+                    NameFactory.PointerTypeReference(NameReference.Create("IGetNeg")),
+                    NameFactory.PointerTypeReference(NameReference.Create("IGetPos")));
+                IExpression init_value = ExpressionFactory.HeapConstructor("GetAll");
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "foo",
+                    ExpressionReadMode.CannotBeRead,
+                    NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new IExpression[] {
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, init_value),
                     ExpressionFactory.Readout("a")
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+            }
 
             return resolver;
         }
@@ -123,199 +136,237 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter OutgoingConversion()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
-                .With(FunctionBuilder.Create(
-                    NameFactory.ConvertFunctionName,
-                    null, ExpressionReadMode.ReadRequired, NameReference.Create("Bar"),
-                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
-                    .SetModifier(EntityModifier.Implicit))
-                // added second conversion to check if compiler correctly disambiguate the call
-                .With(FunctionBuilder.Create(
-                    NameFactory.ConvertFunctionName,
-                    null, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
-                    .SetModifier(EntityModifier.Implicit)));
-            var type_bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar")));
+                var type_foo_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo"))
+                    .With(FunctionBuilder.Create(
+                        NameFactory.ConvertFunctionName,
+                        null, ExpressionReadMode.ReadRequired, NameReference.Create("Bar"),
+                        Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
+                        .SetModifier(EntityModifier.Implicit))
+                    // added second conversion to check if compiler correctly disambiguate the call
+                    .With(FunctionBuilder.Create(
+                        NameFactory.ConvertFunctionName,
+                        null, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new IExpression[] { Return.Create(Undef.Create()) }))
+                        .SetModifier(EntityModifier.Implicit)));
+                var type_bar_def = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Bar")));
 
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "wrapper",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "wrapper",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new[] {
+                    Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("f", NameReference.Create("Foo"),
                         initValue: Undef.Create()),
                     VariableDeclaration.CreateStatement("b", NameReference.Create("Bar"),
                         initValue: NameReference.Create("f")),
                     ExpressionFactory.Readout("b")
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorTestingValueType()
         {
-            var env = Language.Environment.Create(new Options()
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
             {
-                GlobalVariables = true,
-                RelaxedMode = true,
-                DiscardingAnyExpressionDuringTests = true
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+                var env = Language.Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true,
+                    DiscardingAnyExpressionDuringTests = true
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.RealTypeReference());
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IObjectTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.RealTypeReference());
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.IObjectTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
+                var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            IsType is_type_ref = IsType.Create(NameReference.Create("u"), NameFactory.ISequenceTypeReference("G"));
-            root_ns.AddBuilder(FunctionBuilder.Create("more", "G", VarianceMode.None,
-                NameFactory.UnitTypeReference(),
-                Block.CreateStatement(
-                ExpressionFactory.Readout(is_type_ref)
-                ))
-                .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceTypeReference(
-                    NameFactory.ISequenceTypeReference("G", mutability: MutabilityOverride.Neutral)))));
+                IsType is_type_ref = IsType.Create(NameReference.Create("u"), NameFactory.ISequenceTypeReference("G"));
+                root_ns.AddBuilder(FunctionBuilder.Create("more", "G", VarianceMode.None,
+                    NameFactory.UnitTypeReference(),
+                    Block.CreateStatement(
+                    ExpressionFactory.Readout(is_type_ref)
+                    ))
+                    .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceTypeReference(
+                        NameFactory.ISequenceTypeReference("G", mutability: TypeMutability.ReadOnly)))));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type_ref));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type_ref));
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorTestingKnownTypes()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()), initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()));
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()), initValue: Undef.Create(), modifier: EntityModifier.Public);
+                var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.IsTypeOfKnownTypes, is_type));
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorTestingMismatchedTypes()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
-                initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()));
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
+                    initValue: Undef.Create(), modifier: EntityModifier.Public);
+                var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, is_type));
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter TypeTesting()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.RealTypeReference()));
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
-                initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                IsType is_type = IsType.Create(NameReference.Create("foo"), NameFactory.PointerTypeReference(NameFactory.RealTypeReference()));
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
+                    initValue: Undef.Create(), modifier: EntityModifier.Public);
+                var decl_dst = VariableDeclaration.CreateStatement("bar", null, initValue: is_type, modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorMixingSlicingTypes()
         {
-            var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true, AllowProtocols = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+                    AllowProtocols = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            INameReference typename = NameReferenceUnion.Create(new[] {
+                INameReference typename = NameReferenceUnion.Create(new[] {
                 NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
                 NameFactory.BoolTypeReference() });
-            var decl = VariableDeclaration.CreateStatement("foo", typename, initValue: Undef.Create());
-            var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                "notimportant",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                var decl = VariableDeclaration.CreateStatement("foo", typename, initValue: Undef.Create());
+                var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new[] {
+                    Block.CreateStatement(new[] {
                     decl,
                     ExpressionFactory.Readout("foo")
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MixingSlicingTypes, typename));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.MixingSlicingTypes, typename));
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ErrorPassingValues()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.RealTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
-            NameReference foo_ref = NameReference.Create("foo");
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.IObjectTypeReference(),
-                initValue: foo_ref, modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.RealTypeReference(), initValue: Undef.Create(), modifier: EntityModifier.Public);
+                NameReference foo_ref = NameReference.Create("foo");
+                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.IObjectTypeReference(),
+                    initValue: foo_ref, modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, foo_ref));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, foo_ref));
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter AssigningUndef()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create(),
-                modifier: EntityModifier.Public));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(), Undef.Create(),
+                    modifier: EntityModifier.Public));
 
-            var resolver = NameResolver.Create(env);
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                resolver = NameResolver.Create(env);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -323,155 +374,172 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter PassingPointers()
         {
-            var env = Language.Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
+                    RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
-                initValue: Undef.Create(), modifier: EntityModifier.Public);
-            var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
-                initValue: NameReference.Create("foo"), modifier: EntityModifier.Public);
-            root_ns.AddNode(decl_src);
-            root_ns.AddNode(decl_dst);
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.RealTypeReference()),
+                    initValue: Undef.Create(), modifier: EntityModifier.Public);
+                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
+                    initValue: NameReference.Create("foo"), modifier: EntityModifier.Public);
+                root_ns.AddNode(decl_src);
+                root_ns.AddNode(decl_dst);
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter InheritanceMatching()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            var unrelated_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
-            var abc_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
-            var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
-                .Parents(NameReference.Create("ABC")));
-            var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "V", VarianceMode.Out))
-                .Parents(NameReference.Create("ABC")));
-            var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple", "T", VarianceMode.None))
-                .Parents(NameReference.Create("Foo", NameReference.Create("T"))));
+                var unrelated_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
+                var abc_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
+                var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
+                    .Parents(NameReference.Create("ABC")));
+                var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "V", VarianceMode.Out))
+                    .Parents(NameReference.Create("ABC")));
+                var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple", "T", VarianceMode.None))
+                    .Parents(NameReference.Create("Foo", NameReference.Create("T"))));
 
 
-            var separate_ref = system_ns.AddNode(NameReference.Create("Separate"));
-            var abc_ref = system_ns.AddNode(NameReference.Create("ABC"));
-            var deriv_ref = system_ns.AddNode(NameReference.Create("Deriv"));
-            var tuple_deriv_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Deriv")));
-            var foo_abc_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("ABC")));
-            var tuple_abc_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("ABC")));
-            var foo_deriv_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Deriv")));
+                var separate_ref = system_ns.AddNode(NameReference.Create("Separate"));
+                var abc_ref = system_ns.AddNode(NameReference.Create("ABC"));
+                var deriv_ref = system_ns.AddNode(NameReference.Create("Deriv"));
+                var tuple_deriv_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Deriv")));
+                var foo_abc_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("ABC")));
+                var tuple_abc_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("ABC")));
+                var foo_deriv_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Deriv")));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
-                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
-                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match.Instance,
-                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            TypeMatch match = tuple_abc_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match.Instance,
-                TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Same, match);
-            Assert.AreNotEqual(TypeMatch.Substitute, match);
+                Assert.AreNotEqual(TypeMatch.Same, separate_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
+                    TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+                Assert.AreEqual(TypeMatch.Substitute, deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, abc_ref.Binding.Match.Instance,
+                    TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+                Assert.AreEqual(TypeMatch.Substitute, tuple_deriv_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_abc_ref.Binding.Match.Instance,
+                    TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+                TypeMatch match = tuple_abc_ref.Binding.Match.Instance.MatchesTarget(resolver.Context, foo_deriv_ref.Binding.Match.Instance,
+                    TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
+                Assert.AreNotEqual(TypeMatch.Same, match);
+                Assert.AreNotEqual(TypeMatch.Substitute, match);
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter ConstraintsMatching()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            var base_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Basic")));
-            var abc_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC"))
-                .Parents(NameReference.Create("Basic")));
-            var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
-                .Parents(NameReference.Create("ABC")));
-            var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo",
-                    TemplateParametersBuffer.Create().Add("V", VarianceMode.Out).Values))
-                .Constraints(ConstraintBuilder.Create("V").Inherits(NameReference.Create("ABC")))
-                .Parents(NameReference.Create("ABC")));
-            var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple",
-                TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values))
-                .Constraints(ConstraintBuilder.Create("T").BaseOf(NameReference.Create("ABC"))));
+                var base_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Basic")));
+                var abc_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC"))
+                    .Parents(NameReference.Create("Basic")));
+                var derived_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
+                    .Parents(NameReference.Create("ABC")));
+                var foo_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo",
+                        TemplateParametersBuffer.Create().Add("V", VarianceMode.Out).Values))
+                    .Constraints(ConstraintBuilder.Create("V").Inherits(NameReference.Create("ABC")))
+                    .Parents(NameReference.Create("ABC")));
+                var tuple_type = system_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Tuple",
+                    TemplateParametersBuffer.Create().Add("T", VarianceMode.None).Values))
+                    .Constraints(ConstraintBuilder.Create("T").BaseOf(NameReference.Create("ABC"))));
 
-            var tuple_ok_type = TypeBuilder.Create(
-                NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None).Values))
-                .Constraints(ConstraintBuilder.Create("U").BaseOf(NameReference.Create("Basic")))
-                .Parents(NameReference.Create("Tuple", NameReference.Create("U"))).Build();
-            system_ns.AddNode(tuple_ok_type);
-            var tuple_bad_type = TypeBuilder.Create(
-                NameDefinition.Create("TupleBad", TemplateParametersBuffer.Create().Add("L", VarianceMode.None).Values))
-                .Parents(NameReference.Create("Tuple", NameReference.Create("L"))).Build();
-            system_ns.AddNode(tuple_bad_type);
+                var tuple_ok_type = TypeBuilder.Create(
+                    NameDefinition.Create("TupleOK", TemplateParametersBuffer.Create().Add("U", VarianceMode.None).Values))
+                    .Constraints(ConstraintBuilder.Create("U").BaseOf(NameReference.Create("Basic")))
+                    .Parents(NameReference.Create("Tuple", NameReference.Create("U"))).Build();
+                system_ns.AddNode(tuple_ok_type);
+                var tuple_bad_type = TypeBuilder.Create(
+                    NameDefinition.Create("TupleBad", TemplateParametersBuffer.Create().Add("L", VarianceMode.None).Values))
+                    .Parents(NameReference.Create("Tuple", NameReference.Create("L"))).Build();
+                system_ns.AddNode(tuple_bad_type);
 
-            var foo_deriv_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Deriv")));
-            var tuple_basic_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Basic")));
-            var foo_basic_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Basic")));
-            var tuple_deriv_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Deriv")));
+                var foo_deriv_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Deriv")));
+                var tuple_basic_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Basic")));
+                var foo_basic_ref = system_ns.AddNode(NameReference.Create("Foo", NameReference.Create("Basic")));
+                var tuple_deriv_ref = system_ns.AddNode(NameReference.Create("Tuple", NameReference.Create("Deriv")));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            // constraints are matched
-            Assert.AreEqual(1, foo_deriv_ref.Binding.Matches.Count());
-            Assert.AreEqual(foo_type, foo_deriv_ref.Binding.Match.Instance.Target);
+                // constraints are matched
+                Assert.AreEqual(1, foo_deriv_ref.Binding.Matches.Count());
+                Assert.AreEqual(foo_type, foo_deriv_ref.Binding.Match.Instance.Target);
 
-            Assert.AreEqual(1, tuple_basic_ref.Binding.Matches.Count());
-            Assert.AreEqual(tuple_type, tuple_basic_ref.Binding.Match.Instance.Target);
+                Assert.AreEqual(1, tuple_basic_ref.Binding.Matches.Count());
+                Assert.AreEqual(tuple_type, tuple_basic_ref.Binding.Match.Instance.Target);
 
-            // failed on constraints 
-            Assert.AreEqual(0, foo_basic_ref.Binding.Matches.Count());
+                // failed on constraints 
+                Assert.AreEqual(0, foo_basic_ref.Binding.Matches.Count());
 
-            Assert.AreEqual(0, tuple_deriv_ref.Binding.Matches.Count());
+                Assert.AreEqual(0, tuple_deriv_ref.Binding.Matches.Count());
 
-            // constraints matching other constraints
-            Assert.AreEqual(1, tuple_ok_type.ParentNames.Single().Binding.Matches.Count);
-            Assert.AreEqual(tuple_type, tuple_ok_type.ParentNames.Single().Binding.Match.Instance.Target);
+                // constraints matching other constraints
+                Assert.AreEqual(1, tuple_ok_type.ParentNames.Single().Binding.Matches.Count);
+                Assert.AreEqual(tuple_type, tuple_ok_type.ParentNames.Single().Binding.Match.Instance.Target);
 
-            Assert.AreEqual(0, tuple_bad_type.ParentNames.Single().Binding.Matches.Count);
+                Assert.AreEqual(0, tuple_bad_type.ParentNames.Single().Binding.Matches.Count);
+            }
 
             return resolver;
         }
         [TestMethod]
         public IErrorReporter UnionMatching()
         {
-            var env = Language.Environment.Create(new Options() { }.DisableSingleMutability());
-            var root_ns = env.Root;
-            var system_ns = env.SystemNamespace;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+                var system_ns = env.SystemNamespace;
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
-                .Parents(NameReference.Create("ABC")));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriz"))
-                .Parents(NameReference.Create("Deriv")));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("qwerty"))
-                .Parents(NameReference.Create("ABC")));
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("sink"))
-                .Parents(NameReference.Create("qwerty"), NameReference.Create("Separate")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Separate")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("ABC")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriv"))
+                    .Parents(NameReference.Create("ABC")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Deriz"))
+                    .Parents(NameReference.Create("Deriv")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("qwerty"))
+                    .Parents(NameReference.Create("ABC")));
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("sink"))
+                    .Parents(NameReference.Create("qwerty"), NameReference.Create("Separate")));
 
 
-            var separate_deriv_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("Deriv")));
-            var separate_deriz_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("Deriz")));
-            var separate_abc_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("ABC")));
-            var sink_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("sink")));
-            var sink_deriv_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("sink"), NameReference.Create("Deriv")));
+                var separate_deriv_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("Deriv")));
+                var separate_deriz_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("Deriz")));
+                var separate_abc_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("Separate"), NameReference.Create("ABC")));
+                var sink_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("sink")));
+                var sink_deriv_union = root_ns.AddNode(NameReferenceUnion.Create(NameReference.Create("sink"), NameReference.Create("Deriv")));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(TypeMatch.Substitute, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriv_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            Assert.AreEqual(TypeMatch.Substitute, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_abc_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
-            TypeMatch match = sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
-                separate_deriz_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
-            Assert.AreNotEqual(TypeMatch.Same, match);
-            Assert.AreNotEqual(TypeMatch.Substitute, match);
+                Assert.AreEqual(TypeMatch.Substitute, separate_deriz_union.Evaluation.Components.MatchesTarget(resolver.Context,
+                    separate_deriv_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+                Assert.AreEqual(TypeMatch.Substitute, sink_union.Evaluation.Components.MatchesTarget(resolver.Context,
+                    separate_abc_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true)));
+                TypeMatch match = sink_deriv_union.Evaluation.Components.MatchesTarget(resolver.Context,
+                    separate_deriz_union.Evaluation.Components, TypeMatching.Create(env.Options.InterfaceDuckTyping, allowSlicing: true));
+                Assert.AreNotEqual(TypeMatch.Same, match);
+                Assert.AreNotEqual(TypeMatch.Substitute, match);
+            }
 
             return resolver;
         }

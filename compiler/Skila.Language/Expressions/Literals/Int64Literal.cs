@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions.Literals
 
         // we use textual value to preserve user formatting like separator in "140_000"
         private Int64Literal(string inputValue)
-            : base(inputValue, NameFactory.Int64TypeReference())
+            : base(inputValue, NameFactory.Int64TypeReference( ))
         {
             if (Int64.TryParse(inputValue, out Int64 result))
                 this.value = result;

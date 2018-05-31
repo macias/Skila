@@ -57,8 +57,8 @@ namespace Skila.Language.Expressions
             {
                 if (this.mode == Mode.Pointer)
                     this.Evaluation = new EvaluationInfo(ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Components }, 
-                            MutabilityOverride.None, null), 
-                        ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Aggregate }, MutabilityOverride.None, null)); 
+                            TypeMutability.None, null), 
+                        ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Aggregate }, TypeMutability.None, null)); 
                 else if (ctx.Env.IsReferenceOfType(Expr.Evaluation.Components))
                 {
                     this.Evaluation = Expr.Evaluation;
@@ -66,8 +66,8 @@ namespace Skila.Language.Expressions
                 }
                 else
                     this.Evaluation = new EvaluationInfo(ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Components }, 
-                            MutabilityOverride.None, null),
-                        ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Aggregate }, MutabilityOverride.None, null));
+                            TypeMutability.None, null),
+                        ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Aggregate }, TypeMutability.None, null));
 
                 Expr.ValidateValueExpression(ctx);
 

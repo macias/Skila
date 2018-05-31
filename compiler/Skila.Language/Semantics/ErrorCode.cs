@@ -38,10 +38,10 @@
         NoDefaultConstructor = 34,
         CannotAutoInitializeCompoundType = 35,
         CannotReassignReadOnlyVariable = 36,
-        GlobalReassignableVariable = 37,
-        ReassignableFieldInImmutableType = 38,
-        MutableFieldInImmutableType = 39,
-        GlobalMutableVariable = 40,
+        GlobalMutableVariable = 37,
+        MutableFieldInImmutableType = 38,
+        AssigningToNonReassignableData = 39,
+        PostInitializedCustomGetter = 40,
         InheritanceMutabilityViolation = 41,
         ViolatedMutabilityConstraint = 42,
         ViolatedBaseConstraint = 43,
@@ -123,8 +123,5 @@
         NonReferenceThisParameter = 119,
         UndefinedTemplateArguments = 120,
         SelfTypeOutsideConstructor = 121,
-        PostInitializedCustomGetter = 122,
-        AssigningToNonReassignableData = 123,
-        ViolatedAssignabilityConstraint = 124,
     }
 }

@@ -35,8 +35,9 @@ namespace Skila.Language
         bool AllowNamedSelf { get; }
         bool AtomicPrimitivesMutable { get; }
 
-        // when false -- there is a difference between mutating data and reassigning
-        // when true -- mutability dictates everything, either variable can be reassigned/mutated, or not at all
+        // when false (obsolete mode) -- there is a difference between mutating data and reassigning
+        // when true (righteous mode) -- mutability dictates everything, either variable can be reassigned/mutated, or not at all
+        // the switch was introduced around 2018-05-29
         bool SingleMutability { get; }
     }
 
@@ -62,12 +63,6 @@ namespace Skila.Language
             where T : IOptions
         {
             return options.SingleMutability ? TypeMutability.ForceMutable : TypeMutability.Reassignable;
-        }
-
-        public static MutabilityOverride ReassignableMutabilityOverride<T>(this T options)
-            where T : IOptions
-        {
-            return options.SingleMutability ? MutabilityOverride.ForceMutable : MutabilityOverride.Reassignable;
         }
         
     }

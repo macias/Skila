@@ -114,15 +114,9 @@ namespace Skila.Language.Semantics
 
             this.initializedVariables.Add(decl);
             bool first_assign = this.assignedVariables.Add(decl);
-            if (decl.Modifier.HasReassignable)
-                return true;
 
-            if (ctx.Env.Options.SingleMutability)
-            {
-                TypeMutability mutability = decl.Evaluation.Components.MutabilityOfType(ctx);
-                if (mutability.HasFlag(TypeMutability.ForceMutable))
-                    return true;
-            }
+            if (decl.IsReassignable(ctx))
+                return true;
 
             // in case of readonly variables we can assign it only once AND not in loop (because it would be doubled assigment effectively)
             return first_assign && this.variableLoopLevels[decl] == ctx.ValLoopLevel;

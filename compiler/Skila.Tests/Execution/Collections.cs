@@ -15,42 +15,46 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AllFailureFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "below",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "below",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("6"), Int64Literal.Create("2"))),
+
+                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                            NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("6"), Int64Literal.Create("2"))),
+                ExecValue result = interpreter.TestRun(env);
 
-                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
-                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
-
-            var interpreter = new Interpreter.Interpreter(debugMode: false);
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -58,42 +62,46 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AllSuccessFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "below",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "below",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("4"), Int64Literal.Create("2"))),
+
+                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                            NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("4"), Int64Literal.Create("2"))),
+                ExecValue result = interpreter.TestRun(env);
 
-                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
-                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
-
-            var interpreter = new Interpreter.Interpreter(debugMode: false);
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -101,42 +109,46 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AnyFailureFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "below",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "below",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("6"), Int64Literal.Create("7"))),
+
+                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
+                            NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("6"), Int64Literal.Create("7"))),
+                ExecValue result = interpreter.TestRun(env);
 
-                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
-                        NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
-
-            var interpreter = new Interpreter.Interpreter(debugMode: false);
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -144,42 +156,46 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AnySuccessFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "below",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "below",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("6"), Int64Literal.Create("2"))),
+
+                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
+                            NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("6"), Int64Literal.Create("2"))),
+                ExecValue result = interpreter.TestRun(env);
 
-                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName), 
-                        NameReference.Create("below")),Nat8Literal.Create("9"),Nat8Literal.Create("0")))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
-
-            var interpreter = new Interpreter.Interpreter(debugMode: false);
-            ExecValue result = interpreter.TestRun(env);
-
-            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -187,44 +203,48 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ReverseFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    // let t ITuple<Nat8,Nat8,Nat8> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Nat8TypeReference(),
-                            NameFactory.Nat8TypeReference(),
-                            // todo: use sink
-                            NameFactory.Nat8TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference()),
-                        Nat8Literal.Create("7"), Nat8Literal.Create("11"))),
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-                    VariableDeclaration.CreateStatement("w", null,Nat8Literal.Create("3"),EntityModifier.Reassignable),
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        // let t ITuple<Nat8,Nat8,Nat8> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Nat8TypeReference(),
+                                NameFactory.Nat8TypeReference(),
+                                // todo: use sink
+                                NameFactory.Nat8TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference()),
+                            Nat8Literal.Create("7"), Nat8Literal.Create("11"))),
 
-                    VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
-                    Loop.CreateForEach("el", NameFactory.Nat8TypeReference(), 
-                        FunctionCall.Create( NameReference.Create("t",NameFactory.ReverseFunctionName)),
-                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                        VariableDeclaration.CreateStatement("w", null, Nat8Literal.Create("3"), env.Options.ReassignableModifier()),
+
+                        VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
+                        Loop.CreateForEach("el", NameFactory.Nat8TypeReference(),
+                            FunctionCall.Create(NameReference.Create("t", NameFactory.ReverseFunctionName)),
+                            new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),
                                 ExpressionFactory.Mul("w","el"))),
 
                             ExpressionFactory.IncBy("w",Nat8Literal.Create("2"))
-                            }),
-                    Return.Create(NameReference.Create("acc"))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
+                                }),
+                        Return.Create(NameReference.Create("acc"))
+                    ))
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var interpreter = new Interpreter.Interpreter(debugMode: false);
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)(11*3+7*5), result.RetValue.PlainValue);
+                Assert.AreEqual((byte)(11 * 3 + 7 * 5), result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -232,50 +252,54 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FilterFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            const string elem_name = "my_elem";
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "below",
-                NameFactory.BoolTypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
-                    ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                const string elem_name = "my_elem";
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("6"), Int64Literal.Create("2"))),
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "below",
+                    NameFactory.BoolTypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
 
-                    VariableDeclaration.CreateStatement("m", null,
-                        FunctionCall.Create(NameReference.Create("t", NameFactory.FilterFunctionName), NameReference.Create("below"))),
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
-                    VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), EntityModifier.Reassignable),
-                    Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
-                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                        VariableDeclaration.CreateStatement("m", null,
+                            FunctionCall.Create(NameReference.Create("t", NameFactory.FilterFunctionName), NameReference.Create("below"))),
+
+                        VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
+                        Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
+                            new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
-                    Return.Create(NameReference.Create("acc"))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
+                        Return.Create(NameReference.Create("acc"))
+                    ))
+                    .Include(NameFactory.LinqExtensionReference()));
 
-            var interpreter = new Interpreter.Interpreter(debugMode:false);
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -283,50 +307,54 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter MapFunction()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            const string elem_name = "my_elem";
-
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "pow",
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(
-                    Return.Create(ExpressionFactory.Mul("x", "x"))
-                    ))
-                .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(
-                    // let t *ITuple<Int,Int,Int> = (6,-2)
-                    VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
-                            // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
-                            // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
-                        Int64Literal.Create("6"), Int64Literal.Create("-2"))),
-
-                    VariableDeclaration.CreateStatement("m", null,
-                        FunctionCall.Create(NameReference.Create("t", NameFactory.MapFunctionName), NameReference.Create("pow"))),
-
-                    VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), EntityModifier.Reassignable),
-                    Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
-                        new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
-                    Return.Create(NameReference.Create("acc"))
-                ))
-                .Include(NameFactory.LinqExtensionReference()));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(40L, result.RetValue.PlainValue);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                const string elem_name = "my_elem";
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "pow",
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(
+                        Return.Create(ExpressionFactory.Mul("x", "x"))
+                        ))
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(
+                        // let t *ITuple<Int,Int,Int> = (6,-2)
+                        VariableDeclaration.CreateStatement("t",
+                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
+                                NameFactory.Int64TypeReference(),
+                                // todo: use sink
+                                NameFactory.Int64TypeReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                // todo: use sink for all of them
+                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                            Int64Literal.Create("6"), Int64Literal.Create("-2"))),
+
+                        VariableDeclaration.CreateStatement("m", null,
+                            FunctionCall.Create(NameReference.Create("t", NameFactory.MapFunctionName), NameReference.Create("pow"))),
+
+                        VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
+                        Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
+                            new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
+                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                        Return.Create(NameReference.Create("acc"))
+                    ))
+                    .Include(NameFactory.LinqExtensionReference()));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual(40L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -334,35 +362,39 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverConcatenatedMixedIterables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
-                .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
-                .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
-                    EntityModifier.Public | EntityModifier.Reassignable))
-                .With(ExpressionFactory.BasicConstructor(new[] { "x" },
-                    new[] { NameFactory.Int64TypeReference() })));
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("PointA")
-                .SetModifier(EntityModifier.Mutable)
-                .Parents("BasePoint")
-                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
-                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("a")))
-                    .Parameters(FunctionParameter.Create("a", NameFactory.Int64TypeReference()))));
+                root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
+                    .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
+                    .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
+                        EntityModifier.Public | env.Options.ReassignableModifier()))
+                    .With(ExpressionFactory.BasicConstructor(new[] { "x" },
+                        new[] { NameFactory.Int64TypeReference() })));
 
-            root_ns.AddBuilder(TypeBuilder.Create("PointB")
-                .SetModifier(EntityModifier.Mutable)
-                .Parents("BasePoint")
-                .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
-                    FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("b")))
-                    .Parameters(FunctionParameter.Create("b", NameFactory.Int64TypeReference()))));
+                root_ns.AddBuilder(TypeBuilder.Create("PointA")
+                    .SetModifier(EntityModifier.Mutable)
+                    .Parents("BasePoint")
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
+                        FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("a")))
+                        .Parameters(FunctionParameter.Create("a", NameFactory.Int64TypeReference()))));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                root_ns.AddBuilder(TypeBuilder.Create("PointB")
+                    .SetModifier(EntityModifier.Mutable)
+                    .Parents("BasePoint")
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
+                        FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("b")))
+                        .Parameters(FunctionParameter.Create("b", NameFactory.Int64TypeReference()))));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let t ITuple<*PointA,*PointA,*PointA> = (6,-2)
                     VariableDeclaration.CreateStatement("t",
                         NameFactory.TupleTypeReference(
@@ -390,19 +422,19 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c",null,
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
 
-                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach("pt",
                         null,
                         NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("pt","x"))) }),
                     Return.Create(NameReference.Create("acc"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -410,16 +442,20 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverConcatenatedUniformIterables()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            const string elem_name = "my_elem";
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                const string elem_name = "my_elem";
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (6,-2)
                     VariableDeclaration.CreateStatement("t",
                         NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
@@ -439,17 +475,17 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("c",null,
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
 
-                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach(elem_name,NameFactory.Int64TypeReference(),NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -457,14 +493,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverAutoResizedArray()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("array",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.Int64TypeReference()))),
 
@@ -477,17 +517,17 @@ namespace Skila.Tests.Execution
                     // the same effect as above, but using different route
                     FunctionCall.Create(NameReference.Create("array",NameFactory.AppendFunctionName),Int64Literal.Create("-5")),
 
-                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach("elem",NameFactory.Int64TypeReference(),NameReference.Create("array"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -495,14 +535,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter IteratingOverTuple()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (4,-2)
                     VariableDeclaration.CreateStatement("t",
                         NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.Int64TypeReference(),
@@ -513,17 +557,17 @@ namespace Skila.Tests.Execution
                             // todo: use sink for all of them
                             NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(),NameFactory.Int64TypeReference()),
                         Int64Literal.Create("4"),Int64Literal.Create("-2"))),
-                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),EntityModifier.Reassignable),
+                    VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach("elem",NameFactory.Int64TypeReference(),NameReference.Create("t"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -531,14 +575,18 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter AccessingTuple()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (4,-2)
                     VariableDeclaration.CreateStatement("t",
                         NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.Int64TypeReference(),
@@ -555,12 +603,12 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("v1",null,FunctionCall.Indexer(NameReference.Create("t"),NatLiteral.Create("1"))),
                     // return v0+v1
                     Return.Create(ExpressionFactory.Add(NameReference.Create("v0"),NameReference.Create("v1")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -568,22 +616,26 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChunkOnStack()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
                         ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-6")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("1"))),
@@ -597,12 +649,12 @@ namespace Skila.Tests.Execution
                         Int64Literal.Create("777")),
                     Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("1")))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -610,22 +662,26 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ChunkOnHeap()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
                         ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
-                        EntityModifier.Reassignable),
+                        env.Options.ReassignableModifier()),
 
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-6")),
@@ -642,12 +698,12 @@ namespace Skila.Tests.Execution
                     Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),
                         FunctionArgument.Create(NatLiteral.Create("0"))),
                         FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("1")))))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

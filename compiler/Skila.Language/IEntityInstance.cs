@@ -10,6 +10,7 @@ namespace Skila.Language
 #endif
 
         INameReference NameOf { get; }
+        INameReference PureNameOf { get; }
 
         IEnumerable<EntityInstance> EnumerateAll();
         bool IsJoker { get; }
@@ -38,6 +39,7 @@ namespace Skila.Language
         bool CoreEquals(IEntityInstance instance);
         IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
         TypeMutability MutabilityOfType(ComputationContext ctx);
+        TypeMutability SurfaceMutabilityOfType(ComputationContext ctx);
 
         bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition);
     }

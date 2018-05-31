@@ -23,7 +23,7 @@ namespace Skila.Language.Entities
             this.instanceOf = new Later<EntityInstance>(instanceOfCreator);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, MutabilityOverride overrideMutability,
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
             TemplateTranslation translation)
         {
             EntityInstanceCore core = EntityInstanceCore.RAW_CreateUnregistered(entity, arguments, overrideMutability);

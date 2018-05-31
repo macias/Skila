@@ -15,14 +15,19 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter TraitFunctionCall()
         {
-            var env = Environment.Create(new Options() { AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true,
+                    DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     // e &IEquatable = 3
                     VariableDeclaration.CreateStatement("e",NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference()),
                         Int64Literal.Create("3")),
@@ -33,12 +38,12 @@ namespace Skila.Tests.Execution
                         new[]{ Return.Create(Int64Literal.Create("2")) }),
                     // return 15
                     Return.Create(Int64Literal.Create("15"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -46,7 +51,8 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter DuckVirtualCallInterface()
         {
-            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true, DebugThrowOnError = true }.DisableSingleMutability());
+            return duckVirtualCall(new Options() { InterfaceDuckTyping = true, AllowInvalidMainResult = true,
+                DebugThrowOnError = true });
         }
 
         [TestMethod]
@@ -58,46 +64,50 @@ namespace Skila.Tests.Execution
                 InterfaceDuckTyping = false,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
-        private IInterpreter duckVirtualCall(IOptions options)
+        private IInterpreter duckVirtualCall(Options options)
         {
-            var env = Environment.Create(options);
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(TypeBuilder.Create("X")
-                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
-                .With(FunctionBuilder.Create(
-                    "bar",
-                    null,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("X")
+                    .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                    .With(FunctionBuilder.Create(
+                        "bar",
+                        null,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("33"))
-                    }))));
+                        }))));
 
-            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionBuilder.Create("bar",
-                    null,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
+                    .With(FunctionBuilder.Create("bar",
+                        null,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
-                    }))));
+                        }))));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -110,7 +120,7 @@ namespace Skila.Tests.Execution
                 DebugThrowOnError = true,
                 InterfaceDuckTyping = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
         [TestMethod]
@@ -122,63 +132,69 @@ namespace Skila.Tests.Execution
                 AllowProtocols = true,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
-        private IInterpreter duckDeepVirtualCall(IOptions options)
+        private IInterpreter duckDeepVirtualCall(Options options)
         {
-            var env = Environment.Create(options);
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(TypeBuilder.Create("X")
-                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
-                .With(FunctionBuilder.Create(
-                    "bar",
-                    null,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("X")
+                    .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                    .With(FunctionBuilder.Create(
+                        "bar",
+                        null,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("33"))
-                    }))));
+                        }))));
 
-            root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .SetModifier(EntityModifier.Base)
-                .With(FunctionBuilder.Create(
-                    "bar",
-                    ExpressionReadMode.ReadRequired,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                root_ns.AddBuilder(TypeBuilder.Create("Y")
+                    .SetModifier(EntityModifier.Base)
+                    .With(FunctionBuilder.Create(
+                        "bar",
+                        ExpressionReadMode.ReadRequired,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("117"))
-                    }))
-                    .SetModifier(EntityModifier.Base)));
+                        }))
+                        .SetModifier(EntityModifier.Base)));
 
-            root_ns.AddBuilder(TypeBuilder.Create("Z")
-                .With(FunctionBuilder.Create(
-                    "bar",
-                    ExpressionReadMode.ReadRequired,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                root_ns.AddBuilder(TypeBuilder.Create("Z")
+                    .With(FunctionBuilder.Create(
+                        "bar",
+                        ExpressionReadMode.ReadRequired,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
-                    }))
-                    .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase))
-                    .Parents(NameReference.Create("Y")));
+                        }))
+                        .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase))
+                        .Parents(NameReference.Create("Y")));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("X")),null,
-                        EntityModifier.Reassignable),
+                VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameFactory.PointerTypeReference(NameReference.Create("X")), null,
+                        env.Options.ReassignableModifier());
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                    decl,
                     VariableDeclaration.CreateStatement("o",NameFactory.PointerTypeReference(NameReference.Create("Y")),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Z"))),
                     Assignment.CreateStatement(NameReference.Create("i"),NameReference.Create("o")),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -191,7 +207,7 @@ namespace Skila.Tests.Execution
                 DebugThrowOnError = true,
                 InterfaceDuckTyping = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
         [TestMethod]
@@ -203,46 +219,50 @@ namespace Skila.Tests.Execution
                 InterfaceDuckTyping = false,
                 DebugThrowOnError = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
-        private IInterpreter duckVirtualCallWithGenericBase(IOptions options)
+        private IInterpreter duckVirtualCallWithGenericBase(Options options)
         {
-            var env = Environment.Create(options);
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
-                    .Add("T").Values))
-                .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
-                .With(FunctionBuilder.CreateDeclaration(
-                    "bar",
-                    ExpressionReadMode.ReadRequired,
-                    NameReference.Create("T"))));
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
-                .With(FunctionBuilder.Create(
-                    "bar",
-                    ExpressionReadMode.ReadRequired,
-                    NameFactory.Int64TypeReference(),
-                    Block.CreateStatement(new[] {
+                root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("X", TemplateParametersBuffer.Create()
+                        .Add("T").Values))
+                    .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol)
+                    .With(FunctionBuilder.CreateDeclaration(
+                        "bar",
+                        ExpressionReadMode.ReadRequired,
+                        NameReference.Create("T"))));
+
+                TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
+                    .With(FunctionBuilder.Create(
+                        "bar",
+                        ExpressionReadMode.ReadRequired,
+                        NameFactory.Int64TypeReference(),
+                        Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
-                    }))));
+                        }))));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",
                         NameFactory.PointerTypeReference(NameReference.Create("X",NameFactory.Int64TypeReference())),
                         ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

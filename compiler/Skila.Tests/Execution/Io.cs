@@ -17,31 +17,35 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter CommandLine()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
-                        NameReference.Create(NameFactory.CommandLineProgramPath)),
-
-                    ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestArgument),
-                        FunctionCall.Create(NameReference.Create(NameFactory.CommandLineArguments, NameFactory.AtFunctionName),
-                            NatLiteral.Create("0"))),
-
-                    Return.Create(Nat8Literal.Create("0"))
-                )).
-                Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral)),
-                    FunctionParameter.Create(NameFactory.CommandLineArguments,
-                        NameFactory.StringPointerTypeReference(MutabilityOverride.Neutral), Variadic.Create(), null, isNameRequired: false)));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
+                            NameReference.Create(NameFactory.CommandLineProgramPath)),
+
+                        ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestArgument),
+                            FunctionCall.Create(NameReference.Create(NameFactory.CommandLineArguments, NameFactory.AtFunctionName),
+                                NatLiteral.Create("0"))),
+
+                        Return.Create(Nat8Literal.Create("0"))
+                    )).
+                    Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly)),
+                        FunctionParameter.Create(NameFactory.CommandLineArguments,
+                            NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly), Variadic.Create(), null, isNameRequired: false)));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -49,24 +53,29 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FileExists()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("e", null, FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
-                        NameFactory.FileExists), StringLiteral.Create(randomTextFilePath))),
-                    IfBranch.CreateIf(NameReference.Create("e"), new[] { Return.Create(Int64Literal.Create("2")) },
-                        IfBranch.CreateElse(new[] { Return.Create(Int64Literal.Create("-5")) }))
-                )));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
+                    .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("e", null, FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
+                            NameFactory.FileExists), StringLiteral.Create(randomTextFilePath))),
+                        IfBranch.CreateIf(NameReference.Create("e"), new[] { Return.Create(Int64Literal.Create("2")) },
+                            IfBranch.CreateElse(new[] { Return.Create(Int64Literal.Create("-5")) }))
+                    )));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -74,30 +83,35 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter FileReadingLines()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
-
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat64TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("lines", null,
-                        ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(), NameFactory.FileReadLines),
-                            StringLiteral.Create(randomTextFilePath)))),
-                    // first line is "It was" (without quotes)
-                    VariableDeclaration.CreateStatement("first", null,
-                        FunctionCall.Create(NameReference.Create("lines", NameFactory.PropertyIndexerName), NatLiteral.Create("0"))),
-                    // 6
-                    VariableDeclaration.CreateStatement("len", null,
-                        NameReference.Create("first", NameFactory.IIterableCount)),
-                    Return.Create(NameReference.Create("len"))
-                )));
-
             var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(6UL, result.RetValue.PlainValue);
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
+                    .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat64TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("lines", null,
+                            ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(), NameFactory.FileReadLines),
+                                StringLiteral.Create(randomTextFilePath)))),
+                        // first line is "It was" (without quotes)
+                        VariableDeclaration.CreateStatement("first", null,
+                            FunctionCall.Create(NameReference.Create("lines", NameFactory.PropertyIndexerName), NatLiteral.Create("0"))),
+                        // 6
+                        VariableDeclaration.CreateStatement("len", null,
+                            NameReference.Create("first", NameFactory.IIterableCount)),
+                        Return.Create(NameReference.Create("len"))
+                    )));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual(6UL, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }

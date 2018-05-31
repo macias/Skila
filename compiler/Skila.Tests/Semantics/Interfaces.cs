@@ -16,31 +16,36 @@ namespace Skila.Tests.Semantics
         [TestMethod]
         public IErrorReporter ErrorCallingConstructor()
         {
-            var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("IX")
-                .SetModifier(EntityModifier.Interface));
+                root_ns.AddBuilder(TypeBuilder.Create("IX")
+                    .SetModifier(EntityModifier.Interface));
 
-            NameReference typename = NameReference.Create("IX");
-            NameReference cons_ref;
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "foo", 
-                ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                NameReference typename = NameReference.Create("IX");
+                NameReference cons_ref;
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "foo",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
 
-                Block.CreateStatement(new[] {
+                    Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
                         ExpressionFactory.StackConstructor(typename,out cons_ref)),
                     ExpressionFactory.Readout("x")
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            // todo: currently the error is too generic and it is reported for hidden node
-            // translate this to meaningful error and for typename
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, cons_ref));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                // todo: currently the error is too generic and it is reported for hidden node
+                // translate this to meaningful error and for typename
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.ReferenceNotFound, cons_ref));
+            }
 
             return resolver;
         }
@@ -53,7 +58,7 @@ namespace Skila.Tests.Semantics
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true
-            }.DisableSingleMutability());
+            });
         }
         [TestMethod]
         public IErrorReporter DuckTypingProtocols()
@@ -65,46 +70,50 @@ namespace Skila.Tests.Semantics
                 AllowInvalidMainResult = true,
                 DebugThrowOnError = true,
                 AllowProtocols = true,
-            }.DisableSingleMutability());
+            });
         }
 
-        private IErrorReporter duckTyping(IOptions options)
+        private IErrorReporter duckTyping(Options options)
         {
-            var env = Environment.Create(options);
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("IX")
-                 .With(FunctionBuilder.CreateDeclaration(
-                     "bar",
-                     ExpressionReadMode.OptionalUse,
-                     NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
-                     .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
-                 .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
+                root_ns.AddBuilder(TypeBuilder.Create("IX")
+                     .With(FunctionBuilder.CreateDeclaration(
+                         "bar",
+                         ExpressionReadMode.OptionalUse,
+                         NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
+                         .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
+                     .SetModifier(env.Options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
-            root_ns.AddBuilder(TypeBuilder.Create("X")
-                .With(FunctionBuilder.Create("bar",
-                    ExpressionReadMode.OptionalUse,
-                    // subtype of original result typename -- this is legal
-                    NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
-                    Block.CreateStatement(new[] {
+                root_ns.AddBuilder(TypeBuilder.Create("X")
+                    .With(FunctionBuilder.Create("bar",
+                        ExpressionReadMode.OptionalUse,
+                        // subtype of original result typename -- this is legal
+                        NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        Block.CreateStatement(new[] {
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
-                    }))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))));
+                        }))
+                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))));
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,EntityModifier.Reassignable),
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,env.Options.ReassignableModifier()),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
 
             return resolver;
         }
@@ -117,7 +126,7 @@ namespace Skila.Tests.Semantics
                 InterfaceDuckTyping = true,
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
         [TestMethod]
@@ -129,36 +138,40 @@ namespace Skila.Tests.Semantics
                 InterfaceDuckTyping = false,
                 DiscardingAnyExpressionDuringTests = true,
                 AllowInvalidMainResult = true
-            }.DisableSingleMutability());
+            });
         }
 
-        private IErrorReporter errorDuckTypingValues(IOptions options)
+        private IErrorReporter errorDuckTypingValues(Options options)
         {
-            var env = Environment.Create(options);
-            var root_ns = env.Root;
+            NameResolver resolver = null;
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("IX")
-                 .SetModifier(options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
+                root_ns.AddBuilder(TypeBuilder.Create("IX")
+                     .SetModifier(env.Options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
-            root_ns.AddBuilder(TypeBuilder.Create("X"));
+                root_ns.AddBuilder(TypeBuilder.Create("X"));
 
-            IExpression init_value = ExpressionFactory.StackConstructor(NameReference.Create("X"));
-            // even with duck typing we cannot make the assigment because slicing is forbidden in all cases
-            VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value);
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                IExpression init_value = ExpressionFactory.StackConstructor(NameReference.Create("X"));
+                // even with duck typing we cannot make the assigment because slicing is forbidden in all cases
+                VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value);
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     decl,
                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
-                })));
+                    })));
 
-            var resolver = NameResolver.Create(env);
+                resolver = NameResolver.Create(env);
 
-            Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-            Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, init_value));
+            }
 
             return resolver;
         }

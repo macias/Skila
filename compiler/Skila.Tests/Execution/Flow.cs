@@ -15,34 +15,38 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ParallelOptionalDeclaration()
         {
-            var env = Language.Environment.Create(new Options()
-            {
-                DebugThrowOnError = true,
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options()
+                {
+                    DebugThrowOnError = true,
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
                         VariablePrototype.Create("x",NameFactory.Nat8TypeReference()),
                         VariablePrototype.Create("y",NameFactory.Nat8TypeReference()) }, new[] {
                             ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("2")),
                             ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("7")),
                         });
 
-            root_ns.AddBuilder(FunctionBuilder.Create("main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    IfBranch.CreateIf(opt_declaration,
-                            Return.Create(ExpressionFactory.Add("x", "y")),
-                        IfBranch.CreateElse(
-                            ExpressionFactory.GenericThrow()
-                            ))
-                )));
+                root_ns.AddBuilder(FunctionBuilder.Create("main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        IfBranch.CreateIf(opt_declaration,
+                                Return.Create(ExpressionFactory.Add("x", "y")),
+                            IfBranch.CreateElse(
+                                ExpressionFactory.GenericThrow()
+                                ))
+                    )));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)9, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -50,64 +54,68 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ShortcutComputationInOptionalDeclaration()
         {
-            // purpose: check if RHS of the optional declaration is computed only when it is needed
-            // here we count RHS computations and since we declare two variables
-            // let (x,y) =? (None,Some)
-            // Some should not be executed, because `x` assigment fails first
-            var env = Language.Environment.Create(new Options()
+            var interpreter = new Interpreter.Interpreter();
+
+            foreach (bool single_mutability in new[] { true, false })
             {
-                DebugThrowOnError = true,
-                DiscardingAnyExpressionDuringTests = true,
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
+                // purpose: check if RHS of the optional declaration is computed only when it is needed
+                // here we count RHS computations and since we declare two variables
+                // let (x,y) =? (None,Some)
+                // Some should not be executed, because `x` assigment fails first
+                var env = Language.Environment.Create(new Options()
+                {
+                    DebugThrowOnError = true,
+                    DiscardingAnyExpressionDuringTests = true,
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            root_ns.AddBuilder(TypeBuilder.Create("Mutator")
-                .SetModifier(EntityModifier.Mutable)
-                .With(VariableDeclaration.CreateStatement("c", NameFactory.IntTypeReference(), null,
-                    EntityModifier.Reassignable | EntityModifier.Public)));
+                root_ns.AddBuilder(TypeBuilder.Create("Mutator")
+                    .SetModifier(EntityModifier.Mutable)
+                    .With(VariableDeclaration.CreateStatement("c", NameFactory.IntTypeReference(), null,
+                        env.Options.ReassignableModifier() | EntityModifier.Public)));
 
-            // return Some or None depending on the `f` parameter, and also increments the count of option evaluations
-            root_ns.AddBuilder(FunctionBuilder.Create("give", NameFactory.OptionTypeReference(NameFactory.Nat8TypeReference()),
-                Block.CreateStatement(
-                        ExpressionFactory.Inc(() => NameReference.Create("m", "c")),
-                        Return.Create(ExpressionFactory.Ternary(NameReference.Create("f"),
-                            ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("11")),
-                            ExpressionFactory.OptionEmpty(NameFactory.Nat8TypeReference())))
-                    ))
-                    .Parameters(FunctionParameter.Create("f", NameFactory.BoolTypeReference()),
-                    FunctionParameter.Create("m", NameFactory.ReferenceTypeReference(NameReference.Create("Mutator")))));
+                // return Some or None depending on the `f` parameter, and also increments the count of option evaluations
+                root_ns.AddBuilder(FunctionBuilder.Create("give", NameFactory.OptionTypeReference(NameFactory.Nat8TypeReference()),
+                    Block.CreateStatement(
+                            ExpressionFactory.Inc(() => NameReference.Create("m", "c")),
+                            Return.Create(ExpressionFactory.Ternary(NameReference.Create("f"),
+                                ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("11")),
+                                ExpressionFactory.OptionEmpty(NameFactory.Nat8TypeReference())))
+                        ))
+                        .Parameters(FunctionParameter.Create("f", NameFactory.BoolTypeReference()),
+                        FunctionParameter.Create("m", NameFactory.ReferenceTypeReference(NameReference.Create("Mutator")))));
 
-            IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
+                IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
                         VariablePrototype.Create("x",NameFactory.Nat8TypeReference()),
                         VariablePrototype.Create("y",NameFactory.Nat8TypeReference()) }, new[] {
                             FunctionCall.Create("give",BoolLiteral.CreateFalse(),NameReference.Create("mut")),
                             FunctionCall.Create("give",BoolLiteral.CreateTrue(),NameReference.Create("mut")),
                         });
 
-            root_ns.AddBuilder(FunctionBuilder.Create("main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("mut", null, ExpressionFactory.StackConstructor(NameReference.Create("Mutator"))),
+                root_ns.AddBuilder(FunctionBuilder.Create("main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("mut", null, ExpressionFactory.StackConstructor(NameReference.Create("Mutator"))),
 
-                    IfBranch.CreateIf(opt_declaration,
-                        new[] {
+                        IfBranch.CreateIf(opt_declaration,
+                            new[] {
                             ExpressionFactory.Readout("x"),
                             ExpressionFactory.Readout("y"),
                             ExpressionFactory.GenericThrow(),
-                        },
-                        IfBranch.CreateElse(
-                            // crucial check -- we should not evaluate the second option
-                            ExpressionFactory.AssertEqual(IntLiteral.Create("1"), NameReference.Create("mut", "c"))
-                            )),
+                            },
+                            IfBranch.CreateElse(
+                                // crucial check -- we should not evaluate the second option
+                                ExpressionFactory.AssertEqual(IntLiteral.Create("1"), NameReference.Create("mut", "c"))
+                                )),
 
-                    Return.Create(Nat8Literal.Create("0"))
-                )));
+                        Return.Create(Nat8Literal.Create("0"))
+                    )));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)0, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -115,50 +123,54 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter InitializationWithOptionalAssignment()
         {
-            var env = Language.Environment.Create(new Options()
+            var interpreter = new Interpreter.Interpreter();
+
+            foreach (bool single_mutability in new[] { true, false })
             {
-                DebugThrowOnError = true,
-                DiscardingAnyExpressionDuringTests = true,
-            }.DisableSingleMutability());
-            var root_ns = env.Root;
+                var env = Language.Environment.Create(new Options()
+                {
+                    DebugThrowOnError = true,
+                    DiscardingAnyExpressionDuringTests = true,
+                }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
 
-            // this test is a bit tougher than regular opt.assignment, because variables will be 
-            // initialized for the first time with this assigment
-            root_ns.AddBuilder(FunctionBuilder.Create("main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
-                Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), EntityModifier.Reassignable),
+                // this test is a bit tougher than regular opt.assignment, because variables will be 
+                // initialized for the first time with this assigment
+                root_ns.AddBuilder(FunctionBuilder.Create("main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8TypeReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
 
 
-                    VariableDeclaration.CreateStatement("x", null,
-                        ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("3"))),
-                    VariableDeclaration.CreateStatement("z", null,
-                        ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("5"))),
+                        VariableDeclaration.CreateStatement("x", null,
+                            ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("3"))),
+                        VariableDeclaration.CreateStatement("z", null,
+                            ExpressionFactory.OptionOf(NameFactory.Nat8TypeReference(), Nat8Literal.Create("5"))),
 
-                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(), null, EntityModifier.Reassignable),
-                    VariableDeclaration.CreateStatement("b", NameFactory.Nat8TypeReference(), null, EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(), null, env.Options.ReassignableModifier()),
+                        VariableDeclaration.CreateStatement("b", NameFactory.Nat8TypeReference(), null, env.Options.ReassignableModifier()),
 
-                    IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(
-                        new[] { NameReference.Create("a"), NameReference.Create("b") },
-                        new[] { NameReference.Create("x"), NameReference.Create("z") }),
-                        new[] {
+                        IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(
+                            new[] { NameReference.Create("a"), NameReference.Create("b") },
+                            new[] { NameReference.Create("x"), NameReference.Create("z") }),
+                            new[] {
                             // assign tracker should recognize the variable is initialized
                         ExpressionFactory.IncBy("acc", NameReference.Create("a")),
-                        },
-                        // making else branch a dead one
-                        IfBranch.CreateElse(ExpressionFactory.GenericThrow())),
+                            },
+                            // making else branch a dead one
+                            IfBranch.CreateElse(ExpressionFactory.GenericThrow())),
 
-                    // assign tracker should recognize the variable is initialized (because `else` branch of above `if` is dead)
-                    ExpressionFactory.IncBy("acc", NameReference.Create("b")),
+                        // assign tracker should recognize the variable is initialized (because `else` branch of above `if` is dead)
+                        ExpressionFactory.IncBy("acc", NameReference.Create("b")),
 
-                    Return.Create(NameReference.Create("acc"))
-                )));
+                        Return.Create(NameReference.Create("acc"))
+                    )));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual((byte)8, result.RetValue.PlainValue);
+                Assert.AreEqual((byte)8, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
@@ -166,54 +178,61 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ThrowingException()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            root_ns.AddBuilder(FunctionBuilder.Create(
-                "thrower",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "thrower",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.GenericThrow()
-                })));
+                    })));
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     FunctionCall.Create(NameReference.Create("thrower")),
                     Return.Create(Int64Literal.Create("1"))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.IsTrue(result.IsThrow);
+                Assert.IsTrue(result.IsThrow);
+            }
 
             return interpreter;
         }
 
-
         [TestMethod]
         public IInterpreter IfBranches()
         {
-            var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.DisableSingleMutability());
-            var root_ns = env.Root;
+            var interpreter = new Interpreter.Interpreter();
 
-            var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
-                "main",
-                ExpressionReadMode.OptionalUse,
-                NameFactory.Int64TypeReference(),
-                Block.CreateStatement(new IExpression[] {
+            foreach (bool single_mutability in new[] { true, false })
+            {
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var root_ns = env.Root;
+
+                var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Int64TypeReference(),
+                    Block.CreateStatement(new IExpression[] {
                     IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { Return.Create(Int64Literal.Create("5")) },
                     IfBranch.CreateElse(new[] { Return.Create(Int64Literal.Create("2"))                }))
-                })));
+                    })));
 
-            var interpreter = new Interpreter.Interpreter();
-            ExecValue result = interpreter.TestRun(env);
+                ExecValue result = interpreter.TestRun(env);
 
-            Assert.AreEqual(2L, result.RetValue.PlainValue);
+                Assert.AreEqual(2L, result.RetValue.PlainValue);
+            }
 
             return interpreter;
         }
