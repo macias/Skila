@@ -18,10 +18,10 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorDisabledProtocols()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 // just testing if disabling protocols (default) option really works
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
@@ -49,9 +49,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter PassingTraitAsIncorrectInterface()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -93,9 +93,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorCallingTraitMethodOnHost()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -143,9 +143,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorMisplacedConstraint()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 TemplateConstraint constraints = ConstraintBuilder.Create("BOO").SetModifier(EntityModifier.Const);
@@ -167,9 +167,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorTraitDefinition()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Bar")
@@ -226,9 +226,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter BasicTraitDefinition()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.None)));
@@ -250,9 +250,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter TranslationTableOfInferredCommonTypes()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 TemplateParameter template_param = TemplateParametersBuffer.Create("T").Values.Single();
@@ -290,9 +290,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter InternalDirectTranslationTables()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { MiniEnvironment = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { MiniEnvironment = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 const string parent_typename = "Oldman";
@@ -338,9 +338,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter InternalIndirectTranslationTables()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { MiniEnvironment = true, DiscardingAnyExpressionDuringTests = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { MiniEnvironment = true, DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 const string proxy_typename = "Proxy";
@@ -403,9 +403,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorPassingReferenceAsTypeArgument()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("proxy",
@@ -440,9 +440,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter InferredPartialTemplateArgumentsOnConstraints()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("part",
@@ -477,9 +477,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter InferredTemplateArgumentsOnConstraints()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("part",
@@ -514,9 +514,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorConflictingConstConstraint()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Mut").SetModifier(EntityModifier.Mutable));
@@ -546,9 +546,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorConflictingTypesConstraint()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Parent")
@@ -581,9 +581,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorHasConstraint()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true, AllowProtocols = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",

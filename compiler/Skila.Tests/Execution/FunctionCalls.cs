@@ -17,13 +17,13 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 // todo: add analogous test with storing iterable as sequence
 
                 // yes, this test seems like pointless thing but it is important nevertheless because
                 // we have to check if conversion does NOT happen
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -55,9 +55,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("provider", NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
@@ -110,9 +110,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -153,9 +153,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -196,9 +196,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -239,9 +239,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -290,13 +290,13 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Language.Environment.Create(new Options()
                 {
                     AllowInvalidMainResult = true,
                     DebugThrowOnError = true
-                }.SetSingleMutability(single_mutability));
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -345,9 +345,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -396,9 +396,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
@@ -437,9 +437,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
@@ -479,10 +479,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
 
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -507,10 +507,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
-                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                    AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -545,9 +545,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -587,9 +587,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var inc_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -622,9 +622,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(

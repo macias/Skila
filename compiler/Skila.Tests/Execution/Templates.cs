@@ -17,9 +17,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("oracle", "O", VarianceMode.None,
@@ -59,10 +59,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true,
-                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                    AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -108,10 +108,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true,
-                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                    AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -160,10 +160,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true,
-                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                    AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -213,10 +213,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true,
-                    AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                    AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
@@ -265,10 +265,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true,
-                    AllowProtocols = true, DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                    AllowProtocols = true, DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
@@ -312,14 +312,14 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options()
                 {
                     AllowInvalidMainResult = true,
                     AllowProtocols = true,
                     DebugThrowOnError = true
-                }.SetSingleMutability(single_mutability));
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",

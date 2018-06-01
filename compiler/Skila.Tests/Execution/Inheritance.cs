@@ -17,10 +17,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true,
-                    DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                    DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateEnum("Weekend")
@@ -62,14 +62,14 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options()
                 {
                     AllowProtocols = true,
                     AllowInvalidMainResult = true,
                     DebugThrowOnError = true
-                }.SetSingleMutability(single_mutability));
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("GetPos")
@@ -113,10 +113,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true,
-                    DebugThrowOnError = true, AllowProtocols = true }.SetSingleMutability(single_mutability));
+                    DebugThrowOnError = true, AllowProtocols = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("IGetPos")
@@ -170,10 +170,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true,
-                    DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                    DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("MyBase")
@@ -220,10 +220,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { ReferencingBase = true, AllowInvalidMainResult = true,
-                    DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                    DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("IBase")

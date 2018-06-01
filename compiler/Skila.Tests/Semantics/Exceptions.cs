@@ -13,9 +13,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorThrowingNonException()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 Int64Literal throw_value = Int64Literal.Create("3");

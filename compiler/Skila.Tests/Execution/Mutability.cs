@@ -17,10 +17,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
@@ -76,10 +76,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
@@ -122,10 +122,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
 
                 var root_ns = env.Root;
 
@@ -163,7 +163,8 @@ namespace Skila.Tests.Execution
         [TestMethod]
         public IInterpreter ReassigningValues()
         {
-            var env = Environment.Create(new Options() { DebugThrowOnError = true });
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }
+                .SetMutability(MutabilityModeOption.SingleMutability));
             var root_ns = env.Root;
 
             root_ns.AddBuilder(FunctionBuilder.Create(
@@ -174,6 +175,34 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(TypeMutability.ForceMutable),
                         Nat8Literal.Create("2")),
                     Assignment.CreateStatement(NameReference.Create("a"), Nat8Literal.Create("13")),
+                    Return.Create(NameReference.Create("a"))
+                )));
+
+            var interpreter = new Interpreter.Interpreter();
+            ExecValue result = interpreter.TestRun(env);
+
+            Assert.AreEqual((byte)13, result.RetValue.PlainValue);
+
+            return interpreter;
+        }
+
+        [TestMethod]
+        public IInterpreter NoMutability()
+        {
+            var env = Environment.Create(new Options() { DebugThrowOnError = true }
+                .SetMutability(MutabilityModeOption.OnlyAssignability));
+            var root_ns = env.Root;
+
+            root_ns.AddBuilder(FunctionBuilder.Create(
+                "main",
+                ExpressionReadMode.OptionalUse,
+                NameFactory.Nat8TypeReference(),
+                Block.CreateStatement(
+                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(TypeMutability.ForceMutable),
+                        Nat8Literal.Create("2"), env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("b", NameFactory.Nat8TypeReference(TypeMutability.ForceConst),
+                        Nat8Literal.Create("13")),
+                    Assignment.CreateStatement(NameReference.Create("a"), NameReference.Create("b")),
                     Return.Create(NameReference.Create("a"))
                 )));
 

@@ -16,9 +16,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter PreferringNonVariadicFunction()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetMutability(mutability));
                 var root_ns = env.Root;
                 var system_ns = env.SystemNamespace;
 
@@ -55,9 +55,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter DistinctTypesOverloadCall()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetMutability(mutability));
                 var root_ns = env.Root;
                 var system_ns = env.SystemNamespace;
 
@@ -98,9 +98,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter DistinctRequiredNamesOverloadCall()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -141,9 +141,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter TemplatedSpecializedOverloadCall()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -179,9 +179,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter InheritanceSpecializedOverloadCall()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { GlobalVariables = true, RelaxedMode = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(

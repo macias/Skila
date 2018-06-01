@@ -19,9 +19,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -55,10 +55,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -85,10 +85,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

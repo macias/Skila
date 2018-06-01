@@ -303,7 +303,7 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
-            if (ctx.Env.Options.SingleMutability && this.Modifier.HasReassignable)
+            if (ctx.Env.Options.MutabilityMode== MutabilityModeOption.SingleMutability && this.Modifier.HasReassignable)
                 throw new ArgumentException("Cannot have both");
 
             this.ValidateRestrictedMember(ctx);
@@ -313,7 +313,7 @@ namespace Skila.Language.Entities
             {
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
-                else 
+                else if (ctx.Env.Options.MutabilityMode!= MutabilityModeOption.OnlyAssignability)
                 {
                     TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
                     if (!mutability.HasFlag(TypeMutability.ForceConst) && !mutability.HasFlag(TypeMutability.ConstAsSource))
@@ -378,7 +378,7 @@ namespace Skila.Language.Entities
             if (this.Modifier.HasReassignable)
                 return true;
 
-            if (ctx.Env.Options.SingleMutability)
+            if (ctx.Env.Options.MutabilityMode== MutabilityModeOption.SingleMutability)
             {
                 TypeMutability mutability = this.Evaluation.Components.SurfaceMutabilityOfType(ctx);
                 if (mutability.HasFlag(TypeMutability.ForceMutable))

@@ -16,9 +16,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorSettingCustomGetter()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 // we can assign property using getter (only in constructor) but getter has to be auto-generated, 
@@ -46,9 +46,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorGetterOverridesNothing()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options().SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options().SetMutability(mutability));
                 var root_ns = env.Root;
 
                 Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
@@ -72,9 +72,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorAssigningRValue()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -111,9 +111,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorIgnoringGetter()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
@@ -147,9 +147,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorMultipleAccessors()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
@@ -175,9 +175,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorAlteringReadOnlyProperty()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")

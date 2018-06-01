@@ -17,10 +17,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true, DiscardingAnyExpressionDuringTests = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -47,13 +47,13 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 // at this point Skila adheres to the standard but maybe should raise an exception for every NaN
                 // and this way remove them from the language (similarly to null pointers)
                 // https://stackoverflow.com/questions/5394424/causes-for-nan-in-c-application-that-do-no-raise-a-floating-point-exception
                 // https://stackoverflow.com/questions/2941611/can-i-make-gcc-tell-me-when-a-calculation-results-in-nan-or-inf-at-runtime
-                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowRealMagic = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -80,9 +80,9 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -111,10 +111,10 @@ namespace Skila.Tests.Execution
         {
             var interpreter = new Interpreter.Interpreter();
 
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

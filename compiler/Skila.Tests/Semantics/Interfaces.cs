@@ -17,10 +17,10 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorCallingConstructor()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
-                    .SetSingleMutability(single_mutability));
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -76,9 +76,9 @@ namespace Skila.Tests.Semantics
         private IErrorReporter duckTyping(Options options)
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var env = Environment.Create(options.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("IX")
@@ -144,9 +144,9 @@ namespace Skila.Tests.Semantics
         private IErrorReporter errorDuckTypingValues(Options options)
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(options.SetSingleMutability(single_mutability));
+                var env = Environment.Create(options.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("IX")

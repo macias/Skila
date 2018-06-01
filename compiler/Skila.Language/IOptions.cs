@@ -35,10 +35,8 @@ namespace Skila.Language
         bool AllowNamedSelf { get; }
         bool AtomicPrimitivesMutable { get; }
 
-        // when false (obsolete mode) -- there is a difference between mutating data and reassigning
-        // when true (righteous mode) -- mutability dictates everything, either variable can be reassigned/mutated, or not at all
-        // the switch was introduced around 2018-05-29
-        bool SingleMutability { get; }
+        // mutability switch was introduced around 2018-05-29
+        MutabilityModeOption MutabilityMode { get; }
     }
 
     public static class IOptionsExtension
@@ -56,13 +54,13 @@ namespace Skila.Language
         public static EntityModifier ReassignableModifier<T>(this T options)
             where T : IOptions
         {
-            return options.SingleMutability ? EntityModifier.Mutable : EntityModifier.Reassignable;
+            return options.MutabilityMode== MutabilityModeOption.SingleMutability ? EntityModifier.Mutable : EntityModifier.Reassignable;
         }
 
         public static TypeMutability ReassignableTypeMutability<T>(this T options)
             where T : IOptions
         {
-            return options.SingleMutability ? TypeMutability.ForceMutable : TypeMutability.Reassignable;
+            return options.MutabilityMode == MutabilityModeOption.SingleMutability ? TypeMutability.ForceMutable : TypeMutability.Reassignable;
         }
         
     }

@@ -224,7 +224,7 @@ namespace Skila.Language
 
                 TypeMutability target_mutability = target.MutabilityOfType(ctx);
                 if (matching.CheckMutability
-                    && !MutabilityMatches(inputMutability, target_mutability))
+                    && !MutabilityMatches(ctx.Env.Options, inputMutability, target_mutability))
                 {
                     match = TypeMatch.Mismatched(mutability: true);
                     return true;
@@ -245,12 +245,15 @@ namespace Skila.Language
             return false;
         }
 
-        internal static bool MutabilityMatches(TypeMutability inputMutability, TypeMutability targetMutability)
+        internal static bool MutabilityMatches(IOptions options, TypeMutability inputMutability, TypeMutability targetMutability)
         {
             if (inputMutability.HasFlag(TypeMutability.Reassignable))
                 inputMutability ^= TypeMutability.Reassignable;
             if (targetMutability.HasFlag(TypeMutability.Reassignable))
                 targetMutability ^= TypeMutability.Reassignable;
+
+            if (options.MutabilityMode == MutabilityModeOption.OnlyAssignability) 
+                return true;
 
             switch (inputMutability)
             {

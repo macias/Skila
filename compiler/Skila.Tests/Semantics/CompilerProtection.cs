@@ -19,9 +19,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter Environment()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.SetMutability(mutability));
 
                 resolver = NameResolver.Create(env);
 
@@ -35,13 +35,13 @@ namespace Skila.Tests.Semantics
         public IErrorReporter EnvironmentOption2()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Language.Environment.Create(new Options()
                 {
                     DebugThrowOnError = true,
                     StaticMemberOnlyThroughTypeName = true
-                }.SetSingleMutability(single_mutability));
+                }.SetMutability(mutability));
 
                  resolver = NameResolver.Create(env);
 
@@ -55,10 +55,10 @@ namespace Skila.Tests.Semantics
         public IErrorReporter MiniEnvironment()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 var env = Language.Environment.Create(new Options() { MiniEnvironment = true,
-                    DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                    DebugThrowOnError = true }.SetMutability(mutability));
 
                 resolver = NameResolver.Create(env);
 
@@ -72,9 +72,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter Internals()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
 
                 resolver = NameResolver.Create(env);
 
@@ -88,9 +88,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter CircularConversion()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Foo", "T", VarianceMode.Out))
@@ -117,9 +117,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter CrossRecursiveCalls()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("foo")
@@ -148,9 +148,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter CircularMutabilityCheck()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var chain_type = root_ns.AddBuilder(TypeBuilder.Create("Chain")
@@ -167,10 +167,10 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorUsingFunctionAsProperty()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
                 // when writing this test compiler crashed when the function was called like a property
-                var env = Skila.Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Skila.Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 NameReference func_name = NameReference.Create("b", NameFactory.IIterableCount);
@@ -197,9 +197,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ConflictingTypeNameWithAlias()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Whatever")

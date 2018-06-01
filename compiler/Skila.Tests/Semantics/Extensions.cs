@@ -16,9 +16,9 @@ namespace Skila.Tests.Semantics
         public IErrorReporter ErrorInvalidDefinitions()
         {
             NameResolver resolver = null;
-            foreach (bool single_mutability in new[] { true, false })
+            foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetSingleMutability(single_mutability));
+                var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 Extension ext = root_ns.AddNode(Extension.Create());

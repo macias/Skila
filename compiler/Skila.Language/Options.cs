@@ -1,11 +1,22 @@
 ﻿using NaiveLanguageTools.Common;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Skila.Language
 {
     public sealed class Options : IOptions
     {
+        public static IEnumerable<MutabilityModeOption> AllMutabilityModes => EnumExtensions.GetValues<MutabilityModeOption>();
+        public static IEnumerable<MutabilityModeOption> StrictMutabilityModes
+        {
+            get
+            {
+                yield return MutabilityModeOption.MutabilityAndAssignability;
+                yield return MutabilityModeOption.SingleMutability;
+            }
+        }
+
         private bool debugThrowOnError;
         public bool DebugThrowOnError
         {
@@ -43,16 +54,24 @@ namespace Skila.Language
         public bool AllowProtocols { get; set; }
         public bool AllowRealMagic { get; set; }
         public bool AtomicPrimitivesMutable { get; set; }
-        public bool SingleMutability { get; private set; }
+        private MutabilityModeOption? singleMutability;
+        public MutabilityModeOption MutabilityMode
+        {
+            get
+            {
+                if (!this.singleMutability.HasValue)
+                    throw new Exception();
+                return this.singleMutability.Value;
+            }
+        }
 
         public Options()
         {
-            this.SingleMutability = true;
         }
 
-        public Options SetSingleMutability(bool value)
+        public Options SetMutability(MutabilityModeOption value)
         {
-            this.SingleMutability = value;
+            this.singleMutability = value;
             return this;
         }
 
