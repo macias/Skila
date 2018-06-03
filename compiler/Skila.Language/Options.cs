@@ -7,13 +7,21 @@ namespace Skila.Language
 {
     public sealed class Options : IOptions
     {
-        public static IEnumerable<MutabilityModeOption> AllMutabilityModes => EnumExtensions.GetValues<MutabilityModeOption>();
+        public static IEnumerable<MutabilityModeOption> AllMutabilityModes
+        {
+            get
+            {
+                yield return MutabilityModeOption.MutabilityAndAssignability;
+                //yield return MutabilityModeOption.SingleMutability;
+                yield return MutabilityModeOption.OnlyAssignability;
+            }
+        }
         public static IEnumerable<MutabilityModeOption> StrictMutabilityModes
         {
             get
             {
                 yield return MutabilityModeOption.MutabilityAndAssignability;
-                yield return MutabilityModeOption.SingleMutability;
+                //yield return MutabilityModeOption.SingleMutability;
             }
         }
 

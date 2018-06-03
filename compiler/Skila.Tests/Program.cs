@@ -32,7 +32,7 @@ namespace Skila.Tests
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
                 // new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
-                //new Semantics.Mutability().ErrorAssigningMutableToImmutable();
+                new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
@@ -64,7 +64,7 @@ namespace Skila.Tests
 
            // if (false)
             {
-                const double golden_avg_s = 4.48;
+                const double golden_avg_s = 2.96;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -79,7 +79,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 4.61;
+                const double golden_avg_s = 3.01;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

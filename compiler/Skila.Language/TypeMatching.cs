@@ -18,12 +18,10 @@ namespace Skila.Language
         public bool DuckTyping { get; private set; }
         public VarianceMode Position { get; set; }
         // this one is because of given scenario 
-        private bool ignoreMutabilityByCase;
+        public bool ForcedIgnoreMutability { get; private set; }
         // this one is check purely by data, pointers/references in general require mutability check
         // because data are shared
-        private bool mutabilityCheckRequestByData;
-
-        public bool CheckMutability => this.mutabilityCheckRequestByData;
+        public bool MutabilityCheckRequestByData { get; private set; }
 
         internal TypeMatching WithSlicing(bool slicing)
         {
@@ -34,18 +32,18 @@ namespace Skila.Language
         public TypeMatching WithIgnoredMutability(bool ignored)
         {
             TypeMatching result = this;
-            result.ignoreMutabilityByCase = ignored;
+            result.ForcedIgnoreMutability = ignored;
             return result;
         }
 
         internal TypeMatching WithMutabilityCheckRequest(bool value)
         {
             // do not grant check request if we are already ignoring mutability
-            if (this.ignoreMutabilityByCase)
+            if (this.ForcedIgnoreMutability)
                 return this;
 
             TypeMatching result = this;
-            result.mutabilityCheckRequestByData = value;
+            result.MutabilityCheckRequestByData = value;
             return result;
         }
     }

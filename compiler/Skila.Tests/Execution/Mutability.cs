@@ -160,8 +160,8 @@ namespace Skila.Tests.Execution
             return interpreter;
         }
 
-        [TestMethod]
-        public IInterpreter ReassigningValues()
+        //[TestMethod]
+        public IInterpreter OBSOLETE_ReassigningValues()
         {
             var env = Environment.Create(new Options() { DebugThrowOnError = true }
                 .SetMutability(MutabilityModeOption.SingleMutability));

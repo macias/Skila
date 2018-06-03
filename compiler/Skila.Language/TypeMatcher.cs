@@ -27,7 +27,7 @@ namespace Skila.Language
             return vtable != null;
         }
 
-        private static bool strictTemplateMatches(ComputationContext ctx, EntityInstance input, EntityInstance target, 
+        private static bool strictTemplateMatches(ComputationContext ctx, EntityInstance input, EntityInstance target,
             TypeMatching matching)
         {
             if (input.Target != target.Target)
@@ -207,7 +207,8 @@ namespace Skila.Language
             return TypeMatch.No;
         }
 
-        private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability, EntityInstance input, EntityInstance target,
+        private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability,
+            EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
             if (input.DebugId == (10, 7603) && target.DebugId == (10, 7607))
@@ -222,9 +223,27 @@ namespace Skila.Language
                 // passing some mutable instance, wrapper would be still immutable despite the fact it holds mutable data
                 // this would be disastrous when working concurrently (see more in Documentation/Mutability)
 
-                TypeMutability target_mutability = target.MutabilityOfType(ctx);
-                if (matching.CheckMutability
-                    && !MutabilityMatches(ctx.Env.Options, inputMutability, target_mutability))
+                bool mutability_matches;
+                {
+                    TypeMutability target_mutability = target.MutabilityOfType(ctx);
+                    // cheapest part to compute
+                    mutability_matches = MutabilityMatches(ctx.Env.Options, inputMutability, target_mutability);
+
+                    // fixing mutability mismatch
+                    if (!mutability_matches 
+                        &&
+                    (matching.ForcedIgnoreMutability
+                        // in case when we have two value types in hand mutability does not matter, because we copy
+                        // instances and they are separate beings afterwards
+                        || (!matching.MutabilityCheckRequestByData 
+                            && input.TargetType.IsValueType(ctx) && target.TargetType.IsValueType(ctx))))
+                    {
+                        mutability_matches = true;
+                    }
+                }
+
+
+                if (!mutability_matches)
                 {
                     match = TypeMatch.Mismatched(mutability: true);
                     return true;
@@ -252,7 +271,7 @@ namespace Skila.Language
             if (targetMutability.HasFlag(TypeMutability.Reassignable))
                 targetMutability ^= TypeMutability.Reassignable;
 
-            if (options.MutabilityMode == MutabilityModeOption.OnlyAssignability) 
+            if (options.MutabilityMode == MutabilityModeOption.OnlyAssignability)
                 return true;
 
             switch (inputMutability)
@@ -352,8 +371,8 @@ namespace Skila.Language
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
-//                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
-            result = ctx.Env.Reference(result, mutability_override, null, via_pointer);
+                //                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
+                result = ctx.Env.Reference(result, mutability_override, null, via_pointer);
             return result != null;
         }
 

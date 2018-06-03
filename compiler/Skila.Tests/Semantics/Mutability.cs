@@ -16,6 +16,83 @@ namespace Skila.Tests.Semantics
     public class Mutability
     {
         [TestMethod]
+        public IErrorReporter ErrorMutabilityNotIgnoredOnNonValueCopy()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.StrictMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options()
+                {
+                    DiscardingAnyExpressionDuringTests = true,
+                }.SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("Mutant")
+                    .With(VariableDeclaration.CreateStatement("x", NameFactory.PointerTypeReference( NameFactory.IntTypeReference()), 
+                        Undef.Create(), EntityModifier.Public))
+                    .SetModifier(EntityModifier.Mutable));
+
+                // we cannot make such assignment, because type is not pure value, 
+                // so its field (pointer) can be shared and mutated this way
+                VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameReference.Create(TypeMutability.ForceMutable, "Mutant"),
+                            ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst, "Mutant")));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "foo", null,
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
+
+                    Block.CreateStatement(new[] {
+                        decl,
+                    ExpressionFactory.Readout("x"),
+                })));
+
+                resolver = NameResolver.Create(env);
+
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, decl.InitValue));
+            }
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter MutabilityIgnoredOnValueCopy()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options()
+                {
+                    DiscardingAnyExpressionDuringTests = true,
+                    DebugThrowOnError = true
+                }.SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("Mutant")
+                    .With(VariableDeclaration.CreateStatement("x",NameFactory.IntTypeReference(),Undef.Create(),EntityModifier.Public))
+                    .SetModifier(EntityModifier.Mutable));
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "foo", null,
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitTypeReference(),
+
+                    Block.CreateStatement(new[] {
+                        VariableDeclaration.CreateStatement("x",NameReference.Create(TypeMutability.ForceMutable,"Mutant"),
+                            ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst,"Mutant"))),
+                    ExpressionFactory.Readout("x"),
+                })));
+
+                resolver = NameResolver.Create(env);
+
+                Assert.AreEqual(0, resolver.ErrorManager.Errors.Count);
+            }
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorAssigningToNonReassignableData()
         {
             NameResolver resolver = null;
@@ -747,8 +824,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.StrictMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { GlobalVariables = true,
-                    RelaxedMode = true }.SetMutability(mutability));
+                var env = Language.Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Bar")
