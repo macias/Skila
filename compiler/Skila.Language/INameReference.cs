@@ -1,9 +1,10 @@
 ﻿using Skila.Language.Extensions;
-using System.Collections.Generic;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language
 {
-    public interface INameReference : IReferentialName,ISurfable
+    public interface INameReference : IReferentialName,ISurfable,IPrintable
     {
         bool IsBindingComputed { get; }
 

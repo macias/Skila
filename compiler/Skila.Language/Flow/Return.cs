@@ -7,6 +7,7 @@ using Skila.Language.Expressions;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
 using System;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Flow
 {
@@ -33,10 +34,15 @@ namespace Skila.Language.Flow
         }
         public override string ToString()
         {
-            string result = "return";
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            var code = new CodeSpan("return");
             if (Expr != null)
-                result += " " + Expr.ToString();
-            return result;
+                code.Append(" ").Append(Expr.Printout());
+            return code;
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -48,82 +54,15 @@ namespace Skila.Language.Flow
         {
             base.Validate(ctx);
 
-            escapeReferenceValidation(ctx);
-
-        }
-
-        private void escapeReferenceValidation(ComputationContext ctx)
-        {
-            // in case of references we have to make sure they won't outlive their sources, consider such examples:
-            // def foo(x ref int) ref int
-            //   return x;
-            // end
-            // this is ok, because assuming input is valid, we can legally return the reference
-
-            // def bar() ref int
-            //   x int = 5;
-            //   return x;
-            // end
-            // this is wrong, we would return reference (address) to the data living on stack, at the moment
-            // of return stack is deleted and we have address to phantom data
-
-
-            // TODO: currently it is disaster, it is the effect of lack of time, implement it properly
-            if (this.Expr != null && ctx.Env.IsReferenceOfType(this.Expr.Evaluation.Components))
-            {
-                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                if (func != null && ctx.Env.IsReferenceOfType(func.ResultTypeName.Evaluation.Components))
-                {
-                    if (this.Expr is AddressOf address_of)
-                    {
-                        IEntityVariable entity = address_of.Expr.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
-
-                        if (entity is VariableDeclaration decl)
-                        {
-                            throw new NotImplementedException();
-                            //if (!address_of.Expr.TargetsCurrentInstanceMember(out IMember dummy))
-                            //  ctx.AddError(ErrorCode.EscapingReference, this.Expr);
-                        }
-                        else if (entity is Property prop)
-                        {
-                            if (!address_of.Expr.TargetsCurrentInstanceMember(out IMember dummy))
-                                ctx.AddError(ErrorCode.EscapingReference, this.Expr);
-                        }
-                        else
-                            ctx.AddError(ErrorCode.EscapingReference, this.Expr);
-                    }
-                    else
-                    {
-                        IEntityVariable entity = this.Expr.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
-
-                        if (entity is FunctionParameter)
-                        {
-                            ; // ok
-                        }
-                        else if (entity is VariableDeclaration decl)
-                        {
-                            // todo: this is incorrect, we need to add lifetime control, in this case we return local variable
-                            // but the source of this variable could be local (error) or external (like function parameter -- OK)
-                            ;
-                        }
-                        else if (this.Expr is FunctionCall call)
-                        {
-                            if (!call.Name.TargetsCurrentInstanceMember(out IMember dummy1) &&
-                                !call.Name.Prefix.TargetsCurrentInstanceMember(out IMember dummy2))
-                                ctx.AddError(ErrorCode.EscapingReference, this.Expr);
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                            //ctx.AddError(ErrorCode.EscapingReference, this.Expr);
-                        }
-                    }
-                }
-            }
         }
 
         public override void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId==   (18, 377))
+            {
+                ;
+            }
+
             if (this.Evaluation == null)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
@@ -134,13 +73,13 @@ namespace Skila.Language.Flow
                     if (func.IsResultTypeNameInfered)
                     {
                         if (this.Expr == null)
-                            func.AddResultTypeCandidate(ctx.Env.UnitType.InstanceOf.NameOf);
+                            func.AddResultTypeCandidate(ctx.Env.UnitType.InstanceOf);
                         else
-                            func.AddResultTypeCandidate(this.Expr.Evaluation.Components.NameOf);
+                            func.AddResultTypeCandidate(this.Expr.Evaluation.Components);
                     }
                     else
                     {
-                        IEntityInstance func_result = func.ResultTypeName.Evaluation.Components;
+                        IEntityInstance func_result = func.ResultParameter.TypeName.Evaluation.Components;
 
                         if (this.Expr == null)
                         {

@@ -20,19 +20,20 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                //new Semantics.CompilerProtection().Environment();
+                new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //  new Semantics.Expressions().ErrorIsSameOnValues();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
-                //new Semantics.Flow().CombiningBranchedInitialization();
-                //  new Semantics.FunctionCalls().VariadicFunctionWithMixedFormArguments();
+                //new Semantics.Flow().ErrorUnreachableCodeAfterBreakSingleReport();
+                //   new Semantics.FunctionCalls().ErrorVariadicFunctionMissingSpread();
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
+                new Semantics.Lifetimes().ErrorLocalVariableReferenceEscapesFromFunction();
                 // new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
-                new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
+                // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
@@ -42,29 +43,29 @@ namespace Skila.Tests
                 //new Semantics.Types().ErrorInOutVariance();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
-                //new Execution.Closures().PassingLocalVariables();
-                //new Execution.Collections().AllFailureFunction();
+                // new Execution.Closures().ClosureRecursiveCall();
+                //new Execution.Collections().AccessingTuple();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
-                // new Execution.Flow().ParallelOptionalDeclaration();
+                 //new Execution.Flow().ShortcutComputationInOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
-                //new Execution.Inheritance().TypeUnion();
+                //new Execution.Inheritance().InheritingEnums();
                 //new Execution.Interfaces().DuckDeepVirtualCallInterface();
                 //new Execution.Io().CommandLine();
                 //new Execution.Library().StringToInt();
-               //new Execution.Mutability().NoMutability();
+                //new Execution.Mutability().NoMutability();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
                 //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
-                //new Execution.Pointers().DereferenceOnAssignment();
+                //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().SwapPointers();
                 //new Execution.Text().StringUtf8Encoding();
             }
 
-           // if (false)
+            // if (false)
             {
-                const double golden_avg_s = 2.96;
+                const double golden_avg_s = 2.04;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -79,7 +80,7 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 3.01;
+                const double golden_avg_s = 2.06;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
 

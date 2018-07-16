@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Expressions
 {
@@ -40,7 +42,12 @@ namespace Skila.Language.Expressions
         public override string ToString()
         {
             int count = this.Instructions.Count();
-            return (this.Instructions.FirstOrDefault()?.ToString() ?? "") + (count > 1 ? $"...{{{count}}}" : "");
+            return (this.Instructions.FirstOrDefault()?.Printout()?.ToString() ?? "") + (count > 1 ? $"...{{{count}}}" : "");
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan().Append("{").Append(" ").Append(this.Instructions, " ;; ").Append(" ").Append("}");
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

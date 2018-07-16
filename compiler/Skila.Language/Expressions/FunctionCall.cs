@@ -6,6 +6,8 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using Skila.Language.Entities;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
@@ -142,7 +144,12 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            return this.Callee + "(" + UserArguments.Select(it => it == null ? "Ø" : it.ToString()).Join(",") + ")";
+            return this.Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            return new CodeSpan(this.Callee).Append("(").Append(this.UserArguments, ",").Append(")");
         }
 
         public void Validate(ComputationContext ctx)
@@ -306,13 +313,14 @@ namespace Skila.Language.Expressions
                         if (this.Resolution.InferredTemplateArguments == null)
                         {
                             // leave only binding which was used for mapping
-                            this.Name.Binding.Filter(it => it == this.Resolution.TargetFunctionInstance);
+                            this.Name.Binding.Filter(it => it.IsIdentical(this.Resolution.TargetFunctionInstance));
                         }
                         else
                         {
                             NameReference this_name = this.Name;
                             this_name.DetachFrom(this);
-                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments,
+                            this.callee = this_name.Recreate(this.Resolution.InferredTemplateArguments
+                                    .Select(it => new TemplateArgument(it)),
                                 this.Resolution.TargetFunctionInstance, this_name.Binding.Match.IsLocal);
                             this.callee.AttachTo(this);
 

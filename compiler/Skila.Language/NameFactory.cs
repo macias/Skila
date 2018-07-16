@@ -196,7 +196,7 @@ namespace Skila.Language
 
         public const string GetTypeFunctionName = "getType";
 
-        public static NameReference UnitTypeReference()
+        public static NameReference UnitNameReference()
         {
             return NameReference.Create(NameReference.Root, UnitTypeName);
         }
@@ -205,25 +205,25 @@ namespace Skila.Language
         {
             return $"item{index}";
         }
-        public static NameReference IFunctionTypeReference(params INameReference[] types)
+        public static NameReference IFunctionNameReference(params INameReference[] types)
         {
             return NameReference.Create(NameReference.Root, IFunctionTypeName, types);
         }
 
 
-        public static NameReference Int16TypeReference()
+        public static NameReference Int16NameReference()
         {
             return NameReference.Create(NameReference.Root, Int16TypeName);
         }
-        public static NameReference Int64TypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference Int64NameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create( mutability, NameReference.Root, Int64TypeName);
         }
-        public static NameReference IntTypeReference()
+        public static NameReference IntNameReference()
         {
             return NameReference.Create(NameReference.Root, IntTypeName);
         }
-        public static NameReference Nat8TypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference Nat8NameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, NameReference.Root, Nat8TypeName);
         }
@@ -232,23 +232,23 @@ namespace Skila.Language
             return NameReference.Create(NameFactory.Sink);
         }
 
-        public static NameReference Nat64TypeReference()
+        public static NameReference Nat64NameReference()
         {
             return NameReference.Create(NameReference.Root, Nat64TypeName);
         }
-        public static NameReference NatTypeReference()
+        public static NameReference NatNameReference()
         {
             return NameReference.Create(NameReference.Root, NatTypeName);
         }
-        public static NameReference SizeTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference SizeNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, NameReference.Root, SizeTypeName);
         }
-        public static NameReference SelfTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference SelfNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SelfTypeTypeName);
         }
-        /* public static NameReference EnumTypeReference()
+        /* public static NameReference EnumNameReference()
          {
              return NameReference.Create(NameReference.Root, EnumTypeName);
          }*/
@@ -256,15 +256,15 @@ namespace Skila.Language
         {
             return NameReference.Create(ThisVariableName);
         }
-        public static NameReference ItTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference ItNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, ItTypeName);
         }
-        public static NameReference BoolTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference BoolNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, NameReference.Root, BoolTypeName);
         }
-        public static NameReference CharTypeReference()
+        public static NameReference CharNameReference()
         {
             return NameReference.Create(NameReference.Root, CharTypeName);
         }
@@ -284,34 +284,34 @@ namespace Skila.Language
 
         public static NameReference OrderingEqualReference()
         {
-            return NameReference.Create(OrderingTypeReference(), OrderingEqual);
+            return NameReference.Create(OrderingNameReference(), OrderingEqual);
         }
         public static NameReference OrderingLessReference()
         {
-            return NameReference.Create(OrderingTypeReference(), OrderingLess);
+            return NameReference.Create(OrderingNameReference(), OrderingLess);
         }
         public static NameReference OrderingGreaterReference()
         {
-            return NameReference.Create(OrderingTypeReference(), OrderingGreater);
+            return NameReference.Create(OrderingNameReference(), OrderingGreater);
         }
 
-        public static NameReference DayOfWeekTypeReference()
+        public static NameReference DayOfWeekNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), DayOfWeekTypeName);
         }
-        public static NameReference DateTypeReference()
+        public static NameReference DateNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), DateTypeName);
         }
-        public static NameReference IEquatableTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference IEquatableNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), IEquatableTypeName);
         }
-        public static NameReference ChannelTypeReference(string templateParamName)
+        public static NameReference ChannelNameReference(string templateParamName)
         {
-            return ChannelTypeReference(NameReference.Create(templateParamName));
+            return ChannelNameReference(NameReference.Create(templateParamName));
         }
-        public static NameReference ChannelTypeReference(NameReference templateParamName)
+        public static NameReference ChannelNameReference(NameReference templateParamName)
         {
             return NameReference.Create(ConcurrencyNamespaceReference(), ChannelTypeName, templateParamName);
         }
@@ -331,35 +331,35 @@ namespace Skila.Language
         {
             return NameReference.Create(SystemNamespaceReference(), StoreFunctionName);
         }
-        public static NameReference IIndexableTypeReference(string templateParamName, TypeMutability overrideMutability = TypeMutability.None)
+        public static NameReference IIndexableNameReference(string templateParamName, TypeMutability overrideMutability = TypeMutability.None)
         {
-            return IIndexableTypeReference(NameReference.Create(templateParamName), overrideMutability);
+            return IIndexableNameReference(NameReference.Create(templateParamName), overrideMutability);
         }
-        public static NameReference IIteratorTypeReference(INameReference templateTypeName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference IIteratorNameReference(INameReference templateTypeName, TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), IIteratorTypeName, templateTypeName);
         }
-        public static NameReference IIteratorTypeReference(string templateTypeName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference IIteratorNameReference(string templateTypeName, TypeMutability mutability = TypeMutability.None)
         {
-            return IIteratorTypeReference(NameReference.Create(templateTypeName), mutability);
+            return IIteratorNameReference(NameReference.Create(templateTypeName), mutability);
         }
-        public static NameReference Utf8StringIteratorTypeReference()
+        public static NameReference Utf8StringIteratorNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), Utf8StringIteratorTypeName);
         }
-        public static NameReference IndexIteratorTypeReference(INameReference templateTypeName)
+        public static NameReference IndexIteratorNameReference(INameReference templateTypeName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), IndexIteratorTypeName, templateTypeName);
         }
-        public static NameReference FileTypeReference()
+        public static NameReference FileNameReference()
         {
             return NameReference.Create(IoNamespaceReference(), FileTypeName);
         }
-        public static NameReference IndexIteratorTypeReference(string templateTypeName)
+        public static NameReference IndexIteratorNameReference(string templateTypeName)
         {
-            return IndexIteratorTypeReference(NameReference.Create(templateTypeName));
+            return IndexIteratorNameReference(NameReference.Create(templateTypeName));
         }
-        public static NameReference IIndexableTypeReference(INameReference templateTypeName,
+        public static NameReference IIndexableNameReference(INameReference templateTypeName,
             TypeMutability overrideMutability = TypeMutability.None)
         {
             return NameReference.Create(overrideMutability, CollectionsNamespaceReference(), IIndexableTypeName, templateTypeName);
@@ -368,46 +368,46 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), LinqExtensionName);
         }
-        public static NameReference ICountedTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference ICountedNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), ICountedTypeName);
         }
-        public static NameReference ISequenceTypeReference(INameReference templateTypeName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference ISequenceNameReference(INameReference templateTypeName, TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), ISequenceTypeName, templateTypeName);
         }
-        public static NameReference ISequenceTypeReference(string templateParamName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference ISequenceNameReference(string templateParamName, TypeMutability mutability = TypeMutability.None)
         {
-            return ISequenceTypeReference(NameReference.Create(templateParamName), mutability);
+            return ISequenceNameReference(NameReference.Create(templateParamName), mutability);
         }
 
-        public static NameReference IIterableTypeReference(string templateParamName,
+        public static NameReference IIterableNameReference(string templateParamName,
             TypeMutability overrideMutability = TypeMutability.None)
         {
-            return IIterableTypeReference(NameReference.Create(templateParamName), overrideMutability);
+            return IIterableNameReference(NameReference.Create(templateParamName), overrideMutability);
         }
 
-        public static NameReference IIterableTypeReference(NameReference templateParamName,
+        public static NameReference IIterableNameReference(NameReference templateParamName,
             TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), IIterableTypeName,
                 templateParamName);
         }
 
-        public static NameReference ChunkTypeReference(string templateParamName)
+        public static NameReference ChunkNameReference(string templateParamName)
         {
-            return ChunkTypeReference(NameReference.Create(templateParamName));
+            return ChunkNameReference(NameReference.Create(templateParamName));
         }
 
-        public static NameReference ChunkTypeReference(INameReference templateParamName)
+        public static NameReference ChunkNameReference(INameReference templateParamName)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ChunkTypeName, templateParamName);
         }
-        public static NameReference ArrayTypeReference(string templateParamName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference ArrayNameReference(string templateParamName, TypeMutability mutability = TypeMutability.None)
         {
-            return ArrayTypeReference(NameReference.Create(templateParamName), mutability);
+            return ArrayNameReference(NameReference.Create(templateParamName), mutability);
         }
-        public static NameReference ArrayTypeReference(INameReference templateParamName, TypeMutability mutability = TypeMutability.None)
+        public static NameReference ArrayNameReference(INameReference templateParamName, TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, CollectionsNamespaceReference(), ArrayTypeName, templateParamName);
         }
@@ -415,7 +415,7 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), ConcatFunctionName);
         }
-        public static NameReference TupleTypeReference(params INameReference[] templateParamNames)
+        public static NameReference TupleNameReference(params INameReference[] templateParamNames)
         {
             return NameReference.Create(CollectionsNamespaceReference(), TupleTypeName, templateParamNames);
         }
@@ -423,16 +423,16 @@ namespace Skila.Language
         {
             return NameReference.Create(CollectionsNamespaceReference(), TupleTypeName);
         }
-        public static NameReference ITupleTypeReference(params INameReference[] templateParamNames)
+        public static NameReference ITupleNameReference(params INameReference[] templateParamNames)
         {
             return NameReference.Create(CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
-        public static NameReference ITupleMutableTypeReference(params INameReference[] templateParamNames)
+        public static NameReference ITupleMutableNameReference(params INameReference[] templateParamNames)
         {
             return NameReference.Create(TypeMutability.ForceMutable, CollectionsNamespaceReference(), ITupleTypeName, templateParamNames);
         }
 
-        public static NameReference IObjectTypeReference(TypeMutability overrideMutability = TypeMutability.None)
+        public static NameReference IObjectNameReference(TypeMutability overrideMutability = TypeMutability.None)
         {
             return NameReference.Create(overrideMutability, NameReference.Root, IObjectTypeName);
         }
@@ -458,81 +458,80 @@ namespace Skila.Language
             return NameReference.Create(SystemNamespaceReference(), ConcurrencyNamespace);
         }
 
-        public static NameReference Utf8StringPointerTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference Utf8StringPointerNameReference(TypeMutability mutability = TypeMutability.None)
         {
-            return NameFactory.PointerTypeReference(Utf8StringTypeReference(mutability));
+            return NameFactory.PointerNameReference(Utf8StringNameReference(mutability));
         }
-        public static NameReference StringPointerTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference StringPointerNameReference(TypeMutability mutability = TypeMutability.None)
         {
-            return NameFactory.PointerTypeReference(StringTypeReference(mutability));
+            return NameFactory.PointerNameReference(StringNameReference(mutability));
         }
-        public static NameReference StringTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference StringNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.StringTypeName);
         }
-        public static NameReference Utf8StringTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference Utf8StringNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.Utf8StringTypeName);
         }
-        public static NameReference IComparableTypeReference(TypeMutability mutability = TypeMutability.None)
+        public static NameReference IComparableNameReference(TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.IComparableTypeName);
         }
-        public static NameReference OrderingTypeReference()
+        public static NameReference OrderingNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.OrderingTypeName);
         }
-        public static NameReference OptionTypeReference(INameReference name, TypeMutability mutability = TypeMutability.None)
+        public static NameReference OptionNameReference(INameReference name, TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }
-
-        public static NameReference ExceptionTypeReference()
+        public static NameReference ExceptionNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.ExceptionTypeName);
         }
-        public static NameReference TypeInfoPointerTypeReference()
+        public static NameReference TypeInfoPointerNameReference()
         {
-            return PointerTypeReference(NameReference.Create(SystemNamespaceReference(), NameFactory.TypeInfoTypeName));
+            return PointerNameReference(NameReference.Create(SystemNamespaceReference(), NameFactory.TypeInfoTypeName));
         }
-        public static NameReference CaptureTypeReference()
+        public static NameReference CaptureNameReference()
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.CaptureTypeName);
         }
-        public static NameReference MatchTypeReference()
+        public static NameReference MatchNameReference()
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.MatchTypeName);
         }
-        public static NameReference RegexTypeReference()
+        public static NameReference RegexNameReference()
         {
             return NameReference.Create(TextNamespaceReference(), NameFactory.RegexTypeName);
         }
-        public static NameReference RealTypeReference()
+        public static NameReference RealNameReference()
         {
             return NameReference.Create(NameReference.Root, NameFactory.RealTypeName);
         }
-        public static NameReference Real64TypeReference()
+        public static NameReference Real64NameReference()
         {
             return NameReference.Create(NameReference.Root, NameFactory.Real64TypeName);
         }
-        public static NameReference PointerTypeReference(INameReference name,TypeMutability mutability = TypeMutability.None)
+        public static NameReference PointerNameReference(INameReference name, TypeMutability mutability = TypeMutability.None)
         {
             return NameReference.Create(mutability, NameReference.Root, NameFactory.PointerTypeName, name);
         }
-        public static NameReference PointerTypeReference(string typeName)
+        public static NameReference PointerNameReference(string typeName)
         {
-            return PointerTypeReference(NameReference.Create(typeName));
+            return PointerNameReference(NameReference.Create(typeName));
         }
-        public static NameReference ReferenceTypeReference(INameReference name)
+        public static NameReference ReferenceNameReference(INameReference name)
         {
             return NameReference.Create(NameReference.Root, NameFactory.ReferenceTypeName, name);
         }
-        public static NameReference ReferenceTypeReference(string name)
+        public static NameReference ReferenceNameReference(string name)
         {
-            return ReferenceTypeReference(NameReference.Create(name));
+            return ReferenceNameReference(NameReference.Create(name));
         }
 
-        internal static INameReference ShouldBeThisTypeReference(string typeName, TypeMutability mutability = TypeMutability.None)
+        internal static INameReference ShouldBeThisNameReference(string typeName, TypeMutability mutability = TypeMutability.None)
         {
             // todo: Skila1 supported the notion of dynamic "this type", Skila-3 should also have it
             // so once we have time to do it this method will help us fast track all the use cases to replace

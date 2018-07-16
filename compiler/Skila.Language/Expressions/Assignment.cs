@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Entities;
 using Skila.Language.Semantics;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
@@ -133,14 +133,23 @@ namespace Skila.Language.Expressions
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
+        public override ICode Printout()
+        {
+            var code = new CodeSpan(this.Lhs.Printout(), 
+                new CodeText(" " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + " "), 
+                this.RhsValue.Printout());
+            if (this.ReadMode == ExpressionReadMode.ReadRequired)
+            {
+                code.Prepend("(");
+                code.Append(")");
+            }
+
+            return code;
+        }
+
         public override string ToString()
         {
-            string result = Lhs.ToString()
-                + " " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + " "
-                + this.RhsValue.ToString();
-            if (this.ReadMode == ExpressionReadMode.ReadRequired)
-                result = $"({result})";
-            return result;
+            return Printout().ToString();
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -182,18 +191,10 @@ namespace Skila.Language.Expressions
                 IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
                 if (lhs_var != null)
                 {
-                    // this is a bit rough, because the source of the assigment could be at the same scope as the target
-                    // and only assigment could be nested, but for the start it will suffice, so basically we check
-                    // if assignment to referential type is not done in nested scope, if yes, we assume it is escaping
-                    // reference and report an error
-                    if (lhs_var.IsFunctionContained() && lhs_var.Scope != this.Scope
-                        // todo: this is lame patch to make current code work, we need proper analysis ASAP
-                        && !(this.RhsValue is NameReference)
-                        && ctx.Env.IsReferenceOfType(lhs_var.Evaluation.Components)
-                        // todo: preserve the typematch (enhance DereferenceCount to full info) so we could here just check
-                        // if it is pure transfer, or auto-referencing, instead of again checking types
-                        && !ctx.Env.IsPointerOfType(this.RhsValue.Evaluation.Components))
-                        ctx.AddError(ErrorCode.EscapingReference, this);
+                    if (this.DebugId== (29, 29))
+                    {
+                        ;
+                    }
 
                     FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
                     // we deal with local assignments using assignment tracker
@@ -248,6 +249,10 @@ namespace Skila.Language.Expressions
             {
                 this.TrapClosure(ctx, ref this.rhsValue);
 
+                if (this.DebugId==  (27, 335))
+                {
+                    ;
+                }
                 this.DataTransfer(ctx, ref this.rhsValue, Lhs.Evaluation.Components);
 
                 this.Evaluation = this.RhsValue.Evaluation;

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateParameter : Node
+    public sealed class TemplateParameter : Node,IPrintable
     {
         public TypeDefinition AssociatedType { get; private set; }
         public EntityInstance InstanceOf { get; private set; }
@@ -50,17 +52,21 @@ namespace Skila.Language
             this.Constraint = constraint ?? TemplateConstraint.Create(NameReference.Create(this.Name), null, null, null, null);
 
             this.AssociatedType = TypeDefinition.CreateTypeParameter(this);
-            this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability: TypeMutability.None, translation:null);
+            this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability: TypeMutability.None, translation:null, lifetime: Lifetime.Timeless);
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
 
         public override string ToString()
         {
-            string result = VarianceModeExtensions.ToString(this.Variance);
-            if (result != "")
-                result += " ";
-            return result + Name;
+            return Printout().ToString();
+        }
+        public ICode Printout()
+        {
+            string var_str = VarianceModeExtensions.ToString(this.Variance);
+            if (var_str != "")
+                var_str += " ";
+            return new CodeText(var_str + Name);
         }
     }
 }

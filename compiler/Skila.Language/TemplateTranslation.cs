@@ -21,7 +21,7 @@ namespace Skila.Language
 
         public static TemplateTranslation Create(EntityInstance instance, IEnumerable<IEntityInstance> arguments)
         {
-            if (arguments==null || !arguments.Any())
+            if (arguments == null || !arguments.Any())
                 return instance.Translation;
 
             Dictionary<TemplateParameter, IEntityInstance> dict = instance.Translation.table.ToDictionary(it => it.Key, it => it.Value);
@@ -171,7 +171,7 @@ namespace Skila.Language
 
         public override int GetHashCode()
         {
-            return this.table.Aggregate(0, (acc, it) => acc ^ RuntimeHelpers.GetHashCode(it.Key) ^ RuntimeHelpers.GetHashCode(it.Value));
+            return this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
         }
 
         public bool Translate(TemplateParameter templateParameter, out IEntityInstance instanceArgument)

@@ -24,16 +24,16 @@ namespace Skila.Tests.Semantics
 
                 NameReference param_typename = NameReference.Create("Hi");
                 NameReference result_typename = NameReference.Create("Hi");
-                NameReference param_it_typename = NameFactory.ItTypeReference();
-                NameReference result_it_typename = NameFactory.ItTypeReference();
+                NameReference param_it_typename = NameFactory.ItNameReference();
+                NameReference result_it_typename = NameFactory.ItNameReference();
 
                 Dereference bad_dereference = Dereference.Create(NameReference.CreateThised());
 
-                NameReference decl_it_typename = NameFactory.ItTypeReference();
+                NameReference decl_it_typename = NameFactory.ItNameReference();
 
                 root_ns.AddBuilder(TypeBuilder.Create("Hi")
                     .SetModifier(EntityModifier.HeapOnly)
-                    .Parents(NameFactory.IObjectTypeReference())
+                    .Parents(NameFactory.IObjectNameReference())
 
                     .With(FunctionBuilder.Create("named", result_typename,
                     Block.CreateStatement(
@@ -54,7 +54,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     decl,
@@ -78,39 +78,6 @@ namespace Skila.Tests.Semantics
 
 
         [TestMethod]
-        public IErrorReporter ErrorReferenceEscapesFromScope()
-        {
-            NameResolver resolver = null;
-            foreach (var mutability in Options.AllMutabilityModes)
-            {
-                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
-                var root_ns = env.Root;
-
-                IExpression assignment = Assignment.CreateStatement(NameReference.Create("x"), Int64Literal.Create("3"));
-                root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
-
-                    Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()), null,
-                            env.Options.ReassignableModifier()),
-                        Block.CreateStatement(
-                            // escaping assignment, once we exit the scope we lose the source of the reference --> error
-                            assignment
-                            ),
-                        ExpressionFactory.Readout("x")
-                    )));
-
-                resolver = NameResolver.Create(env);
-
-                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, assignment));
-            }
-
-            return resolver;
-        }
-
-        [TestMethod]
         public IErrorReporter ErrorViolatingAssociatedReference()
         {
             NameResolver resolver = null;
@@ -121,18 +88,18 @@ namespace Skila.Tests.Semantics
 
                 FunctionDefinition first_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
                         .SetModifier(EntityModifier.UnchainBase)
-                        .Parameters(FunctionParameter.Create("y", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead),
-                            FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
+                        .Parameters(FunctionParameter.Create("y", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead),
+                            FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead));
 
                 FunctionDefinition second_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
                         .SetModifier(EntityModifier.UnchainBase)
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead));
 
                 VariableDeclaration first_field = VariableDeclaration.CreateStatement("a", 
-                    NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                    NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                     Undef.Create(), env.Options.ReassignableModifier() | EntityModifier.Public);
 
-                VariableDeclaration second_field = VariableDeclaration.CreateStatement("b", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                VariableDeclaration second_field = VariableDeclaration.CreateStatement("b", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                         Undef.Create(), EntityModifier.Public);
 
                 TypeDefinition type = root_ns.AddBuilder(TypeBuilder.Create("Hi")
@@ -142,14 +109,14 @@ namespace Skila.Tests.Semantics
                     .With(first_constructor)
                     .With(second_constructor));
 
-                NameReference parameter_typename = NameFactory.Int64TypeReference();
+                NameReference parameter_typename = NameFactory.Int64NameReference();
                 root_ns.AddBuilder(TypeBuilder.Create("HelloValue")
                     .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
                         .SetModifier(EntityModifier.UnchainBase)
                         .Parameters(FunctionParameter.Create("x", parameter_typename, ExpressionReadMode.CannotBeRead))));
 
-                FunctionParameter variadic_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                FunctionParameter variadic_param = FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                             Variadic.Create(2, 6), null, isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
                 root_ns.AddBuilder(TypeBuilder.Create("HelloVariadic")
                     .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
@@ -157,7 +124,7 @@ namespace Skila.Tests.Semantics
                         .SetModifier(EntityModifier.UnchainBase)
                         .Parameters(variadic_param)));
 
-                FunctionParameter optional_param = FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                FunctionParameter optional_param = FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                             Variadic.None, Int64Literal.Create("0"), isNameRequired: false, usageMode: ExpressionReadMode.CannotBeRead);
                 root_ns.AddBuilder(TypeBuilder.Create("HelloOptional")
                     .SetModifier(EntityModifier.AssociatedReference | EntityModifier.Mutable)
@@ -170,7 +137,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         value_decl,
                         ExpressionFactory.Readout("v")
@@ -194,36 +161,6 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorReferenceEscapesFromFunction()
-        {
-            NameResolver resolver = null;
-            foreach (var mutability in Options.AllMutabilityModes)
-            {
-                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
-                var root_ns = env.Root;
-
-                root_ns.AddBuilder(TypeBuilder.Create("Hi")
-                    .With(FunctionBuilder.Create("give", NameFactory.UnitTypeReference(), Block.CreateStatement())));
-
-                Return ret = Return.Create(ExpressionFactory.StackConstructor("Hi"));
-                root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.ReferenceTypeReference("Hi"),
-
-                    Block.CreateStatement(
-                        ret
-                    )));
-
-                resolver = NameResolver.Create(env);
-
-                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, ret.Expr));
-            }
-
-            return resolver;
-        }
-
-        [TestMethod]
         public IErrorReporter ErrorCallingHeapMethodOnValue()
         {
             NameResolver resolver = null;
@@ -233,14 +170,14 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Hi")
-                    .With(FunctionBuilder.Create("give", NameFactory.UnitTypeReference(), Block.CreateStatement())
+                    .With(FunctionBuilder.Create("give", NameFactory.UnitNameReference(), Block.CreateStatement())
                         .SetModifier(EntityModifier.HeapOnly)));
 
                 FunctionCall call = FunctionCall.Create(NameReference.Create("v", "give"));
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("v", null, ExpressionFactory.StackConstructor("Hi")),
@@ -256,46 +193,6 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
-        [TestMethod]
-        public IErrorReporter ErrorPersistentReferenceType()
-        {
-            NameResolver resolver = null;
-            foreach (var mutability in Options.AllMutabilityModes)
-            {
-                var env = Language.Environment.Create(new Options()
-                {
-                    DiscardingAnyExpressionDuringTests = true,
-                    GlobalVariables = true,
-                    RelaxedMode = true
-                }.SetMutability(mutability));
-                var root_ns = env.Root;
-
-                var decl1 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
-                    initValue: Undef.Create(), modifier: EntityModifier.Public);
-                root_ns.AddNode(decl1);
-
-                var decl2 = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
-                    initValue: Undef.Create(), modifier: EntityModifier.Static);
-
-                var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
-                    "notimportant",
-                    ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
-
-                    Block.CreateStatement(new[] {
-                    decl2,
-                    ExpressionFactory.Readout("bar")
-                    })));
-
-                resolver = NameResolver.Create(env);
-
-                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PersistentReferenceVariable, decl1));
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.PersistentReferenceVariable, decl2));
-            }
-
-            return resolver;
-        }
 
         [TestMethod]
         public IErrorReporter ImplicitValueReferenceConversion()
@@ -306,14 +203,14 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.Int64TypeReference(), initValue: Int64Literal.Create("3"));
-                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.Int64NameReference(), initValue: Int64Literal.Create("3"));
+                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                     initValue: NameReference.Create("foo"));
 
                 var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                     "notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     decl_src,
@@ -339,15 +236,15 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                var decl_src = VariableDeclaration.CreateStatement("foo", NameFactory.PointerNameReference(NameFactory.Int64NameReference()),
                     initValue: Undef.Create());
-                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                var decl_dst = VariableDeclaration.CreateStatement("bar", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                     initValue: NameReference.Create("foo"));
 
                 var func_def_void = root_ns.AddBuilder(FunctionBuilder.Create(
                     "notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     decl_src,
@@ -375,7 +272,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create("foo"),FunctionArgument.Create( Int64Literal.Create("5")))
@@ -383,10 +280,10 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement())
-                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Int64TypeReference()),
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Int64NameReference()),
                         usageMode: ExpressionReadMode.CannotBeRead)));
 
                 resolver = NameResolver.Create(env);

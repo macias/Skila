@@ -5,11 +5,13 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Builders;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameDefinition : Node, ITemplateName, ITemplateParameters
+    public sealed class NameDefinition : Node, ITemplateName, ITemplateParameters,IPrintable
     {
         public static NameDefinition Create(string name, IEnumerable<TemplateParameter> parameters)
         {
@@ -43,10 +45,19 @@ namespace Skila.Language
         }
         public override string ToString()
         {
-            string parameters = "";
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            var code = new CodeSpan(Name);
             if (Parameters.Any())
-                parameters = "<" + Parameters.Select(it => it.ToString()).Join(",") + ">";
-            return Name + parameters;
+            {
+                code.Append("<");
+                code.Append(Parameters, ",");
+                code.Append(">");
+            }
+            return code;
         }
 
         public NameReference CreateNameReference(IExpression prefix, EntityInstance targetInstance, bool isLocal)

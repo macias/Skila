@@ -6,6 +6,8 @@ using Skila.Language.Comparers;
 using Skila.Language.Data;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
+using Skila.Language.Entities;
+using System;
 
 namespace Skila.Language
 {
@@ -50,6 +52,14 @@ namespace Skila.Language
             return result;
         }
 
+        /*internal void RemoveLast(ILocalBindable bindable)
+        {
+            if (string.IsNullOrEmpty(bindable.Name.Name))
+                return;
+            this.bag.RemoveLast(bindable.Name, new LocalInfo(bindable));
+        }*/
+
+
         internal bool TryGet<T>(ITemplateName name, out T value)
             where T : class, IBindable
         {
@@ -81,5 +91,6 @@ namespace Skila.Language
                 result += " ...";
             return result;
         }
+
     }
 }

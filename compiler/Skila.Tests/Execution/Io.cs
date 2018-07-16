@@ -27,7 +27,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
                             NameReference.Create(NameFactory.CommandLineProgramPath)),
@@ -38,9 +38,9 @@ namespace Skila.Tests.Execution
 
                         Return.Create(Nat8Literal.Create("0"))
                     )).
-                    Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly)),
+                    Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, NameFactory.StringPointerNameReference(TypeMutability.ReadOnly)),
                         FunctionParameter.Create(NameFactory.CommandLineArguments,
-                            NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly), Variadic.Create(), null, isNameRequired: false)));
+                            NameFactory.StringPointerNameReference(TypeMutability.ReadOnly), Variadic.Create(), null, isNameRequired: false)));
 
                 ExecValue result = interpreter.TestRun(env);
 
@@ -64,9 +64,9 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("e", null, FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(),
+                        VariableDeclaration.CreateStatement("e", null, FunctionCall.Create(NameReference.Create(NameFactory.FileNameReference(),
                             NameFactory.FileExists), StringLiteral.Create(randomTextFilePath))),
                         IfBranch.CreateIf(NameReference.Create("e"), new[] { Return.Create(Int64Literal.Create("2")) },
                             IfBranch.CreateElse(new[] { Return.Create(Int64Literal.Create("-5")) }))
@@ -94,10 +94,10 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat64TypeReference(),
+                    NameFactory.Nat64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("lines", null,
-                            ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileTypeReference(), NameFactory.FileReadLines),
+                            ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileNameReference(), NameFactory.FileReadLines),
                                 StringLiteral.Create(randomTextFilePath)))),
                         // first line is "It was" (without quotes)
                         VariableDeclaration.CreateStatement("first", null,

@@ -6,6 +6,8 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Builders;
 using System;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language
 {
@@ -81,7 +83,7 @@ namespace Skila.Language
             EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer,
                 dereferenced_instances, members, partialVirtualTables: true);
 
-            this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
+            this.Evaluation = EvaluationInfo.Create( eval, aggregate_instance);
         }
 
         // todo: this is copy from EntityInstanceIntersection, not cool, not cool, REUSE!
@@ -102,6 +104,10 @@ namespace Skila.Language
                 // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
                 return this.Elements.All(it => check_any(other_set, it))
                     && other_set.Elements.All(it => check_any(this, it));
+        }
+        public override ICode Printout()
+        {
+            return new CodeSpan().Append(this.Elements, "&");
         }
     }
 

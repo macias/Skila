@@ -42,11 +42,11 @@ namespace Skila.Interpreter
         private static async Task<ObjectData> constructorAsync(ExecutionContext ctx, bool isNative, object value,
             IEntityInstance typeInstance, bool isStatic)
         {
-            Data data = await buildInternalData(ctx, isNative, value, typeInstance, isStatic).ConfigureAwait(false);
+            Data data = await buildInternalDataAsync(ctx, isNative, value, typeInstance, isStatic).ConfigureAwait(false);
             return new ObjectData(data);
         }
 
-        private static async Task<Data> buildInternalData(ExecutionContext ctx, bool isNative, object value,
+        private static async Task<Data> buildInternalDataAsync(ExecutionContext ctx, bool isNative, object value,
             IEntityInstance typeInstance, bool isStatic)
         {
             EntityInstance runtime_instance = typeInstance.Cast<EntityInstance>();
@@ -291,7 +291,7 @@ namespace Skila.Interpreter
         internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(new[] { this.RunTimeTypeInstance },
-                overrideMutability: TypeMutability.None, translation: null), this);
+                overrideMutability: TypeMutability.None, translation: null, lifetime: Lifetime.Timeless), this);
         }
 
         internal bool TryDereferenceAnyOnce(Language.Environment env, out ObjectData dereferenced)

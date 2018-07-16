@@ -42,9 +42,9 @@ namespace Skila.Language.Builders
             TypeBuilder builder = new TypeBuilder(NameDefinition.Create(name));
             builder = builder
                 .SetModifier(EntityModifier.Enum)
-                .Parents(NameFactory.IEquatableTypeReference())
+                .Parents(NameFactory.IEquatableNameReference())
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Private,
-                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.NatTypeReference(),
+                    new[] { FunctionParameter.Create(NameFactory.EnumConstructorParameter, NameFactory.NatNameReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
                     // copy constructor
@@ -52,20 +52,20 @@ namespace Skila.Language.Builders
                     new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameReference.Create(name),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement()))
-                .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName, ExpressionReadMode.ReadRequired, NameFactory.NatTypeReference(),
+                .With(FunctionBuilder.Create(NameFactory.ConvertFunctionName, ExpressionReadMode.ReadRequired, NameFactory.NatNameReference(),
                     Block.CreateStatement())
                     .SetModifier(EntityModifier.Native))
                  // when enum inherits an enum it won't call super to check equality
                 .WithEquatableEquals(EntityModifier.UnchainBase)
                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))
                     .SetModifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("cmp", builder.CreateTypeNameReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameFactory.NotEqualOperator,
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                     Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                     }))

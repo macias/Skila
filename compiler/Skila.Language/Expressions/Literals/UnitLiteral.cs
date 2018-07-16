@@ -15,7 +15,7 @@ namespace Skila.Language.Expressions.Literals
         public override object LiteralValue => this.Value;
         public char Value { get; }
 
-        private UnitLiteral() : base(" ", NameFactory.UnitTypeReference(), ExpressionReadMode.OptionalUse)
+        private UnitLiteral() : base(" ", NameFactory.UnitNameReference(), ExpressionReadMode.OptionalUse)
         {
             this.Value = UnitValue;
         }

@@ -1,25 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using Skila.Language.Extensions;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Skila.Language.Comparers
 {
-    public sealed class EntityInstanceCoreComparer : IEqualityComparer<IEntityInstance>
+    public sealed class EntityInstanceCoreComparer : IEqualityComparer<EntityInstance>
     {
-        public static IEqualityComparer<IEntityInstance> Instance = new EntityInstanceCoreComparer();
+        public static EntityInstanceCoreComparer Instance = new EntityInstanceCoreComparer();
 
         private EntityInstanceCoreComparer()
         {
 
         }
-        public bool Equals(IEntityInstance x, IEntityInstance y)
+
+        public bool Equals(EntityInstance x, EntityInstance y)
         {
-            return x.CoreEquals(y);
+            if (x.Target != y.Target)
+                return false;
+
+            if (x.TimedTemplateArguments.Count != y.TimedTemplateArguments.Count)
+                return false;
+
+            foreach (var ab in x.TemplateArguments.Zip(y.TemplateArguments, (a, b) => Tuple.Create(a, b)))
+                if (!ab.Item1.IsExactlySame(ab.Item2, jokerMatchesAll: false))
+                    return false;
+
+            if (!Object.Equals(x.Translation, y.Translation))
+                return false;
+
+            return true;
         }
 
-        public int GetHashCode(IEntityInstance obj)
+        public int GetHashCode(EntityInstance obj)
         {
-            return obj.EnumerateAll().Select(it => it.Core).Aggregate(0, (acc, a) => acc ^ RuntimeHelpers.GetHashCode(a));
+            int t = obj.Target.GetHashCode();
+            int b = (obj.Translation?.GetHashCode() ?? 0);
+            int c = obj.TimedTemplateArguments.Count.GetHashCode();
+            int d = obj.TemplateArguments.Aggregate(0, (acc, a) => acc ^ a.GetHashCode());
+            return t ^ b ^ c ^ d;
         }
     }
 }

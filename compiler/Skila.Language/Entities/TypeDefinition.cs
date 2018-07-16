@@ -27,7 +27,7 @@ namespace Skila.Language.Entities
         public static TypeDefinition CreateFunctionInterface(NameDefinition name)
         {
             return new TypeDefinition(EntityModifier.Interface,
-                false, name, null, new[] { NameFactory.IObjectTypeReference() },
+                false, name, null, new[] { NameFactory.IObjectNameReference() },
                 features: null,
                 typeParameter: null, includes: null);
         }
@@ -152,20 +152,20 @@ namespace Skila.Language.Entities
                     if (!ctx.Env.IsOfUnitType(func.ResultTypeName))
                         continue;
 
-                    INameReference result_typename = NameFactory.ItTypeReference();
+                    INameReference result_typename = NameFactory.ItNameReference();
                     if (this.Modifier.HasHeapOnly)
-                        result_typename = NameFactory.PointerTypeReference(result_typename);
+                        result_typename = NameFactory.PointerNameReference(result_typename);
 
                     var instructions = new List<IExpression>();
                     if (this.Modifier.HasHeapOnly)
                     {
                         instructions.Add(VariableDeclaration.CreateStatement("cp", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.ItTypeReference(), NameReference.CreateThised())));
+                            ExpressionFactory.HeapConstructor(NameFactory.ItNameReference(), NameReference.CreateThised())));
                     }
                     else
                     {
                         // explicit typename is needed, because otherwise we would get a reference to this, not value (copy)
-                        instructions.Add(VariableDeclaration.CreateStatement("cp", NameFactory.ItTypeReference(),
+                        instructions.Add(VariableDeclaration.CreateStatement("cp", NameFactory.ItNameReference(),
                             NameReference.CreateThised()));
                     }
 
@@ -207,7 +207,7 @@ namespace Skila.Language.Entities
             var virtual_mapping = new VirtualTable(isPartial: false);
             foreach (EntityInstance parent_instance in this.Inheritance.MinimalParentsIncludingObject
                 .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.MinimalParentsIncludingObject))
-                .Distinct()
+                .Distinct(EntityInstance.Comparer)
                 .Reverse())
             {
                 virtual_mapping.OverrideWith(parent_instance.TargetType.InheritanceVirtualTable);
@@ -221,13 +221,17 @@ namespace Skila.Language.Entities
                 .Where(it => it.Modifier.HasOverride)
                 .ToDictionary(it => it, it => new List<FunctionDefinition>());
 
-            var inherited_member_instances = new HashSet<EntityInstance>();
+            var inherited_member_instances = new HashSet<EntityInstance>(EntityInstance.Comparer);
 
+            if (this.DebugId==(3, 680))
+            {
+                ;
+            }
             var missing_func_implementations = new List<FunctionDefinition>();
 
             foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsIncludingObject
                 .Concat(this.AssociatedTraits.SelectMany(it => it.Inheritance.OrderedAncestorsIncludingObject))
-                .Distinct())
+                .Distinct(EntityInstance.Comparer))
             {
                 // special case are properties -- properties are in fact not inherited, their accessors are
                 // however user sees properties, so we get members here (including properties), but when we compute
@@ -396,10 +400,16 @@ namespace Skila.Language.Entities
                     foreach (VariableDeclaration decl in ref_fields.Skip(1))
                         ctx.AddError(ErrorCode.AssociatedReferenceRequiresSingleReferenceField, decl);
 
-                    VariableDeclaration primary = ref_fields.FirstOrDefault();
-                    if (primary != null && primary.Modifier.Has(ctx.Env.Options.ReassignableModifier()))
-                        ctx.AddError(ErrorCode.ReferenceFieldCannotBeReassignable, primary);
                 }
+            }
+
+            {
+                IEnumerable<VariableDeclaration> ref_fields = this.NestedFields
+                    .Where(it => ctx.Env.IsReferenceOfType(it.Evaluation.Components));
+
+                VariableDeclaration primary = ref_fields.FirstOrDefault();
+                if (primary != null && primary.IsReassignable(ctx))
+                    ctx.AddError(ErrorCode.ReferenceFieldCannotBeReassignable, primary);
             }
 
             foreach (NameReference parent in this.ParentNames.Skip(1))
@@ -526,7 +536,7 @@ namespace Skila.Language.Entities
 #if USE_NEW_CONS
         private void createNewConstructors()
         {
-            NameReference type_name = this.Name.CreateNameReference();
+            NameReference type_name = this.Name.CreateNameReference(null, this.InstanceOf, isLocal:true);
 
             if (!this.NestedFunctions.Any(it => it.IsNewConstructor()))
                 foreach (FunctionDefinition init_cons in this.NestedFunctions.Where(it => it.IsInitConstructor()).StoreReadOnly())
@@ -628,8 +638,8 @@ namespace Skila.Language.Entities
                         int dist;
                         if (ancestors.TryGetValue(ancestor.AncestorInstance, out dist))
                         {
-                            if (ancestor.AncestorInstance == ctx.Env.IObjectType.InstanceOf)
-                                ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
+                                if (ancestor.AncestorInstance.HasSameCore(ctx.Env.IObjectType.InstanceOf))
+                                    ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
                             else
                                 ancestors[ancestor.AncestorInstance] = System.Math.Min(dist, ancestor.Distance);
                         }
@@ -651,7 +661,7 @@ namespace Skila.Language.Entities
                     return parents.Contains(p_instance) ? p_instance : null;
                 })
                 .Where(it => it != null)
-                .Distinct() // https://stackoverflow.com/a/4734876/210342
+                .Distinct(EntityInstance.Comparer) // https://stackoverflow.com/a/4734876/210342
                 .OrderBy(it => it.IsTypeImplementation ? 0 : 1)
                 .ToList();
 

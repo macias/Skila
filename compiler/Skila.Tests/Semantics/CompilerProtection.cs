@@ -105,7 +105,7 @@ namespace Skila.Tests.Semantics
 
                 var decl = root_ns.AddNode(
                     VariableDeclaration.CreateStatement("x",
-                        NameReference.Create("Foo", NameFactory.Int64TypeReference()), Int64Literal.Create("5")));
+                        NameReference.Create("Foo", NameFactory.Int64NameReference()), Int64Literal.Create("5")));
 
                 resolver = NameResolver.Create(env);
             }
@@ -124,13 +124,13 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("foo")
                     .With(FunctionBuilder.Create("a", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "b"))
                     })))
                     .With(FunctionBuilder.Create("b", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     FunctionCall.Create(NameReference.Create(NameFactory.ThisVariableName, "a"))
@@ -174,12 +174,12 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 NameReference func_name = NameReference.Create("b", NameFactory.IIterableCount);
-                root_ns.AddBuilder(FunctionBuilder.Create("bad_call", NameFactory.SizeTypeReference(), Block.CreateStatement(
+                root_ns.AddBuilder(FunctionBuilder.Create("bad_call", NameFactory.SizeNameReference(), Block.CreateStatement(
                     // using function like a property (error)
                     // todo: however it should be another error, because this reference should create functor and the error should
                     // say about type mismatch between returning value and result type
                     Return.Create(func_name)))
-                    .Parameters(FunctionParameter.Create("b", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                    .Parameters(FunctionParameter.Create("b", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         Variadic.Create(2, 3), null, false))
                     .Include(NameFactory.LinqExtensionReference()));
 

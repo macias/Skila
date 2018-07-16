@@ -24,7 +24,7 @@ namespace Skila.Tests.Execution
 
                 IExpression i_eq_jack = ExpressionFactory.IsEqual(NameReference.Create("i"), NameReference.Create("jack"));
                 IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Nat8Literal.Create("1"));
-                FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Nat8TypeReference(),
+                FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new[] {
                     // if i==jack then return i
                     IfBranch.CreateIf(i_eq_jack,new[]{ Return.Create(NameReference.Create("i")) },
@@ -34,12 +34,12 @@ namespace Skila.Tests.Execution
                             FunctionArgument.Create(i_add_1)))
                     }))
                     }))
-                    .Parameters(FunctionParameter.Create("i", NameFactory.Nat8TypeReference()));
+                    .Parameters(FunctionParameter.Create("i", NameFactory.Nat8NameReference()));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("jack",null,Nat8Literal.Create("50")),
                     // Immediately-Invoked Function Expression (IIEFE) in Javascript world
@@ -66,14 +66,14 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create("getIt",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new IExpression[] {
                         Return.Create(Int64Literal.Create("2"))
                         })));
 
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // f = getIt 
                     VariableDeclaration.CreateStatement("f",null,NameReference.Create("getIt")),
@@ -101,17 +101,17 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(TypeBuilder.Create("Beep")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
+                    .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64NameReference(), null,
                         EntityModifier.Public | env.Options.ReassignableModifier()))
                     .With(FunctionBuilder.Create("getIt",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new IExpression[] {
                         Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                         }))));
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // b = new Beep()
                     VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructor(NameReference.Create("Beep"))),
@@ -145,17 +145,17 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(TypeBuilder.Create("Beep")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64TypeReference(), null,
+                    .With(VariableDeclaration.CreateStatement("m", NameFactory.Int64NameReference(), null,
                         EntityModifier.Public | env.Options.ReassignableModifier()))
                     .With(FunctionBuilder.Create("getIt",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new IExpression[] {
                         Return.Create(NameReference.Create(NameFactory.ThisVariableName, "m"))
                         }))));
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("b",null,ExpressionFactory.HeapConstructor(NameReference.Create("Beep"))),
                     Assignment.CreateStatement(NameReference.Create("b","m"),Int64Literal.Create("5")),
@@ -185,11 +185,11 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 NameReference escaping_lambda = NameReference.Create("x");
-                IExpression lambda = FunctionBuilder.CreateLambda(NameFactory.Int64TypeReference(),
+                IExpression lambda = FunctionBuilder.CreateLambda(NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] { Return.Create(escaping_lambda) })).Build();
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // x = 2
                     VariableDeclaration.CreateStatement("x",null,Int64Literal.Create("2"),env.Options.ReassignableModifier()),
@@ -223,7 +223,7 @@ namespace Skila.Tests.Execution
                         Block.CreateStatement(new[] { Return.Create(Int64Literal.Create("2")) })).Build();
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // f = () => x
                     VariableDeclaration.CreateStatement("f",null,lambda),

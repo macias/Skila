@@ -17,7 +17,7 @@ namespace Skila.Language.Expressions.Literals
 
         // we use textual value to preserve user formatting like separator in "140_000"
         private Nat8Literal(string inputValue)
-            : base(inputValue, NameFactory.Nat8TypeReference( TypeMutability.DualConstMutable))
+            : base(inputValue, NameFactory.Nat8NameReference( TypeMutability.DualConstMutable))
         {
             if (byte.TryParse(inputValue, out byte result))
                 this.value = result;

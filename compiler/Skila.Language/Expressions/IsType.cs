@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Printout;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Expressions
 {
@@ -36,10 +38,13 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = Lhs.ToString() + " is " + this.RhsTypeName.ToString();
-            return result;
+            return this.Printout().ToString();
         }
 
+        public override ICode Printout()
+        {
+            return new CodeSpan(Lhs).Append(" is ").Append(RhsTypeName);
+        }
         public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
@@ -48,10 +53,10 @@ namespace Skila.Language.Expressions
         public override void Evaluate(ComputationContext ctx)
         {
             if (this.Evaluation == null)
-                this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf);
+                this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf.Build(Lifetime.Create(this)));
         }
 
-        public static bool MatchTypes(ComputationContext ctx,IEntityInstance lhsTypeInstance,IEntityInstance rhsTypeInstance)
+        public static bool MatchTypes(ComputationContext ctx, IEntityInstance lhsTypeInstance, IEntityInstance rhsTypeInstance)
         {
             TypeMatch lhs_rhs_match = lhsTypeInstance.MatchesTarget(ctx, rhsTypeInstance,
                     TypeMatching.Create(duckTyping: false, allowSlicing: true).WithIgnoredMutability(true));

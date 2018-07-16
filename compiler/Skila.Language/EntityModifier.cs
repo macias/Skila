@@ -39,6 +39,7 @@ namespace Skila.Language
             Accessor, // getter/setter of the property
             PostInitialization, // allowing readonly member initialization in post-initialization (object-initialization in C#)
             Value, // type without pointers and references
+            Referential,
         }
 
         public static readonly EntityModifier None = new EntityModifier();
@@ -68,6 +69,7 @@ namespace Skila.Language
         public static readonly EntityModifier Accessor = new EntityModifier(ModifierIndex.Accessor);
         public static readonly EntityModifier PostInitialization = new EntityModifier(ModifierIndex.PostInitialization);
         public static readonly EntityModifier Value = new EntityModifier(ModifierIndex.Value);
+        public static readonly EntityModifier Referential = new EntityModifier(ModifierIndex.Referential);
 
         private readonly IReadOnlyList<int> flags; // value tells how many times given modifier was specified
 
@@ -98,6 +100,7 @@ namespace Skila.Language
         public bool HasAccessor => this.flags[(int)ModifierIndex.Accessor] > 0;
         public bool HasPostInitialization => this.flags[(int)ModifierIndex.PostInitialization] > 0;
         public bool HasValue => this.flags[(int)ModifierIndex.Value] > 0;
+        public bool HasReferential => this.flags[(int)ModifierIndex.Referential] > 0;
 
 
         public bool IsSealed => (!this.HasInterface // makes sense only for types

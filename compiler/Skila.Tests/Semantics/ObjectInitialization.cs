@@ -22,7 +22,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 // error: custom getter (with no setter) + post initialization
-                Property property = PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8TypeReference())
+                Property property = PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Nat8Literal.Create("3")))))
                         .SetModifier(EntityModifier.PostInitialization);
 
@@ -32,7 +32,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,
                         ConstructorCall.StackConstructor(NameReference.Create("Point"))
@@ -61,7 +61,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
-                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference()))
+                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8NameReference()))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
                         ))));
@@ -69,7 +69,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,
                         ConstructorCall.StackConstructor(NameReference.Create("Point"))

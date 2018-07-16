@@ -2,6 +2,7 @@
 using Skila.Language.Entities;
 using Skila.Language.Semantics;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Skila.Language.Extensions
 {
@@ -56,18 +57,8 @@ namespace Skila.Language.Extensions
 
             if (evaluable == null || !evaluable.IsComputed)
             {
-                if (node is FunctionDefinition func)
-                {
-                    // in case of function evaluate move body of the function as last element
-                    // otherwise we couldn't evaluate recursive calls
-                    node.OwnedNodes.Where(it => func.UserBody != it).ForEach(it => Evaluated(it, ctx, EvaluationCall.Nested));
-                    evaluable?.Evaluate(ctx);
-                    func.UserBody?.Evaluated(ctx, EvaluationCall.Nested);
-
-                    // since we computer body after main evaluation now we have to manually trigger this call
-                    if (func.IsResultTypeNameInfered)
-                        func.InferResultType(ctx);
-                }
+                if (node is ICustomComputable custom)
+                    custom.CustomEvaluate(ctx);
                 else
                 {
                     node.OwnedNodes.ForEach(it => Evaluated(it, ctx, EvaluationCall.Nested));

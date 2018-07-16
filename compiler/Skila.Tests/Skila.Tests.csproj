@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -74,6 +76,7 @@
     <Compile Include="Semantics\Extensions.cs" />
     <Compile Include="Semantics\Concurrency.cs" />
     <Compile Include="Semantics\Inheritance.cs" />
+    <Compile Include="Semantics\Lifetimes.cs" />
     <Compile Include="Semantics\ObjectInitialization.cs" />
     <Compile Include="Semantics\Templates.cs" />
     <Compile Include="Semantics\Interfaces.cs" />

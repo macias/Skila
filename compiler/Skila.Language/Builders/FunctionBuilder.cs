@@ -25,7 +25,7 @@ namespace Skila.Language.Builders
         public static FunctionBuilder CreateInitConstructor(Block body, FunctionCall constructorChainCall = null)
         {
             FunctionBuilder builder = Create(NameFactory.InitConstructorName,
-                                NameFactory.UnitTypeReference(),
+                                NameFactory.UnitNameReference(),
                                 body);
 
             builder.ChainCall(constructorChainCall);
@@ -40,7 +40,7 @@ namespace Skila.Language.Builders
         {
             return Create(name, nameParameters, ExpressionReadMode.ReadRequired, result, body);
         }
-
+       
         public static FunctionBuilder Create(
                  string name,
                  IEnumerable<TemplateParameter> nameParameters,
@@ -59,7 +59,9 @@ namespace Skila.Language.Builders
                    Block body)
         {
             return new FunctionBuilder(name, TemplateParametersBuffer.Create(variance, nameParameter).Values,
-                null, callMode, result, body);
+                null, callMode,
+                result,
+                body);
         }
         public static FunctionBuilder Create(
                        string name,
@@ -70,20 +72,25 @@ namespace Skila.Language.Builders
         {
             return Create(name, TemplateParametersBuffer.Create(variance, nameParameter).Values, result, body);
         }
+       
         public static FunctionBuilder Create(
                    string name,
                    ExpressionReadMode callMode,
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(name, null, null, callMode, result, body);
+            return new FunctionBuilder(name, null, null, callMode,
+                result,
+                body);
         }
         public static FunctionBuilder Create(
                    string name,
                    INameReference result,
                    Block body)
         {
-            return new FunctionBuilder(name, null, null, ExpressionReadMode.ReadRequired, result, body);
+            return new FunctionBuilder(name, null, null, ExpressionReadMode.ReadRequired,
+                result,
+                body);
         }
         public static FunctionBuilder CreateDeclaration(
                        string name,
@@ -93,7 +100,9 @@ namespace Skila.Language.Builders
                    INameReference result)
         {
             return new FunctionBuilder(name, TemplateParametersBuffer.Create(variance, nameParameter).Values,
-                null, callMode, result, (Block)null);
+                null, callMode,
+                result,
+                (Block)null);
         }
         public static FunctionBuilder CreateDeclaration(
                        string name,
@@ -101,7 +110,9 @@ namespace Skila.Language.Builders
                        ExpressionReadMode callMode,
                        INameReference result)
         {
-            return new FunctionBuilder(name, nameParameters, null, callMode, result, null);
+            return new FunctionBuilder(name, nameParameters, null, callMode,
+                result,
+                null);
         }
         public static FunctionBuilder CreateDeclaration(
                        string name,

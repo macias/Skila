@@ -22,6 +22,11 @@ namespace Skila.Language
         // this one is check purely by data, pointers/references in general require mutability check
         // because data are shared
         public bool MutabilityCheckRequestByData { get; private set; }
+        public bool LifetimeCheck { get; private set; }
+        public Lifetime InputLifetime { get; private set; }
+        public Lifetime TargetLifetime { get; private set; }
+        private bool allowLifetimeChecking;
+
 
         internal TypeMatching WithSlicing(bool slicing)
         {
@@ -44,6 +49,32 @@ namespace Skila.Language
 
             TypeMatching result = this;
             result.MutabilityCheckRequestByData = value;
+            return result;
+        }
+        internal TypeMatching WithLifetimeCheck(bool value)
+        {
+            TypeMatching result = this;
+            result.LifetimeCheck = value;
+            return result;
+        }
+        internal TypeMatching WithLifetimeCheck(bool value,Lifetime inputLifetime,Lifetime targetLifetime)
+        {
+            if (this.allowLifetimeChecking)
+            {
+                TypeMatching result = this;
+                result.LifetimeCheck = value;
+                result.InputLifetime = inputLifetime;
+                result.TargetLifetime = targetLifetime;
+                return result;
+            }
+            else
+                return this;
+        }
+
+        internal TypeMatching AllowedLifetimeChecking(bool value)
+        {
+            TypeMatching result = this;
+            result.allowLifetimeChecking = value;
             return result;
         }
     }

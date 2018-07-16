@@ -7,18 +7,21 @@ using Skila.Language.Entities;
 using Skila.Language.Comparers;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed, ILocalBindable, ISurfable
+    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed, ILocalBindable, ISurfable, IPrintable
     {
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
              bool isNameRequired = false,
              ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue,null, isNameRequired: isNameRequired);
+            return new FunctionParameter(usageMode, name,  typeName,
+                variadic, defaultValue, null, isNameRequired: isNameRequired);
         }
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
@@ -26,17 +29,19 @@ namespace Skila.Language.Entities
              EntityModifier modifier,
              ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, variadic, defaultValue, modifier, isNameRequired: isNameRequired);
+            return new FunctionParameter(usageMode, name, typeName,
+                variadic, defaultValue, modifier, isNameRequired: isNameRequired);
         }
         public static FunctionParameter Create(string name, INameReference typeName,
             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null,null, isNameRequired: false);
+            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null, null, isNameRequired: false);
         }
-        public static FunctionParameter Create(string name, INameReference typeName,EntityModifier modifier,
+        public static FunctionParameter Create(string name, INameReference typeName, EntityModifier modifier,
             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name, typeName, Variadic.None, null,modifier, isNameRequired: false);
+            return new FunctionParameter(usageMode, name,  typeName,
+                Variadic.None, null, modifier, isNameRequired: false);
         }
 
         public bool IsNameRequired { get; }
@@ -85,14 +90,15 @@ namespace Skila.Language.Entities
 
             this.ElementTypeName = typeName;
             if (this.IsVariadic)
-                this.TypeName = NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference(typeName, mutability: TypeMutability.ForceMutable));
+                this.TypeName = NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference(this.ElementTypeName,
+                        mutability: TypeMutability.ForceMutable));
             else
-                this.TypeName = typeName;
+                this.TypeName = this.ElementTypeName;
 
             this.defaultValue = defaultValue;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -105,16 +111,30 @@ namespace Skila.Language.Entities
 
         public override string ToString()
         {
+            return this.Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
             string variadic_str = this.Variadic.ToString();
             if (variadic_str != "")
                 variadic_str = " " + variadic_str;
-            return this.Name + (this.IsNameRequired ? ":" : "")
-                + $" {this.ElementTypeName}{variadic_str}" + (IsOptional ? " = " + DefaultValue.ToString() : "");
+            var code = new CodeSpan(this.Name).Append(this.IsNameRequired ? ": " : " ").Append(this.ElementTypeName)
+                .Append(variadic_str);
+            if (this.IsOptional)
+                code.Append(" = ").Append(DefaultValue);
+            return code;
         }
+
 
         public void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            if (this.DebugId == (12, 2054))
+            {
+                ;
+            }
+            IEnumerable<ISurfable> surfables = this.OwnedNodes.WhereType<ISurfable>();
+            surfables.ForEach(it => it.Surfed(ctx));
             compute(ctx);
         }
 
@@ -141,6 +161,11 @@ namespace Skila.Language.Entities
 
         private void compute(ComputationContext ctx)
         {
+            if (this.DebugId == (12, 2058))
+            {
+                ;
+            }
+
             this.Evaluation = this.TypeName?.Evaluation ?? EvaluationInfo.Joker;
         }
 
@@ -150,10 +175,10 @@ namespace Skila.Language.Entities
             this.ElementTypeName.ValidateHeapTypeName(ctx);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability, 
-            TemplateTranslation translation)
+        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
         }
 
         public bool IsReadingValueOfNode(IExpression node)

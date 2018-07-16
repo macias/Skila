@@ -35,6 +35,7 @@ namespace Skila.Language
                 case TypeMutability.ReadOnly: return $"{s}neut ";
                 case TypeMutability.None: return $"{s}";
                 case TypeMutability.GenericUnknownMutability: return "{s}g ";
+                case TypeMutability.ConstAsSource: return $"{s} ";
                 default: throw new Exception();
             }
 

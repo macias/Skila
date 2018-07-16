@@ -6,6 +6,8 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Entities
 {
@@ -63,7 +65,7 @@ namespace Skila.Language.Entities
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
             this.closures = new List<TypeDefinition>();
 
@@ -73,15 +75,21 @@ namespace Skila.Language.Entities
         }
         public override string ToString()
         {
-            string result = (this.Modifier.HasReassignable ? "var" : "let") + $" {Name} {this.TypeName}";
+            return this.Printout().ToString();
+        }
+        public override ICode Printout()
+        {
+            CodeSpan code = new CodeSpan(this, Name).Prepend(this.Modifier.HasReassignable ? "var " : "let ");
+            if (this.TypeName != null)
+                code.Append(" of ").Append(this.TypeName);
             if (this.InitValue != null)
             {
-                result += " " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + $" { this.InitValue}";
+                code.Append(" " + (this.ReadMode == ExpressionReadMode.ReadRequired ? "<-" : "=") + " ").Append(this.InitValue);
             }
             if (this.ReadMode == ExpressionReadMode.ReadRequired)
-                result = $"({result})";
+                code.Prepend("(").Append(")");
 
-            return result;
+            return code;
         }
 
         public override bool AttachTo(INode owner)
@@ -104,9 +112,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -146,11 +154,11 @@ namespace Skila.Language.Entities
                 // x = (__this__ = alloc Foo ; __this__.init() ; __this__)
                 // so we rip off the init step and replace the object, which results in
                 // x.init()
-                if (this.initValue is Block block && block.Mode == Block.Purpose.Initialization
+                if (this.initValue is New block
                     // do not use this optimization for heap objects!
                     && !block.IsHeapInitialization)
                 {
-                    FunctionCall cons_call = block.InitializationStep;
+                    FunctionCall cons_call = block.InitConstructorCall;
                     cons_call.DetachFrom(block);
 
                     cons_call.Name.ReplacePrefix(fieldReference());
@@ -177,7 +185,7 @@ namespace Skila.Language.Entities
         private NameReference fieldReference()
         {
             return this.Name.CreateNameReference(
-                            this.Modifier.HasStatic ? NameFactory.ItTypeReference() : NameFactory.ThisReference(),
+                            this.Modifier.HasStatic ? NameFactory.ItNameReference() : NameFactory.ThisReference(),
             // we have to give target for name, because this could be property field, and it is in scope
             // of a property not enclosed type, so from constructor such field is invisible
                             this.InstanceOf, isLocal: false);
@@ -215,10 +223,16 @@ namespace Skila.Language.Entities
             IEntityInstance this_eval = null;
             EntityInstance this_aggregate = null;
 
+            if (this.DebugId == (19, 781))
+            {
+                ;
+            }
+
             if (tn_eval != null)
             {
                 this_eval = tn_eval;
                 this_aggregate = this.TypeName.Evaluation.Aggregate;
+
             }
             else if (init_eval != null)
             {
@@ -230,11 +244,6 @@ namespace Skila.Language.Entities
             }
             else
                 ctx.AddError(ErrorCode.MissingTypeAndValue, this);
-
-            if (this.DebugId== (17, 382))
-            {
-                ;
-            }
 
             if (this_eval == null)
             {
@@ -249,7 +258,7 @@ namespace Skila.Language.Entities
                     if (this.Modifier.HasMutable)
                     {
                         this_eval = this_eval.Rebuild(ctx, TypeMutability.ForceMutable);
-                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceMutable).Cast<EntityInstance>();
+                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceMutable);
                     }
                     else if (mutability == TypeMutability.DualConstMutable)
                     {
@@ -257,7 +266,7 @@ namespace Skila.Language.Entities
                         if (!mutability.HasFlag(TypeMutability.Reassignable) && this.Modifier.HasReassignable)
                             this_override |= TypeMutability.Reassignable;
                         this_eval = this_eval.Rebuild(ctx, this_override);
-                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceConst).Cast<EntityInstance>();
+                        this_aggregate = this_aggregate.Rebuild(ctx, TypeMutability.ForceConst);
                     }
                 }
                 else if (!mutability.HasFlag(ctx.Env.Options.ReassignableTypeMutability())
@@ -303,7 +312,7 @@ namespace Skila.Language.Entities
         {
             base.Validate(ctx);
 
-            if (ctx.Env.Options.MutabilityMode== MutabilityModeOption.SingleMutability && this.Modifier.HasReassignable)
+            if (ctx.Env.Options.MutabilityMode == MutabilityModeOption.SingleMutability && this.Modifier.HasReassignable)
                 throw new ArgumentException("Cannot have both");
 
             this.ValidateRestrictedMember(ctx);
@@ -313,7 +322,7 @@ namespace Skila.Language.Entities
             {
                 if (this.Modifier.HasReassignable)
                     ctx.AddError(ErrorCode.GlobalMutableVariable, this);
-                else if (ctx.Env.Options.MutabilityMode!= MutabilityModeOption.OnlyAssignability)
+                else if (ctx.Env.Options.MutabilityMode != MutabilityModeOption.OnlyAssignability)
                 {
                     TypeMutability mutability = this.Evaluation.Components.MutabilityOfType(ctx);
                     if (!mutability.HasFlag(TypeMutability.ForceConst) && !mutability.HasFlag(TypeMutability.ConstAsSource))
@@ -355,13 +364,16 @@ namespace Skila.Language.Entities
                 }
             }
 
+            if (false)
             {
                 TemplateDefinition enclosing_template = this.EnclosingScope<TemplateDefinition>();
                 if ((!enclosing_template.IsFunction() || this.Modifier.HasStatic)
-                    && !enclosing_template.Modifier.HasAssociatedReference
                     && ctx.Env.IsReferenceOfType(Evaluation.Components))
                 {
-                    ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
+                    if (!enclosing_template.Modifier.HasAssociatedReference)
+                    {
+                        ctx.AddError(ErrorCode.PersistentReferenceVariable, this);
+                    }
                 }
             }
 
@@ -378,7 +390,7 @@ namespace Skila.Language.Entities
             if (this.Modifier.HasReassignable)
                 return true;
 
-            if (ctx.Env.Options.MutabilityMode== MutabilityModeOption.SingleMutability)
+            if (ctx.Env.Options.MutabilityMode == MutabilityModeOption.SingleMutability)
             {
                 TypeMutability mutability = this.Evaluation.Components.SurfaceMutabilityOfType(ctx);
                 if (mutability.HasFlag(TypeMutability.ForceMutable))

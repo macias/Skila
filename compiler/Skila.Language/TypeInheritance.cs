@@ -34,10 +34,10 @@ namespace Skila.Language
 
             this.objectType = objectAncestor;
             this.OrderedTypeAncestorsWithoutObject = completeAncestors.OrderBy(it => it.Distance)
-                .Where(it => it.AncestorInstance != objectAncestor.AncestorInstance && !it.AncestorInstance.IsJoker)
+                .Where(it => !it.AncestorInstance.IsIdentical( objectAncestor.AncestorInstance) && !it.AncestorInstance.IsJoker)
                 .StoreReadOnly();
             this.MinimalParentsWithoutObject = minimalParents
-                .Where(it => it != objectAncestor.AncestorInstance && !it.IsJoker)
+                .Where(it => !it.IsIdentical(objectAncestor.AncestorInstance) && !it.IsJoker)
                 .StoreReadOnly();
 
             /* EntityInstance impl_parent = this.GetTypeImplementationParent();
@@ -59,9 +59,9 @@ namespace Skila.Language
             IEnumerable<EntityInstance> minimal_parents = this.MinimalParentsWithoutObject
                     .Concat(traits.SelectMany(it => it.Inheritance.MinimalParentsWithoutObject))
                     .Select(it => it.TranslateThrough(closedTemplate))
-                    .Distinct();
+                    .Distinct(EntityInstance.Comparer);
 
-            var dict = new Dictionary<EntityInstance, int>();
+            var dict = new Dictionary<EntityInstance, int>(EntityInstance.Comparer);
             foreach (TypeAncestor ancestor in this.OrderedTypeAncestorsIncludingObject
                 .Concat(traits.SelectMany(it => it.Inheritance.OrderedTypeAncestorsIncludingObject))
                 .Select(it => it.TranslateThrough(closedTemplate)))

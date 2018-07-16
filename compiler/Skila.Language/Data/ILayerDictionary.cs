@@ -11,6 +11,7 @@ namespace Skila.Language.Data
         IEnumerable<K> Keys { get; }
 
         bool Add(K key, V value);
+        //void RemoveLast(K key, V value);
         IEnumerable<Tuple<K, V>> PopLayer();
         void PushLayer();
         bool TryGetValue(K key, out V value);

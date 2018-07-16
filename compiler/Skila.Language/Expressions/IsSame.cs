@@ -4,6 +4,8 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
 using System;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
@@ -38,8 +40,12 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"{Lhs} is {Rhs}";
-            return result;
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan(Lhs).Append(" is ").Append(Rhs);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -51,7 +57,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf);
+                this.Evaluation = EvaluationInfo.Create(ctx.Env.BoolType.InstanceOf.Build(Lifetime.Create(this)));
             }
         }
 

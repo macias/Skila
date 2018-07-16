@@ -1,7 +1,7 @@
 ﻿using NaiveLanguageTools.Common;
 using System;
 
-namespace Skila.Language
+namespace Skila.Language.Tools
 {
     // with Lazy is too easy to forget disabling thread-protection which adds 1 SECOND per unit-test run
     public sealed class Later<R>

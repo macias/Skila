@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
+using Skila.Language.Printout;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Expressions
 {
@@ -38,8 +40,12 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"({RhsTypeName}){Lhs}";
-            return result;
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan("(").Append(RhsTypeName).Append(")").Append(Lhs);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

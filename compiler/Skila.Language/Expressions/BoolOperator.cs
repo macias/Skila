@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
-using Skila.Language.Semantics;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Expressions
 {
@@ -58,8 +58,12 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"{Lhs} {Mode} {Rhs}";
-            return result;
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan(Lhs).Append($" {Mode} ").Append(Rhs);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -71,7 +75,7 @@ namespace Skila.Language.Expressions
         {
             if (this.Evaluation == null)
             {
-                this.Evaluation = new EvaluationInfo(ctx.Env.BoolType.InstanceOf);
+                this.Evaluation = EvaluationInfo.Create(ctx.Env.BoolType.InstanceOf);
 
                 this.DataTransfer(ctx, ref this.lhs, ctx.Env.BoolType.InstanceOf);
                 this.DataTransfer(ctx, ref this.rhs, ctx.Env.BoolType.InstanceOf);

@@ -31,13 +31,13 @@ namespace Skila.Tests.Semantics
                     .SetModifier(EntityModifier.Base)
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("x")))
                     .SetModifier(EntityModifier.Pinned)
-                        .Parameters(FunctionParameter.Create("x", NameFactory.SelfTypeReference()))));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.SelfNameReference()))));
 
                 TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                     .Parents("What")
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("y")))
                     .SetModifier(EntityModifier.Pinned | EntityModifier.Override | EntityModifier.UnchainBase)
-                        .Parameters(FunctionParameter.Create("y", NameFactory.SelfTypeReference()))));
+                        .Parameters(FunctionParameter.Create("y", NameFactory.SelfNameReference()))));
 
                 resolver = NameResolver.Create(env);
 
@@ -60,7 +60,7 @@ namespace Skila.Tests.Semantics
                     .SetModifier(EntityModifier.Base)
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("x")))
                     .SetModifier(EntityModifier.Pinned)
-                        .Parameters(FunctionParameter.Create("x", NameFactory.SelfTypeReference()))));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.SelfNameReference()))));
 
                 TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                     .Parents("What")
@@ -90,7 +90,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISecret")
-                    .With(FunctionBuilder.CreateDeclaration("noTell", NameFactory.UnitTypeReference())
+                    .With(FunctionBuilder.CreateDeclaration("noTell", NameFactory.UnitNameReference())
                         .SetModifier(EntityModifier.Private))
                 );
 
@@ -98,7 +98,7 @@ namespace Skila.Tests.Semantics
                     .Parents("ISecret")
                     .SetModifier(EntityModifier.Base)
                     // refining private is OK
-                    .With(FunctionBuilder.Create("noTell", NameFactory.UnitTypeReference(),
+                    .With(FunctionBuilder.Create("noTell", NameFactory.UnitNameReference(),
                         Block.CreateStatement())
                         .SetModifier(EntityModifier.Override | EntityModifier.Private))
                     );
@@ -106,7 +106,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Submarine")
                     .Parents("CardboardBox")
                     // refining private is OK
-                    .With(FunctionBuilder.Create("noTell", NameFactory.UnitTypeReference(),
+                    .With(FunctionBuilder.Create("noTell", NameFactory.UnitNameReference(),
                         // we should be able to call super
                         Block.CreateStatement(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName))))
                         .SetModifier(EntityModifier.Override | EntityModifier.Private))
@@ -132,16 +132,16 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
                         .SetModifier(EntityModifier.Base)
                         .With(FunctionBuilder.Create("f",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement())
                             .SetModifier(EntityModifier.Base)
-                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))));
+                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead))));
 
                 FunctionDefinition func = FunctionBuilder.Create("f",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement())
                             .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase | EntityModifier.HeapOnly)
-                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead));
+                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead));
                 root_ns.AddBuilder(TypeBuilder.Create("Parent")
                         .SetModifier(EntityModifier.Base)
                         .Parents("Grandparent")
@@ -171,27 +171,27 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Grandparent")
                         .SetModifier(EntityModifier.Base)
                         .With(FunctionBuilder.Create("f",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement())
-                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead)))
+                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead)))
                         .With(FunctionBuilder.Create("f",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement())
-                            .Parameters(FunctionParameter.Create("a", NameFactory.RealTypeReference(), ExpressionReadMode.CannotBeRead),
-                                FunctionParameter.Create("b", NameFactory.RealTypeReference(), ExpressionReadMode.CannotBeRead))));
+                            .Parameters(FunctionParameter.Create("a", NameFactory.RealNameReference(), ExpressionReadMode.CannotBeRead),
+                                FunctionParameter.Create("b", NameFactory.RealNameReference(), ExpressionReadMode.CannotBeRead))));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Parent")
                         .SetModifier(EntityModifier.Base)
                         .Parents("Grandparent")
                         .With(FunctionBuilder.Create("f",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement())
-                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))));
+                            .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead))));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Child")
                         .Parents("Parent")
                         .With(FunctionBuilder.Create("g",
-                         NameFactory.UnitTypeReference(),
+                         NameFactory.UnitNameReference(),
                             Block.CreateStatement(
                                 // unlike C++ this method is seen as regular overload
                                 FunctionCall.Create(NameReference.CreateThised("f"),
@@ -217,7 +217,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Start")
                     .SetModifier(EntityModifier.Base)
                     .With(FunctionBuilder.Create("getSome",
-                     NameFactory.Int64TypeReference(),
+                     NameFactory.Int64NameReference(),
                         Block.CreateStatement(Return.Create(Int64Literal.Create("3"))))
                         .SetModifier(EntityModifier.Pinned)));
 
@@ -225,7 +225,7 @@ namespace Skila.Tests.Semantics
                     .SetModifier(EntityModifier.Base)
                     .Parents("Start")
                     .With(FunctionBuilder.Create("getSome",
-                     NameFactory.Int64TypeReference(),
+                     NameFactory.Int64NameReference(),
                         Block.CreateStatement(Return.Create(Int64Literal.Create("3"))))
                         .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
@@ -262,9 +262,9 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "some",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("a",NameFactory.PointerTypeReference( NameReference.Create("Weekend")),
+                    VariableDeclaration.CreateStatement("a",NameFactory.PointerNameReference( NameReference.Create("Weekend")),
                         init_value),
                     ExpressionFactory.Readout("a")
                     })));
@@ -320,12 +320,12 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ITransmogrifier")
                     .With(FunctionBuilder.CreateDeclaration("transmogrify", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference()
+                    NameFactory.UnitNameReference()
 
                     )
                         .SetModifier(EntityModifier.Private))
                     .With(FunctionBuilder.CreateDeclaration("untransmogrify", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference()
+                    NameFactory.UnitNameReference()
 
                     )
                         .SetModifier(EntityModifier.Private))
@@ -334,7 +334,7 @@ namespace Skila.Tests.Semantics
                 NameReference private_reference = NameReference.Create(NameFactory.ThisVariableName, "transmogrify");
                 // refining private is OK, but we cannot change the access to it
                 FunctionDefinition public_func = FunctionBuilder.Create("untransmogrify", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement())
                     .SetModifier(EntityModifier.Override);
@@ -343,14 +343,14 @@ namespace Skila.Tests.Semantics
                     .Parents("ITransmogrifier")
                     // refining private is OK
                     .With(FunctionBuilder.Create("transmogrify", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement())
                         .SetModifier(EntityModifier.Override | EntityModifier.Private))
                     .With(public_func)
                     // but using it -- not
                     .With(FunctionBuilder.Create("trying", ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement(new[] {
                         FunctionCall.Create(private_reference)
@@ -377,7 +377,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 FunctionDefinition function = FunctionBuilder.Create("getSome",
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("3"))
                         }))
@@ -495,7 +495,7 @@ namespace Skila.Tests.Semantics
                 bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
                     bar_ref.Binding.Match.Instance, deriv_ref.Binding.Match.Instance, out IEntityInstance common);
                 Assert.IsTrue(found);
-                Assert.AreEqual(abc_ref.Binding.Match.Instance, common);
+                Assert.IsTrue(abc_ref.Binding.Match.Instance.HasSameCore(common));
             }
 
             return resolver;
@@ -515,7 +515,7 @@ namespace Skila.Tests.Semantics
                 bool found = TypeMatcher.LowestCommonAncestor(resolver.Context,
                     env.Int64Type.InstanceOf, env.BoolType.InstanceOf, out IEntityInstance common);
                 Assert.IsTrue(found);
-                Assert.AreEqual(env.IEquatableType.InstanceOf, common);
+                Assert.IsTrue(env.IEquatableType.InstanceOf.HasSameCore(common));
             }
 
             return resolver;
@@ -586,27 +586,27 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "foo",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference()))
+                        NameFactory.Int64NameReference()))
                     .With(FunctionBuilder.Create("fin",
                         ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement()))
                     .With(FunctionBuilder.CreateDeclaration("bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference()))
+                        NameFactory.Int64NameReference()))
                     .SetModifier(EntityModifier.Interface));
 
                 FunctionDefinition bar_impl = FunctionBuilder.Create(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
+                        NameFactory.Int64NameReference(), Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                         }));
                 FunctionDefinition fin_impl = FunctionBuilder.Create(
                         "fin",
                         ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement())
                         .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase);
@@ -638,7 +638,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Inter")
                     .With(FunctionBuilder.CreateDeclaration("bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference()))
+                        NameFactory.Int64NameReference()))
                     .SetModifier(EntityModifier.Interface));
 
                 root_ns.AddBuilder(TypeBuilder.Create("MiddleImpl")
@@ -672,19 +672,19 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
+                        NameFactory.PointerNameReference(NameFactory.IObjectNameReference()))
+                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), Variadic.None, null, isNameRequired: false)))
                     .SetModifier(EntityModifier.Interface));
 
                 TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("X")
                     .With(FunctionBuilder.Create("bar",
                         ExpressionReadMode.OptionalUse,
                         // subtype of original result typename -- this is legal
-                        NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        NameFactory.PointerNameReference(NameFactory.Int64NameReference()),
                         Block.CreateStatement(new[] {
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
                         }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))
+                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), usageMode: ExpressionReadMode.CannotBeRead))
                         .SetModifier(EntityModifier.Override))
                     .Parents(NameReference.Create("IX")));
 
@@ -711,7 +711,7 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference())
+                        NameFactory.Int64NameReference())
                         .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), Variadic.None, null, isNameRequired: false)))
                     .SetModifier(EntityModifier.Interface));
 
@@ -720,7 +720,7 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.Create(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                         }))
@@ -750,14 +750,14 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
+                        NameFactory.ReferenceNameReference(NameReference.Create("TI")))));
 
                 TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("MyImpl",
                         TemplateParametersBuffer.Create().Add("MV").Values))
                     .With(FunctionBuilder.Create(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
+                        NameFactory.ReferenceNameReference(NameReference.Create("MV")),
                         Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                         }))
@@ -791,7 +791,7 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "foo",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("TI")))));
+                        NameFactory.ReferenceNameReference(NameReference.Create("TI")))));
 
                 // and here we override the above functions but with changed output -- in case of reference we try to set result type as value
                 // and in case of function with value output we try to set result type as reference
@@ -801,7 +801,7 @@ namespace Skila.Tests.Semantics
                 FunctionDefinition func1_impl = FunctionBuilder.Create(
                         "bar",
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.ReferenceTypeReference(NameReference.Create("MV")),
+                        NameFactory.ReferenceNameReference(NameReference.Create("MV")),
                         Block.CreateStatement(new[] {
                         Return.Create(Undef.Create())
                         }))
@@ -846,7 +846,7 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.CreateDeclaration(
                         "barend", "FA", VarianceMode.None,
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference())
+                        NameFactory.Int64NameReference())
                         .Constraints(ConstraintBuilder.Create("FA").Inherits(NameReference.Create("TA")))
                         .Parameters(FunctionParameter.Create("x", NameReference.Create("TA")))));
 
@@ -855,7 +855,7 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.Create(
                         "barend", TemplateParametersBuffer.Create("FB").Values,
                         ExpressionReadMode.OptionalUse,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                         }))

@@ -25,31 +25,31 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
-                    .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference()))));
+                    .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference()))));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Middle")
                     .Parents("IProvider")
                     .SetModifier(EntityModifier.Base)
-                    .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
                         .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead))));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Last")
                     .Parents("Middle")
                     .SetModifier(EntityModifier.Base)
-                    .With(PropertyBuilder.CreateIndexer(env.Options, NameFactory.Int64TypeReference())
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), ExpressionReadMode.CannotBeRead))
+                    .With(PropertyBuilder.CreateIndexer(env.Options, NameFactory.Int64NameReference())
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), ExpressionReadMode.CannotBeRead))
                         .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                             .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference("IProvider"),
+                    VariableDeclaration.CreateStatement("p",NameFactory.PointerNameReference("IProvider"),
                         ExpressionFactory.HeapConstructor("Last")),
                     Return.Create(FunctionCall.Create(NameReference.Create("p",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(Int64Literal.Create("18"))))
@@ -75,28 +75,28 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("IProvider")
-                    .With(FunctionBuilder.CreateDeclaration("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                    .With(FunctionBuilder.CreateDeclaration("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Middle")
                     .Parents("IProvider")
                     .SetModifier(EntityModifier.Base)
-                    .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("getMe", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(Return.Create(Int64Literal.Create("500"))))
                         .SetModifier(EntityModifier.Override | EntityModifier.UnchainBase)));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Last")
                     .Parents("Middle")
                     .SetModifier(EntityModifier.Base)
-                    .With(PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
+                    .With(PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                             .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",NameFactory.PointerTypeReference("IProvider"),
+                    VariableDeclaration.CreateStatement("p",NameFactory.PointerNameReference("IProvider"),
                         ExpressionFactory.HeapConstructor("Last")),
                     Return.Create(FunctionCall.Create( NameReference.Create("p","getMe")))
                     })));
@@ -120,13 +120,13 @@ namespace Skila.Tests.Execution
                     DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IEnumerable<FunctionParameter> property_parameters = new[] { FunctionParameter.Create("idx", NameFactory.Int64TypeReference()) };
-                NameReference property_typename = NameFactory.Int64TypeReference();
+                IEnumerable<FunctionParameter> property_parameters = new[] { FunctionParameter.Create("idx", NameFactory.Int64NameReference()) };
+                NameReference property_typename = NameFactory.Int64NameReference();
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.CreateIndexer(env.Options, property_typename,
-                        new[] { VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), Int64Literal.Create("1"),
+                        new[] { VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), Int64Literal.Create("1"),
                             env.Options.ReassignableModifier()) },
                         new[] { Property.CreateIndexerGetter(property_typename, property_parameters,
                         Block.CreateStatement(IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),Int64Literal.Create("17")),new[]{
@@ -144,7 +144,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
@@ -180,16 +180,16 @@ namespace Skila.Tests.Execution
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), 
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
                     )));
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
@@ -221,23 +221,23 @@ namespace Skila.Tests.Execution
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(Property.Create(env.Options, "x", NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference()),
-                        new[] { Property.CreateAutoField(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),  Nat8Literal.Create("1")),
+                    .With(Property.Create(env.Options, "x", NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
+                        new[] { Property.CreateAutoField(NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),  Nat8Literal.Create("1")),
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference())) },
-                        new[] { Property.CreateAutoSetter(NameFactory.PointerTypeReference(NameFactory.Nat8TypeReference())) }
+                        new[] { Property.CreateAutoGetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) },
+                        new[] { Property.CreateAutoSetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) }
                     )));
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     // p.x = 1+p.x
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
-                    ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(),
+                    ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),
                      FunctionCall.Create(NameReference.Create( Nat8Literal.Create("1"), NameFactory.AddOperator),
                      FunctionArgument.Create(NameReference.Create("p","x"))))),
                     // return p.x

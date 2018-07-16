@@ -17,7 +17,7 @@ namespace Skila.Language
 #endif
 
         internal static CallResolution Create(ComputationContext ctx,
-            IEnumerable<INameReference> templateArguments,
+            IEnumerable<TemplateArgument> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
             EntityInstance targetFunctionInstance)
@@ -71,7 +71,7 @@ namespace Skila.Language
         public bool IsExtendedCall => this.TargetFunction.IsExtension && this.MetaThisArgument != null;
 
         private CallResolution(ComputationContext ctx,
-            IEnumerable<INameReference> templateArguments,
+            IEnumerable<TemplateArgument> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
             CallContext callContext,
             EntityInstance targetFunctionInstance,
@@ -91,7 +91,7 @@ namespace Skila.Language
 
             this.typeMatches = new TypeMatch?[this.TargetFunction.Parameters.Count];
             this.templateArguments = (templateArguments.Any()
-                ? templateArguments.Select(it => it.Evaluation.Components)
+                ? templateArguments.Select(it => it.TypeName.Evaluation.Components)
                 : this.TargetFunction.Name.Parameters.Select(it => EntityInstance.Joker)).StoreReadOnlyList();
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
@@ -101,17 +101,21 @@ namespace Skila.Language
                 // we need to have evaluation of the value, not ref/ptr, so the correct template translation table could kick in
                 ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval);
 
-            extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
+            if (this.DebugId==  (41, 745))
+            {
+                ;
+            }
+            extractParameters(ctx, argumentsProvider, call_ctx_eval, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
             if (this.templateArguments.Any(it => it.IsJoker))
             {
-                if (this.DebugId== (40, 747))
+                if (this.DebugId == (40, 747))
                 {
                     ;
                 }
-                if (argumentsProvider.DebugId== (20, 369))
+                if (argumentsProvider.DebugId == (20, 369))
                 {
                     ;
                 }
@@ -128,7 +132,7 @@ namespace Skila.Language
                     this.TargetFunctionInstance = this.TargetFunctionInstance.Build(inferred,
                         this.TargetFunctionInstance.OverrideMutability);
 
-                    extractParameters(ctx, call_ctx_eval, this.TargetFunctionInstance,
+                    extractParameters(ctx, argumentsProvider, call_ctx_eval, this.TargetFunctionInstance,
                         out this.translatedParamEvaluations,
                         out this.translatedResultEvaluation);
 
@@ -196,6 +200,7 @@ namespace Skila.Language
         }
 
         private static void extractParameters(ComputationContext ctx,
+            INode callNode,
             IEntityInstance objectInstance,
             EntityInstance targetFunctionInstance,
             out IReadOnlyList<ParameterType> translatedParamEvaluations,
@@ -215,7 +220,7 @@ namespace Skila.Language
             EntityInstance aggregate = translateFunctionElement(target_function.ResultTypeName.Evaluation.Aggregate,
                 objectInstance, targetFunctionInstance);
 
-            translatedResultEvaluation = new EvaluationInfo(components, aggregate);
+            translatedResultEvaluation = new EvaluationInfo( components, aggregate);
         }
 
         // translate eval of parameter or result type
@@ -244,8 +249,8 @@ namespace Skila.Language
                 else if (this.typeMatches[idx].Value != match)
                     throw new NotImplementedException();
 
-                if (match == TypeMatch.No)
-                    return false;
+                    if (match.IsMismatch())
+                        return false;
 
                 if (match == TypeMatch.ImplicitReference)
                 {
@@ -372,47 +377,65 @@ namespace Skila.Language
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
-            IReadOnlyList<TemplateParameter> template_parameters = this.TargetFunctionInstance.TargetTemplate.Name.Parameters;
+            // regular inferrence
+            IReadOnlyList<IEntityInstance> inferred = InferTemplateArguments(ctx, this.TargetFunction)
+                .Select(it => it?.Instance)
+                .StoreReadOnlyList();
 
-            var template_param_inference = new Dictionary<TemplateParameter,
-                // true -- set by user, don't change
-                Tuple<IEntityInstance, bool>>();
-            for (int i = 0; i < template_parameters.Count; ++i)
+            for (int i = 0; i < this.TargetFunctionInstance.TargetTemplate.Name.Parameters.Count; ++i)
                 if (this.templateArguments[i].IsJoker)
-                    template_param_inference.Add(template_parameters[i], Tuple.Create((IEntityInstance)null, false));
+                    yield return inferred[i] ?? EntityInstance.Joker;
                 else
-                    template_param_inference.Add(template_parameters[i], Tuple.Create(templateArguments[i], true));
+                    yield return templateArguments[i];
+        }
 
-
-            if (this.DebugId == (37, 699))
+        public IEnumerable<TimedIEntityInstance> InferTemplateArguments(ComputationContext ctx, TemplateDefinition template)
+        {
+            if (this.DebugId == (39, 14))
             {
                 ;
             }
+
+            // we try to cross-infer parameters when trying to match constructor (function) arguments with typedef parameters
+            // new Foo<X>(arg)
+            // Foo<X> here is typedef, not a function, the above unfolds into
+            // t = alloc<Foo<X>>(); t.init(arg); ...
+            // it is possible because constructor does not have any template parameters (like in C#)
+            bool cross_parameters = template != this.TargetFunction;
+
+            IReadOnlyList<TemplateParameter> template_parameters = template.Name.Parameters;
+
+            var template_param_inference = new Dictionary<TemplateParameter, TimedIEntityInstance>();
+            for (int i = 0; i < template_parameters.Count; ++i)
+                template_param_inference.Add(template_parameters[i], null);
+
             foreach (FunctionArgument arg in this.TrueArguments)
             {
-                IEntityInstance function_param_type = this.GetTransParamEvalByArg(arg);
+                IEntityInstance function_param_type = cross_parameters ? this.GetParamByArg(arg).Evaluation.Components : this.GetTransParamEvalByArg(arg);
 
-                IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
-                    = extractTypeParametersMapping(ctx, this.TargetFunction, arg.Evaluation.Components, function_param_type);
+                IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> type_mapping
+                    = extractTypeParametersMapping(ctx, template, arg.Evaluation.Aggregate.Lifetime, arg.Evaluation.Components,
+                    function_param_type);
 
-                foreach (Tuple<TemplateParameter, IEntityInstance> pair in type_mapping)
+                foreach (Tuple<TemplateParameter, TimedIEntityInstance> pair in type_mapping)
                 {
-                    if (!template_param_inference[pair.Item1].Item2)
+                    if (template_param_inference[pair.Item1] == null)
+                        template_param_inference[pair.Item1] = pair.Item2;
+                    else
                     {
-                        if (template_param_inference[pair.Item1].Item1 == null)
-                            template_param_inference[pair.Item1] = Tuple.Create(pair.Item2, false);
-                        else
-                        {
-                            if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Item1, pair.Item2,
-                                out IEntityInstance common))
-                                throw new NotImplementedException();
-                            template_param_inference[pair.Item1] = Tuple.Create(common, false);
-                        }
+                        if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Instance, pair.Item2.Instance,
+                            out IEntityInstance common))
+                            throw new NotImplementedException();
+
+                        template_param_inference[pair.Item1] = TimedIEntityInstance.Create(
+                            template_param_inference[pair.Item1].Lifetime.Shorter(pair.Item2.Lifetime),
+                            common);
                     }
+
                 }
             }
 
-            return template_parameters.Select(it => template_param_inference[it].Item1 ?? EntityInstance.Joker);
+            return template_parameters.Select(it => template_param_inference[it]);
         }
 
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromConstraints(ComputationContext ctx,
@@ -460,10 +483,12 @@ namespace Skila.Language
             return result;
         }
 
-        private static IEnumerable<Tuple<TemplateParameter, IEntityInstance>> extractTypeParametersMapping(ComputationContext ctx,
+        private static IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> extractTypeParametersMapping(ComputationContext ctx,
             TemplateDefinition template,
+            Lifetime argLifetime,
             IEntityInstance argType, IEntityInstance paramType)
         {
+
             // three steps logic of dereferencing here
             // (1) we cannot pass references as template arguments, so we dereference the type right away
             bool dereferencing_arg = ctx.Env.IsReferenceOfType(argType);
@@ -493,17 +518,18 @@ namespace Skila.Language
 
             var param_type_instance = paramType as EntityInstance;
             if (param_type_instance == null)
-                return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
+                return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
 
             // case when we have direct hit, function: def foo<T>(x T)
             // and we have argument (for example) Int against parameter "x T", thus we simply match them: T=Int
             if (param_type_instance.IsTemplateParameterOf(template))
-                return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter, argType) };
+                return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter,
+                    TimedIEntityInstance.Create( argLifetime,argType)) };
             else
             {
                 var arg_type_instance = argType as EntityInstance;
                 if (arg_type_instance == null)
-                    return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
+                    return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
 
                 IEnumerable<EntityInstance> arg_family = arg_type_instance.Inheritance(ctx).OrderedAncestorsWithoutObject
                     .Concat(arg_type_instance);
@@ -511,11 +537,11 @@ namespace Skila.Language
                     .SingleOrDefault(it => it.TargetType == param_type_instance.TargetType);
 
                 if (arg_type_instance == null)
-                    return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
+                    return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
 
                 var zipped = arg_type_instance.TemplateArguments.SyncZip(param_type_instance.TemplateArguments);
                 return zipped
-                    .Select(it => extractTypeParametersMapping(ctx, template, it.Item1, it.Item2))
+                    .Select(it => extractTypeParametersMapping(ctx, template, argLifetime, it.Item1, it.Item2))
                     .Flatten()
                     .ToArray();
             }

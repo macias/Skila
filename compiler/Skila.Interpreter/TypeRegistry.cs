@@ -5,6 +5,7 @@ using Skila.Language.Extensions;
 using Skila.Language;
 using Skila.Language.Entities;
 using System.Threading.Tasks;
+using Skila.Language.Comparers;
 
 namespace Skila.Interpreter
 {
@@ -17,7 +18,7 @@ namespace Skila.Interpreter
 
         public TypeRegistry()
         {
-            this.types = new Dictionary<EntityInstance, TaskCompletionSource<ObjectData>>();
+            this.types = new Dictionary<EntityInstance, TaskCompletionSource<ObjectData>>(EntityInstanceCoreComparer.Instance);
         }
 
         // we need this "simplified" register (without waiting for the result) to resolve legal, infinite loops

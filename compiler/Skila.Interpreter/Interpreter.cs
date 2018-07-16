@@ -10,6 +10,7 @@ using NaiveLanguageTools.Common;
 using System.Threading.Tasks;
 using System.Threading;
 using Skila.Language.Expressions.Literals;
+using System.Diagnostics;
 
 namespace Skila.Interpreter
 {
@@ -30,6 +31,10 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionDefinition func)
         {
+            if (func.DebugId==(11, 235))
+            {
+                ;
+            }
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
@@ -92,7 +97,16 @@ namespace Skila.Interpreter
 
         private Task<ExecValue> executeAsync(ExecutionContext ctx, Block block)
         {
+            if (block.DebugId== (10, 369))
+            {
+                ;
+            }
             return executeAsync(ctx, block.Instructions);
+        }
+
+        private Task<ExecValue> executeAsync(ExecutionContext ctx, New @new)
+        {
+            return executeAsync(ctx, @new.Instructions);
         }
 
         private Task<ExecValue> executeAsync(ExecutionContext ctx, Chain chain)
@@ -253,11 +267,15 @@ namespace Skila.Interpreter
         }
         internal async Task<ExecValue> ExecutedAsync(IEvaluable node, ExecutionContext ctx)
         {
-            if (this.debugMode)
-                Console.WriteLine($"[{node.DebugId}:{node.GetType().Name}] {node}");
-
             while (true)
             {
+                if (this.debugMode)
+                {
+                    Console.Write($"[{node.DebugId}:{node.GetType().Name}] ");
+                    // we might have a bug in ToString
+                    Console.WriteLine($"{node}");
+                }
+
                 INameRegistryExtension.EnterNode(node, ref ctx.LocalVariables, () => new VariableRegistry(ctx.Env.Options.ScopeShadowing));
 
                 ExecValue result;
@@ -273,6 +291,10 @@ namespace Skila.Interpreter
                 else if (node is Chain chain)
                 {
                     result = await executeAsync(ctx, chain).ConfigureAwait(false);
+                }
+                else if (node is New @new)
+                {
+                    result = await executeAsync(ctx, @new).ConfigureAwait(false);
                 }
                 else if (node is FunctionDefinition func)
                 {
@@ -618,6 +640,10 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
+            if (call.DebugId==  (22, 369))
+            {
+                ;
+            }
             CallPreparationData call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
             if (call_prep.Prep.Is<ExecValue>())
                 return call_prep.Prep.As<ExecValue>();
@@ -753,7 +779,7 @@ namespace Skila.Interpreter
 
             var result = new CallInfo(target_func);
 
-            SetupFunctionCallData(ref result, call.Name.TemplateArguments.Select(it => it.Evaluation.Components),
+            SetupFunctionCallData(ref result, call.Name.TemplateArguments.Select(it => it.TypeName.Evaluation.Components),
                 this_ref, arguments);
 
             return new CallPreparationData(result, args_buffer);
@@ -796,7 +822,7 @@ namespace Skila.Interpreter
 
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        TypeMutability.None, null),
+                        TypeMutability.None, null, lifetime: Lifetime.Timeless),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -863,21 +889,29 @@ namespace Skila.Interpreter
 
                     bool found_duck = false;
 
-                    foreach (EntityInstance ancestor in thisValue.RunTimeTypeInstance.TargetType.Inheritance
-                        .OrderedAncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance))
-                        .Concat(thisValue.RunTimeTypeInstance))
                     {
-                        if (ancestor.TryGetDuckVirtualTable(inner_type, out VirtualTable vtable))
+                        if (targetFunc.DebugId == (11, 696))
                         {
-                            if (vtable.TryGetDerived(targetFunc, out FunctionDefinition derived))
+                            ;
+                        }
+                        IEnumerable<EntityInstance> ancestors = thisValue.RunTimeTypeInstance
+                            .Concat(thisValue.RunTimeTypeInstance.TargetType.Inheritance
+                            .OrderedAncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance)));
+
+                        foreach (EntityInstance ancestor in ancestors)
+                        {
+                            if (ancestor.TryGetDuckVirtualTable(inner_type, out VirtualTable vtable))
                             {
-                                targetFunc = derived;
-                                found_duck = true;
-                                break;
+                                if (vtable.TryGetDerived(targetFunc, out FunctionDefinition derived))
+                                {
+                                    targetFunc = derived;
+                                    found_duck = true;
+                                    break;
+                                }
+                                // if it is a partial vtable, don't worry we should find proper mapping in another ancestor
+                                else if (!vtable.IsPartial)
+                                    throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
                             }
-                            // if it is a partial vtable, don't worry we should find proper mapping in another ancestor
-                            else if (!vtable.IsPartial)
-                                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
                         }
                     }
 
@@ -909,6 +943,11 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, NameReference name)
         {
+            if (name.DebugId == (5, 10257))
+            {
+                ;
+            }
+
             IEntity target = name.Binding.Match.Instance.Target;
 
             if (target is Property)
@@ -1005,6 +1044,10 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, VariableDeclaration decl)
         {
+            if (decl.DebugId== (19, 383))
+            {
+                ;
+            }
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(await ObjectData.CreateEmptyAsync(ctx, decl.Evaluation.Aggregate).ConfigureAwait(false));

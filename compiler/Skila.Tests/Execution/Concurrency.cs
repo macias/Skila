@@ -26,10 +26,10 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(Int64Literal.Create("2")))),
                     Return.Create(Int64Literal.Create("0"))
@@ -55,10 +55,10 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
                     Return.Create(Int64Literal.Create("0"))
                     })));
@@ -83,21 +83,21 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "sender",
                     ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(new IExpression[] {
                     ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(Int64Literal.Create("2")))),
                     }))
-                    .Parameters(FunctionParameter.Create("ch", NameFactory.PointerTypeReference(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference())),
+                    .Parameters(FunctionParameter.Create("ch", NameFactory.PointerNameReference(NameFactory.ChannelNameReference(NameFactory.Int64NameReference())),
                         Variadic.None, null, isNameRequired: false)));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelTypeReference(NameFactory.Int64TypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
                     Spawn.Create(FunctionCall.Create(NameReference.Create("sender"),FunctionArgument.Create(NameReference.Create("ch")))),
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),

@@ -24,7 +24,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
                         Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
@@ -32,12 +32,12 @@ namespace Skila.Tests.Execution
                     ))
                     .Constraints(ConstraintBuilder.Create("T")
                         .SetModifier(env.Options.ReassignableModifier()))
-                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
-                        FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
+                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceNameReference("T")),
+                        FunctionParameter.Create("b", NameFactory.ReferenceNameReference("T"))));
 
                 VariableDeclaration decl_a = VariableDeclaration.CreateStatement("a", null,
                             ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
-                                NameFactory.Nat8TypeReference(),
+                                NameFactory.Nat8NameReference(),
                                 Nat8Literal.Create("2")));
 
                 FunctionCall swap_call = FunctionCall.Create("swap", AddressOf.CreateReference(NameReference.Create("a")),
@@ -46,12 +46,12 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         decl_a,
                         VariableDeclaration.CreateStatement("b", null,
                             ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
-                                NameFactory.Nat8TypeReference(),
+                                NameFactory.Nat8NameReference(),
                                 Nat8Literal.Create("17"))),
 
                         VariableDeclaration.CreateStatement("c", null, NameReference.Create("a")),
@@ -83,7 +83,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
                         Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
@@ -91,19 +91,19 @@ namespace Skila.Tests.Execution
                     ))
                     .Constraints(ConstraintBuilder.Create("T")
                         .SetModifier(env.Options.ReassignableModifier()))
-                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
-                        FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
+                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceNameReference("T")),
+                        FunctionParameter.Create("b", NameFactory.ReferenceNameReference("T"))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(env.Options.ReassignableTypeMutability()),
+                            ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
                                 Nat8Literal.Create("2"))),
                         VariableDeclaration.CreateStatement("b", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.Nat8TypeReference(env.Options.ReassignableTypeMutability()),
+                            ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
                                 Nat8Literal.Create("17"))),
                         FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b")),
                         Return.Create(ExpressionFactory.Sub("a", "b"))
@@ -130,7 +130,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("t", NameReference.Create("T"), NameReference.Create("a")),
                         Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b")),
@@ -138,13 +138,13 @@ namespace Skila.Tests.Execution
                     ))
                     .Constraints(ConstraintBuilder.Create("T")
                         .SetModifier(env.Options.ReassignableModifier()))
-                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceTypeReference("T")),
-                        FunctionParameter.Create("b", NameFactory.ReferenceTypeReference("T"))));
+                    .Parameters(FunctionParameter.Create("a", NameFactory.ReferenceNameReference("T")),
+                        FunctionParameter.Create("b", NameFactory.ReferenceNameReference("T"))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2"), env.Options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17"), env.Options.ReassignableModifier()),
@@ -170,9 +170,9 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 "main",
                 ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
+                NameFactory.Nat8NameReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(TypeMutability.ForceMutable),
+                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8NameReference(TypeMutability.ForceMutable),
                         Nat8Literal.Create("2")),
                     Assignment.CreateStatement(NameReference.Create("a"), Nat8Literal.Create("13")),
                     Return.Create(NameReference.Create("a"))
@@ -196,11 +196,11 @@ namespace Skila.Tests.Execution
             root_ns.AddBuilder(FunctionBuilder.Create(
                 "main",
                 ExpressionReadMode.OptionalUse,
-                NameFactory.Nat8TypeReference(),
+                NameFactory.Nat8NameReference(),
                 Block.CreateStatement(
-                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8TypeReference(TypeMutability.ForceMutable),
+                    VariableDeclaration.CreateStatement("a", NameFactory.Nat8NameReference(TypeMutability.ForceMutable),
                         Nat8Literal.Create("2"), env.Options.ReassignableModifier()),
-                    VariableDeclaration.CreateStatement("b", NameFactory.Nat8TypeReference(TypeMutability.ForceConst),
+                    VariableDeclaration.CreateStatement("b", NameFactory.Nat8NameReference(TypeMutability.ForceConst),
                         Nat8Literal.Create("13")),
                     Assignment.CreateStatement(NameReference.Create("a"), NameReference.Create("b")),
                     Return.Create(NameReference.Create("a"))

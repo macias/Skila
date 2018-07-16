@@ -10,11 +10,14 @@ namespace Skila.Language.Builders
 {
     public sealed class ConstructorCall
     {
-        private Block build;
+        private New build;
+        private readonly string localThis;
         private readonly NameReference varReference;
-        private readonly VariableDeclaration varDeclaration;
         private readonly FunctionCall initCall;
         private readonly List<IExpression> objectInitialization;
+        private readonly NameReference allocTypeName;
+        private readonly Memory allocMemory;
+        private readonly TypeMutability allocMutability;
 
         public static ConstructorCall HeapConstructor(string innerTypeName, params IExpression[] arguments)
         {
@@ -26,14 +29,11 @@ namespace Skila.Language.Builders
         }
         public static ConstructorCall HeapConstructor(NameReference innerTypeName)
         {
-            return HeapConstructor(TypeMutability.None, innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
-            /*
 #if USE_NEW_CONS
             return FunctionCall.Create(NameReference.Create(innerTypeName, NameFactory.NewConstructorName));
 #else
-            NameReference dummy;
-            return constructorCall(innerTypeName, out dummy, true);
-#endif*/
+            return HeapConstructor(TypeMutability.None, innerTypeName, Enumerable.Empty<FunctionArgument>().ToArray());
+#endif
         }
         public static ConstructorCall HeapConstructor(TypeMutability mutability, NameReference innerTypeName,  params IExpression[] arguments)
         {
@@ -84,7 +84,9 @@ namespace Skila.Language.Builders
             else if (arguments.Length == 1)
                 return arguments.Single();
             else
-                return FunctionCall.Create(NameReference.Create(NameFactory.TupleFactoryReference(), NameFactory.CreateFunctionName), arguments);
+                return FunctionCall.Create(
+                    NameReference.Create(NameFactory.TupleFactoryReference(), NameFactory.CreateFunctionName), 
+                    arguments);
         }
         public static IExpression InitializeIndexable(string name, params IExpression[] arguments)
         {
@@ -120,11 +122,13 @@ namespace Skila.Language.Builders
             TypeMutability mutability,
             params FunctionArgument[] arguments)
         {
-            string local_this = AutoName.Instance.CreateNew("cons_obj");
-            this.varReference = NameReference.Create(local_this);
+            this.localThis = AutoName.Instance.CreateNew("cons_obj");
+            this.varReference = NameReference.Create(localThis);
             constructorReference = NameReference.Create(varReference, NameFactory.InitConstructorName);
 
-            this.varDeclaration = VariableDeclaration.CreateStatement(local_this, null, Alloc.Create(typeName, memory, mutability));
+            this.allocTypeName = typeName;
+            this.allocMemory = memory;
+            this.allocMutability = mutability;
             this.initCall = FunctionCall.Constructor(constructorReference, arguments);
 
             this.objectInitialization = new List<IExpression>();
@@ -152,11 +156,13 @@ namespace Skila.Language.Builders
         private Expression buildExpression()
         {
             if (this.build == null)
-                this.build = Block.CreateInitialization(
-                    // __this__ = alloc()
-                    varDeclaration,
-                    // __this__.init(args)
-                    initCall,
+                this.build = New.Create(
+                    this.localThis,
+            this.allocTypeName,
+            this.allocMemory,
+            this.allocMutability,
+            // __this__.init(args)
+            initCall,
                     // all __this__.member = ...
                     objectInitialization,
                     // --> __this__

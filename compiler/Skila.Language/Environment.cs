@@ -169,7 +169,7 @@ namespace Skila.Language
             this.IoNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.IoNamespace));
             this.TextNamespace = this.SystemNamespace.AddNode(Namespace.Create(NameFactory.TextNamespace));
 
-            this.IObjectGetTypeFunction = FunctionBuilder.Create(NameFactory.GetTypeFunctionName, NameFactory.TypeInfoPointerTypeReference(),
+            this.IObjectGetTypeFunction = FunctionBuilder.Create(NameFactory.GetTypeFunctionName, NameFactory.TypeInfoPointerNameReference(),
                     Block.CreateStatement())
                         .SetModifier(EntityModifier.Native);
             this.IObjectType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.IObjectTypeName)
@@ -192,7 +192,7 @@ namespace Skila.Language
                 // this allows to make such override of the method
                 // Parent::foo() -> Ref<T>
                 // Child::foo() -> Ptr<T> 
-                //.Parents(NameFactory.ReferenceTypeReference("PTT")) 
+                //.Parents(NameFactory.ReferenceNameReference("PTT")) 
                 .Slicing(true));
 
             this.TypeInfoType = this.SystemNamespace.AddNode(createTypeInfo());
@@ -214,7 +214,7 @@ namespace Skila.Language
             }
             {
                 this.Int64FromNat8Constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Implicit,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8TypeReference(),
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8NameReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
@@ -224,7 +224,7 @@ namespace Skila.Language
                     out FunctionDefinition parse_string,
                     this.Int64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.Create(NameFactory.IntTypeName, NameFactory.Int64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.IntTypeName, NameFactory.Int64NameReference(), EntityModifier.Public));
                 this.Int64ParseStringFunction = parse_string;
             }
             {
@@ -236,7 +236,7 @@ namespace Skila.Language
             }
             {
                 this.Nat64FromNat8Constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Implicit,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8TypeReference(),
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8NameReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
@@ -246,18 +246,18 @@ namespace Skila.Language
                    out FunctionDefinition parse_string,
                    this.Nat64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.Create(NameFactory.NatTypeName, NameFactory.Nat64TypeReference(), EntityModifier.Public));
-                this.Root.AddNode(Alias.Create(NameFactory.SizeTypeName, NameFactory.NatTypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.NatTypeName, NameFactory.Nat64NameReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.SizeTypeName, NameFactory.NatNameReference(), EntityModifier.Public));
                 this.Nat64ParseStringFunction = parse_string;
             }
 
             /*this.EnumType = this.Root.AddBuilder(TypeBuilder.CreateInterface(NameFactory.EnumTypeName,EntityModifier.Native)
-                            .Parents(NameFactory.ObjectTypeReference(), NameFactory.EquatableTypeReference()));
+                            .Parents(NameFactory.ObjectNameReference(), NameFactory.EquatableNameReference()));
                 */
 
             {
                 this.Real64FromNat8Constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native | EntityModifier.Implicit,
-                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8TypeReference(),
+                    new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.Nat8NameReference(),
                         ExpressionReadMode.CannotBeRead) },
                     Block.CreateStatement());
 
@@ -268,7 +268,7 @@ namespace Skila.Language
                    out FunctionDefinition parse_string,
                    this.Real64FromNat8Constructor));
                 // todo: make it platform-dependant
-                this.Root.AddNode(Alias.Create(NameFactory.RealTypeName, NameFactory.Real64TypeReference(), EntityModifier.Public));
+                this.Root.AddNode(Alias.Create(NameFactory.RealTypeName, NameFactory.Real64NameReference(), EntityModifier.Public));
                 this.Real64ParseStringFunction = parse_string;
             }
             {
@@ -357,14 +357,14 @@ namespace Skila.Language
             {
                 this.DateType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.DateTypeName)
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.CreateAutoFull(this.Options,"year", NameFactory.Int16TypeReference(), out PropertyMembers year))
-                    .With(PropertyBuilder.CreateAutoFull(this.Options, "month", NameFactory.Nat8TypeReference(), out PropertyMembers month,
+                    .With(PropertyBuilder.CreateAutoFull(this.Options, "year", NameFactory.Int16NameReference(), out PropertyMembers year))
+                    .With(PropertyBuilder.CreateAutoFull(this.Options, "month", NameFactory.Nat8NameReference(), out PropertyMembers month,
                         Nat8Literal.Create("1")))
-                    .With(PropertyBuilder.CreateAutoFull(this.Options, "day", NameFactory.Nat8TypeReference(), out PropertyMembers day,
+                    .With(PropertyBuilder.CreateAutoFull(this.Options, "day", NameFactory.Nat8NameReference(), out PropertyMembers day,
                         Nat8Literal.Create("1")))
                     .With(ExpressionFactory.BasicConstructor(new[] { "year", "month", "day" },
-                        new[] { NameFactory.Int16TypeReference(), NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference() }))
-                    .With(PropertyBuilder.Create(options, NameFactory.DateDayOfWeekProperty, NameFactory.DayOfWeekTypeReference())
+                        new[] { NameFactory.Int16NameReference(), NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference() }))
+                    .With(PropertyBuilder.Create(options, NameFactory.DateDayOfWeekProperty, NameFactory.DayOfWeekNameReference())
                         .WithGetter(ExpressionFactory.BodyReturnUndef(), out FunctionDefinition day_of_week_getter, EntityModifier.Native))
                     );
 
@@ -412,7 +412,7 @@ namespace Skila.Language
                 this.Utf8StringConcat = concat;
                 this.Utf8StringCopyConstructor = copy_cons;
                 this.Utf8StringRemove = remove;
-                this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringTypeReference(),
+                this.SystemNamespace.AddNode(Alias.Create(NameFactory.StringTypeName, NameFactory.Utf8StringNameReference(),
                     EntityModifier.Public));
             }
 
@@ -432,7 +432,7 @@ namespace Skila.Language
 
             this.ExceptionType = this.SystemNamespace.AddBuilder(TypeBuilder.Create(NameFactory.ExceptionTypeName)
                 .SetModifier(EntityModifier.HeapOnly)
-                .Parents(NameFactory.IObjectTypeReference()));
+                .Parents(NameFactory.IObjectNameReference()));
 
             {
                 FunctionDefinition empty, value;
@@ -469,14 +469,14 @@ namespace Skila.Language
         {
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ICountedTypeName))
 
-                                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeTypeReference())
+                                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
                                     .WithGetter(body: null));
         }
 
         private static TypeDefinition createISequence()
         {
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ISequenceTypeName, "SQT", VarianceMode.Out))
-                                .Parents(NameFactory.IIterableTypeReference("SQT"))
+                                .Parents(NameFactory.IIterableNameReference("SQT"))
 
                                     ;
         }
@@ -487,7 +487,7 @@ namespace Skila.Language
                 .SetModifier(EntityModifier.Native)
                 .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
                     .SetModifier(EntityModifier.Native))
-                .Parents(NameFactory.IObjectTypeReference())
+                .Parents(NameFactory.IObjectNameReference())
                 ;
         }
 
@@ -495,35 +495,35 @@ namespace Skila.Language
         {
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.IEquatableTypeName))
                                 .SetModifier(EntityModifier.Interface)
-                                .Parents(NameFactory.IObjectTypeReference())
-                                .With(FunctionBuilder.Create(NameFactory.NotEqualOperator, ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                .Parents(NameFactory.IObjectNameReference())
+                                .With(FunctionBuilder.Create(NameFactory.NotEqualOperator, ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                                     Block.CreateStatement(new[] {
                             Return.Create(ExpressionFactory.Not(
                                 ExpressionFactory.IsEqual(NameFactory.ThisReference(),NameReference.Create("cmp"))))
                                     }))
                                         .Parameters(FunctionParameter.Create("cmp",
-                                            NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName, TypeMutability.ReadOnly)))))
-                                .With(FunctionBuilder.CreateDeclaration(NameFactory.EqualOperator, NameFactory.BoolTypeReference())
+                                            NameFactory.ReferenceNameReference(NameFactory.ShouldBeThisNameReference(NameFactory.IEquatableTypeName, TypeMutability.ReadOnly)))))
+                                .With(FunctionBuilder.CreateDeclaration(NameFactory.EqualOperator, NameFactory.BoolNameReference())
                                     .SetModifier(EntityModifier.Pinned)
                                         .Parameters(FunctionParameter.Create("cmp",
-                                            NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IEquatableTypeName, TypeMutability.ReadOnly)))));
+                                            NameFactory.ReferenceNameReference(NameFactory.ShouldBeThisNameReference(NameFactory.IEquatableTypeName, TypeMutability.ReadOnly)))));
         }
 
         private FunctionDefinition createStore()
         {
             return FunctionBuilder.Create(NameFactory.StoreFunctionName, "T", VarianceMode.None,
-               NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability: TypeMutability.ReadOnly)),
+               NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T", mutability: TypeMutability.ReadOnly)),
                Block.CreateStatement(
                     VariableDeclaration.CreateStatement("opt_coll", null, ExpressionFactory.DownCast(NameReference.Create("coll"),
-                        NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", TypeMutability.ReadOnly)))),
+                        NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T", TypeMutability.ReadOnly)))),
 
                     VariableDeclaration.CreateStatement("seq_coll", null,
                         ExpressionFactory.OptionCoalesce(NameReference.Create("opt_coll"),
-                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference("T", TypeMutability.ReadOnly),
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference("T", TypeMutability.ReadOnly),
                                 NameReference.Create("coll")))),
 
                     Return.Create(NameReference.Create("seq_coll"))))
-              .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference("T",
+              .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference("T",
                         overrideMutability: TypeMutability.ReadOnly))));
 
         }
@@ -532,21 +532,21 @@ namespace Skila.Language
         {
             // with min limit
             spreadMin = FunctionBuilder.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None,
-               NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability: TypeMutability.ReadOnly)),
+               NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T", mutability: TypeMutability.ReadOnly)),
                Block.CreateStatement(
 
                    IfBranch.CreateIf(ExpressionFactory.IsLess(FunctionCall.Create(NameReference.Create("coll", NameFactory.IIterableCount)),
                         NameReference.Create("min")), new[] { ExpressionFactory.GenericThrow() }),
                         Return.Create(NameReference.Create("coll"))
                 ))
-                .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T",
                             mutability: TypeMutability.ReadOnly))),
-                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()))
+                        FunctionParameter.Create("min", NameFactory.SizeNameReference()))
                 .Include(NameFactory.LinqExtensionReference());
 
             // with min+max limit
             spreadMinMax = FunctionBuilder.Create(NameFactory.SpreadFunctionName, "T", VarianceMode.None,
-                NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T", mutability: TypeMutability.ReadOnly)),
+                NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T", mutability: TypeMutability.ReadOnly)),
                 Block.CreateStatement(
                    VariableDeclaration.CreateStatement("count", null,
                      FunctionCall.Create(NameReference.Create("coll", NameFactory.IIterableCount))),
@@ -556,10 +556,10 @@ namespace Skila.Language
                         NameReference.Create("max")), new[] { ExpressionFactory.GenericThrow() }),
                                       Return.Create(NameReference.Create("coll"))
                 ))
-                .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceTypeReference(NameFactory.ISequenceTypeReference("T",
+                .Parameters(FunctionParameter.Create("coll", NameFactory.ReferenceNameReference(NameFactory.ISequenceNameReference("T",
                             mutability: TypeMutability.ReadOnly))),
-                        FunctionParameter.Create("min", NameFactory.SizeTypeReference()),
-                        FunctionParameter.Create("max", NameFactory.SizeTypeReference()))
+                        FunctionParameter.Create("min", NameFactory.SizeNameReference()),
+                        FunctionParameter.Create("max", NameFactory.SizeNameReference()))
                 .Include(NameFactory.LinqExtensionReference());
         }
 
@@ -580,19 +580,19 @@ namespace Skila.Language
                         NameFactory.CaptureNameFieldName
                     },
                     new[] {
-                        NameFactory.SizeTypeReference(mutability_override),
-                        NameFactory.SizeTypeReference(mutability_override),
-                    //    NameFactory.SizeTypeReference(),
-                        NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(TypeMutability.ForceConst))
+                        NameFactory.SizeNameReference(mutability_override),
+                        NameFactory.SizeNameReference(mutability_override),
+                    //    NameFactory.SizeNameReference(),
+                        NameFactory.OptionNameReference(NameFactory.StringPointerNameReference(TypeMutability.ForceConst))
                     });
 
 
             return TypeBuilder.Create(NameFactory.CaptureTypeName)
-                .With(PropertyBuilder.CreateAutoGetter(options, NameFactory.CaptureStartFieldName, NameFactory.SizeTypeReference(mutability_override), Undef.Create()))
-                .With(PropertyBuilder.CreateAutoGetter(options, NameFactory.CaptureEndFieldName, NameFactory.SizeTypeReference(mutability_override), Undef.Create()))
-                //.With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeTypeReference(), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(options, NameFactory.CaptureStartFieldName, NameFactory.SizeNameReference(mutability_override), Undef.Create()))
+                .With(PropertyBuilder.CreateAutoGetter(options, NameFactory.CaptureEndFieldName, NameFactory.SizeNameReference(mutability_override), Undef.Create()))
+                //.With(PropertyBuilder.CreateAutoGetter(NameFactory.CaptureIdFieldName, NameFactory.SizeNameReference(), Undef.Create()))
                 .With(PropertyBuilder.CreateAutoGetter(options, NameFactory.CaptureNameFieldName,
-                    NameFactory.OptionTypeReference(NameFactory.StringPointerTypeReference(TypeMutability.ForceConst)), Undef.Create()))
+                    NameFactory.OptionNameReference(NameFactory.StringPointerNameReference(TypeMutability.ForceConst)), Undef.Create()))
                 .With(captureConstructor)
                     ;
         }
@@ -601,12 +601,12 @@ namespace Skila.Language
         {
             TypeMutability mutability_override = this.Options.AtomicPrimitivesMutable ? TypeMutability.ForceConst : TypeMutability.None;
 
-            Property index_prop = PropertyBuilder.CreateAutoGetter(options, NameFactory.MatchStartFieldName, NameFactory.SizeTypeReference(mutability_override),
+            Property index_prop = PropertyBuilder.CreateAutoGetter(options, NameFactory.MatchStartFieldName, NameFactory.SizeNameReference(mutability_override),
                 Undef.Create());
-            Property count_prop = PropertyBuilder.CreateAutoGetter(options, NameFactory.MatchEndFieldName, NameFactory.SizeTypeReference(mutability_override),
+            Property count_prop = PropertyBuilder.CreateAutoGetter(options, NameFactory.MatchEndFieldName, NameFactory.SizeNameReference(mutability_override),
                 Undef.Create());
             matchCapturesProp = PropertyBuilder.CreateAutoGetter(options, NameFactory.MatchCapturesFieldName,
-                    NameFactory.PointerTypeReference(NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(), TypeMutability.ForceConst)),
+                    NameFactory.PointerNameReference(NameFactory.ArrayNameReference(NameFactory.CaptureNameReference(), TypeMutability.ForceConst)),
                         Undef.Create());
 
             // using constructor with direct initialization of the fields, not properties (no setters anyway)
@@ -617,9 +617,9 @@ namespace Skila.Language
                         NameFactory.MatchCapturesFieldName
                     },
                     new[] {
-                        NameFactory.SizeTypeReference(mutability_override),
-                        NameFactory.SizeTypeReference(mutability_override),
-                        NameFactory.PointerTypeReference( NameFactory.ArrayTypeReference(NameFactory.CaptureTypeReference(),
+                        NameFactory.SizeNameReference(mutability_override),
+                        NameFactory.SizeNameReference(mutability_override),
+                        NameFactory.PointerNameReference( NameFactory.ArrayNameReference(NameFactory.CaptureNameReference(),
                             TypeMutability.ForceConst))
                     });
             return TypeBuilder.Create(NameFactory.MatchTypeName)
@@ -633,19 +633,19 @@ namespace Skila.Language
         private TypeDefinition createRegex(out VariableDeclaration pattern, out FunctionDefinition contains, out FunctionDefinition match)
         {
             pattern = VariableDeclaration.CreateStatement(NameFactory.RegexPatternFieldName,
-                    NameFactory.StringPointerTypeReference(TypeMutability.ForceConst),
+                    NameFactory.StringPointerNameReference(TypeMutability.ForceConst),
                     Undef.Create(), EntityModifier.Native);
 
-            contains = FunctionBuilder.Create(NameFactory.RegexContainsFunctionName, NameFactory.BoolTypeReference(), Block.CreateStatement())
+            contains = FunctionBuilder.Create(NameFactory.RegexContainsFunctionName, NameFactory.BoolNameReference(), Block.CreateStatement())
                     .SetModifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly),
+                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerNameReference(TypeMutability.ReadOnly),
                         ExpressionReadMode.CannotBeRead));
 
             match = FunctionBuilder.Create(NameFactory.RegexMatchFunctionName,
-                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.MatchTypeReference())),
+                NameFactory.PointerNameReference(NameFactory.IIterableNameReference(NameFactory.MatchNameReference())),
                 Block.CreateStatement())
                     .SetModifier(EntityModifier.Native)
-                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly),
+                    .Parameters(FunctionParameter.Create("input", NameFactory.StringPointerNameReference(TypeMutability.ReadOnly),
                         ExpressionReadMode.CannotBeRead));
 
             return TypeBuilder.Create(NameFactory.RegexTypeName)
@@ -654,7 +654,7 @@ namespace Skila.Language
                         NameFactory.RegexPatternFieldName,
                     },
                     new[] {
-                        NameFactory.StringPointerTypeReference(TypeMutability.ForceConst),
+                        NameFactory.StringPointerNameReference(TypeMutability.ForceConst),
                     }))
                 .With(contains)
                 .With(match)
@@ -663,13 +663,13 @@ namespace Skila.Language
 
         private static TypeDefinition createChar(IOptions options, out FunctionDefinition lengthGetter, out FunctionDefinition toString)
         {
-            Property length_property = PropertyBuilder.Create(options, NameFactory.CharLength, NameFactory.Nat8TypeReference())
+            Property length_property = PropertyBuilder.Create(options, NameFactory.CharLength, NameFactory.Nat8NameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native));
 
             lengthGetter = length_property.Getter;
 
-            toString = FunctionBuilder.Create(NameFactory.ConvertFunctionName, NameFactory.Utf8StringPointerTypeReference(),
+            toString = FunctionBuilder.Create(NameFactory.ConvertFunctionName, NameFactory.Utf8StringPointerNameReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
                 .SetModifier(EntityModifier.Native);
 
@@ -680,11 +680,11 @@ namespace Skila.Language
                 modifier |= EntityModifier.Const;
 
             return TypeBuilder.Create(NameFactory.CharTypeName)
-                            .Parents(NameFactory.IComparableTypeReference())
+                            .Parents(NameFactory.IComparableNameReference())
                             .SetModifier(modifier)
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                                new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItTypeReference(),
+                                new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItNameReference(),
                                     ExpressionReadMode.CannotBeRead) },
                                 Block.CreateStatement()))
 
@@ -694,10 +694,10 @@ namespace Skila.Language
 
                                 .WithComparableCompare()
                             .With(FunctionBuilder.Create(NameFactory.ComparableCompare,
-                                ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                ExpressionReadMode.ReadRequired, NameFactory.OrderingNameReference(),
                                 Block.CreateStatement())
                                 .SetModifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(TypeMutability.ReadOnly),
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItNameReference(TypeMutability.ReadOnly),
                                     ExpressionReadMode.CannotBeRead)))
                             ;
             ;
@@ -709,10 +709,10 @@ namespace Skila.Language
             out FunctionDefinition slice, out FunctionDefinition concat, out FunctionDefinition copyConstructor,
             out FunctionDefinition remove)
         {
-            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeTypeReference())
+            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native | EntityModifier.Override));
-            Property length_property = PropertyBuilder.Create(options, NameFactory.StringLength, NameFactory.SizeTypeReference())
+            Property length_property = PropertyBuilder.Create(options, NameFactory.StringLength, NameFactory.SizeNameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native));
 
@@ -721,52 +721,52 @@ namespace Skila.Language
 
             copyConstructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement())
                 .SetModifier(EntityModifier.Native)
-                .Parameters(FunctionParameter.Create("source", NameFactory.Utf8StringPointerTypeReference(TypeMutability.ReadOnly),
+                .Parameters(FunctionParameter.Create("source", NameFactory.Utf8StringPointerNameReference(TypeMutability.ReadOnly),
                     ExpressionReadMode.CannotBeRead));
 
             trimStart = FunctionBuilder.Create(NameFactory.StringTrimStart,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 Block.CreateStatement())
                 .SetModifier(EntityModifier.Native | EntityModifier.Mutable);
             trimEnd = FunctionBuilder.Create(NameFactory.StringTrimEnd,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 Block.CreateStatement())
                 .SetModifier(EntityModifier.Native | EntityModifier.Mutable);
             concat = FunctionBuilder.Create(NameFactory.StringConcat,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 Block.CreateStatement())
-            .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly),
+            .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerNameReference(TypeMutability.ReadOnly),
                 ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native | EntityModifier.Mutable);
 
-            indexOfString = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+            indexOfString = FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionNameReference(NameFactory.SizeNameReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), Variadic.None, NatLiteral.Create("0"), false, ExpressionReadMode.CannotBeRead))
+                .Parameters(FunctionParameter.Create("str", NameFactory.StringPointerNameReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("index", NameFactory.SizeNameReference(), Variadic.None, NatLiteral.Create("0"), false, ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
             // todo: change it to work on string instead, as indexOf
-            lastIndexOfChar = FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+            lastIndexOfChar = FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionNameReference(NameFactory.SizeNameReference()),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference(), ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("index1", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .Parameters(FunctionParameter.Create("ch", NameFactory.CharNameReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("index1", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
 
             reverse = FunctionBuilder.Create(NameFactory.StringReverse,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 Block.CreateStatement())
                 .SetModifier(EntityModifier.Native | EntityModifier.Mutable);
             slice = FunctionBuilder.Create(NameFactory.StringSlice,
-                NameFactory.Utf8StringPointerTypeReference(),
+                NameFactory.Utf8StringPointerNameReference(),
                 Block.CreateStatement(Return.Create(Undef.Create())))
-                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead),
-                    FunctionParameter.Create("end", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead),
+                    FunctionParameter.Create("end", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead))
                 .SetModifier(EntityModifier.Native);
 
             FunctionDefinition split = FunctionBuilder.Create(NameFactory.StringSplit,
-                                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.Utf8StringPointerTypeReference())),
+                                NameFactory.PointerNameReference(NameFactory.IIterableNameReference(NameFactory.Utf8StringPointerNameReference())),
                             Block.CreateStatement(
                                 VariableDeclaration.CreateStatement("buffer", null,
-                                    ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.StringPointerTypeReference()))),
+                                    ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.StringPointerNameReference()))),
                                 VariableDeclaration.CreateStatement("start", null, NatLiteral.Create("0"), this.Options.ReassignableModifier()),
 
                                 Loop.CreateWhile(ExpressionFactory.And(
@@ -797,98 +797,98 @@ namespace Skila.Language
 
                                 ))
                             .Parameters(FunctionParameter.Create("separator",
-                                NameFactory.StringPointerTypeReference(TypeMutability.ReadOnly)),
+                                NameFactory.StringPointerNameReference(TypeMutability.ReadOnly)),
                                 // limit of the splits, not parts!
-                                FunctionParameter.Create("limit", NameFactory.SizeTypeReference(), Variadic.None,
-                                    NameReference.Create(NameFactory.SizeTypeReference(), NameFactory.NumMaxValueName),
+                                FunctionParameter.Create("limit", NameFactory.SizeNameReference(), Variadic.None,
+                                    NameReference.Create(NameFactory.SizeNameReference(), NameFactory.NumMaxValueName),
                                         isNameRequired: false, modifier: this.Options.ReassignableModifier()));
 
             remove = FunctionBuilder.Create(NameFactory.StringRemove,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                             Block.CreateStatement())
-                            .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead),
-                                FunctionParameter.Create("end", NameFactory.SizeTypeReference(), ExpressionReadMode.CannotBeRead))
+                            .Parameters(FunctionParameter.Create("start", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead),
+                                FunctionParameter.Create("end", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead))
                              .SetModifier(EntityModifier.Mutable | EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
-                                .Parents(NameFactory.IComparableTypeReference(),
-                                    NameFactory.ICountedTypeReference(),
-                                    NameFactory.ISequenceTypeReference(NameFactory.CharTypeReference()))
+                                .Parents(NameFactory.IComparableNameReference(),
+                                    NameFactory.ICountedNameReference(),
+                                    NameFactory.ISequenceNameReference(NameFactory.CharNameReference()))
 
                                 .With(copyConstructor)
 
                                 .With(count_property)
                                 .With(length_property)
 
-                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceTypeReference(NameFactory.CharTypeReference()))
-                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference(),
+                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceNameReference(NameFactory.CharNameReference()))
+                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference(),
                             ExpressionReadMode.CannotBeRead))
                         .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement())
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out atGetter))
 
                 .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(NameFactory.CharTypeReference())),
+                    NameFactory.ReferenceNameReference(NameFactory.IIteratorNameReference(NameFactory.CharNameReference())),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Utf8StringIteratorTypeReference(),
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Utf8StringIteratorNameReference(),
                             NameFactory.ThisReference()))))
                     .SetModifier(EntityModifier.Override))
 
 
                                 .WithComparableCompare()
                             .With(FunctionBuilder.Create(NameFactory.ComparableCompare,
-                                ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                ExpressionReadMode.ReadRequired, NameFactory.OrderingNameReference(),
                                 Block.CreateStatement())
                                 .SetModifier(EntityModifier.Native)
                                 .Parameters(FunctionParameter.Create("cmp",
-                                    NameFactory.ReferenceTypeReference(NameFactory.ItTypeReference(TypeMutability.ReadOnly)),
+                                    NameFactory.ReferenceNameReference(NameFactory.ItNameReference(TypeMutability.ReadOnly)),
                                     ExpressionReadMode.CannotBeRead)))
 
                                     .With(concat)
 
                                     .With(indexOfString)
-                                    .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                                    .With(FunctionBuilder.Create(NameFactory.StringIndexOf, NameFactory.OptionNameReference(NameFactory.SizeNameReference()),
                 Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringIndexOf),
-                    FunctionCall.ConvCall(NameReference.Create("ch"), NameFactory.StringPointerTypeReference()),
+                    FunctionCall.ConvCall(NameReference.Create("ch"), NameFactory.StringPointerNameReference()),
                     NameReference.Create("index")
                 ))))
-                .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference()),
-                    FunctionParameter.Create("index", NameFactory.SizeTypeReference(), Variadic.None, NatLiteral.Create("0"))))
+                .Parameters(FunctionParameter.Create("ch", NameFactory.CharNameReference()),
+                    FunctionParameter.Create("index", NameFactory.SizeNameReference(), Variadic.None, NatLiteral.Create("0"))))
 
                     .With(lastIndexOfChar)
 
-                    .With(FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionTypeReference(NameFactory.SizeTypeReference()),
+                    .With(FunctionBuilder.Create(NameFactory.StringLastIndexOf, NameFactory.OptionNameReference(NameFactory.SizeNameReference()),
                                         Block.CreateStatement(Return.Create(
                                             FunctionCall.Create(NameReference.CreateThised(NameFactory.StringLastIndexOf),
                                         NameReference.Create("ch"),
                                         NameReference.CreateThised(NameFactory.StringLength)))))
-                            .Parameters(FunctionParameter.Create("ch", NameFactory.CharTypeReference())))
+                            .Parameters(FunctionParameter.Create("ch", NameFactory.CharNameReference())))
 
                             .With(reverse)
                             .With(split)
 
                             .With(remove)
                                     .With(FunctionBuilder.Create(NameFactory.StringRemove,
-                                    NameFactory.UnitTypeReference(),
+                                    NameFactory.UnitNameReference(),
                 Block.CreateStatement(
                         FunctionCall.Create(NameReference.CreateThised(NameFactory.MutableName(NameFactory.StringRemove)),
                     NameReference.Create("start"),
                     NameReference.CreateThised(NameFactory.StringLength))))
-                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference()))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeNameReference()))
                 .SetModifier(EntityModifier.Mutable))
 
                             .With(slice)
                                     .With(FunctionBuilder.Create(NameFactory.StringSlice,
-                                    NameFactory.Utf8StringPointerTypeReference(),
+                                    NameFactory.Utf8StringPointerNameReference(),
                 Block.CreateStatement(Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.StringSlice),
                     NameReference.Create("start"),
                     NameReference.CreateThised(NameFactory.StringLength)))))
-                .Parameters(FunctionParameter.Create("start", NameFactory.SizeTypeReference())))
+                .Parameters(FunctionParameter.Create("start", NameFactory.SizeNameReference())))
 
                                     .With(trimStart)
                                     .With(trimEnd)
                             .With(FunctionBuilder.Create(NameFactory.StringTrim,
-                                NameFactory.UnitTypeReference(),
+                                NameFactory.UnitNameReference(),
                                 Block.CreateStatement(
                                         FunctionCall.Create(NameReference.CreateThised(NameFactory.MutableName(NameFactory.StringTrimStart))),
 
@@ -905,15 +905,15 @@ namespace Skila.Language
         private TypeDefinition createFile(out FunctionDefinition readLines, out FunctionDefinition exists)
         {
             readLines = FunctionBuilder.Create(NameFactory.FileReadLines,
-                    NameFactory.OptionTypeReference(NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.StringPointerTypeReference()))),
+                    NameFactory.OptionNameReference(NameFactory.PointerNameReference(NameFactory.IIterableNameReference(NameFactory.StringPointerNameReference()))),
                     Block.CreateStatement())
                       .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
-                            NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
+                            NameFactory.StringPointerNameReference(), ExpressionReadMode.CannotBeRead))
                       .SetModifier(EntityModifier.Native);
-            exists = FunctionBuilder.Create(NameFactory.FileExists, NameFactory.BoolTypeReference(),
+            exists = FunctionBuilder.Create(NameFactory.FileExists, NameFactory.BoolNameReference(),
                     Block.CreateStatement())
                       .Parameters(FunctionParameter.Create(NameFactory.FileFilePathParameter,
-                            NameFactory.StringPointerTypeReference(), ExpressionReadMode.CannotBeRead))
+                            NameFactory.StringPointerNameReference(), ExpressionReadMode.CannotBeRead))
                       .SetModifier(EntityModifier.Native);
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.FileTypeName)
@@ -937,19 +937,19 @@ namespace Skila.Language
             const string coll2_name = "coll2";
             const string elem_name = "cat1_elem";
             return FunctionBuilder.Create(NameFactory.ConcatFunctionName, elem_type, VarianceMode.None,
-                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly)),
+                NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement(buffer_name, null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type), NameReference.Create(coll1_name))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type), NameReference.Create(coll1_name))),
                     Loop.CreateForEach(elem_name, NameReference.Create(elem_type), NameReference.Create(coll2_name), new[] {
                         FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                     }),
                     Return.Create(NameReference.Create(buffer_name))
                     ))
                     .Parameters(FunctionParameter.Create(coll1_name,
-                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly))),
+                            NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly))),
                         FunctionParameter.Create(coll2_name,
-                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly))));
+                            NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly))));
         }
         private static FunctionDefinition createConcat3()
         {
@@ -966,11 +966,11 @@ namespace Skila.Language
             const string elem_name = "cat3_elem";
             return FunctionBuilder.Create(NameFactory.ConcatFunctionName,
                 TemplateParametersBuffer.Create(elem1_type, elem2_type, elem3_type).Values,
-                NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem3_type),
+                NameFactory.PointerNameReference(NameFactory.IIterableNameReference(NameFactory.PointerNameReference(elem3_type),
                     TypeMutability.ReadOnly)),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement(buffer_name, null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference(elem3_type)),
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.PointerNameReference(elem3_type)),
                             NameReference.Create(coll1_name))),
 
                     Loop.CreateForEach(elem_name,
@@ -984,10 +984,10 @@ namespace Skila.Language
                     ConstraintBuilder.Create(elem2_type).SetModifier(EntityModifier.HeapOnly),
                     ConstraintBuilder.Create(elem3_type).BaseOf(elem1_type, elem2_type).SetModifier(EntityModifier.HeapOnly))
                 .Parameters(FunctionParameter.Create(coll1_name,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem1_type),
+                    NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(NameFactory.PointerNameReference(elem1_type),
                         TypeMutability.ReadOnly))),
                     FunctionParameter.Create(coll2_name,
-                        NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(NameFactory.PointerTypeReference(elem2_type),
+                        NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(NameFactory.PointerNameReference(elem2_type),
                             TypeMutability.ReadOnly))));
         }
 
@@ -996,13 +996,13 @@ namespace Skila.Language
             const string elem_type = "ITBT";
 
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.IIterableTypeName, elem_type, VarianceMode.Out))
-                                .Parents(NameFactory.IObjectTypeReference())
+                                .Parents(NameFactory.IObjectNameReference())
                                 .With(FunctionBuilder.CreateDeclaration(NameFactory.PropertyIndexerName, ExpressionReadMode.ReadRequired,
-                                    NameFactory.ReferenceTypeReference(NameReference.Create(elem_type)))
-                                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference())))
+                                    NameFactory.ReferenceNameReference(NameReference.Create(elem_type)))
+                                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference())))
 
                 .With(FunctionBuilder.CreateDeclaration(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type))))
+                    NameFactory.ReferenceNameReference(NameFactory.IIteratorNameReference(elem_type))))
                  ;
         }
 
@@ -1011,7 +1011,7 @@ namespace Skila.Language
             const string elem_type = "LQT";
             const string this_name = "_this_";
             Func<FunctionParameter> this_param = () => FunctionParameter.Create(this_name,
-                NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly)),
+                NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
                 EntityModifier.This);
             Func<NameReference> this_ref = () => NameReference.Create(this_name);
 
@@ -1023,10 +1023,10 @@ namespace Skila.Language
                 const string elem_name = "map_elem";
                 map_func = FunctionBuilder.Create(
                     NameFactory.MapFunctionName, TemplateParametersBuffer.Create(elem_type, map_type).Values,
-                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(map_type, TypeMutability.ReadOnly)),
+                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(map_type, TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(buffer_name, null,
-                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(map_type))),
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(map_type))),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                         FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
                             FunctionCall.Create(NameReference.Create(mapper_name), NameReference.Create(elem_name)))
@@ -1035,7 +1035,7 @@ namespace Skila.Language
                         ))
                         .Parameters(this_param(),
                             FunctionParameter.Create(mapper_name,
-                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
+                                NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
                                      NameReference.Create(elem_type), NameReference.Create(map_type)))));
             }
 
@@ -1046,13 +1046,13 @@ namespace Skila.Language
                 const string elem_name = "map_elem";
                 reverse_func = FunctionBuilder.Create(
                     NameFactory.ReverseFunctionName, TemplateParametersBuffer.Create(elem_type).Values,
-                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly)),
+                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("cnt", null,
                             FunctionCall.Create(NameReference.Create(this_ref(), NameFactory.IIterableCount)),
                             options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement(buffer_name, null,
-                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type),
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type),
                             NameReference.Create("cnt"))),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                             ExpressionFactory.Dec("cnt"),
@@ -1071,10 +1071,10 @@ namespace Skila.Language
                 const string elem_name = "filtered_elem";
                 filter_func = FunctionBuilder.Create(
                     NameFactory.FilterFunctionName, elem_type, VarianceMode.None,
-                    NameFactory.PointerTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly)),
+                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(buffer_name, null,
-                            ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(elem_type))),
+                            ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type))),
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                             IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
                                 FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
@@ -1085,8 +1085,8 @@ namespace Skila.Language
                         ))
                         .Parameters(this_param(),
                             FunctionParameter.Create(pred_name,
-                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+                                NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
             }
             FunctionDefinition any_func;
             {
@@ -1094,7 +1094,7 @@ namespace Skila.Language
                 const string elem_name = "any_elem";
                 any_func = FunctionBuilder.Create(
                     NameFactory.AnyFunctionName, elem_type, VarianceMode.None,
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                             IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
@@ -1105,8 +1105,8 @@ namespace Skila.Language
                         ))
                         .Parameters(this_param(),
                             FunctionParameter.Create(pred_name,
-                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+                                NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
             }
             FunctionDefinition all_func;
             {
@@ -1114,7 +1114,7 @@ namespace Skila.Language
                 const string elem_name = "all_elem";
                 all_func = FunctionBuilder.Create(
                     NameFactory.AllFunctionName, elem_type, VarianceMode.None,
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
                             IfBranch.CreateIf(ExpressionFactory.Not( FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name))),new[]{
@@ -1125,8 +1125,8 @@ namespace Skila.Language
                         ))
                         .Parameters(this_param(),
                             FunctionParameter.Create(pred_name,
-                                NameFactory.ReferenceTypeReference(NameFactory.IFunctionTypeReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolTypeReference()))));
+                                NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
+                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
             }
 
             FunctionDefinition count_func;
@@ -1135,12 +1135,12 @@ namespace Skila.Language
                 const string elem_name = NameFactory.Sink;
                 count_func = FunctionBuilder.Create(
                     NameFactory.IIterableCount, elem_type, VarianceMode.None,
-                    NameFactory.SizeTypeReference(),
+                    NameFactory.SizeNameReference(),
                     Block.CreateStatement(
 
                         IfBranch.CreateIf(ExpressionFactory.OptionalDeclaration("counted", null,
                             ExpressionFactory.DownCast(this_ref(),
-                                NameFactory.ReferenceTypeReference(NameFactory.ICountedTypeReference(TypeMutability.ReadOnly)))),
+                                rhsTypeName: NameFactory.ReferenceNameReference(NameFactory.ICountedNameReference(TypeMutability.ReadOnly)))),
                             Return.Create(NameReference.Create("counted", NameFactory.IIterableCount))),
 
                         VariableDeclaration.CreateStatement(count_name, null, NatLiteral.Create("0"),
@@ -1170,7 +1170,7 @@ namespace Skila.Language
             const string elem_type = "ART";
             const string data_field = "data";
 
-            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeTypeReference())
+            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
                         .WithAutoField(NatLiteral.Create("0"), options.ReassignableModifier())
                         .WithAutoSetter(EntityModifier.Private)
                         .WithAutoGetter(EntityModifier.Override);
@@ -1181,7 +1181,7 @@ namespace Skila.Language
                             ))
                             .Modifier(EntityModifier.Override);
 
-            append = FunctionBuilder.Create(NameFactory.AppendFunctionName, NameFactory.UnitTypeReference(),
+            append = FunctionBuilder.Create(NameFactory.AppendFunctionName, NameFactory.UnitNameReference(),
                 Block.CreateStatement(
                     VariableDeclaration.CreateStatement("pos", null, NameReference.CreateThised(NameFactory.IIterableCount)),
                                     // ++this.count;
@@ -1191,14 +1191,14 @@ namespace Skila.Language
                                         NameReference.CreateThised(data_field, NameFactory.IIterableCount)), new[]{
                                             // this.data = new Chunk<ART>(this.count,this.data);
                                             Assignment.CreateStatement(NameReference.CreateThised(data_field),
-                                                ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                                                ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(elem_type),
                                                 NameReference.CreateThised(NameFactory.IIterableCount),
                                                 NameReference.CreateThised(data_field)))
                                         }),
                     Assignment.CreateStatement(FunctionCall.Indexer(NameReference.CreateThised(data_field),
                                 NameReference.Create("pos")), NameFactory.PropertySetterValueReference())))
                 .Parameters(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
-                    NameFactory.ReferenceTypeReference(elem_type)))
+                    NameFactory.ReferenceNameReference(elem_type)))
                 .SetModifier(EntityModifier.Mutable);
 
             PropertyMemberBuilder indexer_setter_builder = PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement(
@@ -1221,7 +1221,7 @@ namespace Skila.Language
             defaultConstructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         // this.data = new Chunk<ART>(1);
                         Assignment.CreateStatement(NameReference.CreateThised(data_field),
-                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                            ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(elem_type),
                                 NatLiteral.Create("1")))
                         ));
 
@@ -1230,18 +1230,18 @@ namespace Skila.Language
             var sized_constructor = FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         // this.data = new Chunk<ART>(n);
                         Assignment.CreateStatement(NameReference.CreateThised(data_field),
-                            ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(elem_type),
+                            ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(elem_type),
                                 NameReference.Create("n"))),
                         Assignment.CreateStatement(NameReference.CreateThised(NameFactory.IIterableCount), NameReference.Create("n"))
                         ))
-                        .Parameters(FunctionParameter.Create("n", NameFactory.SizeTypeReference()));
+                        .Parameters(FunctionParameter.Create("n", NameFactory.SizeNameReference()));
 
             TypeBuilder builder = TypeBuilder.Create(NameDefinition.Create(NameFactory.ArrayTypeName, elem_type, VarianceMode.None))
                     .SetModifier(EntityModifier.Mutable | EntityModifier.HeapOnly)
-                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
+                    .Parents(NameFactory.IIndexableNameReference(elem_type))
 
                     .With(VariableDeclaration.CreateStatement(data_field,
-                        NameFactory.PointerTypeReference(NameFactory.ChunkTypeReference(elem_type)), Undef.Create(),
+                        NameFactory.PointerNameReference(NameFactory.ChunkNameReference(elem_type)), Undef.Create(),
                         options.ReassignableModifier()))
 
                     .With(count_property)
@@ -1259,12 +1259,12 @@ namespace Skila.Language
                             FunctionCall.Create(NameReference.CreateThised(NameFactory.AppendFunctionName),NameReference.Create(elem_name))
                         })), FunctionCall.Constructor(NameReference.CreateThised(NameFactory.InitConstructorName)))
                         .Parameters(FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter,
-                            NameFactory.ReferenceTypeReference(NameFactory.IIterableTypeReference(elem_type, TypeMutability.ReadOnly)))))
+                            NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)))))
 
                      .With(append)
 
-                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceTypeReference(elem_type))
-                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference()))
+                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceNameReference(elem_type))
+                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference()))
                         .With(indexer_setter_builder, out IMember indexer_setter_func)
                         .With(indexer_getter_builder));
 
@@ -1282,33 +1282,33 @@ namespace Skila.Language
             const string elem_type = "CHT";
 
             sizeConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
-                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.SizeTypeReference(),
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.SizeNameReference(),
                                 ExpressionReadMode.CannotBeRead)
                         },
                         Block.CreateStatement());
 
             resizeConstructor = FunctionDefinition.CreateInitConstructor(EntityModifier.Native, new[] {
-                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.SizeTypeReference(),
+                            FunctionParameter.Create(NameFactory.ChunkSizeConstructorParameter,NameFactory.SizeNameReference(),
                                 ExpressionReadMode.CannotBeRead),
                             FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter,
-                                NameFactory.ReferenceTypeReference( NameFactory.ChunkTypeReference(elem_type)),
+                                NameFactory.ReferenceNameReference( NameFactory.ChunkNameReference(elem_type)),
                                 ExpressionReadMode.CannotBeRead)
                         },
                         Block.CreateStatement());
             return TypeBuilder.Create(NameDefinition.Create(NameFactory.ChunkTypeName, elem_type, VarianceMode.None))
                     .SetModifier(EntityModifier.Mutable)
-                    .Parents(NameFactory.IIndexableTypeReference(elem_type))
+                    .Parents(NameFactory.IIndexableNameReference(elem_type))
 
                     .With(sizeConstructor)
 
                     .With(resizeConstructor)
 
-                     .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeTypeReference())
+                     .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out countGetter))
 
-                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceTypeReference(elem_type))
-                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference(),
+                     .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceNameReference(elem_type))
+                        .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference(),
                             ExpressionReadMode.CannotBeRead))
                         .With(PropertyMemberBuilder.CreateIndexerSetter(Block.CreateStatement())
                             .Modifier(EntityModifier.Native), out atSetter)
@@ -1322,7 +1322,7 @@ namespace Skila.Language
             TypeBuilder builder;
             if (options.AllowRealMagic)
             {
-                VariableDeclaration nan = VariableDeclaration.CreateStatement(NameFactory.RealNanName, NameFactory.Real64TypeReference(), Real64Literal.Create(double.NaN),
+                VariableDeclaration nan = VariableDeclaration.CreateStatement(NameFactory.RealNanName, NameFactory.Real64NameReference(), Real64Literal.Create(double.NaN),
                     EntityModifier.Static | EntityModifier.Public);
 
                 // because of NaNs we cannot use IEquatable/IComparable, 
@@ -1336,10 +1336,10 @@ namespace Skila.Language
 
             return builder
                .With(FunctionBuilder.Create(NameFactory.DivideOperator,
-                   ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                   ExpressionReadMode.ReadRequired, NameFactory.ItNameReference(),
                    Block.CreateStatement())
                    .SetModifier(EntityModifier.Native)
-                   .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)));
+                   .Parameters(FunctionParameter.Create("x", NameFactory.ItNameReference(), ExpressionReadMode.CannotBeRead)));
         }
 
         private static TypeDefinition createBool(IOptions options)
@@ -1351,26 +1351,26 @@ namespace Skila.Language
                 modifier |= EntityModifier.Const;
 
             return TypeBuilder.Create(NameFactory.BoolTypeName)
-                            .Parents(NameFactory.IEquatableTypeReference())
+                            .Parents(NameFactory.IEquatableNameReference())
                             .SetModifier(modifier)
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native, null, Block.CreateStatement()))
                             .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                                 new[] {
-                                    FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolTypeReference(),
+                                    FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.BoolNameReference(),
                                         ExpressionReadMode.CannotBeRead)
                                 },
                                 Block.CreateStatement()))
                             .With(FunctionBuilder.Create(NameFactory.NotOperator,
-                                ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                                 Block.CreateStatement())
                                 .SetModifier(EntityModifier.Native))
 
                                 .WithEquatableEquals()
                                 .With(FunctionBuilder.Create(NameFactory.EqualOperator,
-                                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                    ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                                         Block.CreateStatement())
                                     .SetModifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(TypeMutability.ReadOnly),
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItNameReference(TypeMutability.ReadOnly),
                                     ExpressionReadMode.CannotBeRead)))
                             ;
         }
@@ -1379,13 +1379,13 @@ namespace Skila.Language
             out FunctionDefinition parseString, params IMember[] extras)
         {
             return createNumCoreBuilder(options, numTypeName, minValue, maxValue, out parseString, extras)
-                            .Parents(NameFactory.IComparableTypeReference())
+                            .Parents(NameFactory.IComparableNameReference())
                             .WithComparableCompare()
                             .With(FunctionBuilder.Create(NameFactory.ComparableCompare,
-                                ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                ExpressionReadMode.ReadRequired, NameFactory.OrderingNameReference(),
                                 Block.CreateStatement())
                                 .SetModifier(EntityModifier.Native)
-                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItTypeReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead)))
+                                .Parameters(FunctionParameter.Create("cmp", NameFactory.ItNameReference(TypeMutability.ReadOnly), ExpressionReadMode.CannotBeRead)))
                             ;
         }
 
@@ -1395,10 +1395,10 @@ namespace Skila.Language
         {
             TypeMutability mutability_override = options.AtomicPrimitivesMutable ? TypeMutability.ForceConst : TypeMutability.None;
 
-            parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName, 
-                        NameFactory.OptionTypeReference(NameFactory.ItTypeReference()),
+            parseString = FunctionBuilder.Create(NameFactory.ParseFunctionName,
+                        NameFactory.OptionNameReference(NameFactory.ItNameReference()),
                     ExpressionFactory.BodyReturnUndef())
-                    .Parameters(FunctionParameter.Create("s", NameFactory.StringPointerTypeReference( TypeMutability.ReadOnly), 
+                    .Parameters(FunctionParameter.Create("s", NameFactory.StringPointerNameReference(TypeMutability.ReadOnly),
                         ExpressionReadMode.CannotBeRead))
                     .SetModifier(EntityModifier.Native | EntityModifier.Static);
 
@@ -1412,38 +1412,38 @@ namespace Skila.Language
                       .SetModifier(modifier)
                       .With(parseString)
                       .With(extras)
-                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItTypeReference(mutability_override),
+                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMinValueName, NameFactory.ItNameReference(mutability_override),
                           minValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
-                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItTypeReference(mutability_override),
+                      .With(VariableDeclaration.CreateStatement(NameFactory.NumMaxValueName, NameFactory.ItNameReference(mutability_override),
                           maxValue, EntityModifier.Static | EntityModifier.Const | EntityModifier.Public))
                       .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                           null, Block.CreateStatement()))
 
                       .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
-                          new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItTypeReference(),
+                          new[] { FunctionParameter.Create(NameFactory.SourceCopyConstructorParameter, NameFactory.ItNameReference(),
                         ExpressionReadMode.CannotBeRead) },
                           Block.CreateStatement()))
 
                       .With(FunctionBuilder.Create(NameFactory.AddOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.ItNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
-                          .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                          .Parameters(FunctionParameter.Create("x", NameFactory.ItNameReference(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.AddOverflowOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.ItNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
-                          .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                          .Parameters(FunctionParameter.Create("x", NameFactory.ItNameReference(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.SubOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.ItNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
-                          .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                          .Parameters(FunctionParameter.Create("x", NameFactory.ItNameReference(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.MulOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.ItTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.ItNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
-                          .Parameters(FunctionParameter.Create("x", NameFactory.ItTypeReference(), ExpressionReadMode.CannotBeRead)))
+                          .Parameters(FunctionParameter.Create("x", NameFactory.ItNameReference(), ExpressionReadMode.CannotBeRead)))
 
                           ;
 
@@ -1458,39 +1458,39 @@ namespace Skila.Language
 
             Func<NameReference> type_ref;
             if (via_pointer)
-                type_ref = () => NameFactory.PointerTypeReference(NameFactory.ItTypeReference(TypeMutability.ReadOnly));
+                type_ref = () => NameFactory.PointerNameReference(NameFactory.ItNameReference(TypeMutability.ReadOnly));
             else
-                type_ref = () => NameFactory.ItTypeReference(TypeMutability.ReadOnly);
+                type_ref = () => NameFactory.ItNameReference(TypeMutability.ReadOnly);
 
             return builder
                       .With(FunctionBuilder.Create(NameFactory.LessOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.LessEqualOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.GreaterOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.GreaterEqualOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
 
                       .With(FunctionBuilder.Create(NameFactory.EqualOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
                       .With(FunctionBuilder.Create(NameFactory.NotEqualOperator,
-                          ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                          ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                           Block.CreateStatement())
                           .SetModifier(EntityModifier.Native)
                           .Parameters(FunctionParameter.Create("cmp", type_ref(), ExpressionReadMode.CannotBeRead)))
@@ -1507,22 +1507,22 @@ namespace Skila.Language
                 .With(FunctionDefinition.CreateInitConstructor(EntityModifier.Native,
                     null, Block.CreateStatement()))
                 .With(FunctionBuilder.Create(NameFactory.ChannelSend,
-                    ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(), Block.CreateStatement())
+                    ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(), Block.CreateStatement())
                     .SetModifier(EntityModifier.Native)
                     .Parameters(FunctionParameter.Create("value", NameReference.Create("T"), ExpressionReadMode.CannotBeRead)))
                 .With(FunctionBuilder.Create(NameFactory.ChannelClose,
-                    ExpressionReadMode.OptionalUse, NameFactory.UnitTypeReference(),
+                    ExpressionReadMode.OptionalUse, NameFactory.UnitNameReference(),
                     Block.CreateStatement())
                     .SetModifier(EntityModifier.Native))
                 .With(FunctionBuilder.Create(NameFactory.ChannelReceive,
-                    ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
+                    ExpressionReadMode.ReadRequired, NameFactory.OptionNameReference(NameReference.Create("T")),
                     Block.CreateStatement())
                     .SetModifier(EntityModifier.Native))
                 /*.With(FunctionDefinition.CreateFunction(EntityModifier.None, NameDefinition.Create(NameFactory.ChannelTryReceive),
                     null,
-                    ExpressionReadMode.ReadRequired, NameFactory.OptionTypeReference(NameReference.Create("T")),
+                    ExpressionReadMode.ReadRequired, NameFactory.OptionNameReference(NameReference.Create("T")),
                     Block.CreateStatement(new[] { Return.Create(Undef.Create()) })))*/
-                .Parents(NameFactory.IObjectTypeReference())
+                .Parents(NameFactory.IObjectNameReference())
                 .Build();
         }
 
@@ -1554,7 +1554,7 @@ namespace Skila.Language
                                 EntityModifier.Public))
                             .With(VariableDeclaration.CreateStatement(NameFactory.OptionValue, NameReference.Create(elem_type),
                                 Undef.Create()))
-                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolTypeReference(mutability_override),
+                            .With(VariableDeclaration.CreateStatement(NameFactory.OptionHasValue, NameFactory.BoolNameReference(mutability_override),
                                 Undef.Create()))
                             .With(emptyConstructor)
                             .With(valueConstructor)
@@ -1563,40 +1563,40 @@ namespace Skila.Language
 
         private static TypeDefinition createIComparableType()
         {
-            var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolTypeReference(),
+            var eq = FunctionBuilder.Create(NameFactory.EqualOperator, NameFactory.BoolNameReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingEqualReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(TypeMutability.ReadOnly))));
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference(TypeMutability.ReadOnly))));
 
-            var gt = FunctionBuilder.Create(NameFactory.GreaterOperator, NameFactory.BoolTypeReference(),
+            var gt = FunctionBuilder.Create(NameFactory.GreaterOperator, NameFactory.BoolNameReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingGreaterReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference())));
-            var lt = FunctionBuilder.Create(NameFactory.LessOperator, NameFactory.BoolTypeReference(),
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference())));
+            var lt = FunctionBuilder.Create(NameFactory.LessOperator, NameFactory.BoolNameReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingLessReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference())));
-            var ge = FunctionBuilder.Create(NameFactory.GreaterEqualOperator, NameFactory.BoolTypeReference(),
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference())));
+            var ge = FunctionBuilder.Create(NameFactory.GreaterEqualOperator, NameFactory.BoolNameReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsNotEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingLessReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference())));
-            var le = FunctionBuilder.Create(NameFactory.LessEqualOperator, NameFactory.BoolTypeReference(),
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference())));
+            var le = FunctionBuilder.Create(NameFactory.LessEqualOperator, NameFactory.BoolNameReference(),
                 Block.CreateStatement(
                     Return.Create(ExpressionFactory.IsNotEqual(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                         NameReference.Create("cmp")), NameFactory.OrderingGreaterReference()))))
-                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference())));
+                .Parameters(FunctionParameter.Create("cmp", NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference())));
 
             return TypeBuilder.CreateInterface(NameFactory.IComparableTypeName)
-                .Parents(NameFactory.IEquatableTypeReference())
+                .Parents(NameFactory.IEquatableNameReference())
                 .SetModifier(EntityModifier.Base)
-                .With(FunctionBuilder.CreateDeclaration(NameFactory.ComparableCompare, NameFactory.OrderingTypeReference())
+                .With(FunctionBuilder.CreateDeclaration(NameFactory.ComparableCompare, NameFactory.OrderingNameReference())
                     .SetModifier(EntityModifier.Pinned)
                     .Parameters(FunctionParameter.Create("cmp",
-                        NameFactory.ReferenceTypeReference(NameFactory.ShouldBeThisTypeReference(NameFactory.IComparableTypeName, TypeMutability.ReadOnly)))))
+                        NameFactory.ReferenceNameReference(NameFactory.ShouldBeThisNameReference(NameFactory.IComparableTypeName, TypeMutability.ReadOnly)))))
                 .WithEquatableEquals(EntityModifier.Final)
                 .With(eq)
                 .With(gt)
@@ -1637,7 +1637,7 @@ namespace Skila.Language
             {
                 var type_name = $"TPT{i}";
                 type_parameters.Add(type_name);
-                properties.Add(PropertyBuilder.Create(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
                     .WithAutoField(Undef.Create(), options.ReassignableModifier())
                     .WithAutoSetter()
                     .WithAutoGetter(EntityModifier.Override));
@@ -1658,14 +1658,14 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.TupleTypeName,
                     TemplateParametersBuffer.Create(type_parameters.ToArray()).Add(base_type_name, VarianceMode.Out).Values))
                 .SetModifier(EntityModifier.Mutable)
-                .Parents(NameFactory.ITupleTypeReference(type_parameters.Concat(base_type_name).Select(it => NameReference.Create(it)).ToArray()))
+                .Parents(NameFactory.ITupleNameReference(type_parameters.Concat(base_type_name).Select(it => NameReference.Create(it)).ToArray()))
                 .With(ExpressionFactory.BasicConstructor(properties.Select(it => it.Name.Name).ToArray(),
                      type_parameters.Select(it => NameReference.Create(it)).ToArray()))
 
                 .With(properties)
 
-                .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceTypeReference(base_type_name))
-                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference()))
+                .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceNameReference(base_type_name))
+                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference()))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(Block.CreateStatement(item_selector))
                         .Modifier(EntityModifier.Override)))
 
@@ -1674,7 +1674,7 @@ namespace Skila.Language
 
             // creating static factory method for the above tuple
 
-            NameReference func_result_typename = NameFactory.TupleTypeReference(type_parameters.Concat(base_type_name)
+            NameReference func_result_typename = NameFactory.TupleNameReference(type_parameters.Concat(base_type_name)
                 .Select(it => NameReference.Create(it)).ToArray());
             factory = FunctionBuilder.Create(NameFactory.CreateFunctionName,
                 TemplateParametersBuffer.Create(type_parameters.Concat(base_type_name).ToArray()).Values,
@@ -1698,7 +1698,7 @@ namespace Skila.Language
                             .SetModifier(EntityModifier.Mutable)
 
                             .With(FunctionBuilder.CreateDeclaration(NameFactory.IteratorNext, ExpressionReadMode.ReadRequired,
-                                    NameFactory.OptionTypeReference(NameFactory.ReferenceTypeReference(NameReference.Create(elem_type))))
+                                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameReference.Create(elem_type))))
                                     .SetModifier(EntityModifier.Mutable))
                                     ;
         }
@@ -1710,22 +1710,22 @@ namespace Skila.Language
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringIteratorTypeName)
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
-                .Parents(NameFactory.IIteratorTypeReference(NameFactory.CharTypeReference()))
+                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference | EntityModifier.Referential)
+                .Parents(NameFactory.IIteratorNameReference(NameFactory.CharNameReference()))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
-                     NameFactory.SizeTypeReference(),
+                     NameFactory.SizeNameReference(),
                      null,
                      options.ReassignableModifier()))
                 .With(VariableDeclaration.CreateStatement(str_name,
-                    NameFactory.ReferenceTypeReference(NameFactory.Utf8StringTypeReference(TypeMutability.ReadOnly)),
+                    NameFactory.ReferenceNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { str_name },
-                    new[] { NameFactory.ReferenceTypeReference(NameFactory.Utf8StringTypeReference(TypeMutability.ReadOnly)) }))
+                    new[] { NameFactory.ReferenceNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext,
-                    NameFactory.OptionTypeReference(NameFactory.ReferenceTypeReference(NameFactory.CharTypeReference())),
+                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameFactory.CharNameReference())),
                     Block.CreateStatement(
                         // if this.index < this.str.length then
                         IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.CreateThised(index_name),
@@ -1738,11 +1738,11 @@ namespace Skila.Language
                                 ExpressionFactory.IncBy(() => NameReference.CreateThised(index_name),
                                     NameReference.Create("ch",NameFactory.CharLength)),
                                 // return ch
-                                Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceTypeReference(NameFactory.CharTypeReference()),
+                                Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(NameFactory.CharNameReference()),
                                     NameReference.Create("ch") ))
                             }
                             ),
-                        Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceTypeReference(NameFactory.CharTypeReference())))
+                        Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(NameFactory.CharNameReference())))
                         ))
                       .SetModifier(EntityModifier.Mutable | EntityModifier.Override))
             ;
@@ -1761,30 +1761,30 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
-                .Parents(NameFactory.IIteratorTypeReference(elem_type_name))
+                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference | EntityModifier.Referential)
+                .Parents(NameFactory.IIteratorNameReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
-                     NameFactory.SizeTypeReference(),
+                     NameFactory.SizeNameReference(),
                      null,
                      options.ReassignableModifier()))
                 .With(VariableDeclaration.CreateStatement(coll_name,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
+                    NameFactory.ReferenceNameReference(NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.ReferenceTypeReference(NameFactory.IIndexableTypeReference(elem_type_name,
+                    new[] { NameFactory.ReferenceNameReference(NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext,
-                    NameFactory.OptionTypeReference(NameFactory.ReferenceTypeReference(NameReference.Create(elem_type_name))),
+                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name))),
                     Block.CreateStatement(
                         // if this.index >= this.coll.count then
                         IfBranch.CreateIf(ExpressionFactory.IsGreaterEqual(NameReference.CreateThised(index_name),
                             NameReference.CreateThised(coll_name, NameFactory.IIterableCount)),
                                 // return None
-                                Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceTypeReference(NameReference.Create(elem_type_name)))),
+                                Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name)))),
                                 // else
                                 IfBranch.CreateElse(
                                     new[] {
@@ -1794,7 +1794,7 @@ namespace Skila.Language
                                         // this.index += 1
                                         ExpressionFactory.Inc(()=> NameReference.CreateThised(index_name)),
                                     // return Some(el)
-                                    Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceTypeReference(NameReference.Create(elem_type_name)),
+                                    Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name)),
                                         NameReference.Create("el")))
                                         }))
 
@@ -1814,18 +1814,18 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IIndexableTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .Parents(NameFactory.ISequenceTypeReference(NameReference.Create(elem_type_name)),
-                    NameFactory.ICountedTypeReference())
+                .Parents(NameFactory.ISequenceNameReference(NameReference.Create(elem_type_name)),
+                    NameFactory.ICountedNameReference())
 
                 .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceTypeReference(NameFactory.IIteratorTypeReference(elem_type_name)),
+                    NameFactory.ReferenceNameReference(NameFactory.IIteratorNameReference(elem_type_name)),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IndexIteratorTypeReference(elem_type_name),
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IndexIteratorNameReference(elem_type_name),
                             NameFactory.ThisReference()))))
                     .SetModifier(EntityModifier.Override))
 
-                .With(PropertyBuilder.CreateIndexer(options, NameFactory.ReferenceTypeReference(elem_type_name))
-                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeTypeReference()))
+                .With(PropertyBuilder.CreateIndexer(options, () => NameFactory.ReferenceNameReference(elem_type_name))
+                    .Parameters(FunctionParameter.Create(NameFactory.IndexIndexerParameter, NameFactory.SizeNameReference()))
                     .With(PropertyMemberBuilder.CreateIndexerGetter(body: null)
                         .Modifier(EntityModifier.Override)));
 
@@ -1840,7 +1840,7 @@ namespace Skila.Language
             {
                 var type_name = $"TIPT{i}";
                 type_parameters.Add(type_name);
-                properties.Add(PropertyBuilder.Create(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
                     .WithGetter(body: null).Build());
             }
 
@@ -1849,11 +1849,11 @@ namespace Skila.Language
             TypeBuilder builder = TypeBuilder.CreateInterface(
                 NameDefinition.Create(NameFactory.ITupleTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, type_parameters.Concat(base_type_name).ToArray()).Values))
-                .Parents(NameFactory.IIndexableTypeReference(NameReference.Create(base_type_name)))
+                .Parents(NameFactory.IIndexableNameReference(NameReference.Create(base_type_name)))
 
                 .With(properties)
 
-                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeTypeReference())
+                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
                     .WithGetter(Block.CreateStatement(Return.Create(NatLiteral.Create($"{count}"))), EntityModifier.Override))
 
                 .Constraints(TemplateConstraint.Create(base_type_name, null, null, null, type_parameters.Select(it => NameReference.Create(it))));
@@ -1871,7 +1871,7 @@ namespace Skila.Language
 
         public bool IsUnitType(IEntityInstance typeInstance)
         {
-            return typeInstance.IsExactlySame(this.UnitType.InstanceOf, jokerMatchesAll: false);
+            return this.UnitType.InstanceOf.HasSameCore(typeInstance);
         }
         public bool IsIntType(IEntityInstance typeInstance)
         {
@@ -1896,8 +1896,13 @@ namespace Skila.Language
         public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability, TemplateTranslation translation,
             bool viaPointer)
         {
+            return Reference(instance, mutability, translation, Lifetime.Timeless, viaPointer);
+        }
+        public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability, TemplateTranslation translation,
+            Lifetime lifetime, bool viaPointer)
+        {
             return (viaPointer ? this.PointerType : this.ReferenceType)
-                .GetInstance(new[] { instance }, mutability, translation);
+                .GetInstance(new[] { instance }, mutability, translation, lifetime);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {
@@ -1905,7 +1910,7 @@ namespace Skila.Language
 
             while (true)
             {
-                if (!DereferencedOnce(instance, out result, out bool dummy))
+                if (!DereferencedOnce(instance, out result, out bool via_pointer))
                     break;
 
                 instance = result;

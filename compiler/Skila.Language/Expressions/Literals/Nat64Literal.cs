@@ -23,7 +23,7 @@ namespace Skila.Language.Expressions.Literals
 
         // we use textual value to preserve user formatting like separator in "140_000"
         private Nat64Literal(string inputValue)
-            : base(inputValue, NameFactory.Nat64TypeReference())
+            : base(inputValue, NameFactory.Nat64NameReference())
         {
             if (UInt64.TryParse(inputValue, out UInt64 result))
                 this.value = result;
@@ -31,7 +31,7 @@ namespace Skila.Language.Expressions.Literals
                 throw new System.Exception("Internal error");
         }
         private Nat64Literal(UInt64 inputValue)
-            : base($"{inputValue}", NameFactory.Nat64TypeReference())
+            : base($"{inputValue}", NameFactory.Nat64NameReference())
         {
             this.value = inputValue;
         }

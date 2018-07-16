@@ -24,26 +24,26 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "below",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
                         Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
@@ -71,26 +71,26 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "below",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("4"), Int64Literal.Create("2"))),
 
                         Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
@@ -118,26 +118,26 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "below",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("7"))),
 
                         Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
@@ -165,26 +165,26 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "below",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
                         Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
@@ -213,23 +213,23 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         // let t ITuple<Nat8,Nat8,Nat8> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Nat8TypeReference(),
-                                NameFactory.Nat8TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Nat8NameReference(),
+                                NameFactory.Nat8NameReference(),
                                 // todo: use sink
-                                NameFactory.Nat8TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Nat8NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference(), NameFactory.Nat8TypeReference()),
+                                NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference()),
                             Nat8Literal.Create("7"), Nat8Literal.Create("11"))),
 
                         VariableDeclaration.CreateStatement("w", null, Nat8Literal.Create("3"), env.Options.ReassignableModifier()),
 
                         VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
-                        Loop.CreateForEach("el", NameFactory.Nat8TypeReference(),
+                        Loop.CreateForEach("el", NameFactory.Nat8NameReference(),
                             FunctionCall.Create(NameReference.Create("t", NameFactory.ReverseFunctionName)),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),
@@ -263,33 +263,33 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "below",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
                         VariableDeclaration.CreateStatement("m", null,
                             FunctionCall.Create(NameReference.Create("t", NameFactory.FilterFunctionName), NameReference.Create("below"))),
 
                         VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
-                        Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
+                        Loop.CreateForEach(elem_name, NameFactory.Int64NameReference(), NameReference.Create("m"),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                         Return.Create(NameReference.Create("acc"))
@@ -318,33 +318,33 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "pow",
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.Mul("x", "x"))
                         ))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference())));
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         // let t *ITuple<Int,Int,Int> = (6,-2)
                         VariableDeclaration.CreateStatement("t",
-                            NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                                NameFactory.Int64TypeReference(),
+                            NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                                NameFactory.Int64NameReference(),
                                 // todo: use sink
-                                NameFactory.Int64TypeReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleTypeReference(
+                                NameFactory.Int64NameReference()),
+                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
-                                NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference()),
+                                NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("-2"))),
 
                         VariableDeclaration.CreateStatement("m", null,
                             FunctionCall.Create(NameReference.Create("t", NameFactory.MapFunctionName), NameReference.Create("pow"))),
 
                         VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
-                        Loop.CreateForEach(elem_name, NameFactory.Int64TypeReference(), NameReference.Create("m"),
+                        Loop.CreateForEach(elem_name, NameFactory.Int64NameReference(), NameReference.Create("m"),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                         Return.Create(NameReference.Create("acc"))
@@ -371,48 +371,48 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(TypeBuilder.Create("BasePoint")
                     .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
-                    .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), null,
+                    .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), null,
                         EntityModifier.Public | env.Options.ReassignableModifier()))
                     .With(ExpressionFactory.BasicConstructor(new[] { "x" },
-                        new[] { NameFactory.Int64TypeReference() })));
+                        new[] { NameFactory.Int64NameReference() })));
 
                 root_ns.AddBuilder(TypeBuilder.Create("PointA")
                     .SetModifier(EntityModifier.Mutable)
                     .Parents("BasePoint")
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
                         FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("a")))
-                        .Parameters(FunctionParameter.Create("a", NameFactory.Int64TypeReference()))));
+                        .Parameters(FunctionParameter.Create("a", NameFactory.Int64NameReference()))));
 
                 root_ns.AddBuilder(TypeBuilder.Create("PointB")
                     .SetModifier(EntityModifier.Mutable)
                     .Parents("BasePoint")
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(),
                         FunctionCall.Constructor(NameReference.CreateBaseInitReference(), NameReference.Create("b")))
-                        .Parameters(FunctionParameter.Create("b", NameFactory.Int64TypeReference()))));
+                        .Parameters(FunctionParameter.Create("b", NameFactory.Int64NameReference()))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // let t ITuple<*PointA,*PointA,*PointA> = (6,-2)
                     VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(
-                            NameFactory.PointerTypeReference("PointA"),
-                            NameFactory.PointerTypeReference("PointA"),
+                        NameFactory.TupleNameReference(
+                            NameFactory.PointerNameReference("PointA"),
+                            NameFactory.PointerNameReference("PointA"),
                             // todo: use wildcard
-                            NameFactory.PointerTypeReference("PointA")),
-                        ExpressionFactory.StackConstructor( NameFactory.TupleTypeReference(
+                            NameFactory.PointerNameReference("PointA")),
+                        ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
                             // todo: use wildcard for all of them
-                            NameFactory.PointerTypeReference("PointA"),
-                            NameFactory.PointerTypeReference("PointA"),
-                            NameFactory.PointerTypeReference("PointA")),
+                            NameFactory.PointerNameReference("PointA"),
+                            NameFactory.PointerNameReference("PointA"),
+                            NameFactory.PointerNameReference("PointA")),
                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("6")),
                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("-2")))),
 
                     // var array = new *PointB[3,-5];
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.PointerTypeReference("PointB")))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.PointerNameReference("PointB")))),
                     ExpressionFactory.InitializeIndexable("array",
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("3")),
                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("-5"))),
@@ -454,21 +454,21 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (6,-2)
                     VariableDeclaration.CreateStatement("t",
-                        NameFactory.TupleTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
+                        NameFactory.TupleNameReference(NameFactory.Int64NameReference(),
+                            NameFactory.Int64NameReference(),
                             // todo: use sink
-                            NameFactory.Int64TypeReference()),
-                        ExpressionFactory.StackConstructor( NameFactory.TupleTypeReference(
+                            NameFactory.Int64NameReference()),
+                        ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(),NameFactory.Int64TypeReference()),
+                            NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("6"),Int64Literal.Create("-2"))),
 
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.Int64TypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
 
                     ExpressionFactory.InitializeIndexable("array",Int64Literal.Create("3"),Int64Literal.Create("-5")),
 
@@ -476,7 +476,7 @@ namespace Skila.Tests.Execution
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
 
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
-                    Loop.CreateForEach(elem_name,NameFactory.Int64TypeReference(),NameReference.Create("c"),
+                    Loop.CreateForEach(elem_name,NameFactory.Int64NameReference(),NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
@@ -503,10 +503,10 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayTypeReference(NameFactory.Int64TypeReference()))),
+                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
 
                     Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),NatLiteral.Create("0")),
                         Int64Literal.Create("3")),
@@ -518,7 +518,7 @@ namespace Skila.Tests.Execution
                     FunctionCall.Create(NameReference.Create("array",NameFactory.AppendFunctionName),Int64Literal.Create("-5")),
 
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
-                    Loop.CreateForEach("elem",NameFactory.Int64TypeReference(),NameReference.Create("array"),
+                    Loop.CreateForEach("elem",NameFactory.Int64NameReference(),NameReference.Create("array"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
@@ -545,20 +545,20 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (4,-2)
                     VariableDeclaration.CreateStatement("t",
-                        NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
+                        NameFactory.PointerNameReference( NameFactory.ITupleMutableNameReference(NameFactory.Int64NameReference(),
+                            NameFactory.Int64NameReference(),
                             // todo: use sink
-                            NameFactory.Int64TypeReference())),
-                        ExpressionFactory.HeapConstructor( NameFactory.TupleTypeReference(
+                            NameFactory.Int64NameReference())),
+                        ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(),NameFactory.Int64TypeReference()),
+                            NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("4"),Int64Literal.Create("-2"))),
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
-                    Loop.CreateForEach("elem",NameFactory.Int64TypeReference(),NameReference.Create("t"),
+                    Loop.CreateForEach("elem",NameFactory.Int64NameReference(),NameReference.Create("t"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
@@ -579,23 +579,24 @@ namespace Skila.Tests.Execution
 
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowInvalidMainResult = true }
+                    .SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // let t *ITuple<Int,Int,Int> = (4,-2)
                     VariableDeclaration.CreateStatement("t",
-                        NameFactory.PointerTypeReference( NameFactory.ITupleMutableTypeReference(NameFactory.Int64TypeReference(),
-                            NameFactory.Int64TypeReference(),
+                        NameFactory.PointerNameReference( NameFactory.ITupleMutableNameReference(NameFactory.Int64NameReference(),
+                            NameFactory.Int64NameReference(),
                             // todo: use sink
-                            NameFactory.Int64TypeReference())),
-                        ExpressionFactory.HeapConstructor( NameFactory.TupleTypeReference(
+                            NameFactory.Int64NameReference())),
+                        ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
-                            NameFactory.Int64TypeReference(), NameFactory.Int64TypeReference(),NameFactory.Int64TypeReference()),
+                            NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("4"),Int64Literal.Create("-2"))),
                     // let v0 = t.item0
                     VariableDeclaration.CreateStatement("v0",null,NameReference.Create("t",NameFactory.TupleItemName(0))),
@@ -626,14 +627,14 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
@@ -672,14 +673,14 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkTypeReference(NameFactory.Int64TypeReference()),
+                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
 

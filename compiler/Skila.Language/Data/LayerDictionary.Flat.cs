@@ -67,6 +67,18 @@ namespace Skila.Language.Data
                     dictionary.Add(key, value);
                 return true;
             }
+            /*public void RemoveLast(K key, V value)
+            {
+                if (key != null && !dictionary.ContainsKey(key))
+                    throw new ArgumentException();
+
+                Layer<K, V> top_layer = layers.Peek();
+                if (!top_layer.Remove(key, value))
+                    throw new InvalidOperationException();
+
+                if (key != null && !dictionary.Remove(key))
+                    throw new ArgumentException();
+            }*/
 
             public bool TryGetValue(K key, out V value)
             {

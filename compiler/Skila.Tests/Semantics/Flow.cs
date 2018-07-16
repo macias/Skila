@@ -39,10 +39,10 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("a", NameFactory.BoolTypeReference(), null),
-                            VariableDeclaration.CreateStatement("b", NameFactory.BoolTypeReference(), null),
+                            VariableDeclaration.CreateStatement("a", NameFactory.BoolNameReference(), null),
+                            VariableDeclaration.CreateStatement("b", NameFactory.BoolNameReference(), null),
 
                         IfBranch.CreateIf(ExpressionFactory.And(branched_init("a"), branched_init("b")), new[] {
                         // at his point both variables should be initialized
@@ -78,15 +78,15 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         // the point is those variables are not reassingable, yet we don't initialize them on declaration
                         // but we make incorrect initializations in this test
-                        VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null),
+                        VariableDeclaration.CreateStatement("x", NameFactory.IntNameReference(), null),
                         Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5")),
                         second_init_x,
 
-                        VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null),
+                        VariableDeclaration.CreateStatement("y", NameFactory.IntNameReference(), null),
                         IfBranch.CreateIf(BoolLiteral.CreateTrue(),
                             ExpressionFactory.Nop,
                             IfBranch.CreateElse(
@@ -94,7 +94,7 @@ namespace Skila.Tests.Semantics
 
                         second_init_y,
 
-                        VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), null),
+                        VariableDeclaration.CreateStatement("z", NameFactory.IntNameReference(), null),
 
                         Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
                         second_init_z_1,
@@ -135,13 +135,13 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         // the point is those variables are not reassingable, yet we don't initialize them on declaration
-                        VariableDeclaration.CreateStatement("x", NameFactory.IntTypeReference(), null),
+                        VariableDeclaration.CreateStatement("x", NameFactory.IntNameReference(), null),
                         Assignment.CreateStatement(NameReference.Create("x"), IntLiteral.Create("5")),
 
-                        VariableDeclaration.CreateStatement("y", NameFactory.IntTypeReference(), null),
+                        VariableDeclaration.CreateStatement("y", NameFactory.IntNameReference(), null),
                         IfBranch.CreateIf(BoolLiteral.CreateTrue(),
                             Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5")),
                             IfBranch.CreateElse(
@@ -150,7 +150,7 @@ namespace Skila.Tests.Semantics
                         // double loop to check if our computing nested repeated flow for assignment works correctly
                         Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
                         Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
-                            VariableDeclaration.CreateStatement("z", NameFactory.IntTypeReference(), null),
+                            VariableDeclaration.CreateStatement("z", NameFactory.IntNameReference(), null),
                             Assignment.CreateStatement(NameReference.Create("z"), IntLiteral.Create("5")),
                             ExpressionFactory.Readout("z")
                         }),
@@ -184,9 +184,9 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.IntNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
+                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
 
                             ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m", null, NameReference.Create("o"))),
 
@@ -219,11 +219,11 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.IntTypeReference(),
+                    NameFactory.IntNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("m", NameFactory.IntTypeReference(), null, env.Options.ReassignableModifier()),
+                            VariableDeclaration.CreateStatement("m", NameFactory.IntNameReference(), null, env.Options.ReassignableModifier()),
 
-                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntTypeReference())),
+                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
 
                             ExpressionFactory.Readout(ExpressionFactory.OptionalAssignment(NameReference.Create("m"), NameReference.Create("o"))),
 
@@ -259,10 +259,10 @@ namespace Skila.Tests.Semantics
                 NameReference not_initialized2 = NameReference.Create("m");
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("n", NameFactory.BoolTypeReference(), null, env.Options.ReassignableModifier()),
-                            VariableDeclaration.CreateStatement("m", NameFactory.BoolTypeReference(), null, env.Options.ReassignableModifier()),
+                            VariableDeclaration.CreateStatement("n", NameFactory.BoolNameReference(), null, env.Options.ReassignableModifier()),
+                            VariableDeclaration.CreateStatement("m", NameFactory.BoolNameReference(), null, env.Options.ReassignableModifier()),
 
                         // main if
                         IfBranch.CreateIf(
@@ -317,10 +317,10 @@ namespace Skila.Tests.Semantics
                 // our assign tracker should use that hint and detect which variables are initialized
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("a", NameFactory.BoolTypeReference(), null, env.Options.ReassignableModifier()),
-                            VariableDeclaration.CreateStatement("b", NameFactory.BoolTypeReference(), null, env.Options.ReassignableModifier()),
+                            VariableDeclaration.CreateStatement("a", NameFactory.BoolNameReference(), null, env.Options.ReassignableModifier()),
+                            VariableDeclaration.CreateStatement("b", NameFactory.BoolNameReference(), null, env.Options.ReassignableModifier()),
 
                         // main if
                         IfBranch.CreateIf(
@@ -376,7 +376,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create("maiden",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(
 
                         IfBranch.CreateIf(VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
@@ -410,16 +410,16 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "f",
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
 
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse()))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "testing",
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), Undef.Create(), env.Options.ReassignableModifier()),
+                        VariableDeclaration.CreateStatement("a", NameFactory.IntNameReference(), Undef.Create(), env.Options.ReassignableModifier()),
 
                         // if (x := 3) == 5 then a = x;
                         IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
@@ -496,7 +496,7 @@ namespace Skila.Tests.Semantics
                 }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                root_ns.AddBuilder(FunctionBuilder.Create("f", NameFactory.BoolTypeReference(),
+                root_ns.AddBuilder(FunctionBuilder.Create("f", NameFactory.BoolNameReference(),
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse()))));
 
                 const string reused_var_name = "xxx";
@@ -508,10 +508,10 @@ namespace Skila.Tests.Semantics
                 NameReference not_initialized2 = NameReference.Create("yyy");
 
                 root_ns.AddBuilder(FunctionBuilder.Create("testing",
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("a", NameFactory.IntTypeReference(), Undef.Create(), env.Options.ReassignableModifier()),
+                        VariableDeclaration.CreateStatement("a", NameFactory.IntNameReference(), Undef.Create(), env.Options.ReassignableModifier()),
 
                         // the point of this `if` is to introduce variable in condition is such way
                         // the is initialized without doubt
@@ -557,14 +557,14 @@ namespace Skila.Tests.Semantics
                     AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var decl = VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null, env.Options.ReassignableModifier());
+                var decl = VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier());
                 NameReference var_ref = NameReference.Create("s");
                 var if_assign = IfBranch.CreateIf(BoolLiteral.CreateFalse(),
                     new[] { Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("3")) });
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
                     decl,
@@ -601,10 +601,10 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null, env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     loop,
                     VariableDeclaration.CreateStatement("x", null, var_ref),
                     ExpressionFactory.Readout("x")
@@ -670,10 +670,10 @@ namespace Skila.Tests.Semantics
                     var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                         "main",
                         ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                         Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null,env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null,env.Options.ReassignableModifier()),
                     outer_loop,
                     ExpressionFactory.Readout(var_ref)
                         })));
@@ -703,7 +703,7 @@ namespace Skila.Tests.Semantics
 
                 var if_break = IfBranch.CreateIf(BoolLiteral.CreateFalse(), new[] { LoopInterrupt.CreateBreak() });
                 var loop = Loop.CreateFor(null, null, null, new IExpression[] {
-                    VariableDeclaration.CreateStatement("b", NameFactory.Int64TypeReference(), null, env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("b", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     if_break,
                     Assignment.CreateStatement(NameReference.Create("b"), Int64Literal.Create("5")),
                     ExpressionFactory.Readout("b"), // safe to read it because locally "b" is initialized
@@ -711,10 +711,10 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null, env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     loop,
                     Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("3")),
                     ExpressionFactory.Readout("s")
@@ -746,10 +746,10 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("s", NameFactory.Int64TypeReference(), null,env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null,env.Options.ReassignableModifier()),
                     return_or_assign,
                     ExpressionFactory.Readout("s")
                     })));
@@ -776,7 +776,7 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new[] {
                     if_ctrl,
                     })));
@@ -802,11 +802,11 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")),
                     dead_return
-                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
+                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), Variadic.None, null, false,
                             usageMode: ExpressionReadMode.CannotBeRead)));
 
                 resolver = NameResolver.Create(env);
@@ -838,11 +838,11 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     loop
-                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
+                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), Variadic.None, null, false,
                             usageMode: ExpressionReadMode.CannotBeRead)));
 
                 resolver = NameResolver.Create(env);
@@ -874,11 +874,11 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.CannotBeRead,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     loop
-                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
+                    })).Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), Variadic.None, null, false,
                             usageMode: ExpressionReadMode.CannotBeRead)));
 
                 resolver = NameResolver.Create(env);
@@ -906,9 +906,9 @@ namespace Skila.Tests.Semantics
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.ReadRequired,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement())
-                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, false,
+                    .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), Variadic.None, null, false,
                         usageMode: ExpressionReadMode.CannotBeRead)));
 
                 resolver = NameResolver.Create(env);
@@ -1009,7 +1009,7 @@ namespace Skila.Tests.Semantics
                 var if_ctrl = IfBranch.CreateIf(str_literal, new[] { Int64Literal.Create("5") },
                     IfBranch.CreateElse(new[] { Int64Literal.Create("5") }));
 
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), if_ctrl, EntityModifier.Public));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), if_ctrl, EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
 
@@ -1143,7 +1143,7 @@ namespace Skila.Tests.Semantics
                 var func_def_int = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] { brk })));
 
@@ -1172,7 +1172,7 @@ namespace Skila.Tests.Semantics
                     IfBranch.CreateElse(new[] { Int64Literal.Create("5") }));
                 var if_ctrl = IfBranch.CreateIf(cond, new[] { Int64Literal.Create("5") }, if_else);
 
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64TypeReference(), if_ctrl, EntityModifier.Public));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), if_ctrl, EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
 

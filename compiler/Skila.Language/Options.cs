@@ -12,16 +12,18 @@ namespace Skila.Language
             get
             {
                 yield return MutabilityModeOption.MutabilityAndAssignability;
-                //yield return MutabilityModeOption.SingleMutability;
-                yield return MutabilityModeOption.OnlyAssignability;
+                // this one will be probably removed 
+                // yield return MutabilityModeOption.SingleMutability;
+                // this one does not add much, so in order to make faster tests it is disabled
+                // yield return MutabilityModeOption.OnlyAssignability;
             }
         }
+
         public static IEnumerable<MutabilityModeOption> StrictMutabilityModes
         {
             get
             {
-                yield return MutabilityModeOption.MutabilityAndAssignability;
-                //yield return MutabilityModeOption.SingleMutability;
+                return AllMutabilityModes.Where(it => it != MutabilityModeOption.OnlyAssignability);
             }
         }
 

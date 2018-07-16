@@ -7,6 +7,8 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using Skila.Language.Builders;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language
 {
@@ -83,7 +85,7 @@ namespace Skila.Language
             EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer,
                 dereferenced_instances, members, partialVirtualTables: false);
 
-            this.Evaluation = new EvaluationInfo(eval, aggregate_instance);
+            this.Evaluation = new EvaluationInfo( eval, aggregate_instance);
 
         }
         protected override bool hasSymmetricRelation(INameReference other,
@@ -103,6 +105,11 @@ namespace Skila.Language
                 // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
                 return this.Elements.All(it => check_any(other_union, it))
                     && other_union.Elements.All(it => check_any(this, it));
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan().Append(this.Elements, "|");
         }
     }
 

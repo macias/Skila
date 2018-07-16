@@ -23,28 +23,28 @@ namespace Skila.Tests.Semantics
 
                 Extension ext = root_ns.AddNode(Extension.Create());
 
-                FunctionParameter second_this_param = FunctionParameter.Create("y", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                FunctionParameter second_this_param = FunctionParameter.Create("y", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         EntityModifier.This);
-                ext.AddBuilder(FunctionBuilder.Create("second_this", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                ext.AddBuilder(FunctionBuilder.Create("second_this", NameFactory.Nat8NameReference(), Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("x", "y"))))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference())),
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference())),
                         second_this_param));
 
-                FunctionParameter opt_this_param = FunctionParameter.Create("a", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                FunctionParameter opt_this_param = FunctionParameter.Create("a", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                     Variadic.None, Nat8Literal.Create("0"), false, EntityModifier.This);
-                ext.AddBuilder(FunctionBuilder.Create("opt_this", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                ext.AddBuilder(FunctionBuilder.Create("opt_this", NameFactory.Nat8NameReference(), Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("a", "a"))))
                     .Parameters(opt_this_param));
 
-                FunctionParameter variadic_this_param = FunctionParameter.Create("b", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                FunctionParameter variadic_this_param = FunctionParameter.Create("b", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                     Variadic.Create(2, 3), null, false, EntityModifier.This);
-                ext.AddBuilder(FunctionBuilder.Create("variadic_this", NameFactory.SizeTypeReference(), Block.CreateStatement(
+                ext.AddBuilder(FunctionBuilder.Create("variadic_this", NameFactory.SizeNameReference(), Block.CreateStatement(
                     Return.Create(FunctionCall.Create(NameReference.Create("b", NameFactory.IIterableCount)))))
                     .Parameters(variadic_this_param)
                     .Include(NameFactory.LinqExtensionReference()));
 
-                FunctionParameter value_this_param = FunctionParameter.Create("c", NameFactory.Nat8TypeReference(), EntityModifier.This);
-                ext.AddBuilder(FunctionBuilder.Create("value_this", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                FunctionParameter value_this_param = FunctionParameter.Create("c", NameFactory.Nat8NameReference(), EntityModifier.This);
+                ext.AddBuilder(FunctionBuilder.Create("value_this", NameFactory.Nat8NameReference(), Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("c", "c"))))
                     .Parameters(value_this_param));
 

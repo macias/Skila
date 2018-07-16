@@ -22,7 +22,7 @@ namespace Skila.Language.Expressions.Literals
 
         // we use textual value to preserve user formatting like separator in "140_000"
         private Real64Literal(double inputValue)
-            : base($"{inputValue}", NameFactory.Real64TypeReference())
+            : base($"{inputValue}", NameFactory.Real64NameReference())
         {
             this.value = inputValue;
         }

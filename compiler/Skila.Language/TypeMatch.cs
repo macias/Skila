@@ -7,7 +7,7 @@ namespace Skila.Language
         [Flags]
         private enum MatchFlag
         {
-            No = 0,
+            No = 1 << 8,
 
             Same = 1 << 1,
             Substitute = 1 << 2,
@@ -15,6 +15,8 @@ namespace Skila.Language
             OutConversion = 1 << 4,
             ImplicitReference = 1 << 5,
             AutoDereference = 1 << 6,
+
+            Lifetime = 1 << 7,
         }
 
         public static TypeMatch No
@@ -22,6 +24,13 @@ namespace Skila.Language
             get
             {
                 return new TypeMatch(MatchFlag.No, dereferences: 0);
+            }
+        }
+        public static TypeMatch Lifetime
+        {
+            get
+            {
+                return new TypeMatch(MatchFlag.Lifetime, dereferences: 0);
             }
         }
         public static readonly TypeMatch Same = new TypeMatch(MatchFlag.Same, dereferences: 0);
@@ -51,13 +60,18 @@ namespace Skila.Language
         public bool Mutability => this.data == 1; // make sense for rejection
         public int Dereferences { get; }
 
-        public bool Passed => (this.flag & MatchFlag.Same)!=0 || (this.flag & MatchFlag.Substitute)!=0;
+        public bool Passed => (this.flag & MatchFlag.Same) != 0 || (this.flag & MatchFlag.Substitute) != 0;
 
         private TypeMatch(MatchFlag flag, int dereferences, int data = 0)
         {
             this.flag = flag;
             this.data = data;
             this.Dereferences = dereferences;
+        }
+
+        public bool IsMismatch()
+        {
+            return this.flag == MatchFlag.No || this.flag == MatchFlag.Lifetime;
         }
 
         public override string ToString()

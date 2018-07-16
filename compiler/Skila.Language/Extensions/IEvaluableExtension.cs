@@ -18,7 +18,7 @@ namespace Skila.Language.Extensions
             node.IsRead = parent_reading;
             if (parent_reading && ctx.ValAssignTracker != null && node is VariableDeclaration decl)
             {
-                if (decl.InitValue==null)
+                if (decl.InitValue == null)
                     ctx.AddError(ErrorCode.VariableNotInitialized, parent, decl);
             }
 
@@ -53,13 +53,19 @@ namespace Skila.Language.Extensions
 
             IEntityInstance src_type = source.Evaluation.Components;
 
-            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName, 
+            TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName,
                 TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)
-                .WithIgnoredMutability(ignoreMutability));
+                .WithIgnoredMutability(ignoreMutability)
+                .AllowedLifetimeChecking(true));
 
             if (match == TypeMatch.No)
             {
                 ctx.ErrorManager.AddError(ErrorCode.TypeMismatch, source);
+                return false;
+            }
+            else if (match == TypeMatch.Lifetime)
+            {
+                ctx.ErrorManager.AddError(ErrorCode.EscapingReference, source);
                 return false;
             }
             else if (match == TypeMatch.InConversion)
@@ -77,11 +83,15 @@ namespace Skila.Language.Extensions
                 if (match != TypeMatch.Substitute && match != TypeMatch.Same)
                     throw new NotImplementedException();
 
+                if (@this.DebugId == (29, 335))
+                {
+                    ;
+                }
                 source.DetachFrom(@this);
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);
                 IEntityInstance source_eval = source.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
-                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, 
+                TypeMatch m = source_eval.MatchesTarget(ctx, targetTypeName, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping,
                     allowSlicing: true));
                 if (m != TypeMatch.Same && m != TypeMatch.Substitute)
                     throw new Exception($"Internal error: matching result {m}");
@@ -97,7 +107,7 @@ namespace Skila.Language.Extensions
             }
             else if (match.HasFlag(TypeMatch.AutoDereference))
             {
-                source.DereferencedCount_LEGACY = match.Dereferences; 
+                source.DereferencedCount_LEGACY = match.Dereferences;
                 @this.Cast<IExpression>().DereferencingCount = match.Dereferences;
 
                 match ^= TypeMatch.AutoDereference;

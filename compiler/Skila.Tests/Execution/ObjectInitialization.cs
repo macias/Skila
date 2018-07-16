@@ -24,8 +24,8 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8TypeReference())
-                        .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8TypeReference(), null, 
+                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8NameReference())
+                        .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8NameReference(), null, 
                             env.Options.ReassignableModifier() ))
                         .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))
                         .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.Create("f"),
@@ -34,7 +34,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,
                         ConstructorCall.StackConstructor(NameReference.Create("Point"))
@@ -63,7 +63,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
-                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference())
+                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8NameReference())
                         .SetModifier(EntityModifier.PostInitialization))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
@@ -72,7 +72,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,
                         ConstructorCall.StackConstructor(NameReference.Create("Point"))
@@ -101,7 +101,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
-                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8TypeReference()))
+                    .With(PropertyBuilder.CreateAutoGetter(env.Options, "x", NameFactory.Nat8NameReference()))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         Assignment.CreateStatement(NameReference.CreateThised("x"), Nat8Literal.Create("5"))
                         ))));
@@ -109,7 +109,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Return.Create(NameReference.Create(NameReference.Create("p"),"x"))

@@ -23,16 +23,16 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return this.Elements.Select(it => it.ToString()).Join("&");
+            return this.elements.Select(it => it.ToString()).Join("&");
         }
 
         protected override bool hasSymmetricRelation(IEntityInstance other,
             Func<IEntityInstance, IEntityInstance, bool> relation)
         {
             Func<EntityInstanceIntersection, IEntityInstance, bool> check_all
-                = (set, instance) => set.Elements.All(it => relation(instance, it));
+                = (set, instance) => set.elements.All(it => relation(instance, it));
             Func<EntityInstanceIntersection, IEntityInstance, bool> check_any
-                = (set, instance) => set.Elements.Any(it => relation(instance, it));
+                = (set, instance) => set.elements.Any(it => relation(instance, it));
 
             var other_set = other as EntityInstanceIntersection;
             if (other_set == null)
@@ -41,8 +41,8 @@ namespace Skila.Language
                 // when comparing two unions the rule is simple: each instance from this has to have its identical counterpart in the other union
                 // and in reverse, each instance from the other has to have its counterpart in this union, so for example
                 // Int|Int|String is identical with Int|String, but it is not with Int|Object|String
-                return this.Elements.All(it => check_any(other_set, it))
-                    && other_set.Elements.All(it => check_any(this, it));
+                return this.elements.All(it => check_any(other_set, it))
+                    && other_set.elements.All(it => check_any(this, it));
         }
 
         protected override IEntityInstance createNew(IEnumerable<IEntityInstance> instances)
@@ -51,16 +51,16 @@ namespace Skila.Language
         }
 
 
-        public override TypeMatch TemplateMatchesInput(ComputationContext ctx, 
+        public override TypeMatch TemplateMatchesInput(ComputationContext ctx,
             EntityInstance input, VarianceMode variance, TypeMatching matching)
         {
             TypeMatch match = TypeMatch.No;
-            foreach (IEntityInstance target in this.Elements)
+            foreach (IEntityInstance target in this.elements)
             {
                 TypeMatch m = target.TemplateMatchesInput(ctx, input, variance, matching);
-                if (m == TypeMatch.No)
+                if (m.IsMismatch())
                     return m;
-                else if (match == TypeMatch.No)
+                else if (match.IsMismatch())
                     match = m;
                 else if (match != m)
                     return TypeMatch.No;
@@ -72,12 +72,12 @@ namespace Skila.Language
         public override TypeMatch MatchesInput(ComputationContext ctx, EntityInstance input, TypeMatching matching)
         {
             TypeMatch match = TypeMatch.No;
-            foreach (IEntityInstance target in this.Elements)
+            foreach (IEntityInstance target in this.elements)
             {
                 TypeMatch m = target.MatchesInput(ctx, input, matching);
-                if (m == TypeMatch.No)
-                    return m; 
-                else if (match == TypeMatch.No)
+                if (m.IsMismatch())
+                    return m;
+                else if (match.IsMismatch())
                     match = m;
                 else if (match != m)
                     return TypeMatch.No;
@@ -90,7 +90,7 @@ namespace Skila.Language
         // type conversion, some day improve it
         public override TypeMatch MatchesTarget(ComputationContext ctx, IEntityInstance target, TypeMatching matching)
         {
-            IEnumerable<TypeMatch> matches = this.Elements.Select(it => it.MatchesTarget(ctx, target, matching)).ToArray();
+            IEnumerable<TypeMatch> matches = this.elements.Select(it => it.MatchesTarget(ctx, target, matching)).ToArray();
             if (matches.Any(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
 
@@ -101,10 +101,10 @@ namespace Skila.Language
                 return TypeMatch.No;
         }
 
-        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, 
+        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx,
             IEntityInstance target, VarianceMode variance, TypeMatching matching)
         {
-            IEnumerable<TypeMatch> matches = this.Elements.Select(it => it.TemplateMatchesTarget(ctx, target, variance, matching));
+            IEnumerable<TypeMatch> matches = this.elements.Select(it => it.TemplateMatchesTarget(ctx, target, variance, matching));
             if (matches.Any(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
 
@@ -120,12 +120,12 @@ namespace Skila.Language
             // consider functions foo(String) and foo(Int|String) 
             // this is incorrect overload because String value matches both in the same perfect way
             // so we need to have all elements to be distinct
-            return this.Elements.Any(it => it.IsOverloadDistinctFrom(other));
+            return this.elements.Any(it => it.IsOverloadDistinctFrom(other));
         }
 
         public override IEntityInstance Map(Func<EntityInstance, IEntityInstance> func)
         {
-            return new EntityInstanceIntersection(this.Elements.Select(it => it.Map(func)));
+            return new EntityInstanceIntersection(this.elements.Select(it => it.Map(func)));
         }
     }
 

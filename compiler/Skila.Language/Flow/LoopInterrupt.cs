@@ -6,6 +6,8 @@ using Skila.Language.Semantics;
 using System;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Flow
 {
@@ -49,10 +51,15 @@ namespace Skila.Language.Flow
         }
         public override string ToString()
         {
-            string result = "break";
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            var code = new CodeSpan(IsBreak ? "break" : "continue");
             if (Label != null)
-                result += " " + Label.ToString();
-            return result;
+                code.Append(" ").Append(Label);
+            return code;
         }
 
         public void Validate(ComputationContext ctx)

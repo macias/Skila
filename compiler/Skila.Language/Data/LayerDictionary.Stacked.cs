@@ -32,6 +32,13 @@ namespace Skila.Language.Data
                 layers.Push(new HashSet<K>(comparer));
             }
 
+            /*  private V pop(List<V> list)
+              {
+                  V last = list[list.Count - 1];
+                  list.RemoveAt(list.Count - 1);
+                  return last;
+              }*/
+
             public IEnumerable<Tuple<K, V>> PopLayer()
             {
                 var result = new List<Tuple<K, V>>();
@@ -74,6 +81,20 @@ namespace Skila.Language.Data
                 values.Push(value);
                 return true;
             }
+
+            /*public void RemoveLast(K key, V value)
+            {
+                Stack<V> values;
+                if (!dictionary.TryGetValue(key, out values))
+                    throw new ArgumentException();
+
+                if (!layers.Peek().Remove(key))
+                    throw new ArgumentException();
+
+                V last = values.Pop();
+                if (!Object.Equals(last, value))
+                    throw new ArgumentException();
+            }*/
 
             /*internal bool Remove(K key)
     {

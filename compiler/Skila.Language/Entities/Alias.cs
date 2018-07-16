@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Expressions;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Entities
 {
@@ -40,16 +42,19 @@ namespace Skila.Language.Entities
             this.Replacement = replacement;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
         public override string ToString()
         {
-            string result = $"{Name} = {this.Replacement}";
-            return result;
+            return Printout().ToString();
         }
 
+        public override ICode Printout()
+        {
+            return new CodeSpan(Name).Append(" = ").Append(this.Replacement);
+        }
         public override bool AttachTo(INode owner)
         {
             if (!base.AttachTo(owner))
@@ -67,9 +72,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,lifetime);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

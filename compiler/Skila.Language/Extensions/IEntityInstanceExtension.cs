@@ -1,6 +1,4 @@
-﻿using NaiveLanguageTools.Common;
-using Skila.Language.Entities;
-using Skila.Language.Semantics;
+﻿using Skila.Language.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,27 +9,38 @@ namespace Skila.Language.Extensions
     {
         public static IEntityInstance Rebuild(this IEntityInstance instance, ComputationContext ctx, TypeMutability mutability, bool deep = true)
         {
-            return instance.Map(elem =>
+            return instance.Map(elem => elem.Rebuild(ctx, mutability, deep));
+        }
+        public static EntityInstance Rebuild(this EntityInstance instance, ComputationContext ctx, TypeMutability mutability, bool deep = true)
+        {
+            if (deep && ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
-                if (deep && ctx.Env.DereferencedOnce(elem, out IEntityInstance val_instance, out bool via_pointer))
-                {
-                    IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, mutability, deep));
-                    return ctx.Env.Reference(val_rebuilt, mutability, elem.Translation, via_pointer);
-                }
-                else
-                    return elem.Build(mutability);
-            });
+                IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, mutability, deep));
+                return ctx.Env.Reference(val_rebuilt, mutability, instance.Translation, instance.Lifetime, via_pointer);
+            }
+            else
+                return instance.Build(mutability);
         }
 
-
-        public static IEntity Target(this IEntityInstance iinstance)
+        public static IEntityInstance Rebuild(this IEntityInstance instance, ComputationContext ctx, Lifetime lifetime, bool deep = true)
         {
-            if (iinstance is EntityInstance instance)
-                return instance.Target;
-            else if (iinstance is EntityInstanceUnion union)
-                return union.Elements.Single().Target();
+            return instance.Map(elem => elem.Rebuild(ctx, lifetime, deep));
+        }
+
+        public static EntityInstance Rebuild(this EntityInstance instance, ComputationContext ctx, Lifetime lifetime, bool deep = true)
+        {
+            if (deep && ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
+            {
+                IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, lifetime, deep));
+                return ctx.Env.Reference(val_rebuilt, instance.OverrideMutability, instance.Translation, lifetime, via_pointer);
+            }
             else
-                throw new NotImplementedException();
+                return instance.Build(lifetime);
+        }
+
+        public static IEntity Target(this IEntityInstance instance)
+        {
+            return instance.EnumerateAll().Single().Target;
         }
         public static T TranslateThrough<T>(this T @this, IEntityInstance closedTemplate)
             where T : IEntityInstance
@@ -99,7 +108,7 @@ namespace Skila.Language.Extensions
         {
             Entities.IEntity target = instance.Target;
             if (!target.IsType()) // namespace
-                return TypeMutability.ReadOnly; 
+                return TypeMutability.ReadOnly;
 
             if (ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
@@ -165,7 +174,7 @@ namespace Skila.Language.Extensions
         {
             Entities.IEntity target = instance.Target;
             if (!target.IsType()) // namespace
-                return TypeMutability.ReadOnly; 
+                return TypeMutability.ReadOnly;
 
             TypeMutability override_mutability = instance.OverrideMutability;
             TypeMutability mask = TypeMutability.None;
@@ -185,7 +194,7 @@ namespace Skila.Language.Extensions
 
 
             if (target.Modifier.HasMutable)
-                return TypeMutability.ForceMutable | mask;        
+                return TypeMutability.ForceMutable | mask;
 
             const TypeMutability default_mutability = TypeMutability.ConstAsSource;
 

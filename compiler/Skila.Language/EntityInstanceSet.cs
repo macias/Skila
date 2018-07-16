@@ -16,8 +16,8 @@ namespace Skila.Language
 #endif
 
         // these are unique (see constructor)
-        public HashSet<IEntityInstance> Elements { get; }
-        public bool IsJoker => this.Elements.All(it => it.IsJoker);
+        protected readonly HashSet<IEntityInstance> elements;
+        public bool IsJoker => this.elements.All(it => it.IsJoker);
 
         private TypeMutability? typeMutability;
         private TypeMutability? directTypeMutability;
@@ -33,10 +33,10 @@ namespace Skila.Language
 
             // we won't match against jokers here so we can use reference comparison
             // since all entity instances are singletons
-            this.Elements = instances.ToHashSet(EntityInstanceCoreComparer.Instance);
-            this.NameOf = NameReferenceUnion.Create(this.Elements.Select(it => it.NameOf));
-            this.PureNameOf = NameReferenceUnion.Create(this.Elements.Select(it => it.PureNameOf));
-            if (!this.Elements.Any())
+            this.elements = instances.ToHashSet(EntityInstance.ComparerI);
+            this.NameOf = NameReferenceUnion.Create(this.elements.Select(it => it.NameOf));
+            this.PureNameOf = NameReferenceUnion.Create(this.elements.Select(it => it.PureNameOf));
+            if (!this.elements.Any())
                 throw new ArgumentException();
         }
 
@@ -61,7 +61,7 @@ namespace Skila.Language
         {
             bool trans = false;
 
-            foreach (IEntityInstance closed in Elements)
+            foreach (IEntityInstance closed in elements)
                 openTemplate = closed.TranslationOf(openTemplate, ref trans, closedTranslation);
 
             if (trans)
@@ -72,7 +72,7 @@ namespace Skila.Language
 
         public bool IsValueType(ComputationContext ctx)
         {
-            return this.Elements.All(it => it.IsValueType(ctx));
+            return this.elements.All(it => it.IsValueType(ctx));
         }
 
         protected abstract IEntityInstance createNew(IEnumerable<IEntityInstance> instances);
@@ -91,7 +91,7 @@ namespace Skila.Language
             var result = new List<IEntityInstance>();
             bool trans = false;
 
-            foreach (IEntityInstance open in Elements)
+            foreach (IEntityInstance open in elements)
                 result.Add(open.TranslateThrough(ref trans, closedTranslation));
 
             if (trans)
@@ -106,7 +106,7 @@ namespace Skila.Language
         public ConstraintMatch ArgumentMatchesParameterConstraints(ComputationContext ctx, EntityInstance closedTemplate,
             TemplateParameter param)
         {
-            foreach (IEntityInstance arg in this.Elements)
+            foreach (IEntityInstance arg in this.elements)
             {
                 ConstraintMatch match = arg.ArgumentMatchesParameterConstraints(ctx, closedTemplate, param);
                 if (match != ConstraintMatch.Yes)
@@ -118,7 +118,7 @@ namespace Skila.Language
 
         public bool IsStrictDescendantOf(ComputationContext ctx, EntityInstance ancestor)
         {
-            foreach (IEntityInstance instance in this.Elements)
+            foreach (IEntityInstance instance in this.elements)
                 if (!instance.IsStrictDescendantOf(ctx, ancestor))
                     return false;
 
@@ -126,32 +126,32 @@ namespace Skila.Language
         }
         public bool IsStrictAncestorOf(ComputationContext ctx, IEntityInstance descendant)
         {
-            foreach (IEntityInstance instance in this.Elements)
+            foreach (IEntityInstance instance in this.elements)
                 if (!instance.IsStrictAncestorOf(ctx, descendant))
                     return false;
 
             return true;
         }
 
-        public bool CoreEquals(IEntityInstance other)
+        public bool IsIdentical(IEntityInstance other)
         {
             if (this.GetType() != other.GetType())
                 return false;
 
             EntityInstanceSet entity_set = other.Cast<EntityInstanceSet>();
-            return this.Elements.SetEquals(entity_set.Elements);
+            return this.elements.SetEquals(entity_set.elements);
         }
 
 
         public IEnumerable<EntityInstance> EnumerateAll()
         {
-            return this.Elements.SelectMany(it => it.EnumerateAll());
+            return this.elements.SelectMany(it => it.EnumerateAll());
         }
 
         public TypeMutability MutabilityOfType(ComputationContext ctx)
         {
             if (!this.typeMutability.HasValue)
-                this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>());
+                this.typeMutability = this.ComputeMutabilityOfType(ctx, new HashSet<IEntityInstance>(EntityInstance.ComparerI));
             return this.typeMutability.Value;
         }
         public TypeMutability SurfaceMutabilityOfType(ComputationContext ctx)
@@ -168,5 +168,9 @@ namespace Skila.Language
                        typeNamePosition));
         }
 
+        public override int GetHashCode()
+        {
+            return this.EnumerateAll().Aggregate(0, (acc, a) => acc ^ a.GetHashCode());
+        }
     }
 }

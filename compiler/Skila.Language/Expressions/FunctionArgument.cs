@@ -6,6 +6,8 @@ using Skila.Language.Entities;
 using Skila.Language.Semantics;
 using Skila.Language.Extensions;
 using System.Linq;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
@@ -81,7 +83,15 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            return (NameLabel == null ? "" : $"{NameLabel}: ") + this.Expression.ToString();
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            var code = new CodeSpan(Expression);
+            if (NameLabel!=null)
+                code.Prepend($"{NameLabel}: ");
+            return code;
         }
 
         public bool IsReadingValueOfNode(IExpression node)
@@ -96,6 +106,10 @@ namespace Skila.Language.Expressions
 
         internal void DataTransfer(ComputationContext ctx, IEntityInstance targetTypeName)
         {
+            if (this.expression.DebugId== (5, 11432))
+            {
+                ;
+            }
             if (!this.DataTransfer(ctx, ref this.expression, targetTypeName))
                 throw new Exception("Internal error");
         }

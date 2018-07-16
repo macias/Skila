@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Expressions
 {
@@ -34,6 +36,16 @@ namespace Skila.Language.Expressions
             {
                 this.Evaluation = this.typeName.Evaluated(ctx);
             }*/
+        }
+
+        public override string ToString()
+        {
+            return this.Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeText("undef");
         }
     }
 }

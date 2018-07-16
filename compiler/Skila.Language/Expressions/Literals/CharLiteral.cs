@@ -14,7 +14,7 @@ namespace Skila.Language.Expressions.Literals
         }
 
         private CharLiteral(char value)
-            : base(value.ToString(), NameFactory.CharTypeReference())
+            : base(value.ToString(), NameFactory.CharNameReference())
         {
             this.Value = value;
         }

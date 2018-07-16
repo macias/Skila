@@ -43,7 +43,7 @@ namespace Skila.Language.Entities
 
             return FunctionBuilder.Create(NameFactory.PropertySetter,
                 ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 body)
                 .SetModifier(modifier)
                     .Parameters(parameters.Concat(FunctionParameter.Create(NameFactory.PropertySetterValueParameter,
@@ -74,11 +74,12 @@ namespace Skila.Language.Entities
         }
         public static FunctionDefinition CreateSetter(INameReference typeName, Block body, EntityModifier modifier = null)
         {
-            return FunctionDefinition.CreateFunction(EntityModifier.Accessor | modifier | EntityModifier.Mutable, NameDefinition.Create(NameFactory.PropertySetter),
+            return FunctionDefinition.CreateFunction(EntityModifier.Accessor | modifier | EntityModifier.Mutable, 
+                NameDefinition.Create(NameFactory.PropertySetter),
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 body);
         }
         public static FunctionDefinition CreateAutoSetter(INameReference typeName,EntityModifier modifier = null)
@@ -88,7 +89,7 @@ namespace Skila.Language.Entities
                 null,
                 new[] { FunctionParameter.Create(NameFactory.PropertySetterValueParameter, typeName) },
                 ExpressionReadMode.OptionalUse,
-                NameFactory.UnitTypeReference(),
+                NameFactory.UnitNameReference(),
                 Block.CreateStatement(new[] {
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, NameFactory.PropertyAutoField),
                         NameReference.Create(NameFactory.PropertySetterValueParameter ))
@@ -159,7 +160,7 @@ namespace Skila.Language.Entities
             this.Modifier = (this.Setter == null ? EntityModifier.None : options.ReassignableModifier()) | modifier;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this)));
+                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
@@ -170,9 +171,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability, 
-            TemplateTranslation translation)
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,lifetime);
         }
 
         public void Validate(ComputationContext ctx)

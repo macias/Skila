@@ -8,6 +8,15 @@ namespace Skila.Language
     {
         public static readonly EvaluationInfo Joker = new EvaluationInfo(EntityInstance.Joker);
 
+        public static EvaluationInfo Create(IEntityInstance components, EntityInstance merged)
+        {
+            return new EvaluationInfo(components, merged);
+        }
+        public static EvaluationInfo Create(EntityInstance merged)
+        {
+            return Create(merged, merged);
+        }
+
         // combined the types in such way that all the members are valid for given combination of types
         // union of members for type intersection, and intersection of members for union of types (sic!)
         // consider type: X or Y (union)
@@ -16,7 +25,7 @@ namespace Skila.Language
         public EntityInstance Aggregate { get; }
         public IEntityInstance Components { get; }
 
-        public EvaluationInfo(IEntityInstance components,EntityInstance merged)
+        public EvaluationInfo(IEntityInstance components, EntityInstance merged)
         {
             if (components == null || merged == null)
                 throw new ArgumentNullException();
@@ -24,7 +33,7 @@ namespace Skila.Language
             this.Components = components;
             this.Aggregate = merged;
         }
-        public EvaluationInfo(EntityInstance eval) : this(eval, eval)
+        public EvaluationInfo( EntityInstance eval) : this( eval, eval)
         {
 
         }

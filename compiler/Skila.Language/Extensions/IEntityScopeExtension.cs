@@ -54,7 +54,7 @@ namespace Skila.Language.Extensions
         public static IEnumerable<EntityInstance> FindExtensions(this EntityInstance extInstance, ComputationContext ctx,
             NameReference name, EntityFindMode findMode)
         {
-            var available = new HashSet<EntityInstance>();
+            var available = new HashSet<EntityInstance>(EntityInstance.Comparer);
             INode ns = name;
             while (true)
             {

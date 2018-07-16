@@ -24,15 +24,15 @@ namespace Skila.Tests.Execution
 
                 Extension ext = root_ns.AddNode(Extension.Create("Hq"));
 
-                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8NameReference(), Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("x", "x"))))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         EntityModifier.This)));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",null,Nat8Literal.Create("5")),
                     Return.Create(FunctionCall.Create(NameReference.Create("Hq","paf"),NameReference.Create("i")))
@@ -58,15 +58,15 @@ namespace Skila.Tests.Execution
 
                 Extension ext = root_ns.AddNode(Extension.Create());
 
-                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8NameReference(), Block.CreateStatement(
                     Return.Create(ExpressionFactory.Mul("x", "x"))))
-                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceTypeReference(NameFactory.Nat8TypeReference()),
+                    .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         EntityModifier.This)));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",null,Nat8Literal.Create("5")),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","paf")))

@@ -8,9 +8,9 @@ namespace Skila.Language.Data
     // currently it is not really used because we don't use anonymous entries, but since it is already written
     // it would be a pity to trash, so for now let it stay
 
-    internal sealed class Layer<K, V> : IEnumerable<Tuple<K,V>>
-        where K:class
-        where V:class
+    internal sealed class Layer<K, V> : IEnumerable<Tuple<K, V>>
+        where K : class
+        where V : class
     {
         private readonly HashSet<K> named;
         private readonly List<V> anonymous;
@@ -26,7 +26,7 @@ namespace Skila.Language.Data
         public IEnumerator<Tuple<K, V>> GetEnumerator()
         {
             return this.named.Select(it => Tuple.Create(it, (V)null))
-                .Concat(this.anonymous.Select(it => Tuple.Create((K)null,it))).GetEnumerator();
+                .Concat(this.anonymous.Select(it => Tuple.Create((K)null, it))).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -44,5 +44,15 @@ namespace Skila.Language.Data
             else
                 return this.named.Add(key);
         }
+
+        /*internal bool Remove(K key, V value)
+        {
+            if (key == null)
+            {
+                return this.anonymous.Remove(value);
+            }
+            else
+                return this.named.Remove(key);
+        }*/
     }
 }

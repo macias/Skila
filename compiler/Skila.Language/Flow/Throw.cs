@@ -4,6 +4,8 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Expressions;
 using Skila.Language.Extensions;
+using Skila.Language.Printout;
+using Skila.Language.Tools;
 
 namespace Skila.Language.Flow
 {
@@ -28,10 +30,15 @@ namespace Skila.Language.Flow
         }
         public override string ToString()
         {
-            string result = "throw";
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            var code = new CodeSpan("throw");
             if (Expr != null)
-                result += " " + Expr.ToString();
-            return result;
+                code.Append(" ").Append(Expr.Printout());
+            return code;
         }
 
         public override bool IsReadingValueOfNode( IExpression node)
@@ -45,7 +52,7 @@ namespace Skila.Language.Flow
             {
                 this.Evaluation = ctx.Env.UnitEvaluation;
 
-                NameReference req_typename = NameFactory.PointerTypeReference(NameFactory.ExceptionTypeReference());
+                NameReference req_typename = NameFactory.PointerNameReference(NameFactory.ExceptionNameReference());
                 IEntityInstance eval_typename = req_typename.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
 
                 this.DataTransfer(ctx, ref this.expr, eval_typename);

@@ -23,24 +23,24 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("oracle", "O", VarianceMode.None,
-                    NameFactory.BoolTypeReference(),
+                    NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         Return.Create(IsType.Create(NameReference.Create("thing"), NameReference.Create("O")))
                     ))
-                    .Parameters(FunctionParameter.Create("thing", NameFactory.ReferenceTypeReference(NameFactory.IObjectTypeReference()))));
+                    .Parameters(FunctionParameter.Create("thing", NameFactory.ReferenceNameReference(NameFactory.IObjectNameReference()))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
-                        VariableDeclaration.CreateStatement("i", null, ExpressionFactory.HeapConstructor(NameFactory.IntTypeReference(), IntLiteral.Create("7"))),
-                        VariableDeclaration.CreateStatement("d", null, ExpressionFactory.HeapConstructor(NameFactory.RealTypeReference(), RealLiteral.Create("3.3"))),
-                        IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntTypeReference()),
+                        VariableDeclaration.CreateStatement("i", null, ExpressionFactory.HeapConstructor(NameFactory.IntNameReference(), IntLiteral.Create("7"))),
+                        VariableDeclaration.CreateStatement("d", null, ExpressionFactory.HeapConstructor(NameFactory.RealNameReference(), RealLiteral.Create("3.3"))),
+                        IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntNameReference()),
                             NameReference.Create("i")),
                             new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("2")) }),
-                        IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntTypeReference()),
+                        IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntNameReference()),
                             NameReference.Create("d")),
                             new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("88")) }),
                         Return.Create(NameReference.Create("acc"))
@@ -66,7 +66,7 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())));
 
 
                 root_ns.AddBuilder(TypeBuilder.Create("NoSay"));
@@ -77,7 +77,7 @@ namespace Skila.Tests.Execution
                     .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                     .SetModifier(EntityModifier.Trait)
                     .Parents("ISay")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(
                             Return.Create(Int64Literal.Create("2"))
                         )).SetModifier(EntityModifier.Override)));
@@ -85,10 +85,10 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         // just plain host, no trait is used
-                        VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
+                        VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference(NameFactory.IObjectNameReference()),
                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
                         // we should have fail-test here
                         Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
@@ -115,10 +115,10 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Say")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("7"))
                     }))
@@ -131,7 +131,7 @@ namespace Skila.Tests.Execution
                     .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                     .SetModifier(EntityModifier.Trait)
                     .Parents("ISay")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(
                             Return.Create(Int64Literal.Create("2"))
                         )).SetModifier(EntityModifier.Override)));
@@ -139,9 +139,9 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()),
+                        VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference(NameFactory.IObjectNameReference()),
                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
                         Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
                             Int64Literal.Create("2"), Int64Literal.Create("88")))
@@ -167,10 +167,10 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Say")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("7"))
                     }))
@@ -183,7 +183,7 @@ namespace Skila.Tests.Execution
                     .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
                     .SetModifier(EntityModifier.Trait)
                     .Parents("ISay")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                         Block.CreateStatement(
                             Return.Create(Int64Literal.Create("2"))
                         )).SetModifier(EntityModifier.Override)));
@@ -191,10 +191,10 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         // crucial point, we store our object as interface *ISay
-                        VariableDeclaration.CreateStatement("g", NameFactory.PointerTypeReference("ISay"),
+                        VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference("ISay"),
                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
                         // we call method "say" implemented in trait
                         Return.Create(FunctionCall.Create(NameReference.Create("g", "say")))
@@ -220,10 +220,10 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.CreateInterface("ISay")
-                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference())));
+                    .With(FunctionBuilder.CreateDeclaration("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference())));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Say")
-                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("say", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(Int64Literal.Create("2"))
                     }))
@@ -235,16 +235,16 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(TypeBuilder.Create("Greeter", "X")
                     .SetModifier(EntityModifier.Trait)
                     .Constraints(ConstraintBuilder.Create("X").Inherits("ISay"))
-                    .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(),
+                    .With(FunctionBuilder.Create("hello", ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         Return.Create(FunctionCall.Create(NameReference.Create("s", "say")))
                     ))
-                    .Parameters(FunctionParameter.Create("s", NameFactory.ReferenceTypeReference("X")))));
+                    .Parameters(FunctionParameter.Create("s", NameFactory.ReferenceNameReference("X")))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("g", null,
                             ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
@@ -272,19 +272,19 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference());
+                    ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference());
                 root_ns.AddBuilder(FunctionBuilder.Create("proxy",
                     TemplateParametersBuffer.Create().Add("T").Values,
-                         ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
+                         ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(), Block.CreateStatement(new[] {
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
                          }))
                          .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
-                         .Parameters(FunctionParameter.Create("t", NameFactory.PointerTypeReference("T"), Variadic.None, null, isNameRequired: false)));
+                         .Parameters(FunctionParameter.Create("t", NameFactory.PointerNameReference("T"), Variadic.None, null, isNameRequired: false)));
 
                 TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
                     .With(FunctionBuilder.Create("getMe",
                         ExpressionReadMode.ReadRequired,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                         }))));
@@ -293,7 +293,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(call)
@@ -323,10 +323,10 @@ namespace Skila.Tests.Execution
                 var root_ns = env.Root;
 
                 FunctionDefinition func_constraint = FunctionBuilder.CreateDeclaration("getMe",
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference());
+                    ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference());
                 root_ns.AddBuilder(FunctionBuilder.Create("proxy",
                     TemplateParametersBuffer.Create().Add("T").Values,
-                    ExpressionReadMode.ReadRequired, NameFactory.Int64TypeReference(), Block.CreateStatement(new[] {
+                    ExpressionReadMode.ReadRequired, NameFactory.Int64NameReference(), Block.CreateStatement(new[] {
                          Return.Create(FunctionCall.Create(NameReference.Create("t","getMe")))
                          }))
                          .Constraints(ConstraintBuilder.Create("T").Has(func_constraint))
@@ -335,7 +335,7 @@ namespace Skila.Tests.Execution
                 TypeDefinition type_impl = root_ns.AddBuilder(TypeBuilder.Create("Y")
                     .With(FunctionBuilder.Create("getMe",
                         ExpressionReadMode.ReadRequired,
-                        NameFactory.Int64TypeReference(),
+                        NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         Return.Create(Int64Literal.Create("2"))
                         }))));
@@ -344,7 +344,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("y",null,ExpressionFactory.StackConstructor(NameReference.Create("Y"))),
                     Return.Create(call)

@@ -125,7 +125,7 @@ namespace Skila.Language.Expressions
 
         public static IExpression OptionOf(INameReference typeName, IExpression value, Memory memory = Memory.Stack)
         {
-            return ConstructorCall.Constructor(NameFactory.OptionTypeReference(typeName), memory, value).Build();
+            return ConstructorCall.Constructor(NameFactory.OptionNameReference(typeName), memory, value).Build();
         }
         public static IExpression OptionEmpty(string typeName, Memory memory = Memory.Stack)
         {
@@ -133,7 +133,7 @@ namespace Skila.Language.Expressions
         }
         public static IExpression OptionEmpty(INameReference typeName, Memory memory = Memory.Stack)
         {
-            return ConstructorCall.Constructor(NameFactory.OptionTypeReference(typeName), memory).Build();
+            return ConstructorCall.Constructor(NameFactory.OptionNameReference(typeName), memory).Build();
         }
         public static FunctionDefinition BasicConstructor(string[] names, INameReference[] typenames)
         {
@@ -150,19 +150,19 @@ namespace Skila.Language.Expressions
         public static TypeBuilder WithEquatableEquals(this TypeBuilder builder, EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameFactory.EqualOperator,
-                                            ExpressionReadMode.ReadRequired, NameFactory.BoolTypeReference(),
+                                            ExpressionReadMode.ReadRequired, NameFactory.BoolNameReference(),
                                             Block.CreateStatement(
                           IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),
                                 new[] { Return.Create(BoolLiteral.CreateTrue()) }),
                           // let obj = cmp cast? Self
                           VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                            NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
+                            NameFactory.ReferenceNameReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
                         // return this==obj.value
                         Return.Create(ExpressionFactory.IsEqual(NameReference.Create(NameFactory.ThisVariableName),
                             NameReference.Create("obj")))))
                                             .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IEquatableTypeReference(TypeMutability.ReadOnly)))));
+                                                NameFactory.ReferenceNameReference(NameFactory.IEquatableNameReference(TypeMutability.ReadOnly)))));
         }
         public static IExpression CheckedSelfCast(string paramName, INameReference currentTypeName)
         {
@@ -185,19 +185,19 @@ namespace Skila.Language.Expressions
         public static TypeBuilder WithComparableCompare(this TypeBuilder builder, EntityModifier modifier = null)
         {
             return builder.With(FunctionBuilder.Create(NameFactory.ComparableCompare,
-                                            ExpressionReadMode.ReadRequired, NameFactory.OrderingTypeReference(),
+                                            ExpressionReadMode.ReadRequired, NameFactory.OrderingNameReference(),
                                             Block.CreateStatement(
                           IfBranch.CreateIf(IsSame.Create(NameReference.CreateThised(), NameReference.Create("cmp")),
                                 new[] { Return.Create(NameFactory.OrderingEqualReference()) }),
                             // let obj = cmp cast? Self
                             VariableDeclaration.CreateStatement("obj", null, CheckedSelfCast("cmp",
-                                NameFactory.ReferenceTypeReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
+                                NameFactory.ReferenceNameReference(builder.CreateTypeNameReference(TypeMutability.ReadOnly)))),
                         // return this.compare(obj.value)
                         Return.Create(FunctionCall.Create(NameReference.CreateThised(NameFactory.ComparableCompare),
                             NameReference.Create("obj")))))
                                             .SetModifier(EntityModifier.Override | modifier)
                                             .Parameters(FunctionParameter.Create("cmp",
-                                                NameFactory.ReferenceTypeReference(NameFactory.IComparableTypeReference(TypeMutability.ReadOnly)))));
+                                                NameFactory.ReferenceNameReference(NameFactory.IComparableNameReference(TypeMutability.ReadOnly)))));
         }
         public static FunctionCall BaseInit(params FunctionArgument[] arguments)
         {
@@ -218,9 +218,9 @@ namespace Skila.Language.Expressions
             // and in runtime x is Orange
             // if you cast it to Vehicle you will get null, when you cast it to Fruit you will get Orange (sic!)
             IExpression condition = IsType.Create(lhs, rhsTypeName);
-            IExpression success = ExpressionFactory.StackConstructor(NameFactory.OptionTypeReference(rhsTypeName),
+            IExpression success = ExpressionFactory.StackConstructor(NameFactory.OptionNameReference(rhsTypeName),
                 FunctionArgument.Create(ReinterpretType.Create(lhs, rhsTypeName)));
-            IExpression failure = ExpressionFactory.StackConstructor(NameFactory.OptionTypeReference(rhsTypeName));
+            IExpression failure = ExpressionFactory.StackConstructor(NameFactory.OptionNameReference(rhsTypeName));
             return IfBranch.CreateIf(condition, new[] { success }, IfBranch.CreateElse(new[] { failure }));
         }
 
@@ -418,7 +418,7 @@ namespace Skila.Language.Expressions
         }
         public static IExpression GenericThrow()
         {
-            return Throw.Create(HeapConstructor(NameFactory.ExceptionTypeReference()));
+            return Throw.Create(HeapConstructor(NameFactory.ExceptionNameReference()));
         }
 
         public static IExpression AssertTrue(IExpression condition)

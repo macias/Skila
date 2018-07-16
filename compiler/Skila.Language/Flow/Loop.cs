@@ -7,6 +7,8 @@ using Skila.Language.Extensions;
 using System;
 using Skila.Language.Semantics;
 using Skila.Language.Expressions;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Flow
 {
@@ -137,8 +139,20 @@ namespace Skila.Language.Flow
 
         public override string ToString()
         {
-            string result = "loop ...";
-            return result;
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            var code = new CodeDiv(this,this.Body.ToArray()).Indent();
+            code.Prepend("{").Append("}");
+            code.Prepend(new CodeSpan("for (").Append(";").Append(PreCondition).Append(";").Append(PostStep," ;, ").Append(")"));
+            if (PostCondition != null)
+                code.Append(new CodeSpan("endfor (").Append(PostCondition).Append(")"));
+            else
+                code.Append(new CodeSpan("endfor"));
+
+            return code;
         }
 
         public bool IsReadingValueOfNode(IExpression node)

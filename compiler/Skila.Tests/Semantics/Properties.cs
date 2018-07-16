@@ -27,7 +27,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntTypeReference())
+                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntNameReference())
                         .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         assign
@@ -51,7 +51,7 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options().SetMutability(mutability));
                 var root_ns = env.Root;
 
-                Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64TypeReference())
+                Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                             .Modifier(EntityModifier.Override));
 
@@ -79,11 +79,11 @@ namespace Skila.Tests.Semantics
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), 
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
                     )));
 
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -118,7 +118,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64TypeReference())
+                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64NameReference())
                         .WithAutoField(Int64Literal.Create("1"), env.Options.ReassignableModifier())
                         .WithAutoGetter()
                         .WithAutoSetter()));
@@ -128,7 +128,7 @@ namespace Skila.Tests.Semantics
                     "getter",
                     null,
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
                     getter_call
@@ -152,14 +152,14 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64TypeReference());
+                FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64NameReference());
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1"), 
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()), mul_getter },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64TypeReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()), mul_getter },
+                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -181,16 +181,16 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
-                    .With(Property.Create(env.Options, "x", NameFactory.Int64TypeReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64TypeReference(), Int64Literal.Create("1")) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64TypeReference()) },
+                    .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
+                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1")) },
+                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
                         setters: null
                     )));
 
                 IExpression assignment = Assignment.CreateStatement(NameReference.Create("p", "x"), Int64Literal.Create("5"));
                 root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p", NameReference.Create("Point"), Undef.Create()),

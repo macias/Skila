@@ -31,7 +31,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.UnitTypeReference(),
+                    NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
@@ -85,26 +85,26 @@ namespace Skila.Tests.Semantics
                      .With(FunctionBuilder.CreateDeclaration(
                          "bar",
                          ExpressionReadMode.OptionalUse,
-                         NameFactory.PointerTypeReference(NameFactory.IObjectTypeReference()))
-                         .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), Variadic.None, null, isNameRequired: false)))
+                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference()))
+                         .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), Variadic.None, null, isNameRequired: false)))
                      .SetModifier(env.Options.InterfaceDuckTyping ? EntityModifier.Interface : EntityModifier.Protocol));
 
                 root_ns.AddBuilder(TypeBuilder.Create("X")
                     .With(FunctionBuilder.Create("bar",
                         ExpressionReadMode.OptionalUse,
                         // subtype of original result typename -- this is legal
-                        NameFactory.PointerTypeReference(NameFactory.Int64TypeReference()),
+                        NameFactory.PointerNameReference(NameFactory.Int64NameReference()),
                         Block.CreateStatement(new[] {
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64TypeReference(), Int64Literal.Create("2")))
+                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
                         }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolTypeReference(), usageMode: ExpressionReadMode.CannotBeRead))));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), usageMode: ExpressionReadMode.CannotBeRead))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("i",NameFactory.PointerTypeReference(NameReference.Create("IX")),null,env.Options.ReassignableModifier()),
+                    VariableDeclaration.CreateStatement("i",NameFactory.PointerNameReference(NameReference.Create("IX")),null,env.Options.ReassignableModifier()),
                     Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
@@ -160,7 +160,7 @@ namespace Skila.Tests.Semantics
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     decl,
                     ExpressionFactory.Readout("i"),

@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NaiveLanguageTools.Common">
@@ -61,7 +63,6 @@
     <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />
-    <Compile Include="Comparers\EntityInstanceCoreSignatureComparer.cs" />
     <Compile Include="Comparers\EntityInstanceCoreComparer.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Data\Layer.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="Entities\Extension.cs" />
     <Compile Include="Entities\Property.Accessor.cs" />
     <Compile Include="ExecutionPath.cs" />
+    <Compile Include="Expressions\New.cs" />
     <Compile Include="Expressions\Chain.cs" />
     <Compile Include="Builders\ConstructorCall.cs" />
     <Compile Include="Expressions\Literals\Real64Literal.cs" />
@@ -90,19 +92,33 @@
     <Compile Include="Extensions\EvaluationCall.cs" />
     <Compile Include="Extensions\INameReferenceExtension.cs" />
     <Compile Include="Extensions\IRestrictedMemberExtension.cs" />
+    <Compile Include="ITimedIEntityInstance.cs" />
+    <Compile Include="EntityInstance.RuntimeCore.cs" />
+    <Compile Include="TimedIEntityInstance.cs" />
     <Compile Include="IComputable.cs" />
+    <Compile Include="ICustomComputable.cs" />
     <Compile Include="INameBindable.cs" />
     <Compile Include="ILabelBindable.cs" />
     <Compile Include="Memory.cs" />
     <Compile Include="BrowseMode.cs" />
+    <Compile Include="Lifetime.cs" />
     <Compile Include="MutabilityModeOption.cs" />
+    <Compile Include="Printout\CodeDiv.cs" />
+    <Compile Include="Printout\CodeText.cs" />
+    <Compile Include="Printout\ICodeLine.cs" />
+    <Compile Include="Printout\IPrintable.cs" />
+    <Compile Include="Printout\ICode.cs" />
+    <Compile Include="Printout\CodeSpan.cs" />
+    <Compile Include="Tools\ConsolePrinter.cs" />
+    <Compile Include="Tools\Printer.cs" />
+    <Compile Include="Tools\IPrinter.cs" />
     <Compile Include="Tools\Later.cs" />
+    <Compile Include="TemplateArgument.cs" />
     <Compile Include="VariablePrototype.cs" />
     <Compile Include="TypeMatching.cs" />
     <Compile Include="MutabilityFlag.cs" />
     <Compile Include="Entities\IMember.cs" />
     <Compile Include="Entities\EntityInstanceCache.cs" />
-    <Compile Include="EntityInstanceCore.cs" />
     <Compile Include="EntityInstanceIntersection.cs" />
     <Compile Include="EntityInstanceSet.cs" />
     <Compile Include="Expressions\Dereference.cs" />

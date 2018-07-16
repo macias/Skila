@@ -36,7 +36,7 @@ namespace Skila.Language
         // checks if types are distinct from each other for function overloading validation
         bool IsOverloadDistinctFrom(IEntityInstance other);
 
-        bool CoreEquals(IEntityInstance instance);
+        bool IsIdentical(IEntityInstance instance);
         IEntityInstance Map(Func<EntityInstance, IEntityInstance> func);
         TypeMutability MutabilityOfType(ComputationContext ctx);
         TypeMutability SurfaceMutabilityOfType(ComputationContext ctx);

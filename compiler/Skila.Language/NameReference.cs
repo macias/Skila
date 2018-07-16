@@ -7,6 +7,8 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language
 {
@@ -34,17 +36,25 @@ namespace Skila.Language
         {
             return Create(prefix, name, ExpressionReadMode.ReadRequired, arguments);
         }
+        public static NameReference Create(IExpression prefix, string name)
+        {
+            return Create(prefix, name, new INameReference[] { });
+        }
         public static NameReference Create(IExpression prefix, BrowseMode browse, string name, params INameReference[] arguments)
         {
             return Create(prefix, browse, name, ExpressionReadMode.ReadRequired, arguments);
         }
-        public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode, params INameReference[] arguments)
+        public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode,
+            params INameReference[] arguments)
         {
-            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, name, arguments, readMode, isRoot: false);
+            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, name,
+                arguments.Select(it => new TemplateArgument(it)), readMode, isRoot: false);
         }
-        public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode, params INameReference[] arguments)
+        public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode,
+            params INameReference[] arguments)
         {
-            return new NameReference(TypeMutability.None, prefix, browse, name, arguments, readMode, isRoot: false);
+            return new NameReference(TypeMutability.None, prefix, browse, name,
+                arguments.Select(it => new TemplateArgument(it)), readMode, isRoot: false);
         }
         public static NameReference Create(TypeMutability overrideMutability, string name, params INameReference[] arguments)
         {
@@ -53,12 +63,22 @@ namespace Skila.Language
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
-            return new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            return new NameReference(overrideMutability, prefix, BrowseMode.None,
+                name, arguments.Select(it => new TemplateArgument(it)),
+                ExpressionReadMode.ReadRequired, isRoot: false);
+        }
+        public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name)
+        {
+            return new NameReference(overrideMutability, prefix, BrowseMode.None,
+                name, Enumerable.Empty<TemplateArgument>(),
+                ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
-            var result = new NameReference(overrideMutability, prefix, BrowseMode.None, name, arguments, ExpressionReadMode.ReadRequired, isRoot: false);
+            var result = new NameReference(overrideMutability, prefix, BrowseMode.None, name,
+                arguments?.Select(it => new TemplateArgument(it)),
+                ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
                 result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
@@ -90,7 +110,7 @@ namespace Skila.Language
         public bool IsRoot { get; }
         public IExpression Prefix { get; private set; }
         public string Name { get; }
-        public IReadOnlyList<INameReference> TemplateArguments { get; }
+        public IReadOnlyList<TemplateArgument> TemplateArguments { get; }
         public Binding Binding { get; }
         public int Arity => this.TemplateArguments.Count;
 
@@ -107,7 +127,7 @@ namespace Skila.Language
 
         public static NameReference Root => new NameReference(TypeMutability.None, null, BrowseMode.None,
             NameFactory.RootNamespace,
-            Enumerable.Empty<INameReference>(), ExpressionReadMode.ReadRequired, isRoot: true);
+            Enumerable.Empty<TemplateArgument>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
         public int DereferencingCount { get; set; }
         public int DereferencedCount_LEGACY { get; set; }
@@ -127,18 +147,23 @@ namespace Skila.Language
             IExpression prefix,
             BrowseMode browse,
             string name,
-            IEnumerable<INameReference> templateArguments,
+            IEnumerable<TemplateArgument> templateArguments,
             ExpressionReadMode readMode,
             bool isRoot)
             : base()
         {
+            if (this.DebugId == (5, 1297))
+            {
+                ;
+            }
+
             this.browse = browse;
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
             this.Prefix = prefix;
             this.Name = name;
-            this.TemplateArguments = (templateArguments ?? Enumerable.Empty<INameReference>()).StoreReadOnlyList();
+            this.TemplateArguments = (templateArguments ?? Enumerable.Empty<TemplateArgument>()).StoreReadOnlyList();
             this.Binding = new Binding();
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
@@ -148,12 +173,25 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            string args = "";
-            if (TemplateArguments.Any())
-                args = "<" + TemplateArguments.Select(it => it.ToString()).Join(",") + ">";
-            string result = new[] { this.Prefix?.ToString(), Name + args }.Where(it => it != null).Join(".");
+            return Printout().ToString();
+        }
 
-            return this.OverrideMutability.StringPrefix() + result;
+        public ICode Printout()
+        {
+            var args = new CodeSpan();
+            if (TemplateArguments.Any())
+            {
+                args = new CodeSpan(TemplateArguments.Select(it => it.Printout()).ToArray());
+                args.Prepend("<").Append(">");
+            }
+
+            var code = new CodeSpan(Name).Append(args);
+            if (this.Prefix != null)
+                code.Prepend(".").Prepend(this.Prefix);
+
+            code.Prepend(this.OverrideMutability.StringPrefix());
+
+            return code;
         }
 
         public void Evaluate(ComputationContext ctx)
@@ -173,10 +211,16 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
+            if (this.DebugId == (5, 11431))
+            {
+                ;
+            }
+
             handleBinding(ctx);
 
             IEntityInstance eval;
             EntityInstance aggregate;
+
             computeEval(ctx, out eval, out aggregate);
 
             if (this.Prefix != null)
@@ -185,16 +229,51 @@ namespace Skila.Language
                 aggregate = aggregate.TranslateThrough(this.Prefix.Evaluation.Aggregate);
             }
 
-            this.Evaluation = new EvaluationInfo(eval, aggregate);
+            this.Evaluation = EvaluationInfo.Create(eval, aggregate);
         }
 
         private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
         {
+            if (this.DebugId == (5, 11428))
+            {
+                ;
+            }
+
             EntityInstance instance = this.Binding.Match.Instance;
 
             if (instance.Target.IsTypeContainer())
             {
-                instance = instance.Build(this.OverrideMutability);
+                Lifetime lifetime;
+                {
+                    if (instance.Target is TypeDefinition type_def)
+                    {
+                        if (type_def == ctx.Env.ReferenceType)
+                            lifetime = Lifetime.CreateReference(this);
+                        else if (type_def == ctx.Env.PointerType)
+                            lifetime = Lifetime.CreatePointer(this);
+                        else
+                            lifetime = Lifetime.CreateValue(this);
+
+                    }
+                    else
+                        lifetime = Lifetime.Create(this);
+                }
+
+                {
+                    if (this.Owner is FunctionParameter func_param && instance.Target is TypeDefinition target_type_def
+                        && target_type_def == ctx.Env.ReferenceType
+                        && this.EnclosingNode<FunctionDefinition>().IsInitConstructor())
+                    {
+                        TypeDefinition enclosing_type_def = this.EnclosingNode<TypeDefinition>();
+                        if (enclosing_type_def.Modifier.HasReferential)
+                        {
+                            lifetime = Lifetime.Create(enclosing_type_def);
+                        }
+                    }
+                }
+
+
+                instance = instance.Build(this.OverrideMutability, lifetime);
                 eval = instance;
                 aggregate = instance;
             }
@@ -209,7 +288,7 @@ namespace Skila.Language
                     if (prefix_mutability == TypeMutability.ForceConst)
                     {
                         eval = eval.Rebuild(ctx, TypeMutability.ForceConst);
-                        aggregate = aggregate.Rebuild(ctx, TypeMutability.ForceConst).Cast<EntityInstance>();
+                        aggregate = aggregate.Rebuild(ctx, TypeMutability.ForceConst);
                     }
                 }
             }
@@ -250,7 +329,8 @@ namespace Skila.Language
                 });
 
             if (notFoundErrorCode == ErrorCode.StaticMemberAccessInInstanceContext)
-                entities = filterCrossAccessEntities(ctx, entities.Select(it => it.Instance)).Select(it => new BindingMatch(it, isLocal: false));
+                entities = filterCrossAccessEntities(ctx, entities.Select(it => it.Instance))
+                    .Select(it => new BindingMatch(it, isLocal: false));
 
             return entities;
         }
@@ -259,6 +339,10 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
+            if (this.DebugId == (5, 1297))
+            {
+                ;
+            }
             if (this.IsRoot)
             {
                 return new[] { new BindingMatch(ctx.Env.Root.InstanceOf, isLocal: false) };
@@ -337,7 +421,7 @@ namespace Skila.Language
                         }
                     }
 
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
                 }
             }
             else // we have prefix
@@ -367,7 +451,7 @@ namespace Skila.Language
                     if (target_instance.Target is TypeDefinition typedef)
                         entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
 
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
                 }
                 else
                 {
@@ -386,7 +470,7 @@ namespace Skila.Language
                     if (entities.Any())
                         notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
 
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments,this.OverrideMutability), isLocal: false));
+                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
                 }
             }
         }
@@ -555,8 +639,8 @@ namespace Skila.Language
 
             // todo: after reshaping escape analysis and associated reference types extend this to types as well
             if (this.Binding.Match.Instance.Target is FunctionDefinition)
-                foreach (INameReference arg in this.TemplateArguments)
-                    if (ctx.Env.IsReferenceOfType(arg.Evaluation.Components))
+                foreach (TemplateArgument arg in this.TemplateArguments)
+                    if (ctx.Env.IsReferenceOfType(arg.TypeName.Evaluation.Components))
                         ctx.AddError(ErrorCode.ReferenceAsTypeArgument, arg);
         }
 
@@ -570,13 +654,14 @@ namespace Skila.Language
             return __eval.Cast<EntityInstance>();
         }
 
-        public NameReference Recreate(IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
+        public NameReference Recreate(IEnumerable<TemplateArgument> arguments, EntityInstance target, bool isLocal)
         {
             IExpression this_prefix = this.Prefix;
             this_prefix?.DetachFrom(this);
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
-            var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.Name, arguments, this.ReadMode, this.IsRoot);
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.Name,
+                arguments, this.ReadMode, this.IsRoot);
             result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
         }
@@ -665,7 +750,8 @@ namespace Skila.Language
 
             for (int i = 0; i < this.TemplateArguments.Count; ++i)
             {
-                if (!this.TemplateArguments[i].IsExactlySame(other_nameref.TemplateArguments[i], translationTemplate, jokerMatchesAll))
+                if (!this.TemplateArguments[i].TypeName.IsExactlySame(other_nameref.TemplateArguments[i].TypeName,
+                    translationTemplate, jokerMatchesAll))
                     return false;
             }
 

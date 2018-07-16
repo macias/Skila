@@ -7,6 +7,8 @@ using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using System;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Flow
 {
@@ -72,8 +74,21 @@ namespace Skila.Language.Flow
 
         public override string ToString()
         {
-            string result = (IsElse ? "else" : $"if {Condition} then") + " ...";
-            return result;
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            CodeDiv code = new CodeDiv(this, this.Body);
+            if (IsElse)
+                code.Prepend("else");
+            else
+                code.Prepend(new CodeSpan("(if ").Append(Condition).Append(" then"));
+            if (this.Next != null)
+                code.Append(this.Next);
+            code.Append(")");
+
+            return code;
         }
 
         public bool IsReadingValueOfNode(IExpression node)
@@ -89,6 +104,11 @@ namespace Skila.Language.Flow
         }
         public void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId == (21, 283))
+            {
+                ;
+            }
+
             if (this.Evaluation == null)
             {
                 this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
@@ -129,6 +149,10 @@ namespace Skila.Language.Flow
 
         private bool computeLowestCommonAncestor(ComputationContext ctx, ref IEntityInstance eval, ref IEntityInstance aggregate)
         {
+            if (this.DebugId == (21, 283))
+            {
+                ;
+            }
             if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
             {
                 return false;
@@ -141,11 +165,13 @@ namespace Skila.Language.Flow
             {
                 foreach (IEvaluable part in new IEvaluable[] { Body, Next })
                 {
-                    if (part.Evaluation.Components.MatchesTarget(ctx, eval, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)) == TypeMatch.No)
+                    if (part.Evaluation.Components.MatchesTarget(ctx, eval,
+                        TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)).IsMismatch())
                     {
                         return false;
                     }
-                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)) == TypeMatch.No)
+                    if (part.Evaluation.Aggregate.MatchesTarget(ctx, aggregate,
+                        TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)).IsMismatch())
                     {
                         return false;
                     }

@@ -1,5 +1,7 @@
 ﻿using NaiveLanguageTools.Common;
+using Skila.Language.Printout;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 using System;
 using System.Diagnostics;
 
@@ -35,6 +37,7 @@ namespace Skila.Language.Expressions
 
         public abstract bool IsReadingValueOfNode(IExpression node);
         public abstract void Evaluate(ComputationContext ctx);
+        public abstract ICode Printout();
 
         public virtual bool IsLValue(ComputationContext ctx)
         {

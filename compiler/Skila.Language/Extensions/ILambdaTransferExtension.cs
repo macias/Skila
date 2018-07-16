@@ -73,7 +73,8 @@ namespace Skila.Language.Extensions
                 function.ResultTypeName,
                     Block.CreateStatement(new[] {
                         Return.Create(FunctionCall.Create(
-                            NameReference.Create(func_field_ref, funcReference.Name,funcReference.TemplateArguments.ToArray()),
+                            NameReference.Create(func_field_ref, funcReference.Name,
+                                funcReference.TemplateArguments.Select(it => it.TypeName).ToArray()),
                                 function.Parameters.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray()))
                     }))
                     .SetModifier(EntityModifier.Override)

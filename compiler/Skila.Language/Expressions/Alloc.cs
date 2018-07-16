@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
-using Skila.Language.Extensions;
-using Skila.Language.Semantics;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Alloc : Expression
     {
-        internal static Alloc Create(NameReference innerTypename, Memory memory,TypeMutability mutability = TypeMutability.None)
+        internal static Alloc Create(NameReference innerTypename, Memory memory, TypeMutability mutability = TypeMutability.None)
         {
-            return new Alloc(innerTypename, memory,mutability);
+            return new Alloc(innerTypename, memory, mutability);
         }
 
         private readonly NameReference outcomeTypeName;
@@ -23,26 +22,32 @@ namespace Skila.Language.Expressions
 
         public bool UseHeap { get; }
 
-        private Alloc(NameReference innerTypename,Memory memory, TypeMutability mutability)
+        private Alloc(NameReference innerTypename, Memory memory, TypeMutability mutability)
             : base(ExpressionReadMode.ReadRequired)
         {
             if (memory == Memory.Stack && mutability != TypeMutability.None)
                 throw new ArgumentException();
 
-            this.UseHeap = memory== Memory.Heap;
+            this.UseHeap = memory == Memory.Heap;
             this.InnerTypeName = innerTypename;
-            this.outcomeTypeName = memory== Memory.Heap? NameFactory.PointerTypeReference(innerTypename,mutability) : innerTypename;
+            this.outcomeTypeName = memory == Memory.Heap
+                ? NameFactory.PointerNameReference(this.InnerTypeName, mutability)
+                : this.InnerTypeName;
 
             this.OwnedNodes.ForEach(it => it.AttachTo(this));
         }
 
         public override string ToString()
         {
-            string result = $"alloc<{(UseHeap?"*":"")}{this.InnerTypeName}>";
-            return result;
+            return Printout().ToString();
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override ICode Printout()
+        {
+            return new CodeSpan($"alloc<{(UseHeap ? "*" : "")}").Append(this.InnerTypeName).Append(">()");
+        }
+
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
         }

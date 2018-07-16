@@ -1,6 +1,9 @@
-﻿namespace Skila.Language
+﻿using Skila.Language.Printout;
+using Skila.Language.Tools;
+
+namespace Skila.Language
 {
-    public interface IExpression : IEvaluable
+    public interface IExpression : IEvaluable,IPrintable
     {
         // todo: 2018-12-01 -- remove DereferencedCount and rely on DereferencingCount instead since it allows sharing child node
         // since info about dereferencing sits in parent, not in child, but maybe it is not that universal, so setting date to future

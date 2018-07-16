@@ -8,6 +8,8 @@ using Skila.Language.Comparers;
 using Skila.Language.Extensions;
 using System.Runtime.CompilerServices;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Entities
 {
@@ -87,7 +89,7 @@ namespace Skila.Language.Entities
             }
 
             this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
-                overrideMutability: TypeMutability.None, translation: TemplateTranslation.Create(this)));
+                overrideMutability: TypeMutability.None, translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
             this.Evaluation = EvaluationInfo.Joker;
         }
@@ -116,14 +118,19 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation,Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,lifetime);
         }
 
         public override string ToString()
         {
-            return this.Name.ToString();
+            return this.Printout().ToString();
+        }
+
+        public virtual ICode Printout()
+        {
+            return this.Name.Printout();
         }
 
         public virtual void Validate(ComputationContext ctx)

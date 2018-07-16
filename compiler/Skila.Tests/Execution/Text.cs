@@ -31,7 +31,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         ExpressionFactory.AssertEqual(NatLiteral.Create("1"),
@@ -76,7 +76,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         ExpressionFactory.AssertEqual(StringLiteral.Create(""),
@@ -128,7 +128,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         ExpressionFactory.AssertEqual(StringLiteral.Create(""),
@@ -180,7 +180,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         ExpressionFactory.AssertOptionIsNull(FunctionCall.Create(NameReference.Create(StringLiteral.Create(""),
@@ -245,7 +245,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         // assert("hello world".split(" ").count() == 2);
@@ -413,7 +413,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         // assert("hello".reverse()=="olleh");
@@ -467,61 +467,61 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
 
                         // assert("345.0" to ?Double==345);
                         ExpressionFactory.AssertEqual(RealLiteral.Create(345),
                             ExpressionFactory.GetOptionValue(
-                                FunctionCall.Create(NameReference.Create(NameFactory.RealTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.RealNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("345.0")))),
 
                         // assert("1,000" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("1,000"))),
 
                         // assert("1 000" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("1 000"))),
 
                         // assert("0" to ?Int==0);
                         ExpressionFactory.AssertEqual(IntLiteral.Create("0"),
                             ExpressionFactory.GetOptionValue(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("0")))),
 
                         // assert("-0" to ?Int==0);
                         ExpressionFactory.AssertEqual(IntLiteral.Create("-0"),
                             ExpressionFactory.GetOptionValue(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("0")))),
 
                         // assert("+0" to ?Int==0);
                         ExpressionFactory.AssertEqual(IntLiteral.Create("+0"),
                             ExpressionFactory.GetOptionValue(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("0")))),
 
                         // assert("abc" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("abc"))),
 
                         // assert("" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create(""))),
 
                         // assert("-" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("-"))),
 
                         // assert("+" to ?Int is null);
                         ExpressionFactory.AssertOptionIsNull(
-                                FunctionCall.Create(NameReference.Create(NameFactory.IntTypeReference(), NameFactory.ParseFunctionName),
+                                FunctionCall.Create(NameReference.Create(NameFactory.IntNameReference(), NameFactory.ParseFunctionName),
                                 StringLiteral.Create("+"))),
 
                         Return.Create(Nat8Literal.Create("0"))
@@ -548,12 +548,12 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement("i", null, Nat8Literal.Create("2"),   env.Options.ReassignableModifier()),
                         // € takes 3 bytes
-                        Loop.CreateForEach("ch", NameFactory.CharTypeReference(), StringLiteral.Create("€a"),
+                        Loop.CreateForEach("ch", NameFactory.CharNameReference(), StringLiteral.Create("€a"),
                         new IExpression[] {
                         ExpressionFactory.IncBy("acc",
                             ExpressionFactory.Mul(NameReference.Create("i"),NameReference.Create("ch",NameFactory.CharLength))),
@@ -584,7 +584,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         /*
       assert("".lastIndexOf(%c'a') is null);
@@ -649,7 +649,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         /*
       assert("abc ".trimLeft()=="abc ");
@@ -699,7 +699,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                 // Skila-1 old test, so in comments there is its syntax used
                 // let re = %r/^(?:(\d{4})-)?(?:(\d{1,2})-)?(\d{1,2})$/;
@@ -707,7 +707,7 @@ namespace Skila.Tests.Execution
                 // let matches = re.match(s);
                 // assert(matches.count() == 1);
                 VariableDeclaration.CreateStatement("re", null,
-                            ExpressionFactory.StackConstructor(NameFactory.RegexTypeReference(), StringLiteral.Create(@"^(?:(\d{4})-)?(?:(\d{1,2})-)?(\d{1,2})$"))),
+                            ExpressionFactory.StackConstructor(NameFactory.RegexNameReference(), StringLiteral.Create(@"^(?:(\d{4})-)?(?:(\d{1,2})-)?(\d{1,2})$"))),
                           VariableDeclaration.CreateStatement("s", null, StringLiteral.Create("2016-04-14")),
                           VariableDeclaration.CreateStatement("matches", null,
                             FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
@@ -795,7 +795,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                 // Skila-1 old test, so in comments there is its syntax used
                 // let re = %r/(?<y>\d+)-(?<m>\d+)-(?<d>\d+)/;
@@ -803,7 +803,7 @@ namespace Skila.Tests.Execution
                 // let matches = re.match(s);
                 // assert(matches.count() == 1);
                 VariableDeclaration.CreateStatement("re", null,
-                            ExpressionFactory.StackConstructor(NameFactory.RegexTypeReference(), StringLiteral.Create(@"(?<y>\d+)-(?<m>\d+)-(?<d>\d+)"))),
+                            ExpressionFactory.StackConstructor(NameFactory.RegexNameReference(), StringLiteral.Create(@"(?<y>\d+)-(?<m>\d+)-(?<d>\d+)"))),
                           VariableDeclaration.CreateStatement("s", null, StringLiteral.Create("2016-04-14")),
                           VariableDeclaration.CreateStatement("matches", null,
                             FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
@@ -894,7 +894,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                           // Skila-1 old test, so in comments there is its syntax used
                           // let re = %r/(\d+)/;
@@ -902,7 +902,7 @@ namespace Skila.Tests.Execution
                           // let matches = re.match(s);
                           // assert(matches.count() == 3);
                           VariableDeclaration.CreateStatement("re", null,
-                            ExpressionFactory.StackConstructor(NameFactory.RegexTypeReference(), StringLiteral.Create(@"(\d+)"))),
+                            ExpressionFactory.StackConstructor(NameFactory.RegexNameReference(), StringLiteral.Create(@"(\d+)"))),
                           VariableDeclaration.CreateStatement("s", null, StringLiteral.Create("2016-04-14")),
                           VariableDeclaration.CreateStatement("matches", null,
                             FunctionCall.Create(NameReference.Create("re", NameFactory.RegexMatchFunctionName), NameReference.Create("s"))),
@@ -1014,11 +1014,11 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         // https://msdn.microsoft.com/en-us/library/3y21t6y4(v=vs.110).aspx#Anchor_3
                         VariableDeclaration.CreateStatement("partNumbers", null,
-                            ExpressionFactory.StackConstructor(NameFactory.ChunkTypeReference(NameFactory.StringPointerTypeReference(
+                            ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.StringPointerNameReference(
                                 TypeMutability.ForceConst)), NatLiteral.Create("5"))),
                         ExpressionFactory.InitializeIndexable("partNumbers",
                             StringLiteral.Create("1298-673-4192"), // pass
@@ -1028,7 +1028,7 @@ namespace Skila.Tests.Execution
                             StringLiteral.Create("0919-2893-1256")), // fail
 
                         VariableDeclaration.CreateStatement("rgx", null,
-                            ExpressionFactory.StackConstructor(NameFactory.RegexTypeReference(),
+                            ExpressionFactory.StackConstructor(NameFactory.RegexNameReference(),
                                 StringLiteral.Create(@"^[a-zA-Z0-9]\d{2}[a-zA-Z0-9](-\d{3}){2}[A-Za-z0-9]$"))),
 
                         VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),

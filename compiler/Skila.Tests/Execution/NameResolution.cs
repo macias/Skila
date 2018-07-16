@@ -27,9 +27,9 @@ namespace Skila.Tests.Execution
 
                 VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameReference.Create("p", "VType"), Undef.Create(), 
                     env.Options.ReassignableModifier());
-                root_ns.AddBuilder(FunctionBuilder.Create("main", NameFactory.Nat8TypeReference(), Block.CreateStatement(
+                root_ns.AddBuilder(FunctionBuilder.Create("main", NameFactory.Nat8NameReference(), Block.CreateStatement(
                         VariableDeclaration.CreateStatement("p", null,
-                            ExpressionFactory.StackConstructor(NameReference.Create("Point", NameFactory.Nat8TypeReference()))),
+                            ExpressionFactory.StackConstructor(NameReference.Create("Point", NameFactory.Nat8NameReference()))),
                         decl,
                         Assignment.CreateStatement(NameReference.Create("x"), Nat8Literal.Create("5")),
                         Return.Create(NameReference.Create("x"))

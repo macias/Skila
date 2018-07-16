@@ -6,12 +6,15 @@ using System.Linq;
 using Skila.Language.Extensions;
 using System;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope, IRestrictedMember, ILabelBindable
-    {
+    public sealed class FunctionDefinition : TemplateDefinition, IEntity, IExecutableScope, IRestrictedMember, ILabelBindable, 
+        ICustomComputable
+    {      
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
             NameDefinition name,
@@ -25,7 +28,7 @@ namespace Skila.Language.Entities
                 name,
                 (NameDefinition)null,
                 constraints, parameters, callMode, result, constructorChainCall: null, body: body, includes: null, friends: null);
-        }
+        }       
         public static FunctionDefinition CreateFunction(
             EntityModifier modifier,
             NameDefinition name,
@@ -40,8 +43,10 @@ namespace Skila.Language.Entities
         {
             return new FunctionDefinition(modifier,
                 name,
-                                (NameDefinition)null,
-                constraints, parameters, callMode, result, constructorChainCall, body, includes, friends);
+                (NameDefinition)null,
+                constraints, parameters, callMode,
+                result,
+                constructorChainCall, body, includes, friends);
         }
 
         public static FunctionDefinition CreateInitConstructor(
@@ -56,7 +61,7 @@ namespace Skila.Language.Entities
                                 null,
                                 parameters,
                                 ExpressionReadMode.OptionalUse,
-                                NameFactory.UnitTypeReference(),
+                                NameFactory.UnitNameReference(),
                                 constructorChainCall, body: body, includes: null, friends: null);
         }
 
@@ -71,7 +76,8 @@ namespace Skila.Language.Entities
                 NameFactory.NewConstructorNameDefinition(),
                                 (NameDefinition)null,
                 null,
-                parameters, ExpressionReadMode.ReadRequired, NameFactory.PointerTypeReference(typeName),
+                parameters, ExpressionReadMode.ReadRequired,
+                NameFactory.PointerNameReference(typeName),
                 constructorChainCall: null, body: body, includes: null, friends: null);
         }
         public static FunctionDefinition CreateZeroConstructor(EntityModifier modifier, Block body)
@@ -82,12 +88,12 @@ namespace Skila.Language.Entities
                                 null,
                                 null,
                                 ExpressionReadMode.OptionalUse,
-                                NameFactory.UnitTypeReference(),
+                                NameFactory.UnitNameReference(),
                                 constructorChainCall: null, body: body, includes: null, friends: null);
         }
 
         public bool IsResultTypeNameInfered { get; }
-        private FunctionParameter ResultParameter;
+        public FunctionParameter ResultParameter { get; private set; }
         public INameReference ResultTypeName => this.ResultParameter.TypeName;
         private readonly List<IEntityInstance> resultTypeCandidates;
         public Block UserBody { get; }
@@ -182,13 +188,13 @@ namespace Skila.Language.Entities
 
         public NameReference CreateFunctionInterface()
         {
-            return NameFactory.IFunctionTypeReference(this.Parameters.Select(it => it.ElementTypeName)
+            return NameFactory.IFunctionNameReference(this.Parameters.Select(it => it.ElementTypeName)
                 .Concat(this.ResultTypeName).ToArray());
         }
 
-        internal void AddResultTypeCandidate(INameReference typenameCandidate)
+        internal void AddResultTypeCandidate(IEntityInstance candidate)
         {
-            this.resultTypeCandidates.Add(typenameCandidate.Evaluation.Components);
+            this.resultTypeCandidates.Add(candidate);
         }
 
         internal void InferResultType(ComputationContext ctx)
@@ -239,8 +245,8 @@ namespace Skila.Language.Entities
             {
                 NameReference type_name = owner_type.InstanceOf.NameOf; // initially already tied to target
                 this.MetaThisParameter = FunctionParameter.Create(NameFactory.ThisVariableName,
-                    owner_type.Modifier.HasHeapOnly ? NameFactory.PointerTypeReference(type_name) 
-                        : NameFactory.ReferenceTypeReference(type_name),
+                    owner_type.Modifier.HasHeapOnly ? NameFactory.PointerNameReference(type_name)
+                        : NameFactory.ReferenceNameReference(type_name),
                     Variadic.None, null, isNameRequired: false,
                     usageMode: ExpressionReadMode.OptionalUse);
                 this.MetaThisParameter.AttachTo(this);
@@ -276,8 +282,19 @@ namespace Skila.Language.Entities
             TypeDefinition type_owner = this.ContainingType();
             if (type_owner != null)
                 s += $"{type_owner}::";
-            s += $"{(base.ToString())}(" + this.Parameters.Select(it => it.ToString()).Join(",") + $") -> {this.ResultTypeName}";
+            s += $"{(base.ToString())}";
+            s += $"(" + this.Parameters.Select(it => it.ToString()).Join(",") + $")";
+            s += $" -> {this.ResultTypeName}";
             return s;
+        }
+
+        public override ICode Printout()
+        {
+            var code = new CodeDiv(this, new CodeSpan(base.Printout()).Append("(").Append(this.Parameters, ",").Append(") -> ")
+                .Append(this.ResultTypeName));
+            if (this.UserBody != null)
+                code.Append(this.UserBody);
+            return code;
         }
 
         internal NameReference GetThisNameReference()
@@ -326,9 +343,9 @@ namespace Skila.Language.Entities
                 this.ResultTypeName.ValidateTypeNameVariance(ctx, VarianceMode.Out);
             }
 
-            if (!ctx.Env.Options.AllowInvalidMainResult 
+            if (!ctx.Env.Options.AllowInvalidMainResult
                 && this == ctx.Env.MainFunction
-                && this.ResultTypeName.Evaluation.Components != ctx.Env.Nat8Type.InstanceOf)
+                && !ctx.Env.Nat8Type.InstanceOf.IsIdentical(this.ResultTypeName.Evaluation.Components))
                 ctx.AddError(ErrorCode.MainFunctionInvalidResultType, this.ResultTypeName);
 
             if (this.Modifier.HasOverride && !this.Modifier.HasUnchainBase)
@@ -399,6 +416,19 @@ namespace Skila.Language.Entities
             this.Modifier.AttachTo(this);
         }
 
+        public void CustomEvaluate(ComputationContext ctx)
+        {
+            // in case of function evaluate, move body of the function as last element
+            // otherwise we couldn't evaluate recursive calls
+            this.OwnedNodes.Where(it => this.UserBody != it).ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
+            this.Evaluate(ctx);
+            this.UserBody?.Evaluated(ctx, EvaluationCall.Nested);
+
+            // since we computer body after main evaluation now we have to manually trigger this call
+            if (this.IsResultTypeNameInfered)
+                this.InferResultType(ctx);
+        }
+
 
         #region IExpression
         // function is an expression only for a moment, as lambda, until it is lifted as closure method
@@ -411,6 +441,7 @@ namespace Skila.Language.Entities
         {
             throw new NotImplementedException();
         }
+
         #endregion
     }
 

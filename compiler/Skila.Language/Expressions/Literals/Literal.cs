@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using NaiveLanguageTools.Common;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions.Literals
 {
@@ -24,10 +25,15 @@ namespace Skila.Language.Expressions.Literals
         }
         public override string ToString()
         {
-            return this.InputValue;
+            return this.Printout().ToString();
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override ICode Printout()
+        {
+            return new CodeText(this.InputValue);
+        }
+
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return false;
         }

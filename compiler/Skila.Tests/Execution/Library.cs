@@ -26,7 +26,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(5.0)),
                         VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(0.0)),
@@ -59,7 +59,7 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Nat8TypeReference(),
+                    NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(double.NaN)),
                         VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(double.NaN)),
@@ -88,13 +88,13 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.NatTypeReference(),
+                    NameFactory.NatNameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("d",null,ExpressionFactory.StackConstructor(NameFactory.DateTypeReference(),
+                    VariableDeclaration.CreateStatement("d",null,ExpressionFactory.StackConstructor(NameFactory.DateNameReference(),
                         // it is Friday
                         Int16Literal.Create("2017"),Nat8Literal.Create("12"),Nat8Literal.Create("29"))),
                     VariableDeclaration.CreateStatement("i",null,
-                        FunctionCall.ConvCall( NameReference.Create("d",NameFactory.DateDayOfWeekProperty),NameFactory.NatTypeReference())),
+                        FunctionCall.ConvCall( NameReference.Create("d",NameFactory.DateDayOfWeekProperty),NameFactory.NatNameReference())),
                     Return.Create(NameReference.Create("i"))
                     })));
 
@@ -120,11 +120,11 @@ namespace Skila.Tests.Execution
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.Int64TypeReference(),
+                    NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2")),
-                    VariableDeclaration.CreateStatement("i",NameFactory.Int64TypeReference(),ExpressionFactory.GetOptionValue(
-                        FunctionCall.Create(NameReference.Create( NameFactory.Int64TypeReference(),NameFactory.ParseFunctionName),
+                    VariableDeclaration.CreateStatement("i",NameFactory.Int64NameReference(),ExpressionFactory.GetOptionValue(
+                        FunctionCall.Create(NameReference.Create( NameFactory.Int64NameReference(),NameFactory.ParseFunctionName),
                             NameReference.Create("s"))
                         )),
                     Return.Create(NameReference.Create("i"))

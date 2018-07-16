@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NaiveLanguageTools.Common;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 
 namespace Skila.Language
 {
@@ -24,6 +25,7 @@ namespace Skila.Language
         public int ValLoopLevel { get; set; }
 
         public ErrorManager ErrorManager { get; }
+        public IPrinter Printer { get; }
 
         private readonly HashSet<INode> visited;
 

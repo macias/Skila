@@ -5,7 +5,9 @@ using NaiveLanguageTools.Common;
 using Skila.Language.Comparers;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using Skila.Language.Printout;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 
 namespace Skila.Language
 {
@@ -14,7 +16,7 @@ namespace Skila.Language
     // (which in turn requires Entity, and loops are not entities), EntityInstance uses Evaluation
     // and to compute it we would have to evaluate loop first which leads to circular computations
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class LabelReference : Node, ITemplateName,IComputable
+    public sealed class LabelReference : Node, ITemplateName,IComputable,IPrintable
     {
         public static LabelReference CreateLocal(string name)
         {
@@ -46,7 +48,12 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return Name;
+            return Printout().ToString();
+        }
+
+        public ICode Printout()
+        {
+            return new CodeText(Name);
         }
 
         public void Evaluate(ComputationContext ctx)

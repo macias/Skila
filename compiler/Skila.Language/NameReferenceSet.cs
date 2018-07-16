@@ -7,6 +7,8 @@ using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
 using Skila.Language.Builders;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language
 {
@@ -27,6 +29,8 @@ namespace Skila.Language
         public EvaluationInfo Evaluation { get; protected set; }
         public ValidationData Validation { get; set; }
         public bool IsDereferenced { get; set; }
+
+        public abstract ICode Printout();
 
         protected NameReferenceSet(IEnumerable<INameReference> names)
         {

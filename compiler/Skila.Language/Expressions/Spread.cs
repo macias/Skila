@@ -5,6 +5,8 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Extensions;
 using Skila.Language.Expressions.Literals;
+using Skila.Language.Tools;
+using Skila.Language.Printout;
 
 namespace Skila.Language.Expressions
 {
@@ -38,8 +40,12 @@ namespace Skila.Language.Expressions
         }
         public override string ToString()
         {
-            string result = $"...{Expr}";
-            return result;
+            return Printout().ToString();
+        }
+
+        public override ICode Printout()
+        {
+            return new CodeSpan("...").Append(Expr.Printout());
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

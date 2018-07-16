@@ -1,4 +1,5 @@
 ﻿using Skila.Language.Comparers;
+using Skila.Language.Tools;
 using System;
 using System.Collections.Generic;
 
@@ -6,47 +7,37 @@ namespace Skila.Language.Entities
 {
     public sealed class EntityInstanceCache
     {
-        // every template will hold each created instance of it, so for example List<T> can hold List<string>, List<int> and so on
-        // the purpose -- to have just single instance per template+arguments
-        private readonly Dictionary<EntityInstanceCore,
-            Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>>> instancesCache;
+        // building cache as static field within EntityInstance is tempting but it would mean
+        // that (by default) entire cache is bigger and bigger as the tests run
+        // cleaning cache manually would look ugly so we keep cache as non-static data outside EntityInstance
+
+        private  readonly Dictionary<EntityInstance, EntityInstance.RuntimeCore> instancesCache;
+
         private readonly IEntity entity;
         private readonly Later<EntityInstance> instanceOf;
         public EntityInstance InstanceOf => this.instanceOf.Value;
 
         public EntityInstanceCache(IEntity entity, Func<EntityInstance> instanceOfCreator)
         {
-            this.instancesCache = new Dictionary<EntityInstanceCore,
-                Tuple<EntityInstance, Dictionary<
-                    TemplateTranslation, EntityInstance>>>(EntityInstanceCoreSignatureComparer.Instance);
             this.entity = entity;
+            this.instancesCache = new Dictionary<EntityInstance, EntityInstance.RuntimeCore>(EntityInstanceCoreComparer.Instance);
             this.instanceOf = new Later<EntityInstance>(instanceOfCreator);
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation)
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            EntityInstanceCore core = EntityInstanceCore.RAW_CreateUnregistered(entity, arguments, overrideMutability);
+            EntityInstance instance = EntityInstance.CreateUnregistered(entity, arguments, translation, overrideMutability, lifetime);
 
-            Tuple<EntityInstance, Dictionary<TemplateTranslation, EntityInstance>> family;
-            if (!this.instancesCache.TryGetValue(core, out family))
+            if (!instancesCache.TryGetValue(instance, out EntityInstance.RuntimeCore core))
             {
-                // this is the base (core) entity instance, by "definition" always without translation
-                EntityInstance base_instance = EntityInstance.RAW_CreateUnregistered(core, null);
-                family = Tuple.Create(base_instance, new Dictionary<TemplateTranslation, EntityInstance>());
-                this.instancesCache.Add(core, family);
+                core = new EntityInstance.RuntimeCore();
+                instancesCache.Add(instance, core);
             }
 
-            EntityInstance result;
-            if (translation == null)
-                result = family.Item1;
-            else if (!family.Item2.TryGetValue(translation, out result))
-            {
-                result = EntityInstance.RAW_CreateUnregistered(family.Item1.Core, translation);
-                family.Item2.Add(translation, result);
-            }
+            instance.SetCore(core);
 
-            return result;
+            return instance;
         }
     }
 }

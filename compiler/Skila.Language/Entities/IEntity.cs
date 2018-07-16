@@ -1,5 +1,4 @@
-﻿using Skila.Language.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Skila.Language.Entities
 {
@@ -9,7 +8,7 @@ namespace Skila.Language.Entities
         EntityInstance InstanceOf { get; }
 
         EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation);
+            TemplateTranslation translation,Lifetime lifetime);
     }
 
 }

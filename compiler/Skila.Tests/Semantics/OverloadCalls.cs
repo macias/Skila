@@ -25,21 +25,21 @@ namespace Skila.Tests.Semantics
                 FunctionDefinition func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(),
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(),
                         Variadic.Create(), null, false, usageMode: ExpressionReadMode.CannotBeRead)));
                 FunctionDefinition func_def2 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64NameReference(), Undef.Create()));
                 var call = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                     call, modifier: EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
@@ -64,24 +64,24 @@ namespace Skila.Tests.Semantics
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
                 var func_def2 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.RealTypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("s", NameFactory.RealTypeReference(), Undef.Create()));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.RealNameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64NameReference(), Undef.Create()));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("s", NameFactory.RealNameReference(), Undef.Create()));
                 var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
                 var call2 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("s")));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                     call1, modifier: EntityModifier.Public));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealNameReference(),
                     call2, modifier: EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
@@ -106,25 +106,25 @@ namespace Skila.Tests.Semantics
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), Variadic.None, null, true,
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), Variadic.None, null, true,
                         usageMode: ExpressionReadMode.CannotBeRead)));
                 var func_def2 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("y", NameFactory.Int64TypeReference(), Variadic.None, null, true,
+                        .Parameters(FunctionParameter.Create("y", NameFactory.Int64NameReference(), Variadic.None, null, true,
                         usageMode: ExpressionReadMode.CannotBeRead)));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create()));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64NameReference(), Undef.Create()));
                 var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create("x", NameReference.Create("i")));
                 var call2 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create("y", NameReference.Create("i")));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                     call1, modifier: EntityModifier.Public));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("y", NameFactory.RealNameReference(),
                     call2, modifier: EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
@@ -149,21 +149,21 @@ namespace Skila.Tests.Semantics
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
                 var func_def2 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo", "T", VarianceMode.None,
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
                         .Parameters(FunctionParameter.Create("x", NameReference.Create("T"), usageMode: ExpressionReadMode.CannotBeRead)));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64NameReference(), Undef.Create(),
                     modifier: EntityModifier.Public));
                 var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                     call1, modifier: EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);
@@ -187,21 +187,21 @@ namespace Skila.Tests.Semantics
                 var func_def1 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64TypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                        .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
                 var func_def2 = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.OptionalUse,
-                    NameFactory.RealTypeReference(),
+                    NameFactory.RealNameReference(),
                     Block.CreateStatement(new[] {
                     Return.Create(RealLiteral.Create("3.3")) }))
-                        .Parameters(FunctionParameter.Create("x", NameFactory.IObjectTypeReference(), usageMode: ExpressionReadMode.CannotBeRead)));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64TypeReference(), Undef.Create(),
+                        .Parameters(FunctionParameter.Create("x", NameFactory.IObjectNameReference(), usageMode: ExpressionReadMode.CannotBeRead)));
+                root_ns.AddNode(VariableDeclaration.CreateStatement("i", NameFactory.Int64NameReference(), Undef.Create(),
                     modifier: EntityModifier.Public));
                 var call1 = FunctionCall.Create(NameReference.Create("foo"), FunctionArgument.Create(NameReference.Create("i")));
-                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealTypeReference(),
+                root_ns.AddNode(VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                     call1, modifier: EntityModifier.Public));
 
                 resolver = NameResolver.Create(env);

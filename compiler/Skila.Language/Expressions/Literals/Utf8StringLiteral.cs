@@ -14,7 +14,7 @@ namespace Skila.Language.Expressions.Literals
         }
 
         private Utf8StringLiteral(string value)
-            : base(value, NameFactory.StringPointerTypeReference(TypeMutability.DualConstMutable))
+            : base(value, NameFactory.StringPointerNameReference(TypeMutability.DualConstMutable))
         {
         }
     }

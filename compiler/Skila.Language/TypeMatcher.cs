@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NaiveLanguageTools.Common;
+using Skila.Language.Comparers;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
 
@@ -37,8 +38,8 @@ namespace Skila.Language
 
             for (int i = 0; i < template.Name.Arity; ++i)
             {
-                TypeMatch m = input.TemplateArguments[i].TemplateMatchesTarget(ctx,
-                    target.TemplateArguments[i],
+                TypeMatch m = input.TimedTemplateArguments[i].Instance.TemplateMatchesTarget(ctx,
+                    target.TimedTemplateArguments[i].Instance,
                     template.Name.Parameters[i].Variance,
                     matching);
 
@@ -63,7 +64,7 @@ namespace Skila.Language
                 foreach (FunctionDefinition func in in_conv)
                 {
                     IEntityInstance conv_type = func.Parameters.Single().TypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump).TranslateThrough(target);
-                    if (target == conv_type) // preventing circular conversion check
+                    if (target.IsIdentical(conv_type)) // preventing circular conversion check
                         continue;
 
                     TypeMatch m = input.MatchesTarget(ctx, conv_type, matching.WithSlicing(conv_slicing_sub));
@@ -84,8 +85,11 @@ namespace Skila.Language
 
                     TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching
                         .WithSlicing(true)
-                        .WithMutabilityCheckRequest(true));
-                    if (target_dereferences > input_dereferences && m != TypeMatch.No)
+                        .WithMutabilityCheckRequest(true)
+                        //@@@!!!
+                        //.WithLifetimeCheck(true, ctx.Env.IsReferenceOfType(input) ? input.Lifetime : Lifetime.Timeless, target.Lifetime));
+                        .WithLifetimeCheck(true,  Lifetime.Timeless, target.Lifetime));
+                    if (target_dereferences > input_dereferences && !m.IsMismatch())
                         m |= TypeMatch.ImplicitReference;
                     return m;
                 }
@@ -95,9 +99,12 @@ namespace Skila.Language
 
                     TypeMatch m = input.MatchesTarget(ctx, inner_target_type, matching
                         .WithSlicing(true)
-                        .WithMutabilityCheckRequest(true));
+                        .WithMutabilityCheckRequest(true)
+                        .WithLifetimeCheck(true, input.Lifetime, target.Lifetime));
                     if (m == TypeMatch.Same || m == TypeMatch.Substitute)
                         return m | TypeMatch.ImplicitReference;
+                    else
+                        return m;
                 }
             }
             // automatic dereferencing pointers
@@ -118,7 +125,8 @@ namespace Skila.Language
                         return m | TypeMatch.AutoDereference;
                 }
                 else
-                    matching = matching.WithMutabilityCheckRequest(true);
+                    matching = matching.WithMutabilityCheckRequest(true)
+                        ;
             }
 
 
@@ -155,16 +163,16 @@ namespace Skila.Language
                     {
                         ;
                     }
-                    if (matchTypes(ctx, input_mutability, inherited_input.AncestorInstance, target, matching, inherited_input.Distance, out TypeMatch match))
+                    if (matchTypes(ctx, input_mutability, input.Lifetime, inherited_input.AncestorInstance, target, matching, inherited_input.Distance, out TypeMatch match))
                         return match;
                 }
             }
             // when slicing is disabled we can compare try to substitute only the same type
             else if (input.Target == target.Target)
             {
-                if (matchTypes(ctx, input_mutability, input, target, matching, distance: 0, match: out TypeMatch match))
+                if (matchTypes(ctx, input_mutability, input.Lifetime, input, target, matching, distance: 0, match: out TypeMatch match))
                 {
-                    if (match != TypeMatch.Same && match != TypeMatch.No)
+                    if (match != TypeMatch.Same && !match.IsMismatch())
                         throw new Exception($"Internal exception {match}");
                     return match;
                 }
@@ -181,7 +189,7 @@ namespace Skila.Language
                     .Concat(target.Inheritance(ctx).OrderedTypeAncestorsIncludingObject)
                     .Where(it => it.AncestorInstance.TargetType.Modifier.HasEnum), matching.WithSlicing(true));
 
-                if (m != TypeMatch.No)
+                if (!m.IsMismatch())
                     return m;
             }
 
@@ -200,7 +208,7 @@ namespace Skila.Language
                 TypeMatch m = inversedTypeMatching(ctx, input, new[] { new TypeAncestor(target, 0) }
                     .Concat(base_of.Select(it => new TypeAncestor(it.Cast<EntityInstance>(), 1))), matching);
 
-                if (m != TypeMatch.No)
+                if (!m.IsMismatch())
                     return m;
             }
 
@@ -208,6 +216,7 @@ namespace Skila.Language
         }
 
         private static bool matchTypes(ComputationContext ctx, TypeMutability inputMutability,
+            Lifetime inputLifetime,
             EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
@@ -230,22 +239,26 @@ namespace Skila.Language
                     mutability_matches = MutabilityMatches(ctx.Env.Options, inputMutability, target_mutability);
 
                     // fixing mutability mismatch
-                    if (!mutability_matches 
+                    if (!mutability_matches
                         &&
                     (matching.ForcedIgnoreMutability
                         // in case when we have two value types in hand mutability does not matter, because we copy
                         // instances and they are separate beings afterwards
-                        || (!matching.MutabilityCheckRequestByData 
+                        || (!matching.MutabilityCheckRequestByData
                             && input.TargetType.IsValueType(ctx) && target.TargetType.IsValueType(ctx))))
                     {
                         mutability_matches = true;
                     }
                 }
 
-
                 if (!mutability_matches)
                 {
                     match = TypeMatch.Mismatched(mutability: true);
+                    return true;
+                }
+                else if (matching.LifetimeCheck && matching.TargetLifetime.Outlives(matching.InputLifetime))
+                {
+                    match = TypeMatch.Lifetime;
                     return true;
                 }
                 else if (distance == 0 && input.Target == target.Target)
@@ -306,7 +319,7 @@ namespace Skila.Language
             {
                 // please note that unlike normal type matching we reversed the types, in enum you can
                 // pass base type as descendant!
-                if (matchTypes(ctx, target_mutability, inherited_target.AncestorInstance, input, matching, inherited_target.Distance,
+                if (matchTypes(ctx, target_mutability, target.Lifetime, inherited_target.AncestorInstance, input, matching, inherited_target.Distance,
                     out TypeMatch match))
                 {
                     return match;
@@ -368,7 +381,12 @@ namespace Skila.Language
                 return true;
             }
 
-            HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a).ToHashSet();
+            if (type_a.DebugId == (4, 105457))
+            {
+            }
+
+            HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a)
+                .ToHashSet(EntityInstanceCoreComparer.Instance);
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
                 //                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
@@ -424,7 +442,7 @@ namespace Skila.Language
         public static ConstraintMatch ArgumentsMatchConstraintsOf(ComputationContext ctx,
             IEnumerable<TemplateParameter> templateParameters, EntityInstance closedTemplate)
         {
-            if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)
+            if (templateParameters.Count() != closedTemplate.TimedTemplateArguments.Count)
                 return ConstraintMatch.UndefinedTemplateArguments;
 
             foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in templateParameters
