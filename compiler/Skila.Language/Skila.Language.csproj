@@ -94,6 +94,7 @@
     <Compile Include="Extensions\IRestrictedMemberExtension.cs" />
     <Compile Include="ITimedIEntityInstance.cs" />
     <Compile Include="EntityInstance.RuntimeCore.cs" />
+    <Compile Include="LifetimeScope.cs" />
     <Compile Include="TimedIEntityInstance.cs" />
     <Compile Include="IComputable.cs" />
     <Compile Include="ICustomComputable.cs" />

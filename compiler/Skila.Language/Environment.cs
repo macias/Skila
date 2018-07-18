@@ -810,6 +810,8 @@ namespace Skila.Language
                                 FunctionParameter.Create("end", NameFactory.SizeNameReference(), ExpressionReadMode.CannotBeRead))
                              .SetModifier(EntityModifier.Mutable | EntityModifier.Native);
 
+
+
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringTypeName)
                                 .SetModifier(EntityModifier.HeapOnly | EntityModifier.Native | EntityModifier.Mutable)
                                 .Parents(NameFactory.IComparableNameReference(),
@@ -1710,7 +1712,7 @@ namespace Skila.Language
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringIteratorTypeName)
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference | EntityModifier.Referential)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
                 .Parents(NameFactory.IIteratorNameReference(NameFactory.CharNameReference()))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
@@ -1718,14 +1720,18 @@ namespace Skila.Language
                      null,
                      options.ReassignableModifier()))
                 .With(VariableDeclaration.CreateStatement(str_name,
+                    // todo: pointer
                     NameFactory.ReferenceNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { str_name },
-                    new[] { NameFactory.ReferenceNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)) }))
+                    // todo: pointer
+                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                        NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext,
-                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameFactory.CharNameReference())),
+                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                        NameFactory.CharNameReference())),
                     Block.CreateStatement(
                         // if this.index < this.str.length then
                         IfBranch.CreateIf(ExpressionFactory.IsLess(NameReference.CreateThised(index_name),
@@ -1738,11 +1744,13 @@ namespace Skila.Language
                                 ExpressionFactory.IncBy(() => NameReference.CreateThised(index_name),
                                     NameReference.Create("ch",NameFactory.CharLength)),
                                 // return ch
-                                Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(NameFactory.CharNameReference()),
+                                Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                                    NameFactory.CharNameReference()),
                                     NameReference.Create("ch") ))
                             }
                             ),
-                        Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(NameFactory.CharNameReference())))
+                        Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                            NameFactory.CharNameReference())))
                         ))
                       .SetModifier(EntityModifier.Mutable | EntityModifier.Override))
             ;
@@ -1761,7 +1769,7 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference | EntityModifier.Referential)
+                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
                 .Parents(NameFactory.IIteratorNameReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
@@ -1774,17 +1782,20 @@ namespace Skila.Language
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.ReferenceNameReference(NameFactory.IIndexableNameReference(elem_type_name,
+                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment, 
+                        NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext,
-                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name))),
+                    NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                        NameReference.Create(elem_type_name))),
                     Block.CreateStatement(
                         // if this.index >= this.coll.count then
                         IfBranch.CreateIf(ExpressionFactory.IsGreaterEqual(NameReference.CreateThised(index_name),
                             NameReference.CreateThised(coll_name, NameFactory.IIterableCount)),
                                 // return None
-                                Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name)))),
+                                Return.Create(ExpressionFactory.OptionEmpty(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                                    NameReference.Create(elem_type_name)))),
                                 // else
                                 IfBranch.CreateElse(
                                     new[] {
@@ -1794,7 +1805,8 @@ namespace Skila.Language
                                         // this.index += 1
                                         ExpressionFactory.Inc(()=> NameReference.CreateThised(index_name)),
                                     // return Some(el)
-                                    Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(NameReference.Create(elem_type_name)),
+                                    Return.Create(ExpressionFactory.OptionOf(NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                                        NameReference.Create(elem_type_name)),
                                         NameReference.Create("el")))
                                         }))
 
@@ -1818,7 +1830,7 @@ namespace Skila.Language
                     NameFactory.ICountedNameReference())
 
                 .With(FunctionBuilder.Create(NameFactory.IterableGetIterator,
-                    NameFactory.ReferenceNameReference(NameFactory.IIteratorNameReference(elem_type_name)),
+                    NameFactory.ReferenceNameReference(LifetimeScope.Attachment, NameFactory.IIteratorNameReference(elem_type_name)),
                     Block.CreateStatement(
                         Return.Create(ExpressionFactory.HeapConstructor(NameFactory.IndexIteratorNameReference(elem_type_name),
                             NameFactory.ThisReference()))))

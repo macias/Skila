@@ -86,9 +86,7 @@ namespace Skila.Language
                     TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching
                         .WithSlicing(true)
                         .WithMutabilityCheckRequest(true)
-                        //@@@!!!
-                        //.WithLifetimeCheck(true, ctx.Env.IsReferenceOfType(input) ? input.Lifetime : Lifetime.Timeless, target.Lifetime));
-                        .WithLifetimeCheck(true,  Lifetime.Timeless, target.Lifetime));
+                        .WithLifetimeCheck(true, ctx.Env.IsReferenceOfType(input) ? input.Lifetime : Lifetime.Timeless, target.Lifetime));
                     if (target_dereferences > input_dereferences && !m.IsMismatch())
                         m |= TypeMatch.ImplicitReference;
                     return m;

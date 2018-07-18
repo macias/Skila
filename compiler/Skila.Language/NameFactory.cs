@@ -526,6 +526,10 @@ namespace Skila.Language
         {
             return NameReference.Create(NameReference.Root, NameFactory.ReferenceTypeName, name);
         }
+        public static NameReference ReferenceNameReference(LifetimeScope lifetimeScope, INameReference name)
+        {
+            return NameReference.Create(NameReference.Root,lifetimeScope, NameFactory.ReferenceTypeName, name);
+        }
         public static NameReference ReferenceNameReference(string name)
         {
             return ReferenceNameReference(NameReference.Create(name));

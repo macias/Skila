@@ -19,14 +19,14 @@ namespace Skila.Language
         }
 
         // values and pointers are timeless
-        public static Lifetime Timeless { get; } = new Lifetime(null, Mode.None);
+        public static Lifetime Timeless { get; } = new Lifetime(null, Mode.None, LifetimeScope.Local);
 
-        public static Lifetime Create(INode node)
+        public static Lifetime Create(INode node, LifetimeScope lifetimeScope = LifetimeScope.Local)
         {
             if (node == null)
                 throw new ArgumentNullException();
 
-            return new Lifetime(node, Mode.None);
+            return new Lifetime(node, Mode.None,lifetimeScope);
         }
 
         public static Lifetime CreateReference(INode node)
@@ -34,31 +34,32 @@ namespace Skila.Language
             if (node == null)
                 throw new ArgumentNullException();
 
-            return new Lifetime(node, Mode.Reference);
+            return new Lifetime(node, Mode.Reference, LifetimeScope.Local);
         }
         public static Lifetime CreatePointer(INode node)
         {
             if (node == null)
                 throw new ArgumentNullException();
 
-            return new Lifetime(node, Mode.Pointer);
+            return new Lifetime(node, Mode.Pointer, LifetimeScope.Local);
         }
         public static Lifetime CreateValue(INode node)
         {
             if (node == null)
                 throw new ArgumentNullException();
 
-            return new Lifetime(node, Mode.Value);
+            return new Lifetime(node, Mode.Value, LifetimeScope.Local);
         }
 
         private IEnumerable<IScope> __nodeScopes => this.__node.InclusiveScopesToRoot().StoreReadOnly();
         public INode __node { get; }
 
         private readonly Mode mode;
+        private readonly LifetimeScope lifetimeScope;
 
         public bool IsTimeless => this.__node == null;
 
-        private Lifetime(INode context,Mode mode)
+        private Lifetime(INode context,Mode mode,LifetimeScope lifetimeScope)
         {
             if (context != null && context.DebugId == (5, 11419))
             {
@@ -66,6 +67,7 @@ namespace Skila.Language
             }
             this.__node = context;
             this.mode = mode;
+            this.lifetimeScope = lifetimeScope;
         }
 
         public override bool Equals(object obj)
@@ -127,7 +129,10 @@ namespace Skila.Language
                 return false;
             }
 
-            bool result = this.__node.IsOutOfScopeOf(source.__node);
+           var source_scope = source.lifetimeScope == LifetimeScope.Attachment ? source.__node.EnclosingScope<TypeDefinition>()
+                : source.__node.EnclosingScope<IScope>();
+
+            bool result = this.__node.IsOutOfScopeOf(source_scope);
             if (result)
             {
                 ;

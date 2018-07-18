@@ -36,6 +36,10 @@ namespace Skila.Language
         {
             return Create(prefix, name, ExpressionReadMode.ReadRequired, arguments);
         }
+        public static NameReference Create(IExpression prefix, LifetimeScope lifetimeScope, string name, params INameReference[] arguments)
+        {
+            return Create(prefix, lifetimeScope, name, ExpressionReadMode.ReadRequired, arguments);
+        }
         public static NameReference Create(IExpression prefix, string name)
         {
             return Create(prefix, name, new INameReference[] { });
@@ -47,13 +51,19 @@ namespace Skila.Language
         public static NameReference Create(IExpression prefix, string name, ExpressionReadMode readMode,
             params INameReference[] arguments)
         {
-            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, name,
+            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, null, name,
+                arguments.Select(it => new TemplateArgument(it)), readMode, isRoot: false);
+        }
+        public static NameReference Create(IExpression prefix, LifetimeScope lifetimeScope, string name, ExpressionReadMode readMode,
+            params INameReference[] arguments)
+        {
+            return new NameReference(TypeMutability.None, prefix, BrowseMode.None, lifetimeScope, name,
                 arguments.Select(it => new TemplateArgument(it)), readMode, isRoot: false);
         }
         public static NameReference Create(IExpression prefix, BrowseMode browse, string name, ExpressionReadMode readMode,
             params INameReference[] arguments)
         {
-            return new NameReference(TypeMutability.None, prefix, browse, name,
+            return new NameReference(TypeMutability.None, prefix, browse, null, name,
                 arguments.Select(it => new TemplateArgument(it)), readMode, isRoot: false);
         }
         public static NameReference Create(TypeMutability overrideMutability, string name, params INameReference[] arguments)
@@ -63,20 +73,20 @@ namespace Skila.Language
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             params INameReference[] arguments)
         {
-            return new NameReference(overrideMutability, prefix, BrowseMode.None,
+            return new NameReference(overrideMutability, prefix, BrowseMode.None, null,
                 name, arguments.Select(it => new TemplateArgument(it)),
                 ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name)
         {
-            return new NameReference(overrideMutability, prefix, BrowseMode.None,
+            return new NameReference(overrideMutability, prefix, BrowseMode.None, null,
                 name, Enumerable.Empty<TemplateArgument>(),
                 ExpressionReadMode.ReadRequired, isRoot: false);
         }
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name,
             IEnumerable<INameReference> arguments, EntityInstance target, bool isLocal)
         {
-            var result = new NameReference(overrideMutability, prefix, BrowseMode.None, name,
+            var result = new NameReference(overrideMutability, prefix, BrowseMode.None, null, name,
                 arguments?.Select(it => new TemplateArgument(it)),
                 ExpressionReadMode.ReadRequired, isRoot: false);
             if (target != null)
@@ -125,7 +135,7 @@ namespace Skila.Language
 
         public bool IsSurfed { get; set; }
 
-        public static NameReference Root => new NameReference(TypeMutability.None, null, BrowseMode.None,
+        public static NameReference Root => new NameReference(TypeMutability.None, null, BrowseMode.None, null,
             NameFactory.RootNamespace,
             Enumerable.Empty<TemplateArgument>(), ExpressionReadMode.ReadRequired, isRoot: true);
 
@@ -135,6 +145,7 @@ namespace Skila.Language
         public bool IsSuperReference => this.Name == NameFactory.SuperFunctionName;
 
         private readonly BrowseMode browse;
+        private readonly LifetimeScope? lifetimeScope;
 
         public ExpressionReadMode ReadMode { get; }
 
@@ -146,6 +157,7 @@ namespace Skila.Language
             TypeMutability overrideMutability,
             IExpression prefix,
             BrowseMode browse,
+            LifetimeScope? lifetimeScope,
             string name,
             IEnumerable<TemplateArgument> templateArguments,
             ExpressionReadMode readMode,
@@ -158,6 +170,7 @@ namespace Skila.Language
             }
 
             this.browse = browse;
+            this.lifetimeScope = lifetimeScope;
             this.ReadMode = readMode;
             this.OverrideMutability = overrideMutability;
             this.IsRoot = isRoot;
@@ -248,30 +261,16 @@ namespace Skila.Language
                     if (instance.Target is TypeDefinition type_def)
                     {
                         if (type_def == ctx.Env.ReferenceType)
-                            lifetime = Lifetime.CreateReference(this);
+                            lifetime = Lifetime.Create(this, this.lifetimeScope ?? LifetimeScope.Local);
                         else if (type_def == ctx.Env.PointerType)
-                            lifetime = Lifetime.CreatePointer(this);
+                            lifetime = Lifetime.Create(this, this.lifetimeScope ?? LifetimeScope.Global);
                         else
-                            lifetime = Lifetime.CreateValue(this);
+                            lifetime = Lifetime.Create(this, this.lifetimeScope ?? LifetimeScope.Local);
 
                     }
                     else
                         lifetime = Lifetime.Create(this);
                 }
-
-                {
-                    if (this.Owner is FunctionParameter func_param && instance.Target is TypeDefinition target_type_def
-                        && target_type_def == ctx.Env.ReferenceType
-                        && this.EnclosingNode<FunctionDefinition>().IsInitConstructor())
-                    {
-                        TypeDefinition enclosing_type_def = this.EnclosingNode<TypeDefinition>();
-                        if (enclosing_type_def.Modifier.HasReferential)
-                        {
-                            lifetime = Lifetime.Create(enclosing_type_def);
-                        }
-                    }
-                }
-
 
                 instance = instance.Build(this.OverrideMutability, lifetime);
                 eval = instance;
@@ -660,7 +659,7 @@ namespace Skila.Language
             this_prefix?.DetachFrom(this);
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
-            var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.Name,
+            var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.lifetimeScope, this.Name,
                 arguments, this.ReadMode, this.IsRoot);
             result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;
