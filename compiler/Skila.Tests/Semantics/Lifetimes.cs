@@ -15,8 +15,57 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Lifetimes
     {
-        //  [TestMethod]
-        public IErrorReporter TODO_ErrorSettingPropertyReferenceField()
+        [TestMethod]
+        public IErrorReporter ErrorEscapingReceivedReferenceFromFunction()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(FunctionBuilder.Create("selector",
+                    ExpressionReadMode.ReadRequired,
+                    NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+
+                    Block.CreateStatement(
+                        ExpressionFactory.Readout("b"),
+                        Return.Create(NameReference.Create("a"))
+                    ))
+                    .Parameters(
+                        FunctionParameter.Create("a", NameFactory.ReferenceNameReference(NameFactory.IntNameReference())),
+                        FunctionParameter.Create("b", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()))));
+
+
+                FunctionCall call = FunctionCall.Create("selector", IntLiteral.Create("2"), IntLiteral.Create("3"));
+
+                FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("h", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+                            IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        Block.CreateStatement(
+                            // error: the most alive reference the function can return is limited to this scope
+                            // so it cannot be assigned to outer-scope variable
+                            Assignment.CreateStatement(NameReference.Create("h"), call)
+                            ),
+                        ExpressionFactory.Readout("h")
+                    )));
+
+
+                resolver = NameResolver.Create(env);
+
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, call));
+            }
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorSettingPropertyReferenceField()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -25,7 +74,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 // this is incorrect we use &Int in setter (OK) but we store this reference in a field too (bad)
-                Property property = PropertyBuilder.Create(env.Options, "moew",
+                Property property = PropertyBuilder.Create(env.Options, "meow",
                     () => NameFactory.ReferenceNameReference(NameFactory.IntNameReference()))
                     .WithAutoField(Undef.Create(), EntityModifier.Reassignable)
                     .WithAutoSetter();
@@ -44,8 +93,8 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
-        //  [TestMethod]
-        public IErrorReporter TODO_ErrorStoredLocalReferenceEscapesFromFunction()
+        [TestMethod]
+        public IErrorReporter ErrorStoredLocalReferenceEscapesFromFunction()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -62,7 +111,8 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("h", null, IntLiteral.Create("3")),
                         VariableDeclaration.CreateStatement("o", null,
-                            ExpressionFactory.StackConstructor(NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameFactory.IntNameReference())),
+                            ExpressionFactory.StackConstructor(
+                                NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameFactory.IntNameReference())),
                             NameReference.Create("h"))),
                         // error, we would effectively escape with reference to local variable
                         ret

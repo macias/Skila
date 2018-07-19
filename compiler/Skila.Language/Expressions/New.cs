@@ -101,7 +101,7 @@ namespace Skila.Language.Expressions
 
             if (this.tempDeclaration.Evaluation.Aggregate.TargetType.Name.Parameters.Any() && this.InitConstructorCall.UserArguments.Any())
             {
-                IEnumerable<TimedIEntityInstance> inferred = this.InitConstructorCall.Resolution
+               /* IEnumerable<TimedIEntityInstance> inferred = this.InitConstructorCall.Resolution
                   .InferTemplateArguments(ctx, this.tempDeclaration.Evaluation.Aggregate.TargetType).StoreReadOnly();
 
                 if (inferred.All(it => it != null))
@@ -114,7 +114,7 @@ namespace Skila.Language.Expressions
                     {
                         pair.Item2.SetLifetime(ctx, pair.Item1.Lifetime);
                     }
-
+                    */
                     
                     /*this.allocTypeName = this.allocTypeName.Recreate(inferred.SyncZip(this.allocTypeName.TemplateArguments)
                         .Select(it => new TemplateArgument(TypeIReference.Create(it.Item1.Lifetime, it.Item2.TypeName.Name))),
@@ -123,7 +123,7 @@ namespace Skila.Language.Expressions
                     ctx.EvalLocalNames?.RemoveLast(this.tempDeclaration);
                     this.tempDeclaration.ReplaceInitValue(createAlloc());
                     this.tempDeclaration.Evaluated(ctx, EvaluationCall.Nested);*/
-                }
+                //}
             }
 
             // evaluate arguments first so we get lifetimes of them

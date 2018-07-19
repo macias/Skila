@@ -95,7 +95,7 @@ namespace Skila.Language
 
         public static bool operator ==(Lifetime a, Lifetime b)
         {
-            return a.Equals(b);
+            return Object.Equals(a, b);
         }
 
         public static bool operator !=(Lifetime a, Lifetime b)

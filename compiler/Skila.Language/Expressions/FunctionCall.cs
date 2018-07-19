@@ -331,6 +331,26 @@ namespace Skila.Language.Expressions
                         }
 
                         this.Evaluation = this.Resolution.Evaluation;
+
+                        // todo: include object if it is a method
+                        if (ctx.Env.IsReferenceOfType(this.Evaluation.Aggregate))
+                        {
+                            Lifetime lifetime = null;
+                            foreach (FunctionArgument arg in this.UserArguments)
+                                if (lifetime == null)
+                                    lifetime = arg.Evaluation.Aggregate.Lifetime;
+                                else
+                                    lifetime = lifetime.Shorter(arg.Evaluation.Aggregate.Lifetime);
+
+                            if (lifetime == null)
+                                lifetime = Lifetime.Create(this);
+
+                            if (this.Evaluation.Aggregate.Lifetime != lifetime)
+                            {
+                                this.Evaluation = EvaluationInfo.Create(this.Evaluation.Components.Rebuild(ctx, lifetime, deep: false),
+                                    this.Evaluation.Aggregate.Build(lifetime));
+                            }
+                        }
                     }
                 }
 
