@@ -30,7 +30,7 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                new Semantics.Lifetimes().ErrorEscapingReceivedReferenceFromFunction();
+                new Semantics.Lifetimes().TODO_ErrorEscapingReceivedReferenceFromField();
                 // new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
                 // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();

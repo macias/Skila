@@ -15,6 +15,47 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Lifetimes
     {
+     //   [TestMethod]
+        public IErrorReporter TODO_ErrorEscapingReceivedReferenceFromField()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                    .With(VariableDeclaration.CreateStatement("world",NameFactory.IntNameReference(),null,EntityModifier.Public)));
+
+                NameReference heap_field_ref = NameReference.Create("h", "world");
+                NameReference stack_field_ref = NameReference.Create("s", "world");
+                FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+                            IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        Block.CreateStatement(
+                            VariableDeclaration.CreateStatement("s",null, ExpressionFactory.StackConstructor("Keeper")),
+                            VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
+                            Assignment.CreateStatement(NameReference.Create("i"), heap_field_ref),
+                            Assignment.CreateStatement(NameReference.Create("i"), stack_field_ref)
+                            ),
+                        ExpressionFactory.Readout("i")
+                    )));
+
+
+                resolver = NameResolver.Create(env);
+
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, heap_field_ref));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
+            }
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorEscapingReceivedReferenceFromFunction()
         {

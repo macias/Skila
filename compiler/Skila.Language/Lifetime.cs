@@ -1,7 +1,5 @@
 ﻿using Skila.Language.Entities;
 using Skila.Language.Extensions;
-using Skila.Language.Printout;
-using Skila.Language.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,63 +8,31 @@ namespace Skila.Language
 {
     public sealed class Lifetime
     {
-        private enum Mode
-        {
-            None,
-            Value,
-            Pointer,
-            Reference
-        }
-
         // values and pointers are timeless
-        public static Lifetime Timeless { get; } = new Lifetime(null, Mode.None, LifetimeScope.Local);
+        public static Lifetime Timeless { get; } = new Lifetime(null, LifetimeScope.Global);
 
         public static Lifetime Create(INode node, LifetimeScope lifetimeScope = LifetimeScope.Local)
         {
             if (node == null)
                 throw new ArgumentNullException();
 
-            return new Lifetime(node, Mode.None,lifetimeScope);
-        }
-
-        public static Lifetime CreateReference(INode node)
-        {
-            if (node == null)
-                throw new ArgumentNullException();
-
-            return new Lifetime(node, Mode.Reference, LifetimeScope.Local);
-        }
-        public static Lifetime CreatePointer(INode node)
-        {
-            if (node == null)
-                throw new ArgumentNullException();
-
-            return new Lifetime(node, Mode.Pointer, LifetimeScope.Local);
-        }
-        public static Lifetime CreateValue(INode node)
-        {
-            if (node == null)
-                throw new ArgumentNullException();
-
-            return new Lifetime(node, Mode.Value, LifetimeScope.Local);
+            return new Lifetime(node, lifetimeScope);
         }
 
         private IEnumerable<IScope> __nodeScopes => this.__node.InclusiveScopesToRoot().StoreReadOnly();
         public INode __node { get; }
 
-        private readonly Mode mode;
         private readonly LifetimeScope lifetimeScope;
 
         public bool IsTimeless => this.__node == null;
 
-        private Lifetime(INode context,Mode mode,LifetimeScope lifetimeScope)
+        private Lifetime(INode context,LifetimeScope lifetimeScope)
         {
             if (context != null && context.DebugId == (5, 11419))
             {
                 ;
             }
             this.__node = context;
-            this.mode = mode;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -85,12 +51,12 @@ namespace Skila.Language
             else if (ReferenceEquals(other, null))
                 return false;
 
-            return this.__node == other.__node && this.mode==other.mode;
+            return this.__node == other.__node && this.lifetimeScope == other.lifetimeScope ;//@@@
         }
 
         public override int GetHashCode()
         {
-            return (this.__node?.GetHashCode() ?? 0) ^ this.mode.GetHashCode();
+            return (this.__node?.GetHashCode() ?? 0) ^ this.lifetimeScope.GetHashCode();
         }
 
         public static bool operator ==(Lifetime a, Lifetime b)
