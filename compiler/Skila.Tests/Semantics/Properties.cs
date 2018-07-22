@@ -27,7 +27,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.IntNameReference())
+                    .With(PropertyBuilder.Create(env.Options, "x", ()=>NameFactory.IntNameReference())
                         .WithGetter(Block.CreateStatement(Return.Create(IntLiteral.Create("5")))))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                         assign
@@ -51,7 +51,7 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options().SetMutability(mutability));
                 var root_ns = env.Root;
 
-                Property property = PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64NameReference())
+                Property property = PropertyBuilder.Create(env.Options, "getMe", ()=>NameFactory.Int64NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                             .Modifier(EntityModifier.Override));
 
@@ -118,7 +118,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Int64NameReference())
+                    .With(PropertyBuilder.Create(env.Options, "x", ()=>NameFactory.Int64NameReference())
                         .WithAutoField(Int64Literal.Create("1"), env.Options.ReassignableModifier())
                         .WithAutoGetter()
                         .WithAutoSetter()));

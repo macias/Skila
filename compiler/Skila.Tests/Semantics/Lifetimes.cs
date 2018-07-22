@@ -15,8 +15,54 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Lifetimes
     {
-     //   [TestMethod]
-        public IErrorReporter TODO_ErrorEscapingReceivedReferenceFromField()
+        [TestMethod]
+        public IErrorReporter ErrorEscapingReceivedReferenceFromGetter()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                Property property = PropertyBuilder.CreateReferential(env.Options, "meow",
+                    () => NameFactory.IntNameReference())
+                    .WithAutoField(Undef.Create())
+                    .WithAutoGetter();
+
+                root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                    .With(property));
+
+                NameReference heap_get_ref = NameReference.Create("h", "meow");
+                NameReference stack_get_ref = NameReference.Create("s", "meow");
+                FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+                            IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
+                        Block.CreateStatement(
+                            VariableDeclaration.CreateStatement("s", null, ExpressionFactory.StackConstructor("Keeper")),
+                            Assignment.CreateStatement(NameReference.Create("i"), heap_get_ref),
+                            Assignment.CreateStatement(NameReference.Create("i"), stack_get_ref)
+                            ),
+                        ExpressionFactory.Readout("i")
+                    )));
+
+
+                resolver = NameResolver.Create(env);
+
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, heap_get_ref));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_get_ref));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            }
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorEscapingReceivedReferenceFromField()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -26,7 +72,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Keeper")
-                    .With(VariableDeclaration.CreateStatement("world",NameFactory.IntNameReference(),null,EntityModifier.Public)));
+                    .With(VariableDeclaration.CreateStatement("world", NameFactory.IntNameReference(), null, EntityModifier.Public)));
 
                 NameReference heap_field_ref = NameReference.Create("h", "world");
                 NameReference stack_field_ref = NameReference.Create("s", "world");
@@ -37,9 +83,9 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
                             IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
                         Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("s",null, ExpressionFactory.StackConstructor("Keeper")),
-                            VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
+                            VariableDeclaration.CreateStatement("s", null, ExpressionFactory.StackConstructor("Keeper")),
                             Assignment.CreateStatement(NameReference.Create("i"), heap_field_ref),
                             Assignment.CreateStatement(NameReference.Create("i"), stack_field_ref)
                             ),
@@ -49,9 +95,9 @@ namespace Skila.Tests.Semantics
 
                 resolver = NameResolver.Create(env);
 
-                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
                 Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, heap_field_ref));
                 Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
             }
             return resolver;
         }
@@ -128,8 +174,8 @@ namespace Skila.Tests.Semantics
 
                 var setter_assignment = property.Setter.UserBody.Instructions.Single().Cast<Assignment>();
 
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, setter_assignment.RhsValue));
                 Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, setter_assignment.RhsValue));
             }
             return resolver;
         }

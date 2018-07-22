@@ -85,7 +85,7 @@ namespace Skila.Language.Expressions
             }
             if (this.Evaluation == null)
             {
-                this.Evaluation = this.outcome.Evaluation;
+                this.Evaluation = this.outcome.Evaluation.PromotLifetime(ctx, this);
             }
         }
 

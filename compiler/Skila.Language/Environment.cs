@@ -364,7 +364,7 @@ namespace Skila.Language
                         Nat8Literal.Create("1")))
                     .With(ExpressionFactory.BasicConstructor(new[] { "year", "month", "day" },
                         new[] { NameFactory.Int16NameReference(), NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference() }))
-                    .With(PropertyBuilder.Create(options, NameFactory.DateDayOfWeekProperty, NameFactory.DayOfWeekNameReference())
+                    .With(PropertyBuilder.Create(options, NameFactory.DateDayOfWeekProperty, () => NameFactory.DayOfWeekNameReference())
                         .WithGetter(ExpressionFactory.BodyReturnUndef(), out FunctionDefinition day_of_week_getter, EntityModifier.Native))
                     );
 
@@ -469,7 +469,7 @@ namespace Skila.Language
         {
             return TypeBuilder.CreateInterface(NameDefinition.Create(NameFactory.ICountedTypeName))
 
-                                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
+                                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, () => NameFactory.SizeNameReference())
                                     .WithGetter(body: null));
         }
 
@@ -663,7 +663,7 @@ namespace Skila.Language
 
         private static TypeDefinition createChar(IOptions options, out FunctionDefinition lengthGetter, out FunctionDefinition toString)
         {
-            Property length_property = PropertyBuilder.Create(options, NameFactory.CharLength, NameFactory.Nat8NameReference())
+            Property length_property = PropertyBuilder.Create(options, NameFactory.CharLength, () => NameFactory.Nat8NameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native));
 
@@ -709,10 +709,10 @@ namespace Skila.Language
             out FunctionDefinition slice, out FunctionDefinition concat, out FunctionDefinition copyConstructor,
             out FunctionDefinition remove)
         {
-            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
+            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, () => NameFactory.SizeNameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native | EntityModifier.Override));
-            Property length_property = PropertyBuilder.Create(options, NameFactory.StringLength, NameFactory.SizeNameReference())
+            Property length_property = PropertyBuilder.Create(options, NameFactory.StringLength, () => NameFactory.SizeNameReference())
                 .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                     .Modifier(EntityModifier.Native));
 
@@ -1172,7 +1172,7 @@ namespace Skila.Language
             const string elem_type = "ART";
             const string data_field = "data";
 
-            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
+            Property count_property = PropertyBuilder.Create(options, NameFactory.IIterableCount, () => NameFactory.SizeNameReference())
                         .WithAutoField(NatLiteral.Create("0"), options.ReassignableModifier())
                         .WithAutoSetter(EntityModifier.Private)
                         .WithAutoGetter(EntityModifier.Override);
@@ -1305,7 +1305,7 @@ namespace Skila.Language
 
                     .With(resizeConstructor)
 
-                     .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
+                     .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, () => NameFactory.SizeNameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement())
                             .Modifier(EntityModifier.Native | EntityModifier.Override), out countGetter))
 
@@ -1639,7 +1639,7 @@ namespace Skila.Language
             {
                 var type_name = $"TPT{i}";
                 type_parameters.Add(type_name);
-                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), () => NameReference.Create(type_name))
                     .WithAutoField(Undef.Create(), options.ReassignableModifier())
                     .WithAutoSetter()
                     .WithAutoGetter(EntityModifier.Override));
@@ -1782,7 +1782,7 @@ namespace Skila.Language
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment, 
+                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
                         NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)) }))
 
@@ -1852,7 +1852,7 @@ namespace Skila.Language
             {
                 var type_name = $"TIPT{i}";
                 type_parameters.Add(type_name);
-                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), NameReference.Create(type_name))
+                properties.Add(PropertyBuilder.CreateReferential(options, NameFactory.TupleItemName(i), () => NameReference.Create(type_name))
                     .WithGetter(body: null).Build());
             }
 
@@ -1865,7 +1865,7 @@ namespace Skila.Language
 
                 .With(properties)
 
-                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, NameFactory.SizeNameReference())
+                .With(PropertyBuilder.Create(options, NameFactory.IIterableCount, () => NameFactory.SizeNameReference())
                     .WithGetter(Block.CreateStatement(Return.Create(NatLiteral.Create($"{count}"))), EntityModifier.Override))
 
                 .Constraints(TemplateConstraint.Create(base_type_name, null, null, null, type_parameters.Select(it => NameReference.Create(it))));

@@ -24,7 +24,7 @@ namespace Skila.Tests.Execution
 
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
-                    .With(PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8NameReference())
+                    .With(PropertyBuilder.Create(env.Options, "x", ()=>NameFactory.Nat8NameReference())
                         .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8NameReference(), null, 
                             env.Options.ReassignableModifier() ))
                         .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))

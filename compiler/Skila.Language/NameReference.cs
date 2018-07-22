@@ -224,7 +224,7 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId == (5, 11431))
+            if (this.DebugId == (5, 11440))
             {
                 ;
             }
@@ -247,7 +247,7 @@ namespace Skila.Language
 
         private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
         {
-            if (this.DebugId == (5, 11428))
+            if (this.DebugId == (5, 1450))
             {
                 ;
             }
@@ -280,6 +280,28 @@ namespace Skila.Language
             {
                 eval = instance.Evaluated(ctx);
                 aggregate = instance.Aggregate;
+
+                if (this.Prefix != null) // adjust lifetime according to prefix
+                {
+                    Lifetime lifetime;
+
+                    // in case of reference we are accessing data through reference, so no change
+                    if (ctx.Env.IsReferenceOfType(this.Prefix.Evaluation.Aggregate))
+                        lifetime = null;
+                    // this is most restrictive approach, if we access no-pointer field of heap object
+                    // clip the lifetime to local, this way no one can be create permanent reference to such field
+                    // (it is technically possible but would require adding more logic to GC)
+                    else if (ctx.Env.IsPointerOfType(this.Prefix.Evaluation.Aggregate) && !ctx.Env.IsPointerOfType(aggregate))
+                        lifetime = Lifetime.Create(this, LifetimeScope.Local);
+                    else
+                        lifetime = this.Prefix.Evaluation.Aggregate.Lifetime;
+
+                    if (lifetime != null)
+                    {
+                        eval = eval.Rebuild(ctx, lifetime, deep: false);
+                        aggregate = aggregate.Build(lifetime);
+                    }
+                }
 
                 if (this.Prefix != null)
                 {

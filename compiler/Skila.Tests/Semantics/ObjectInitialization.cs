@@ -22,7 +22,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 // error: custom getter (with no setter) + post initialization
-                Property property = PropertyBuilder.Create(env.Options, "x", NameFactory.Nat8NameReference())
+                Property property = PropertyBuilder.Create(env.Options, "x", ()=>NameFactory.Nat8NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Nat8Literal.Create("3")))))
                         .SetModifier(EntityModifier.PostInitialization);
 

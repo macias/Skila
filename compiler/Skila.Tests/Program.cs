@@ -30,7 +30,7 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                new Semantics.Lifetimes().TODO_ErrorEscapingReceivedReferenceFromField();
+                new Semantics.Lifetimes().ErrorEscapingReceivedReferenceFromGetter();
                 // new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
                 // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
@@ -47,7 +47,7 @@ namespace Skila.Tests
                 //new Execution.Collections().AccessingTuple();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
-                 //new Execution.Flow().ShortcutComputationInOptionalDeclaration();
+                //new Execution.Flow().ShortcutComputationInOptionalDeclaration();
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().InheritingEnums();
                 //new Execution.Interfaces().DuckDeepVirtualCallInterface();

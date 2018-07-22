@@ -93,7 +93,7 @@ namespace Skila.Language.Expressions
                 IExpression last = this.Instructions.LastOrDefault();
                 if (!this.isReadModeSet)
                     this.setReadMode(readModeCalc(this));
-                this.Evaluation = last?.Evaluation ?? ctx.Env.UnitEvaluation;
+                this.Evaluation = (last?.Evaluation ?? ctx.Env.UnitEvaluation).PromotLifetime(ctx,this);
             }
         }
 

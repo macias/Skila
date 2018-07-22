@@ -87,7 +87,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(TypeBuilder.Create("Last")
                     .Parents("Middle")
                     .SetModifier(EntityModifier.Base)
-                    .With(PropertyBuilder.Create(env.Options, "getMe", NameFactory.Int64NameReference())
+                    .With(PropertyBuilder.Create(env.Options, "getMe", ()=>NameFactory.Int64NameReference())
                         .With(PropertyMemberBuilder.CreateGetter(Block.CreateStatement(Return.Create(Int64Literal.Create("2"))))
                             .Modifier(EntityModifier.Override | EntityModifier.UnchainBase))));
 

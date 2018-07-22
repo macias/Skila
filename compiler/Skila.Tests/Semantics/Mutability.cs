@@ -544,7 +544,7 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                Property property = PropertyBuilder.Create(env.Options, "bar", NameFactory.Int64NameReference())
+                Property property = PropertyBuilder.Create(env.Options, "bar", ()=>NameFactory.Int64NameReference())
                         .WithSetter(body: null);
                 FunctionDefinition function = FunctionBuilder.CreateDeclaration("getMe", NameFactory.UnitNameReference())
                         .SetModifier(EntityModifier.Mutable);

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using Skila.Language.Expressions;
+using Skila.Language.Extensions;
 
 namespace Skila.Language
 {
@@ -46,6 +48,19 @@ namespace Skila.Language
                 return c;
             else
                 return c + " / " + a;
+        }
+
+        internal EvaluationInfo PromotLifetime(ComputationContext ctx, INode node)
+        {
+            if (ctx.Env.IsPointerLikeOfType(this.Aggregate))
+                return this;
+            else
+            {
+                // for values we need to promote lifetimes, because if nested scope passes
+                // value to outer one the lifetime of the value changes along with data passing
+                Lifetime lifetime = Lifetime.Create(node, LifetimeScope.Local);
+                return EvaluationInfo.Create(this.Components.Rebuild(ctx, lifetime, deep: false), this.Aggregate.Build(lifetime));
+            }
         }
     }
 

@@ -140,7 +140,8 @@ namespace Skila.Language.Flow
                     }
 
 
-                    this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>());
+                    this.Evaluation = new EvaluationInfo(eval, aggregate.Cast<EntityInstance>()).PromotLifetime(ctx,this);
+
                     this.DataTransfer(ctx, ref this.condition, ctx.Env.BoolType.InstanceOf, ignoreMutability: true);
 
                 }

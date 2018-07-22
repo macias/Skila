@@ -17,7 +17,7 @@ namespace Skila.Language.Builders
         public static PropertyBuilder CreateAutoGetter(IOptions options, string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(options, name, typename)
+            PropertyBuilder builder = PropertyBuilder.Create(options, name, ()=>typename)
                 .WithAutoField(initValue, EntityModifier.None, out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter);
 
@@ -28,7 +28,7 @@ namespace Skila.Language.Builders
         public static PropertyBuilder CreateAutoFull(IOptions options, string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(options, name, typename)
+            PropertyBuilder builder = PropertyBuilder.Create(options, name, ()=>typename)
                 .WithAutoField(initValue, options.ReassignableModifier(), out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter)
                 .WithAutoSetter(out FunctionDefinition setter);
@@ -41,18 +41,14 @@ namespace Skila.Language.Builders
         {
             return CreateAutoFull(options, name, typename, out PropertyMembers dummy, initValue);
         }
-        public static PropertyBuilder Create(IOptions options, string name, NameReference typename, EntityModifier modifier = null)
-        {
-            return new PropertyBuilder(options, name, ()=>typename, modifier, referential: false);
-        }
         public static PropertyBuilder Create(IOptions options, string name, Func<NameReference> typename, EntityModifier modifier = null)
         {
             return new PropertyBuilder(options, name, typename, modifier, referential: false);
         }
-        public static PropertyBuilder CreateReferential(IOptions options, string name, NameReference typename,
+        public static PropertyBuilder CreateReferential(IOptions options, string name, Func<NameReference> typename,
             EntityModifier modifier = null)
         {
-            return new PropertyBuilder(options, name, ()=>typename, modifier, referential: true);
+            return new PropertyBuilder(options, name, typename, modifier, referential: true);
         }
         public static PropertyBuilder CreateIndexer(IOptions options, NameReference valueTypeName, EntityModifier modifier = null)
         {
@@ -168,7 +164,7 @@ namespace Skila.Language.Builders
             return this;
         }
 
-        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier)
+        public PropertyBuilder WithAutoField(IExpression initValue, EntityModifier modifier = null)
         {
             return WithAutoField(initValue, modifier, out VariableDeclaration field);
         }

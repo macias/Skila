@@ -42,21 +42,6 @@ namespace Skila.Language.Extensions
             }
         }
 
-        public static IEnumerable<IScope> InclusiveScopesToRoot(this INode @this)
-        {
-            IScope this_scope = @this as IScope ?? @this.Scope;
-            return this_scope.Concat(this_scope.EnclosingScopesToRoot());
-        }
-
-        public static bool IsOutOfScopeOf(this INode @this, INode other)
-        {
-            IScope other_scope = other as IScope ?? other.Scope;
-
-            IEnumerable<IScope> scopes = @this.InclusiveScopesToRoot();
-            bool result = scopes.Contains(other_scope);
-            return !result;
-        }
-
         public static S EnclosingScope<S>(this INode @this)
             where S : IScope
         {

@@ -223,7 +223,7 @@ namespace Skila.Language.Entities
             IEntityInstance this_eval = null;
             EntityInstance this_aggregate = null;
 
-            if (this.DebugId == (19, 781))
+            if (this.DebugId == (17, 385))
             {
                 ;
             }
@@ -232,7 +232,6 @@ namespace Skila.Language.Entities
             {
                 this_eval = tn_eval;
                 this_aggregate = this.TypeName.Evaluation.Aggregate;
-
             }
             else if (init_eval != null)
             {

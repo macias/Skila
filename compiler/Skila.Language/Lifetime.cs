@@ -19,14 +19,14 @@ namespace Skila.Language
             return new Lifetime(node, lifetimeScope);
         }
 
-        private IEnumerable<IScope> __nodeScopes => this.__node.InclusiveScopesToRoot().StoreReadOnly();
+        private IEnumerable<IScope> __nodeScopes => this.__node.EnclosingScopesToRoot().StoreReadOnly();
         public INode __node { get; }
 
         private readonly LifetimeScope lifetimeScope;
 
         public bool IsTimeless => this.__node == null;
 
-        private Lifetime(INode context,LifetimeScope lifetimeScope)
+        private Lifetime(INode context,  LifetimeScope lifetimeScope)
         {
             if (context != null && context.DebugId == (5, 11419))
             {
@@ -51,7 +51,7 @@ namespace Skila.Language
             else if (ReferenceEquals(other, null))
                 return false;
 
-            return this.__node == other.__node && this.lifetimeScope == other.lifetimeScope ;//@@@
+            return this.__node == other.__node && this.lifetimeScope == other.lifetimeScope;
         }
 
         public override int GetHashCode()
@@ -95,10 +95,12 @@ namespace Skila.Language
                 return false;
             }
 
-           var source_scope = source.lifetimeScope == LifetimeScope.Attachment ? source.__node.EnclosingScope<TypeDefinition>()
-                : source.__node.EnclosingScope<IScope>();
+            var source_scope = source.lifetimeScope == LifetimeScope.Attachment ? source.__node.EnclosingScope<TypeDefinition>()
+                 : source.__node.EnclosingScope<IScope>();
 
-            bool result = this.__node.IsOutOfScopeOf(source_scope);
+            IEnumerable<IScope> this_scopes = this.__node.EnclosingScopesToRoot();
+            bool result = !this_scopes.Contains(source_scope);
+
             if (result)
             {
                 ;

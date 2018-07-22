@@ -20,7 +20,7 @@ namespace Skila.Language.Entities
              bool isNameRequired = false,
              ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name,  typeName,
+            return new FunctionParameter(usageMode, name, typeName,
                 variadic, defaultValue, null, isNameRequired: isNameRequired);
         }
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
@@ -40,7 +40,7 @@ namespace Skila.Language.Entities
         public static FunctionParameter Create(string name, INameReference typeName, EntityModifier modifier,
             ExpressionReadMode usageMode = ExpressionReadMode.ReadRequired)
         {
-            return new FunctionParameter(usageMode, name,  typeName,
+            return new FunctionParameter(usageMode, name, typeName,
                 Variadic.None, null, modifier, isNameRequired: false);
         }
 
