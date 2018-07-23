@@ -142,6 +142,22 @@ namespace Skila.Language
                         ;
             }
 
+            if (ctx.Env.IsReferenceOfType(input) && ctx.Env.IsPointerOfType(target))
+            {
+                // note, that we could have reference to pointer in case of the target, we have to unpack both
+                // to the level of the value types
+                ctx.Env.DereferencedOnce(target, out IEntityInstance inner_target_type, out bool dummy1);
+                ctx.Env.DereferencedOnce(input, out IEntityInstance inner_input_type, out bool dummy2);
+
+                TypeMatch m = inner_input_type.MatchesTarget(ctx, inner_target_type, matching
+                    .WithSlicing(true)
+                    .WithMutabilityCheckRequest(true)
+                    .WithLifetimeCheck(true, input.Lifetime, Lifetime.Timeless));
+                if (!m.IsMismatch())
+                    m |= TypeMatch.Attachment;
+                return m;
+            }
+
 
             {
                 IEnumerable<FunctionDefinition> out_conv = input.TargetType.ImplicitOutConverters().StoreReadOnly();

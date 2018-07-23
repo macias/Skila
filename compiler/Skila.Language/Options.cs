@@ -38,6 +38,7 @@ namespace Skila.Language
             set { debugThrowOnError = value; }
         }
 
+        public bool AllowDereference { get; set; }
         public bool RelaxedMode { get; set; }
         private bool allowEmptyFieldTypeNames;
         public bool AllowEmptyFieldTypeNames
@@ -74,6 +75,8 @@ namespace Skila.Language
                 return this.singleMutability.Value;
             }
         }
+
+        public bool AllowReferenceFields { get; set; }
 
         public Options()
         {

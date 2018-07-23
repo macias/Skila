@@ -15,6 +15,92 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Lifetimes
     {
+        //  [TestMethod]
+        public IErrorReporter TODO_ErrorEscapingReferenceWithAttachmentObject()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                    .With(VariableDeclaration.CreateStatement("world",
+                        NameFactory.ReferenceNameReference(NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                            Assignment.CreateStatement(NameReference.CreateThised("world"), NameReference.Create("in_value"))
+                        ))
+                        .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
+
+                FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+
+                    Block.CreateStatement(
+                            VariableDeclaration.CreateStatement("attach", NameReference.Create("Keeper"),
+                                Undef.Create(), EntityModifier.Reassignable),
+                        Block.CreateStatement(
+                            VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+                                IntLiteral.Create("0")),
+                            Assignment.CreateStatement(NameReference.Create("attach"), 
+                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))),
+                            ExpressionFactory.Readout("attach")
+                            )
+                    )));
+
+
+                resolver = NameResolver.Create(env);
+
+                //Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
+                Assert.AreEqual(999, resolver.ErrorManager.Errors.Count);
+            }
+            return resolver;
+        }
+
+        //  [TestMethod]
+        public IErrorReporter TODO_ErrorEscapingReferenceWithAttachmentObject2()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                    .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                root_ns.AddBuilder(TypeBuilder.Create("Keeper")
+                    .With(VariableDeclaration.CreateStatement("world", 
+                        NameFactory.ReferenceNameReference( NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
+                            Assignment.CreateStatement(NameReference.CreateThised("world"),NameReference.Create("in_value"))
+                        ))
+                        .Parameters(FunctionParameter.Create("in_value",NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
+
+                FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
+                            IntLiteral.Create("0"), EntityModifier.Reassignable),
+                        Block.CreateStatement(
+                            // this is incorrect, because we are creating this object on stack, we could copy it out
+                            // preserving reference inside
+                            VariableDeclaration.CreateStatement("attach", null, 
+                                ExpressionFactory.StackConstructor("Keeper",NameReference.Create("i"))),
+                            ExpressionFactory.Readout("attach")
+                            )
+                    )));
+
+
+                resolver = NameResolver.Create(env);
+
+                //Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
+                Assert.AreEqual(999, resolver.ErrorManager.Errors.Count);
+            }
+            return resolver;
+        }
+
         [TestMethod]
         public IErrorReporter ErrorEscapingReceivedReferenceFromGetter()
         {
@@ -157,7 +243,7 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
+                var env = Language.Environment.Create(new Options() { AllowReferenceFields = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 // this is incorrect we use &Int in setter (OK) but we store this reference in a field too (bad)
@@ -289,7 +375,7 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                var env = Environment.Create(new Options() { AllowReferenceFields = true, DiscardingAnyExpressionDuringTests = true }
                     .SetMutability(mutability));
                 var root_ns = env.Root;
 
@@ -311,8 +397,8 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
-        //[TestMethod]
-        public IErrorReporter DEPRECATED_ErrorPersistentReferenceType()
+        [TestMethod]
+        public IErrorReporter ErrorPersistentReferenceType()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)

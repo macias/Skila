@@ -47,7 +47,7 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetMutability(mutability));
+                var env = Environment.Create(new Options() { AllowDereference = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 Int64Literal value = Int64Literal.Create("3");

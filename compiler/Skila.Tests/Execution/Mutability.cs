@@ -13,13 +13,13 @@ namespace Skila.Tests.Execution
     public class Mutability
     {
         [TestMethod]
-        public IInterpreter SwapPointers()
+        public IInterpreter OldSchoolSwapPointers()
         {
             var interpreter = new Interpreter.Interpreter();
 
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true }
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowDereference = true }
                     .SetMutability(mutability));
                 var root_ns = env.Root;
 
@@ -72,13 +72,13 @@ namespace Skila.Tests.Execution
         }
 
         [TestMethod]
-        public IInterpreter SwapValuesViaPointers()
+        public IInterpreter OldSchoolSwapValuesViaPointers()
         {
             var interpreter = new Interpreter.Interpreter();
 
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true }
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowDereference = true }
                     .SetMutability(mutability));
                 var root_ns = env.Root;
 
@@ -118,13 +118,13 @@ namespace Skila.Tests.Execution
         }
      
         [TestMethod]
-        public IInterpreter SwapValues()
+        public IInterpreter OldSchoolSwapValues()
         {
             var interpreter = new Interpreter.Interpreter();
 
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DebugThrowOnError = true }
+                var env = Environment.Create(new Options() { DebugThrowOnError = true, AllowDereference =true }
                     .SetMutability(mutability));
 
                 var root_ns = env.Root;

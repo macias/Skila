@@ -126,6 +126,10 @@ namespace Skila.Language.Expressions
                 //}
             }
 
+            if (this.InitConstructorCall.Resolution?.AttachmentLifetime!=null)
+            {
+
+            }
             // evaluate arguments first so we get lifetimes of them
             //this.InitConstructorCall.UserArguments.ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
             this.OwnedNodes.ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));

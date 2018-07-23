@@ -363,7 +363,7 @@ namespace Skila.Language.Entities
                 }
             }
 
-            if (false)
+            if (!ctx.Env.Options.AllowReferenceFields)
             {
                 TemplateDefinition enclosing_template = this.EnclosingScope<TemplateDefinition>();
                 if ((!enclosing_template.IsFunction() || this.Modifier.HasStatic)

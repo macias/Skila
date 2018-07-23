@@ -70,6 +70,8 @@ namespace Skila.Language
 
         public bool IsExtendedCall => this.TargetFunction.IsExtension && this.MetaThisArgument != null;
 
+        public Lifetime AttachmentLifetime { get; private set; }
+
         private CallResolution(ComputationContext ctx,
             IEnumerable<TemplateArgument> templateArguments,
             IFunctionArgumentsProvider argumentsProvider,
@@ -101,7 +103,7 @@ namespace Skila.Language
                 // we need to have evaluation of the value, not ref/ptr, so the correct template translation table could kick in
                 ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval);
 
-            if (this.DebugId==  (41, 745))
+            if (this.DebugId == (41, 745))
             {
                 ;
             }
@@ -220,7 +222,7 @@ namespace Skila.Language
             EntityInstance aggregate = translateFunctionElement(target_function.ResultTypeName.Evaluation.Aggregate,
                 objectInstance, targetFunctionInstance);
 
-            translatedResultEvaluation = new EvaluationInfo( components, aggregate);
+            translatedResultEvaluation = new EvaluationInfo(components, aggregate);
         }
 
         // translate eval of parameter or result type
@@ -249,8 +251,13 @@ namespace Skila.Language
                 else if (this.typeMatches[idx].Value != match)
                     throw new NotImplementedException();
 
-                    if (match.IsMismatch())
-                        return false;
+                if (match.IsMismatch(attachmentMatches: this.TargetFunction.IsAnyConstructor()))
+                    return false;
+
+                if (match.HasFlag(TypeMatch.Attachment))
+                    this.AttachmentLifetime = this.AttachmentLifetime==null
+                        ?arg.Evaluation.Aggregate.Lifetime
+                        : this.AttachmentLifetime.Shorter(arg.Evaluation.Aggregate.Lifetime);
 
                 if (match == TypeMatch.ImplicitReference)
                 {

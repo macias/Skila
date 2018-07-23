@@ -217,6 +217,11 @@ namespace Skila.Language.Expressions
 
         public void Evaluate(ComputationContext ctx)
         {
+            if (this.DebugId== (20, 368))
+            {
+                ;
+            }
+
             if (this.Evaluation == null)
             {
                 // trap only lambdas, name reference is a call, not passing function around

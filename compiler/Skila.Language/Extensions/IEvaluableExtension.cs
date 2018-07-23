@@ -53,10 +53,17 @@ namespace Skila.Language.Extensions
 
             IEntityInstance src_type = source.Evaluation.Components;
 
+            if (@this.DebugId== (17, 380))
+            {
+                ;
+            }
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName,
                 TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)
                 .WithIgnoredMutability(ignoreMutability)
                 .AllowedLifetimeChecking(true));
+
+            if (match.HasFlag(TypeMatch.Attachment))
+                match ^= TypeMatch.Attachment;
 
             if (match == TypeMatch.No)
             {

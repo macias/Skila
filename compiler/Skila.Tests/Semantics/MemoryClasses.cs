@@ -19,7 +19,8 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
+                    AllowDereference = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 NameReference param_typename = NameReference.Create("Hi");

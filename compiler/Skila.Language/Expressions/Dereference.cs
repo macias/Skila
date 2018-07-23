@@ -6,6 +6,7 @@ using Skila.Language.Semantics;
 using Skila.Language.Extensions;
 using Skila.Language.Tools;
 using Skila.Language.Printout;
+using System;
 
 namespace Skila.Language.Expressions
 {
@@ -47,7 +48,19 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.Evaluation == null)
+            // in theory we would like to write legal code like
+            // (*local_int_ptr) = 1
+            // but the problem is dereference can be seen as omitting setter (property or special functions) logic
+            // so for now we disable it, and see when for the first time it will be needed in practice
+            // note: swap function does not count since we already have parallel assignments
+            //
+            // and one more small thing, without dereference there is no ambiguity here
+            // ref = value
+            // does it mean (*ref) = value or ref = &value
+            if (!ctx.Env.Options.AllowDereference)
+                throw new InvalidOperationException();
+
+                if (this.Evaluation == null)
             {
                 if (!ctx.Env.Dereferenced(Expr.Evaluation.Components, out IEntityInstance inner_comp))
                     ctx.AddError(ErrorCode.DereferencingValue, this.Expr);

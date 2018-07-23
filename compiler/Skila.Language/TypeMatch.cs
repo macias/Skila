@@ -7,16 +7,17 @@ namespace Skila.Language
         [Flags]
         private enum MatchFlag
         {
-            No = 1 << 8,
+            No = 1 << 1,
 
-            Same = 1 << 1,
-            Substitute = 1 << 2,
-            InConversion = 1 << 3,
-            OutConversion = 1 << 4,
-            ImplicitReference = 1 << 5,
-            AutoDereference = 1 << 6,
+            Same = 1 << 2,
+            Substitute = 1 << 3,
+            InConversion = 1 << 4,
+            OutConversion = 1 << 5,
+            ImplicitReference = 1 << 6,
+            AutoDereference = 1 << 7,
 
-            Lifetime = 1 << 7,
+            Lifetime = 1 << 8,
+            Attachment = 1 << 9,
         }
 
         public static TypeMatch No
@@ -39,6 +40,7 @@ namespace Skila.Language
         public static readonly TypeMatch OutConversion = new TypeMatch(MatchFlag.OutConversion, dereferences: 0);
         public static readonly TypeMatch ImplicitReference = new TypeMatch(MatchFlag.ImplicitReference, dereferences: 0);
         public static readonly TypeMatch AutoDereference = new TypeMatch(MatchFlag.AutoDereference, dereferences: 1);
+        public static readonly TypeMatch Attachment = new TypeMatch(MatchFlag.Attachment, dereferences: 0);
 
         public static TypeMatch Substituted(int distance)
         {
@@ -69,9 +71,10 @@ namespace Skila.Language
             this.Dereferences = dereferences;
         }
 
-        public bool IsMismatch()
+        public bool IsMismatch(bool attachmentMatches = false)
         {
-            return this.flag == MatchFlag.No || this.flag == MatchFlag.Lifetime;
+            return this.flag == MatchFlag.No || this.HasFlag(TypeMatch.Lifetime) 
+                || (!attachmentMatches && this.HasFlag(TypeMatch.Attachment));
         }
 
         public override string ToString()

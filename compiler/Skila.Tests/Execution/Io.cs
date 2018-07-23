@@ -38,7 +38,8 @@ namespace Skila.Tests.Execution
 
                         Return.Create(Nat8Literal.Create("0"))
                     )).
-                    Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, NameFactory.StringPointerNameReference(TypeMutability.ReadOnly)),
+                    Parameters(FunctionParameter.Create(NameFactory.CommandLineProgramPath, 
+                        NameFactory.StringPointerNameReference(TypeMutability.ReadOnly)),
                         FunctionParameter.Create(NameFactory.CommandLineArguments,
                             NameFactory.StringPointerNameReference(TypeMutability.ReadOnly), Variadic.Create(), null, isNameRequired: false)));
 

@@ -37,6 +37,10 @@ namespace Skila.Language
 
         // mutability switch was introduced around 2018-05-29
         MutabilityModeOption MutabilityMode { get; }
+
+        /// <see cref="Dereference.Evaluate"/> 
+        bool AllowDereference { get; }
+        bool AllowReferenceFields { get; }
     }
 
     public static class IOptionsExtension
@@ -54,7 +58,7 @@ namespace Skila.Language
         public static EntityModifier ReassignableModifier<T>(this T options)
             where T : IOptions
         {
-            return options.MutabilityMode== MutabilityModeOption.SingleMutability ? EntityModifier.Mutable : EntityModifier.Reassignable;
+            return options.MutabilityMode == MutabilityModeOption.SingleMutability ? EntityModifier.Mutable : EntityModifier.Reassignable;
         }
 
         public static TypeMutability ReassignableTypeMutability<T>(this T options)
@@ -62,6 +66,6 @@ namespace Skila.Language
         {
             return options.MutabilityMode == MutabilityModeOption.SingleMutability ? TypeMutability.ForceMutable : TypeMutability.Reassignable;
         }
-        
+
     }
 }

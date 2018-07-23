@@ -98,7 +98,7 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetMutability(mutability));
+                var env = Environment.Create(new Options() { AllowDereference = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 IExpression assign = Assignment.CreateStatement(Dereference.Create(NameReference.Create("a")), NameReference.Create("b"));
@@ -127,7 +127,7 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { }.SetMutability(mutability));
+                var env = Environment.Create(new Options() { AllowDereference = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create("swap", "T", VarianceMode.None,

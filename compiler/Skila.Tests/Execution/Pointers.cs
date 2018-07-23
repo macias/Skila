@@ -302,7 +302,8 @@ namespace Skila.Tests.Execution
                 var env = Language.Environment.Create(new Options()
                 {
                     AllowInvalidMainResult = true,
-                    DebugThrowOnError = true
+                    DebugThrowOnError = true,
+                    AllowDereference = true
                 }.SetMutability(mutability));
                 var root_ns = env.Root;
 
