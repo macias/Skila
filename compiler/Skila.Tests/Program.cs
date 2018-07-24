@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                //new Semantics.CompilerProtection().Environment();
+                new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                   //new Semantics.Expressions().ErrorDereferencingValue();
@@ -30,7 +30,7 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                //new Semantics.Lifetimes().TODO_ErrorEscapingReferenceWithAttachmentObject();
+                //new Semantics.Lifetimes().ErrorEscapingReferenceWithAttachmentObject();
                  //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
                 // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
@@ -51,7 +51,7 @@ namespace Skila.Tests
                 //new Execution.FunctionCalls().MinLimitVariadicFunctionWithSpread();
                 //new Execution.Inheritance().InheritingEnums();
                 //new Execution.Interfaces().DuckDeepVirtualCallInterface();
-                new Execution.Io().CommandLine();
+                //new Execution.Io().CommandLine();
                 //new Execution.Library().StringToInt();
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();

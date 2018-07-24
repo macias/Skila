@@ -1712,7 +1712,7 @@ namespace Skila.Language
 
             TypeBuilder builder = TypeBuilder.Create(NameFactory.Utf8StringIteratorTypeName)
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
+                .SetModifier(EntityModifier.Mutable)
                 .Parents(NameFactory.IIteratorNameReference(NameFactory.CharNameReference()))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
@@ -1720,13 +1720,11 @@ namespace Skila.Language
                      null,
                      options.ReassignableModifier()))
                 .With(VariableDeclaration.CreateStatement(str_name,
-                    // todo: pointer
-                    NameFactory.ReferenceNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)),
+                    NameFactory.PointerNameReference(NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { str_name },
-                    // todo: pointer
-                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                    new[] { NameFactory.PointerNameReference(
                         NameFactory.Utf8StringNameReference(TypeMutability.ReadOnly)) }))
 
                  .With(FunctionBuilder.Create(NameFactory.IteratorNext,
@@ -1769,7 +1767,7 @@ namespace Skila.Language
                 NameDefinition.Create(NameFactory.IndexIteratorTypeName,
                     TemplateParametersBuffer.Create(VarianceMode.Out, elem_type_name).Values))
 
-                .SetModifier(EntityModifier.Mutable | EntityModifier.AssociatedReference)
+                .SetModifier(EntityModifier.Mutable)
                 .Parents(NameFactory.IIteratorNameReference(elem_type_name))
 
                 .With(VariableDeclaration.CreateStatement(index_name,
@@ -1777,12 +1775,12 @@ namespace Skila.Language
                      null,
                      options.ReassignableModifier()))
                 .With(VariableDeclaration.CreateStatement(coll_name,
-                    NameFactory.ReferenceNameReference(NameFactory.IIndexableNameReference(elem_type_name,
+                    NameFactory.PointerNameReference(NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)),
                     Undef.Create()))
 
                 .With(ExpressionFactory.BasicConstructor(new[] { coll_name },
-                    new[] { NameFactory.ReferenceNameReference(LifetimeScope.Attachment,
+                    new[] { NameFactory.PointerNameReference(
                         NameFactory.IIndexableNameReference(elem_type_name,
                         overrideMutability: TypeMutability.ReadOnly)) }))
 

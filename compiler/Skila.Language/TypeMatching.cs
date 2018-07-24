@@ -51,12 +51,6 @@ namespace Skila.Language
             result.MutabilityCheckRequestByData = value;
             return result;
         }
-        internal TypeMatching WithLifetimeCheck(bool value)
-        {
-            TypeMatching result = this;
-            result.LifetimeCheck = value;
-            return result;
-        }
         internal TypeMatching WithLifetimeCheck(bool value,Lifetime inputLifetime,Lifetime targetLifetime)
         {
             if (this.allowLifetimeChecking)

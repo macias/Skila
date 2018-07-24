@@ -255,9 +255,10 @@ namespace Skila.Language
                     return false;
 
                 if (match.HasFlag(TypeMatch.Attachment))
-                    this.AttachmentLifetime = this.AttachmentLifetime==null
-                        ?arg.Evaluation.Aggregate.Lifetime
-                        : this.AttachmentLifetime.Shorter(arg.Evaluation.Aggregate.Lifetime);
+                    this.AttachmentLifetime = (this.AttachmentLifetime == null
+                            ? arg.Evaluation.Aggregate.Lifetime
+                            : this.AttachmentLifetime.Shorter(arg.Evaluation.Aggregate.Lifetime))
+                        .AsAttached();
 
                 if (match == TypeMatch.ImplicitReference)
                 {

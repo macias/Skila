@@ -249,7 +249,7 @@ namespace Skila.Language.Expressions
             {
                 this.TrapClosure(ctx, ref this.rhsValue);
 
-                if (this.rhsValue.DebugId== (20, 368))
+                if (this.DebugId== (27, 336))
                 {
                     ;
                 }

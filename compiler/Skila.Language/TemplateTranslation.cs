@@ -153,7 +153,7 @@ namespace Skila.Language
             if (Object.ReferenceEquals(this, obj))
                 return true;
 
-            if (obj == null)
+            if (Object.ReferenceEquals( obj, null))
                 return false;
 
             //return this.table.Count == obj.table.Count && !this.table.Except(obj.table).Any();

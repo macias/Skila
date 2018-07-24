@@ -73,6 +73,10 @@ namespace Skila.Language
             if (!target.Target.IsType() || !input.Target.IsType())
                 return TypeMatch.No;
 
+            if (input.Lifetime.IsAttached || target.Lifetime.IsAttached)
+                matching = matching.WithLifetimeCheck(true, input.Lifetime, target.Lifetime);
+
+
             {
                 IEnumerable<FunctionDefinition> in_conv = target.TargetType.ImplicitInConverters().StoreReadOnly();
                 bool conv_slicing_sub = input.TargetType.AllowSlicedSubstitution;

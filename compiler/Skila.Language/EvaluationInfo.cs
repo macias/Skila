@@ -35,7 +35,7 @@ namespace Skila.Language
             this.Components = components;
             this.Aggregate = merged;
         }
-        public EvaluationInfo( EntityInstance eval) : this( eval, eval)
+        public EvaluationInfo(EntityInstance eval) : this(eval, eval)
         {
 
         }
@@ -59,9 +59,13 @@ namespace Skila.Language
                 // for values we need to promote lifetimes, because if nested scope passes
                 // value to outer one the lifetime of the value changes along with data passing
                 Lifetime lifetime = Lifetime.Create(node, LifetimeScope.Local);
-                return EvaluationInfo.Create(this.Components.Rebuild(ctx, lifetime, deep: false), this.Aggregate.Build(lifetime));
+
+                return PromotLifetime(ctx, lifetime);
             }
         }
+        internal EvaluationInfo PromotLifetime(ComputationContext ctx, Lifetime lifetime)
+        {
+            return EvaluationInfo.Create(this.Components.Rebuild(ctx, lifetime, deep: false), this.Aggregate.Build(lifetime));
+        }
     }
-
 }

@@ -22,6 +22,7 @@ namespace Skila.Language
         private IEnumerable<IScope> __nodeScopes => this.__node.EnclosingScopesToRoot().StoreReadOnly();
         public INode __node { get; }
 
+        public bool IsAttached => this.lifetimeScope == LifetimeScope.Attachment;
         private readonly LifetimeScope lifetimeScope;
 
         public bool IsTimeless => this.__node == null;
@@ -123,6 +124,11 @@ namespace Skila.Language
         public override string ToString()
         {
             return IsTimeless ? "~~" : this.__node.GetType().Name + "\\" + this.__node.DebugId;
+        }
+
+        internal Lifetime AsAttached()
+        {
+            return new Lifetime(this.__node, LifetimeScope.Attachment);
         }
     }
 }

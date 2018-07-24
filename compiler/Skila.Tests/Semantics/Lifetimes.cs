@@ -15,8 +15,8 @@ namespace Skila.Tests.Semantics
     [TestClass]
     public class Lifetimes
     {
-        //  [TestMethod]
-        public IErrorReporter TODO_ErrorEscapingReferenceWithAttachmentObject()
+        [TestMethod]
+        public IErrorReporter ErrorEscapingReferenceWithAttachmentObject()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -27,11 +27,14 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("Keeper")
                     .With(VariableDeclaration.CreateStatement("world",
-                        NameFactory.ReferenceNameReference(NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
+                        NameFactory.PointerNameReference(NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
                             Assignment.CreateStatement(NameReference.CreateThised("world"), NameReference.Create("in_value"))
                         ))
                         .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
+
+                Assignment assign = Assignment.CreateStatement(NameReference.Create("attach"),
+                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))).Cast<Assignment>();
 
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
@@ -43,8 +46,11 @@ namespace Skila.Tests.Semantics
                         Block.CreateStatement(
                             VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
                                 IntLiteral.Create("0")),
-                            Assignment.CreateStatement(NameReference.Create("attach"), 
-                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))),
+                            // cannot execute this assignment because the reference would move from here to outer scope
+                            // just wrapped in `Keeper` instance
+                            // please note this `Keeper` instance is attached to `i`
+                            // (triggered by conversion reference->pointer in constructor), so it cannot outlive it
+                            assign,
                             ExpressionFactory.Readout("attach")
                             )
                     )));
@@ -52,8 +58,8 @@ namespace Skila.Tests.Semantics
 
                 resolver = NameResolver.Create(env);
 
-                //Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
-                Assert.AreEqual(999, resolver.ErrorManager.Errors.Count);
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, assign.RhsValue));
             }
             return resolver;
         }
@@ -69,12 +75,12 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(TypeBuilder.Create("Keeper")
-                    .With(VariableDeclaration.CreateStatement("world", 
-                        NameFactory.ReferenceNameReference( NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
+                    .With(VariableDeclaration.CreateStatement("world",
+                        NameFactory.PointerNameReference(NameFactory.IntNameReference()), Undef.Create(), EntityModifier.Public))
                     .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(
-                            Assignment.CreateStatement(NameReference.CreateThised("world"),NameReference.Create("in_value"))
+                            Assignment.CreateStatement(NameReference.CreateThised("world"), NameReference.Create("in_value"))
                         ))
-                        .Parameters(FunctionParameter.Create("in_value",NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
+                        .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
 
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
@@ -86,8 +92,8 @@ namespace Skila.Tests.Semantics
                         Block.CreateStatement(
                             // this is incorrect, because we are creating this object on stack, we could copy it out
                             // preserving reference inside
-                            VariableDeclaration.CreateStatement("attach", null, 
-                                ExpressionFactory.StackConstructor("Keeper",NameReference.Create("i"))),
+                            VariableDeclaration.CreateStatement("attach", null,
+                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))),
                             ExpressionFactory.Readout("attach")
                             )
                     )));
