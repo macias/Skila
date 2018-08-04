@@ -198,8 +198,11 @@ namespace Skila.Language
                     {
                         ;
                     }
-                    if (matchTypes(ctx, input_mutability, input.Lifetime, inherited_input.AncestorInstance, target, matching, inherited_input.Distance, out match))
-                        return match;
+                    if (matchTypes(ctx, input_mutability, input.Lifetime, inherited_input.AncestorInstance,
+                        target, matching, inherited_input.Distance, out TypeMatch m))
+                        return m;
+                    else if (m != TypeMatch.No) // getting more specific rejection than just bare one
+                        match = m;
                 }
             }
             // when slicing is disabled we can compare try to substitute only the same type
@@ -354,7 +357,8 @@ namespace Skila.Language
             {
                 // please note that unlike normal type matching we reversed the types, in enum you can
                 // pass base type as descendant!
-                if (matchTypes(ctx, target_mutability, target.Lifetime, inherited_target.AncestorInstance, input, matching, inherited_target.Distance,
+                if (matchTypes(ctx, target_mutability, target.Lifetime, inherited_target.AncestorInstance, 
+                    input, matching, inherited_target.Distance,
                     out TypeMatch match))
                 {
                     return match;

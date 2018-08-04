@@ -13,6 +13,60 @@ namespace Skila.Tests.Execution
     public class Objects
     {
         [TestMethod]
+        public IInterpreter ImplicitReferenceAssignmentInterpretation()
+        {
+            // when you have expression
+            // ref = value
+            // it could be interpreted two ways
+            // (*ref) = value
+            // ref = &value
+            // (or could be treated as error, requesting explicit decision)
+
+            // this test verifies the interpretation (the points is to have such test to avoid surprise)
+            // not to test particular interpretation (after all it is just a design choice)
+
+            var interpreter = new Interpreter.Interpreter();
+
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options()
+                {
+                    DiscardingAnyExpressionDuringTests = true,
+                    DebugThrowOnError = true
+                }.SetMutability(mutability));
+                var root_ns = env.Root;
+
+
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "main",
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.Nat8NameReference(),
+                    Block.CreateStatement(new IExpression[] {
+                        VariableDeclaration.CreateStatement("a",NameFactory.Nat8NameReference(),Nat8Literal.Create("3")),
+
+                        VariableDeclaration.CreateStatement("x",NameFactory.ReferenceNameReference( NameFactory.Nat8NameReference()),NameReference.Create("a"), 
+                            EntityModifier.Reassignable),
+
+                        VariableDeclaration.CreateStatement("b",NameFactory.Nat8NameReference(),Nat8Literal.Create("5"), EntityModifier.Reassignable),
+
+                        // it is in fact
+                        // x = &b
+                        Assignment.CreateStatement("x","b"),
+
+                        ExpressionFactory.Inc("b"),
+
+                        Return.Create(NameReference.Create("x"))
+                    })));
+
+                ExecValue result = interpreter.TestRun(env);
+
+                Assert.AreEqual((byte)6, result.RetValue.PlainValue);
+            }
+
+            return interpreter;
+        }
+
+        [TestMethod]
         public IInterpreter CallingImplicitConstMethodOnHeapOnlyPointer()
         {
             var interpreter = new Interpreter.Interpreter();

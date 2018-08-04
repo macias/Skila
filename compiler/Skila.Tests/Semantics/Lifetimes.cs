@@ -64,8 +64,8 @@ namespace Skila.Tests.Semantics
             return resolver;
         }
 
-        //  [TestMethod]
-        public IErrorReporter TODO_ErrorEscapingReferenceWithAttachmentObject2()
+        [TestMethod]
+        public IErrorReporter ErrorAttachmentObjectOnStackAndHeap()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -82,6 +82,9 @@ namespace Skila.Tests.Semantics
                         ))
                         .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
 
+                IExpression stack_init_value = ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"));
+                IExpression heap_init_value = ExpressionFactory.HeapConstructor("Keeper", NameReference.Create("i"));
+
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.UnitNameReference(),
@@ -89,20 +92,21 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
                             IntLiteral.Create("0"), EntityModifier.Reassignable),
-                        Block.CreateStatement(
-                            // this is incorrect, because we are creating this object on stack, we could copy it out
-                            // preserving reference inside
-                            VariableDeclaration.CreateStatement("attach", null,
-                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))),
-                            ExpressionFactory.Readout("attach")
-                            )
+                         // this is incorrect, because we are creating attachment object as value, dropping the lifetime
+                         VariableDeclaration.CreateStatement("attach1", NameReference.Create("Keeper"), stack_init_value),
+                         ExpressionFactory.Readout("attach1"),
+                         // this is incorrect, because we are creating attachment object as global instance, dropping the lifetime
+                         VariableDeclaration.CreateStatement("attach2", NameFactory.PointerNameReference(NameReference.Create("Keeper")),
+                              heap_init_value),
+                         ExpressionFactory.Readout("attach2")
                     )));
 
 
                 resolver = NameResolver.Create(env);
 
-                //Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_field_ref));
-                Assert.AreEqual(999, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, stack_init_value));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.EscapingReference, heap_init_value));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
             }
             return resolver;
         }

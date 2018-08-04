@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                new Semantics.CompilerProtection().Environment();
+                //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                   //new Semantics.Expressions().ErrorDereferencingValue();
@@ -30,7 +30,7 @@ namespace Skila.Tests
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                //new Semantics.Lifetimes().ErrorEscapingReferenceWithAttachmentObject();
+                //new Semantics.Lifetimes().ErrorAttachmentObjectOnStackAndHeap();
                  //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
                 // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
@@ -56,7 +56,7 @@ namespace Skila.Tests
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
-                //new Execution.Objects().CallingImplicitConstMethodOnHeapOnlyPointer();
+                new Execution.Objects().ImplicitReferenceAssignmentInterpretation();
                 //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().SwapPointers();
