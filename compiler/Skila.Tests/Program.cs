@@ -56,7 +56,7 @@ namespace Skila.Tests
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
-                new Execution.Objects().ImplicitReferenceAssignmentInterpretation();
+                //new Execution.Objects().ImplicitReferenceAssignmentInterpretation();
                 //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().SwapPointers();

@@ -52,8 +52,8 @@ namespace Skila.Language
 
             for (int i = 0; i < template.Name.Arity; ++i)
             {
-                failMatch = input.TimedTemplateArguments[i].Instance.TemplateMatchesTarget(ctx,
-                    target.TimedTemplateArguments[i].Instance,
+                failMatch = input.TemplateArguments[i].TemplateMatchesTarget(ctx,
+                    target.TemplateArguments[i],
                     template.Name.Parameters[i].Variance,
                     matching);
 
@@ -481,8 +481,8 @@ namespace Skila.Language
         public static ConstraintMatch ArgumentsMatchConstraintsOf(ComputationContext ctx,
             IEnumerable<TemplateParameter> templateParameters, EntityInstance closedTemplate)
         {
-            if (templateParameters.Count() != closedTemplate.TimedTemplateArguments.Count)
-                return ConstraintMatch.UndefinedTemplateArguments;
+                if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)
+                    return ConstraintMatch.UndefinedTemplateArguments;
 
             foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in templateParameters
                 .SyncZip(closedTemplate.TemplateArguments))

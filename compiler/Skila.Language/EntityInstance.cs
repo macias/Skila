@@ -8,6 +8,7 @@ using Skila.Language.Comparers;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
 using Skila.Language.Semantics;
+using Skila.Language.Tools;
 
 namespace Skila.Language
 {
@@ -53,8 +54,7 @@ namespace Skila.Language
         public TypeDefinition TargetType => this.Target.CastType();
         public FunctionDefinition TargetFunction => this.Target.CastFunction();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
-        public IEnumerable<IEntityInstance> TemplateArguments => this.TimedTemplateArguments.Select(it => it.Instance);
-        public IReadOnlyList<ITimedIEntityInstance> TimedTemplateArguments { get; }
+        public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
         public TemplateParameter TemplateParameterTarget => this.TargetType.TemplateParameter;
         public EntityInstance Aggregate { get; private set; }
@@ -79,8 +79,10 @@ namespace Skila.Language
 
         INameReference IEntityInstance.NameOf => this.NameOf;
         INameReference IEntityInstance.PureNameOf => this.PureNameOf;
-        public NameReference NameOf { get; }
-        public NameReference PureNameOf { get; }
+        private readonly Later<NameReference> nameOf;
+        private readonly Later<NameReference> pureNameOf;
+        public NameReference NameOf => this.nameOf.Value;
+        public NameReference PureNameOf => this.pureNameOf.Value;
         private RuntimeCore core { get; set; }
 
         private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments,
@@ -108,20 +110,20 @@ namespace Skila.Language
 
             arguments = arguments ?? Enumerable.Empty<IEntityInstance>();
             this.Target = target;
-            this.TimedTemplateArguments = arguments.Select(it => TimedIEntityInstance.Create(Lifetime.Timeless, it)).StoreReadOnlyList();
+            this.TemplateArguments = arguments.StoreReadOnlyList();
             this.Translation = translation;
 
             this.Lifetime = lifetime;
 
             this.OverrideMutability = overrideMutability;
 
-            this.NameOf = NameReference.Create(
-                overrideMutability,
+            this.nameOf = new Later<NameReference>(() => NameReference.Create(
+                OverrideMutability,
                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                target: this, isLocal: false);
-            this.PureNameOf = NameReference.Create(
+                target: this, isLocal: false));
+            this.pureNameOf = new Later<NameReference>(() => NameReference.Create(
                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                target: this, isLocal: false);
+                target: this, isLocal: false));
         }
 
         internal void AddDuckVirtualTable(ComputationContext ctx, EntityInstance target, VirtualTable vtable)
@@ -133,9 +135,10 @@ namespace Skila.Language
             return this.core.TryGetDuckVirtualTable(target, out vtable);
         }
 
-        internal void SetCore(RuntimeCore core)
+        internal EntityInstance SetCore(RuntimeCore core)
         {
             this.core = core;
+            return this;
         }
 
         public override string ToString()
@@ -275,6 +278,9 @@ namespace Skila.Language
 
         public bool IsIdentical(IEntityInstance other)
         {
+            if (Object.ReferenceEquals(this, other))
+                return true;
+
             if (other is EntityInstance other_instance)
                 return this.HasSameCore(other_instance) && this.OverrideMutability == other_instance.OverrideMutability;
             else
@@ -283,8 +289,9 @@ namespace Skila.Language
 
         public bool IsExactlySame(IEntityInstance other, bool jokerMatchesAll)
         {
-            if (!jokerMatchesAll)
-                return this.IsIdentical(other);
+            bool identical = this.IsIdentical(other);
+            if (!jokerMatchesAll || identical)
+                return identical;
 
             var other_entity = other as EntityInstance;
             if (other_entity == null)
@@ -296,12 +303,12 @@ namespace Skila.Language
             if (this.OverrideMutability != other_entity.OverrideMutability)
                 return false;
             // note we first compare targets, but then arguments count for instances (not targets)
-            if (this.Target != other_entity.Target || this.TimedTemplateArguments.Count != other_entity.TimedTemplateArguments.Count)
+            if (this.Target != other_entity.Target || this.TemplateArguments.Count != other_entity.TemplateArguments.Count)
                 return false;
 
-            for (int i = 0; i < this.TimedTemplateArguments.Count; ++i)
+            for (int i = 0; i < this.TemplateArguments.Count; ++i)
             {
-                if (!other_entity.TimedTemplateArguments[i].Instance.IsExactlySame(this.TimedTemplateArguments[i].Instance, jokerMatchesAll))
+                if (!other_entity.TemplateArguments[i].IsExactlySame(this.TemplateArguments[i], jokerMatchesAll))
                     return false;
             }
 
@@ -429,9 +436,9 @@ namespace Skila.Language
             else if (this.Target != other_entity.Target)
                 return true;
 
-            for (int i = 0; i < this.TimedTemplateArguments.Count; ++i)
+            for (int i = 0; i < this.TemplateArguments.Count; ++i)
             {
-                if (this.TimedTemplateArguments[i].Instance.IsOverloadDistinctFrom(other_entity.TimedTemplateArguments[i].Instance))
+                if (this.TemplateArguments[i].IsOverloadDistinctFrom(other_entity.TemplateArguments[i]))
                     return true;
             }
 
@@ -439,17 +446,41 @@ namespace Skila.Language
 
         }
 
-        public EntityInstance Build(TypeMutability mutability, Lifetime lifetime = null)
+        public EntityInstance Build(TypeMutability mutability)
         {
             if (mutability == TypeMutability.Reassignable)
                 mutability |= this.OverrideMutability;
 
-            return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, lifetime ?? this.Lifetime);
+            if (mutability == this.OverrideMutability)
+                return this;
+            else
+                // since we change only non-core parameters we can go ehead and create sibling directly
+                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, this.Translation, mutability, this.Lifetime)
+                     .SetCore(this.core);
+        }
+
+        public EntityInstance Build(TypeMutability mutability, Lifetime lifetime)
+        {
+            if (mutability == TypeMutability.Reassignable)
+                mutability |= this.OverrideMutability;
+
+            if (mutability == this.OverrideMutability && this.Lifetime == lifetime)
+                return this;
+            else
+                // since we change only non-core parameters we can go ehead and create sibling directly
+                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, this.Translation, mutability, lifetime)
+                    .SetCore(this.core);
         }
 
         public EntityInstance Build(Lifetime lifetime)
         {
-            return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability, this.Translation, lifetime);
+            if (this.Lifetime == lifetime)
+                return this;
+            else
+                // since we change only non-core parameters we can go ehead and create sibling directly
+                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, 
+                    this.Translation, this.OverrideMutability, lifetime)
+                    .SetCore(this.core);
         }
 
         internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, TypeMutability overrideMutability)
@@ -512,7 +543,7 @@ namespace Skila.Language
             else
                 for (int i = 0; i < typedef.Name.Parameters.Count; ++i)
                 {
-                    if (!this.TimedTemplateArguments[i].Instance.ValidateTypeVariance(ctx,
+                    if (!this.TemplateArguments[i].ValidateTypeVariance(ctx,
                         placement,
                         typeNamePosition.Flipped(typedef.Name.Parameters[i].Variance)))
                         return false;

@@ -20,7 +20,7 @@ namespace Skila.Language.Comparers
             if (x.Target != y.Target)
                 return false;
 
-            if (x.TimedTemplateArguments.Count != y.TimedTemplateArguments.Count)
+            if (x.TemplateArguments.Count != y.TemplateArguments.Count)
                 return false;
 
             foreach (var ab in x.TemplateArguments.Zip(y.TemplateArguments, (a, b) => Tuple.Create(a, b)))
@@ -37,7 +37,7 @@ namespace Skila.Language.Comparers
         {
             int t = obj.Target.GetHashCode();
             int b = (obj.Translation?.GetHashCode() ?? 0);
-            int c = obj.TimedTemplateArguments.Count.GetHashCode();
+            int c = obj.TemplateArguments.Count.GetHashCode();
             int d = obj.TemplateArguments.Aggregate(0, (acc, a) => acc ^ a.GetHashCode());
             return t ^ b ^ c ^ d;
         }

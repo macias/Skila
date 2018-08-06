@@ -750,8 +750,9 @@ namespace Skila.Language
 
         public bool IsExactlySame(INameReference other, EntityInstance translationTemplate, bool jokerMatchesAll)
         {
-            if (!jokerMatchesAll)
-                return this == other;
+            bool identical = Object.ReferenceEquals(this, other);
+            if (!jokerMatchesAll || identical)
+                return identical;
 
             if (this.Evaluation.Aggregate.IsJoker || other.Evaluation.Aggregate.IsJoker)
                 return true;

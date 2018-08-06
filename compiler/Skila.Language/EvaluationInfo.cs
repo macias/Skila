@@ -60,10 +60,10 @@ namespace Skila.Language
                 // value to outer one the lifetime of the value changes along with data passing
                 Lifetime lifetime = Lifetime.Create(node, LifetimeScope.Local);
 
-                return PromotLifetime(ctx, lifetime);
+                return PromoteLifetime(ctx, lifetime);
             }
         }
-        internal EvaluationInfo PromotLifetime(ComputationContext ctx, Lifetime lifetime)
+        internal EvaluationInfo PromoteLifetime(ComputationContext ctx, Lifetime lifetime)
         {
             return EvaluationInfo.Create(this.Components.Rebuild(ctx, lifetime, deep: false), this.Aggregate.Build(lifetime));
         }

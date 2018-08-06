@@ -419,7 +419,8 @@ namespace Skila.Language
 
             foreach (FunctionArgument arg in this.TrueArguments)
             {
-                IEntityInstance function_param_type = cross_parameters ? this.GetParamByArg(arg).Evaluation.Components : this.GetTransParamEvalByArg(arg);
+                IEntityInstance function_param_type = cross_parameters 
+                    ? this.GetParamByArg(arg).Evaluation.Components : this.GetTransParamEvalByArg(arg);
 
                 IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> type_mapping
                     = extractTypeParametersMapping(ctx, template, arg.Evaluation.Aggregate.Lifetime, arg.Evaluation.Components,

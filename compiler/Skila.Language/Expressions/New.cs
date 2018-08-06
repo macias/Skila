@@ -86,7 +86,7 @@ namespace Skila.Language.Expressions
             if (this.Evaluation == null)
             {
                 if (this.InitConstructorCall.Resolution?.AttachmentLifetime != null) 
-                    this.Evaluation = this.outcome.Evaluation.PromotLifetime(ctx, this.InitConstructorCall.Resolution?.AttachmentLifetime);
+                    this.Evaluation = this.outcome.Evaluation.PromoteLifetime(ctx, this.InitConstructorCall.Resolution?.AttachmentLifetime);
                 else
                     this.Evaluation = this.outcome.Evaluation.PromotLifetime(ctx, this);
             }

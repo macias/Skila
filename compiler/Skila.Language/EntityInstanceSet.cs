@@ -45,8 +45,9 @@ namespace Skila.Language
 
         public bool IsExactlySame(IEntityInstance other, bool jokerMatchesAll)
         {
-            if (!jokerMatchesAll)
-                return this == other;
+            bool identical = this.IsIdentical(other);
+            if (!jokerMatchesAll || identical)
+                return identical;
 
             return hasSymmetricRelation(other, (a, b) => a.IsExactlySame(b, jokerMatchesAll));
         }
@@ -135,6 +136,9 @@ namespace Skila.Language
 
         public bool IsIdentical(IEntityInstance other)
         {
+            if (Object.ReferenceEquals(this, other))
+                return true;
+
             if (this.GetType() != other.GetType())
                 return false;
 

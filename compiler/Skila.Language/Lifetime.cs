@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace Skila.Language
 {
+    
     public sealed class Lifetime
     {
         // values and pointers are timeless
