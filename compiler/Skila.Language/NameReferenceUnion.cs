@@ -15,9 +15,15 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class NameReferenceUnion : NameReferenceSet, INameReference
     {
-        public static NameReferenceUnion Create(IEnumerable<INameReference> names)
+        public static INameReference Create(IEnumerable<INameReference> names)
         {
-            return new NameReferenceUnion(names);
+            if (!names.Any())
+                throw new ArgumentOutOfRangeException();
+
+            if (names.Count() == 1)
+                return names.Single();
+            else
+                return new NameReferenceUnion(names);
         }
         public static NameReferenceUnion Create(params INameReference[] names)
         // union is a set, order does not matter

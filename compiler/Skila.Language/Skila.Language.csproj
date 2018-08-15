@@ -94,11 +94,9 @@
     <Compile Include="Extensions\INameReferenceExtension.cs" />
     <Compile Include="Extensions\IRestrictedMemberExtension.cs" />
     <Compile Include="IOwnedNode.cs" />
-    <Compile Include="ITimedIEntityInstance.cs" />
     <Compile Include="EntityInstance.RuntimeCore.cs" />
     <Compile Include="LifetimeScope.cs" />
     <Compile Include="OwnedNode.cs" />
-    <Compile Include="TimedIEntityInstance.cs" />
     <Compile Include="IComputable.cs" />
     <Compile Include="ICustomComputable.cs" />
     <Compile Include="INameBindable.cs" />

@@ -4,9 +4,7 @@ using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
-using Skila.Language.Builders;
 using System;
-using Skila.Language.Tools;
 using Skila.Language.Printout;
 
 namespace Skila.Language
@@ -14,9 +12,15 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class NameReferenceIntersection : NameReferenceSet, INameReference
     {
-        public static NameReferenceIntersection Create(IEnumerable<INameReference> names)
+        public static INameReference Create(IEnumerable<INameReference> names)
         {
-            return new NameReferenceIntersection(names);
+            if (!names.Any())
+                throw new ArgumentOutOfRangeException();
+
+            if (names.Count() == 1)
+                return names.Single();
+            else
+                return new NameReferenceIntersection(names);
         }
         public static NameReferenceIntersection Create(params INameReference[] names)
         // intersection is a set, order does not matter
@@ -83,7 +87,7 @@ namespace Skila.Language
             EntityInstance aggregate_instance = createAggregate(ctx, has_reference, has_pointer,
                 dereferenced_instances, members, partialVirtualTables: true);
 
-            this.Evaluation = EvaluationInfo.Create( eval, aggregate_instance);
+            this.Evaluation = EvaluationInfo.Create(eval, aggregate_instance);
         }
 
         // todo: this is copy from EntityInstanceIntersection, not cool, not cool, REUSE!

@@ -12,6 +12,7 @@ namespace Skila.Language
         INameReference NameOf { get; }
         INameReference PureNameOf { get; }
 
+        Lifetime Lifetime { get; }
         IEnumerable<EntityInstance> EnumerateAll();
         bool IsJoker { get; }
 

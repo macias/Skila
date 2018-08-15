@@ -113,13 +113,13 @@ namespace Skila.Language.Expressions
                     ;
                 }
 
-                IEnumerable<TimedIEntityInstance> inferred = this.InitConstructorCall.Resolution
+                IEnumerable<IEntityInstance> inferred = this.InitConstructorCall.Resolution
                   .InferTemplateArguments(ctx, this.tempDeclaration.Evaluation.Aggregate.TargetType).StoreReadOnly();
 
 
-                foreach (TimedIEntityInstance instance in inferred.Where(it => it != null))
+                foreach (IEntityInstance instance in inferred.Where(it => it != null))
                 {
-                    if (!ctx.Env.IsReferenceOfType(instance.Instance))
+                    if (!ctx.Env.IsReferenceOfType(instance))
                         continue;
 
                     this.forcedLifetime = instance.Lifetime.AsAttached().Shorter(forcedLifetime);

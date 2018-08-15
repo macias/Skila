@@ -90,7 +90,7 @@ namespace Skila.Language
             List<int> argParamMapping,
             out bool success)
         {
-            if (this.DebugId== (40, 745))
+            if (this.DebugId == (40, 745))
             {
                 ;
             }
@@ -405,9 +405,7 @@ namespace Skila.Language
         private IEnumerable<IEntityInstance> inferTemplateArgumentsFromExpressions(ComputationContext ctx)
         {
             // regular inferrence
-            IReadOnlyList<IEntityInstance> inferred = InferTemplateArguments(ctx, this.TargetFunction)
-                .Select(it => it?.Instance)
-                .StoreReadOnlyList();
+            IReadOnlyList<IEntityInstance> inferred = InferTemplateArguments(ctx, this.TargetFunction).StoreReadOnlyList();
 
             for (int i = 0; i < this.TargetFunctionInstance.TargetTemplate.Name.Parameters.Count; ++i)
                 if (this.templateArguments[i].IsJoker)
@@ -416,7 +414,7 @@ namespace Skila.Language
                     yield return templateArguments[i];
         }
 
-        public IEnumerable<TimedIEntityInstance> InferTemplateArguments(ComputationContext ctx, TemplateDefinition template)
+        public IEnumerable<IEntityInstance> InferTemplateArguments(ComputationContext ctx, TemplateDefinition template)
         {
             if (this.DebugId == (40, 745))
             {
@@ -432,7 +430,7 @@ namespace Skila.Language
 
             IReadOnlyList<TemplateParameter> template_parameters = template.Name.Parameters;
 
-            var template_param_inference = new Dictionary<TemplateParameter, TimedIEntityInstance>();
+            var template_param_inference = new Dictionary<TemplateParameter, IEntityInstance>();
             for (int i = 0; i < template_parameters.Count; ++i)
                 template_param_inference.Add(template_parameters[i], null);
 
@@ -441,24 +439,22 @@ namespace Skila.Language
                 IEntityInstance function_param_type = cross_parameters
                     ? this.GetParamByArg(arg).Evaluation.Components : this.GetTransParamEvalByArg(arg);
 
-                IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> type_mapping
+                IEnumerable<Tuple<TemplateParameter, IEntityInstance>> type_mapping
                     = extractTypeParametersMapping(ctx, template,
                         arg.Evaluation.Aggregate.Lifetime, arg.Evaluation.Components,
                         function_param_type);
 
-                foreach (Tuple<TemplateParameter, TimedIEntityInstance> pair in type_mapping)
+                foreach (Tuple<TemplateParameter, IEntityInstance> pair in type_mapping)
                 {
                     if (template_param_inference[pair.Item1] == null)
                         template_param_inference[pair.Item1] = pair.Item2;
                     else
                     {
-                        if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1].Instance, pair.Item2.Instance,
+                        if (!TypeMatcher.LowestCommonAncestor(ctx, template_param_inference[pair.Item1], pair.Item2,
                             out IEntityInstance common))
                             throw new NotImplementedException();
 
-                        template_param_inference[pair.Item1] = TimedIEntityInstance.Create(
-                            template_param_inference[pair.Item1].Lifetime.Shorter(pair.Item2.Lifetime),
-                            common);
+                        template_param_inference[pair.Item1] = common;
                     }
 
                 }
@@ -512,7 +508,7 @@ namespace Skila.Language
             return result;
         }
 
-        private static IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> extractTypeParametersMapping(
+        private static IEnumerable<Tuple<TemplateParameter, IEntityInstance>> extractTypeParametersMapping(
             ComputationContext ctx,
             TemplateDefinition template,
             Lifetime argLifetime,
@@ -540,18 +536,17 @@ namespace Skila.Language
 
             var param_type_instance = paramType as EntityInstance;
             if (param_type_instance == null)
-                return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
+                return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
             // case when we have direct hit, function: def foo<T>(x T)
             // and we have argument (for example) Int against parameter "x T", thus we simply match them: T=Int
             if (param_type_instance.IsTemplateParameterOf(template))
-                return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter,
-                    TimedIEntityInstance.Create( argLifetime,argType)) };
+                return new[] { Tuple.Create(param_type_instance.TargetType.TemplateParameter, argType) };
             else
             {
                 var arg_type_instance = argType as EntityInstance;
                 if (arg_type_instance == null)
-                    return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
+                    return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
                 IEnumerable<EntityInstance> arg_family = arg_type_instance.Inheritance(ctx).OrderedAncestorsWithoutObject
                     .Concat(arg_type_instance);
@@ -559,7 +554,7 @@ namespace Skila.Language
                     .SingleOrDefault(it => it.TargetType == param_type_instance.TargetType);
 
                 if (arg_type_instance == null)
-                    return Enumerable.Empty<Tuple<TemplateParameter, TimedIEntityInstance>>();
+                    return Enumerable.Empty<Tuple<TemplateParameter, IEntityInstance>>();
 
                 var zipped = arg_type_instance.TemplateArguments.SyncZip(param_type_instance.TemplateArguments);
                 return zipped

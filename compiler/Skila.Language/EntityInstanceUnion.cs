@@ -15,7 +15,13 @@ namespace Skila.Language
     {
         public static IEntityInstance Create(IEnumerable<IEntityInstance> instances)
         {
-            return new EntityInstanceUnion(instances);
+            if (!instances.Any())
+                throw new ArgumentOutOfRangeException();
+
+            if (instances.Count() == 1)
+                return instances.Single();
+            else
+                return new EntityInstanceUnion(instances);
         }
 
         private EntityInstanceUnion(IEnumerable<IEntityInstance> instances) : base(instances)
@@ -109,16 +115,16 @@ namespace Skila.Language
                 return TypeMatch.No;
         }
 
-        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx,  IEntityInstance target, VarianceMode variance,
+        public override TypeMatch TemplateMatchesTarget(ComputationContext ctx, IEntityInstance target, VarianceMode variance,
             TypeMatching matching)
         {
             IEnumerable<TypeMatch> matches = this.elements.Select(it => it.TemplateMatchesTarget(ctx, target, variance, matching));
             if (matches.All(it => it == TypeMatch.Same))
                 return TypeMatch.Same;
 
-            IEnumerable<TypeMatch> substitutions = matches.Where(it => it==TypeMatch.Same || it == TypeMatch.Substitute)
+            IEnumerable<TypeMatch> substitutions = matches.Where(it => it == TypeMatch.Same || it == TypeMatch.Substitute)
                 .OrderByDescending(it => it.Distance);
-            if (substitutions.Count()==matches.Count())
+            if (substitutions.Count() == matches.Count())
                 return substitutions.First();
             else
                 return TypeMatch.No;

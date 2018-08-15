@@ -20,7 +20,7 @@ namespace Skila.Tests
         public static void Main()
         {
             {
-                //runQuickTests(new Semantics.Lifetimes());
+                runQuickTests(new Semantics.Lifetimes());
 
                 //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();

@@ -14,7 +14,13 @@ namespace Skila.Language
     {
         public static IEntityInstance Create(IEnumerable<IEntityInstance> instances)
         {
-            return new EntityInstanceIntersection(instances);
+            if (!instances.Any())
+                throw new ArgumentOutOfRangeException();
+
+            if (instances.Count() == 1)
+                return instances.Single();
+            else
+                return new EntityInstanceIntersection(instances);
         }
 
         private EntityInstanceIntersection(IEnumerable<IEntityInstance> instances) : base(instances)

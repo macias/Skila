@@ -25,6 +25,8 @@ namespace Skila.Language
         public INameReference NameOf { get; }
         public INameReference PureNameOf { get; }
 
+        public Lifetime Lifetime { get; }
+
         protected EntityInstanceSet(IEnumerable<IEntityInstance> instances)
         {
 #if DEBUG
@@ -36,8 +38,11 @@ namespace Skila.Language
             this.elements = instances.ToHashSet(EntityInstance.ComparerI);
             this.NameOf = NameReferenceUnion.Create(this.elements.Select(it => it.NameOf));
             this.PureNameOf = NameReferenceUnion.Create(this.elements.Select(it => it.PureNameOf));
-            if (!this.elements.Any())
-                throw new ArgumentException();
+            if (this.elements.Count<=1)
+                throw new ArgumentOutOfRangeException();
+
+            foreach (IEntityInstance elem in elements)
+                this.Lifetime = elem.Lifetime.Shorter(this.Lifetime);            
         }
 
         protected abstract bool hasSymmetricRelation(IEntityInstance other,
