@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Flow
+    public class Flow : ITest
     {
         [TestMethod]
         public IInterpreter ParallelOptionalDeclaration()
@@ -25,11 +25,11 @@ namespace Skila.Tests.Execution
                 }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
+                IExpression opt_declaration =  ExpressionFactory.OptionalDeclaration(new[] {
                         VariablePrototype.Create("x",NameFactory.Nat8NameReference()),
                         VariablePrototype.Create("y",NameFactory.Nat8NameReference()) }, new[] {
-                            ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("2")),
-                            ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("7")),
+                             ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("2")),
+                             ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("7")),
                         });
 
                 root_ns.AddBuilder(FunctionBuilder.Create("main",
@@ -37,9 +37,9 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         IfBranch.CreateIf(opt_declaration,
-                                Return.Create(ExpressionFactory.Add("x", "y")),
+                                Return.Create( ExpressionFactory.Add("x", "y")),
                             IfBranch.CreateElse(
-                                ExpressionFactory.GenericThrow()
+                                 ExpressionFactory.GenericThrow()
                                 ))
                     )));
 
@@ -77,15 +77,15 @@ namespace Skila.Tests.Execution
                 // return Some or None depending on the `f` parameter, and also increments the count of option evaluations
                 root_ns.AddBuilder(FunctionBuilder.Create("give", NameFactory.OptionNameReference(NameFactory.Nat8NameReference()),
                     Block.CreateStatement(
-                            ExpressionFactory.Inc(() => NameReference.Create("m", "c")),
-                            Return.Create(ExpressionFactory.Ternary(NameReference.Create("f"),
-                                ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("11")),
-                                ExpressionFactory.OptionEmpty(NameFactory.Nat8NameReference())))
+                             ExpressionFactory.Inc(() => NameReference.Create("m", "c")),
+                            Return.Create( ExpressionFactory.Ternary(NameReference.Create("f"),
+                                 ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("11")),
+                                 ExpressionFactory.OptionEmpty(NameFactory.Nat8NameReference())))
                         ))
                         .Parameters(FunctionParameter.Create("f", NameFactory.BoolNameReference()),
                         FunctionParameter.Create("m", NameFactory.ReferenceNameReference(NameReference.Create("Mutator")))));
 
-                IExpression opt_declaration = ExpressionFactory.OptionalDeclaration(new[] {
+                IExpression opt_declaration =  ExpressionFactory.OptionalDeclaration(new[] {
                         VariablePrototype.Create("x",NameFactory.Nat8NameReference()),
                         VariablePrototype.Create("y",NameFactory.Nat8NameReference()) }, new[] {
                             FunctionCall.Create("give",BoolLiteral.CreateFalse(),NameReference.Create("mut")),
@@ -96,17 +96,17 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("mut", null, ExpressionFactory.StackConstructor(NameReference.Create("Mutator"))),
+                        VariableDeclaration.CreateStatement("mut", null,  ExpressionFactory.StackConstructor(NameReference.Create("Mutator"))),
 
                         IfBranch.CreateIf(opt_declaration,
                             new[] {
-                            ExpressionFactory.Readout("x"),
-                            ExpressionFactory.Readout("y"),
-                            ExpressionFactory.GenericThrow(),
+                             ExpressionFactory.Readout("x"),
+                             ExpressionFactory.Readout("y"),
+                             ExpressionFactory.GenericThrow(),
                             },
                             IfBranch.CreateElse(
                                 // crucial check -- we should not evaluate the second option
-                                ExpressionFactory.AssertEqual(IntLiteral.Create("1"), NameReference.Create("mut", "c"))
+                                 ExpressionFactory.AssertEqual(IntLiteral.Create("1"), NameReference.Create("mut", "c"))
                                 )),
 
                         Return.Create(Nat8Literal.Create("0"))
@@ -144,25 +144,25 @@ namespace Skila.Tests.Execution
 
 
                         VariableDeclaration.CreateStatement("x", null,
-                            ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("3"))),
+                             ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("3"))),
                         VariableDeclaration.CreateStatement("z", null,
-                            ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("5"))),
+                             ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("5"))),
 
                         VariableDeclaration.CreateStatement("a", NameFactory.Nat8NameReference(), null, env.Options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement("b", NameFactory.Nat8NameReference(), null, env.Options.ReassignableModifier()),
 
-                        IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(
+                        IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(
                             new[] { NameReference.Create("a"), NameReference.Create("b") },
                             new[] { NameReference.Create("x"), NameReference.Create("z") }),
                             new[] {
                             // assign tracker should recognize the variable is initialized
-                        ExpressionFactory.IncBy("acc", NameReference.Create("a")),
+                         ExpressionFactory.IncBy("acc", NameReference.Create("a")),
                             },
                             // making else branch a dead one
-                            IfBranch.CreateElse(ExpressionFactory.GenericThrow())),
+                            IfBranch.CreateElse( ExpressionFactory.GenericThrow())),
 
                         // assign tracker should recognize the variable is initialized (because `else` branch of above `if` is dead)
-                        ExpressionFactory.IncBy("acc", NameReference.Create("b")),
+                         ExpressionFactory.IncBy("acc", NameReference.Create("b")),
 
                         Return.Create(NameReference.Create("acc"))
                     )));
@@ -190,7 +190,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    ExpressionFactory.GenericThrow()
+                     ExpressionFactory.GenericThrow()
                     })));
 
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(

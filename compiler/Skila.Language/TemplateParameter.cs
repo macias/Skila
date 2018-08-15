@@ -9,7 +9,7 @@ using Skila.Language.Tools;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateParameter : Node,IPrintable
+    public sealed class TemplateParameter : OwnedNode, IPrintable
     {
         public TypeDefinition AssociatedType { get; private set; }
         public EntityInstance InstanceOf { get; private set; }
@@ -22,7 +22,7 @@ namespace Skila.Language
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
-        public override IEnumerable<INode> OwnedNodes
+        public override IEnumerable<INode> ChildrenNodes
         {
             get
             {
@@ -52,9 +52,9 @@ namespace Skila.Language
             this.Constraint = constraint ?? TemplateConstraint.Create(NameReference.Create(this.Name), null, null, null, null);
 
             this.AssociatedType = TypeDefinition.CreateTypeParameter(this);
-            this.InstanceOf = AssociatedType.GetInstance(null,overrideMutability: TypeMutability.None, translation:null, lifetime: Lifetime.Timeless);
+            this.InstanceOf = AssociatedType.GetInstance(null, overrideMutability: TypeMutability.None, translation: null, lifetime: Lifetime.Timeless);
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override string ToString()

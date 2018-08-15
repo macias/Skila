@@ -13,7 +13,7 @@ namespace Skila.Tests.Semantics
     // test passes if it does not crash (anything else HERE is irrelevant)
 
     [TestClass]
-    public class CompilerProtection
+    public class CompilerProtection : ITest
     {
         [TestMethod]
         public IErrorReporter Environment()

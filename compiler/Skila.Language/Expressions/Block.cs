@@ -48,7 +48,7 @@ namespace Skila.Language.Expressions
             .Where(it => it != null)
             .Concat(this.instructions);
 
-        public override IEnumerable<INode> OwnedNodes => Instructions.Select(it => it.Cast<INode>());
+        public override IEnumerable<INode> ChildrenNodes => Instructions.Select(it => it.Cast<IOwnedNode>());
 
         private readonly Func<Block, ExpressionReadMode> readModeCalc;
 
@@ -65,7 +65,7 @@ namespace Skila.Language.Expressions
             this.instructions = body;
             this.readModeCalc = readModeCalc;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

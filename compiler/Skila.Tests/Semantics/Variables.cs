@@ -6,12 +6,11 @@ using Skila.Language.Flow;
 using Skila.Language.Builders;
 using Skila.Language.Semantics;
 using Skila.Language.Expressions.Literals;
-using Skila.Language.Comparers;
 
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Variables
+    public class Variables : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorIfScope()
@@ -44,7 +43,7 @@ namespace Skila.Tests.Semantics
 
                         // here x is not in the scope (is already removed)
                         Assignment.CreateStatement(NameReference.Create("b"), bad_ref),
-                        ExpressionFactory.Readout("b")
+                         ExpressionFactory.Readout("b")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -75,8 +74,8 @@ namespace Skila.Tests.Semantics
                                 Block.CreateStatement(
                                     empty_decl1,
                                     empty_decl2,
-                                    ExpressionFactory.Readout("empty1"),
-                                    ExpressionFactory.Readout("empty2")
+                                     ExpressionFactory.Readout("empty1"),
+                                     ExpressionFactory.Readout("empty2")
                                 )));
 
                 resolver = NameResolver.Create(env);
@@ -108,7 +107,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         // the declaration-expression is used, but the variable itself is not
                         // thus we report it as unused (in such code user should pass the init-value itself w/o creating variable)
-                        ExpressionFactory.Readout(decl)
+                         ExpressionFactory.Readout(decl)
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -138,7 +137,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("3")),
                     assignment,
-                    ExpressionFactory.Readout("x") })));
+                     ExpressionFactory.Readout("x") })));
 
 
                 resolver = NameResolver.Create(env);
@@ -245,7 +244,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     var_x,
                     var_y,
-                    ExpressionFactory.Readout("y")
+                     ExpressionFactory.Readout("y")
                     })));
 
                 resolver = NameResolver.Create(env);

@@ -12,7 +12,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class NameResolution
+    public class NameResolution : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorAccessNotGranted()
@@ -33,11 +33,11 @@ namespace Skila.Tests.Semantics
                     .SetModifier(EntityModifier.Mutable)
                     .With(FunctionBuilder.Create("friendly",
                         NameFactory.UnitNameReference(),
-                        Block.CreateStatement(ExpressionFactory.Readout(NameFactory.ThisVariableName, "x"))))
+                        Block.CreateStatement( ExpressionFactory.Readout(NameFactory.ThisVariableName, "x"))))
 
                         .With(FunctionBuilder.Create("foe",
                             NameFactory.UnitNameReference(),
-                            Block.CreateStatement(ExpressionFactory.Readout(forbidden_access))))
+                            Block.CreateStatement( ExpressionFactory.Readout(forbidden_access))))
 
                         .With(FunctionBuilder.Create("twin",
                             NameFactory.UnitNameReference(),
@@ -80,11 +80,11 @@ namespace Skila.Tests.Semantics
                     .With(FunctionBuilder.Create("getIt", ExpressionReadMode.OptionalUse, NameFactory.UnitNameReference(),
                         Block.CreateStatement(
                             VariableDeclaration.CreateStatement("x", NameReference.Create("Boo"), Int64Literal.Create("2")),
-                            ExpressionFactory.Readout("x"),
+                             ExpressionFactory.Readout("x"),
 
                             Alias.Create("Loc", NameFactory.Int64NameReference()),
                             VariableDeclaration.CreateStatement("y", NameReference.Create("Loc"), Int64Literal.Create("3")),
-                            ExpressionFactory.Readout("y")
+                             ExpressionFactory.Readout("y")
                         ))));
 
                 resolver = NameResolver.Create(env);
@@ -176,8 +176,8 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                         Block.CreateStatement(new IExpression[] {
-                        ExpressionFactory.Readout(x_ref),
-                        ExpressionFactory.Readout(y_ref),
+                         ExpressionFactory.Readout(x_ref),
+                         ExpressionFactory.Readout(y_ref),
                         FunctionCall.Create(foo_ref),
                         FunctionCall.Create(bar_ref),
                         }))));
@@ -209,7 +209,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                         Block.CreateStatement(new[] {
-                        ExpressionFactory.Readout(NameFactory.ThisVariableName,"x")
+                         ExpressionFactory.Readout(NameFactory.ThisVariableName,"x")
                         })))
                     .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), null,
                         EntityModifier.Private | env.Options.ReassignableModifier())));
@@ -221,7 +221,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor("Point")),
                     Assignment.CreateStatement(private_ref,Int64Literal.Create("5")),
                     })));
 
@@ -256,7 +256,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    ExpressionFactory.Readout(cross_reference),
+                     ExpressionFactory.Readout(cross_reference),
                     })))
                     .SetModifier(EntityModifier.Base));
 
@@ -290,10 +290,10 @@ namespace Skila.Tests.Semantics
                         // shadowing
                         VariableDeclaration.CreateStatement("x", null, BoolLiteral.CreateFalse()),
                         VariableDeclaration.CreateStatement("a",NameFactory.BoolNameReference(),NameReference.Create("x")),
-                        ExpressionFactory.Readout("a"),
+                         ExpressionFactory.Readout("a"),
                     }),
                     VariableDeclaration.CreateStatement("b",NameFactory.Int64NameReference(),NameReference.Create("x")),
-                    ExpressionFactory.Readout("b"),
+                     ExpressionFactory.Readout("b"),
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -325,7 +325,7 @@ namespace Skila.Tests.Semantics
                         // shadowing
                         decl,
                     }),
-                    ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("x"),
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -353,7 +353,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(new IExpression[] {
-                    ExpressionFactory.Readout( decl)
+                     ExpressionFactory.Readout( decl)
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -383,8 +383,8 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("a", NameFactory.Int64NameReference(), x_ref),
                     VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), Int64Literal.Create("1")),
-                    ExpressionFactory.Readout("a"),
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("a"),
+                     ExpressionFactory.Readout("x")
                     })));
 
                 resolver = NameResolver.Create(env);

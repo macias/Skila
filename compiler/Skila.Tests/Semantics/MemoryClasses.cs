@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class MemoryClasses
+    public class MemoryClasses : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorHeapTypeAsValue()
@@ -59,7 +59,7 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     decl,
-                    ExpressionFactory.Readout("bar")
+                     ExpressionFactory.Readout("bar")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -134,14 +134,14 @@ namespace Skila.Tests.Semantics
                         .Parameters(optional_param)));
 
                 VariableDeclaration value_decl = VariableDeclaration.CreateStatement("v", null,
-                    ExpressionFactory.StackConstructor("Hi", Int64Literal.Create("3")));
+                     ExpressionFactory.StackConstructor("Hi", Int64Literal.Create("3")));
 
                 root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         value_decl,
-                        ExpressionFactory.Readout("v")
+                         ExpressionFactory.Readout("v")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -181,7 +181,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.UnitNameReference(),
 
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("v", null, ExpressionFactory.StackConstructor("Hi")),
+                        VariableDeclaration.CreateStatement("v", null,  ExpressionFactory.StackConstructor("Hi")),
                         call
                     )));
 
@@ -216,7 +216,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
-                    ExpressionFactory.Readout("bar")
+                     ExpressionFactory.Readout("bar")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -250,7 +250,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     decl_src,
                     decl_dst,
-                    ExpressionFactory.Readout("bar")
+                     ExpressionFactory.Readout("bar")
                     })));
 
                 resolver = NameResolver.Create(env);

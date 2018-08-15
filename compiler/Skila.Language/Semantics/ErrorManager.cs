@@ -39,7 +39,7 @@ namespace Skila.Language.Semantics
         {
             return this.Errors.Any(it => it.Code == code);
         }
-        public bool HasNode(INode node)
+        public bool HasNode(IUniNode node)
         {
             return this.Errors.Any(it => it.Node == node);
         }*/

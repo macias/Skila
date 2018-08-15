@@ -18,12 +18,12 @@ namespace Skila.Language.Entities
         private Extension(NameDefinition name,
             IEnumerable<NameReference> includes) : base(EntityModifier.Static, name, constraints: null, includes: includes)
         {
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
         }
     }
 }

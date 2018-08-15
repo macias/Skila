@@ -41,6 +41,6 @@ namespace Skila.Language
         TypeMutability MutabilityOfType(ComputationContext ctx);
         TypeMutability SurfaceMutabilityOfType(ComputationContext ctx);
 
-        bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition);
+        bool ValidateTypeVariance(ComputationContext ctx, IOwnedNode placement, VarianceMode typeNamePosition);
     }
 }

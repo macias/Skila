@@ -8,8 +8,6 @@ namespace Skila.Language
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class EvaluationInfo
     {
-        public static readonly EvaluationInfo Joker = new EvaluationInfo(EntityInstance.Joker);
-
         public static EvaluationInfo Create(IEntityInstance components, EntityInstance merged)
         {
             return new EvaluationInfo(components, merged);
@@ -50,7 +48,7 @@ namespace Skila.Language
                 return c + " / " + a;
         }
 
-        internal EvaluationInfo PromotLifetime(ComputationContext ctx, INode node)
+        internal EvaluationInfo PromotLifetime(ComputationContext ctx, IOwnedNode node)
         {
             if (ctx.Env.IsPointerLikeOfType(this.Aggregate))
                 return this;

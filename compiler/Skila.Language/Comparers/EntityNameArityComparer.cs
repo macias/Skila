@@ -4,7 +4,7 @@ namespace Skila.Language.Comparers
 {
     public sealed class EntityNameArityComparer : IEqualityComparer<ITemplateName>
     {
-        public static IEqualityComparer<ITemplateName> Instance = new EntityNameArityComparer();
+        public static EntityNameArityComparer Instance = new EntityNameArityComparer();
 
         private EntityNameArityComparer()
         {
@@ -12,7 +12,7 @@ namespace Skila.Language.Comparers
         }
         public bool Equals(ITemplateName x, ITemplateName y)
         {
-            return EntityBareNameComparer.Instance.Equals(x,y) && x.Arity == y.Arity;
+            return x.Arity == y.Arity && EntityBareNameComparer.Instance.Equals(x,y) ;
         }
 
         public int GetHashCode(ITemplateName obj)

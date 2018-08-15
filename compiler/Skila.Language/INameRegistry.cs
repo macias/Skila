@@ -8,6 +8,7 @@ namespace Skila.Language
     public interface INameRegistry
     {
     }
+
     public interface ILayeredNameRegistry : INameRegistry
     {
         void AddLayer(IScope scope);
@@ -19,6 +20,7 @@ namespace Skila.Language
         Nullify,
         CreateNew
     }
+
     public static class INameRegistryExtension
     {
         public static void EnterNode<T>(INode node, ref T registry, Func< T> factory)

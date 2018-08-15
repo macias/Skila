@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Library
+    public class Library : ITest
     {
         [TestMethod]
         public IInterpreter RealDividingByZeroWithoutNaNs()
@@ -30,7 +30,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(5.0)),
                         VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(0.0)),
-                        ExpressionFactory.Readout(ExpressionFactory.Divide("a", "b")),
+                         ExpressionFactory.Readout( ExpressionFactory.Divide("a", "b")),
                         Return.Create(Nat8Literal.Create("2"))
                     )));
 
@@ -63,7 +63,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null, Real64Literal.Create(double.NaN)),
                         VariableDeclaration.CreateStatement("b", null, Real64Literal.Create(double.NaN)),
-                        Return.Create(ExpressionFactory.Ternary(ExpressionFactory.IsEqual("a", "b"),
+                        Return.Create( ExpressionFactory.Ternary( ExpressionFactory.IsEqual("a", "b"),
                             Nat8Literal.Create("15"), Nat8Literal.Create("2")))
                     )));
 
@@ -90,7 +90,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.NatNameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("d",null,ExpressionFactory.StackConstructor(NameFactory.DateNameReference(),
+                    VariableDeclaration.CreateStatement("d",null, ExpressionFactory.StackConstructor(NameFactory.DateNameReference(),
                         // it is Friday
                         Int16Literal.Create("2017"),Nat8Literal.Create("12"),Nat8Literal.Create("29"))),
                     VariableDeclaration.CreateStatement("i",null,
@@ -123,7 +123,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,StringLiteral.Create("2")),
-                    VariableDeclaration.CreateStatement("i",NameFactory.Int64NameReference(),ExpressionFactory.GetOptionValue(
+                    VariableDeclaration.CreateStatement("i",NameFactory.Int64NameReference(), ExpressionFactory.GetOptionValue(
                         FunctionCall.Create(NameReference.Create( NameFactory.Int64NameReference(),NameFactory.ParseFunctionName),
                             NameReference.Create("s"))
                         )),

@@ -10,7 +10,8 @@ namespace Skila.Language
         [DebuggerDisplay("{GetType().Name} {ToString()}")]
         private sealed class ParameterType
         {
-            internal static ParameterType Create(FunctionParameter param,
+            internal static ParameterType Create(ComputationContext ctx,
+                FunctionParameter param,
                 IEntityInstance objectInstance,
                 EntityInstance targetFunctionInstance)
             {
@@ -19,6 +20,10 @@ namespace Skila.Language
 
                 IEntityInstance type_instance = translateFunctionElement(param.TypeName.Evaluation.Components,
                     objectInstance, targetFunctionInstance);
+
+                Lifetime param_lifetime = param.Evaluation.Aggregate.Lifetime;
+                elem_instance = elem_instance.Rebuild(ctx, param_lifetime, deep: false);
+                type_instance = type_instance.Rebuild(ctx, param_lifetime, deep: false);
 
                 return new ParameterType(elementTypeInstance: elem_instance, typeInstance: type_instance);
             }

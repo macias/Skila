@@ -11,6 +11,10 @@ namespace Skila.Language.Builders
         {
             return new TemplateParametersBuffer(VarianceMode.None, names);
         }
+        public static TemplateParametersBuffer Create(IEnumerable<string> names)
+        {
+            return new TemplateParametersBuffer(VarianceMode.None, names);
+        }
         public static TemplateParametersBuffer Create(VarianceMode mode, params string[] names)
         {
             return new TemplateParametersBuffer(mode, names);

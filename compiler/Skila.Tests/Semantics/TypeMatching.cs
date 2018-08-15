@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class TypeMatchingTest
+    public class TypeMatchingTest : ITest
     {
         [TestMethod]
         public IErrorReporter DuckTypingOnEmptyInterface()
@@ -37,9 +37,9 @@ namespace Skila.Tests.Semantics
                         VariableDeclaration.CreateStatement("x", NameFactory.PointerNameReference(NameFactory.IObjectNameReference()), Undef.Create()),
                         // should be legal despite duck typing, i.e. we should not error that the types are exchangable
                         // they are in sense of duck typing but checking if the type IS another type should be duck-free
-                        ExpressionFactory.Readout(IsType.Create(NameReference.Create("x"), NameReference.Create("IWhat"))),
+                         ExpressionFactory.Readout(IsType.Create(NameReference.Create("x"), NameReference.Create("IWhat"))),
                         VariableDeclaration.CreateStatement("y", NameFactory.PointerNameReference(NameReference.Create("IWhat")), Undef.Create()),
-                        ExpressionFactory.Readout(IsSame.Create(NameReference.Create("x"), NameReference.Create("y")))
+                         ExpressionFactory.Readout(IsSame.Create(NameReference.Create("x"), NameReference.Create("y")))
                 )));
 
 
@@ -113,7 +113,7 @@ namespace Skila.Tests.Semantics
                 NameReferenceIntersection intersection = NameReferenceIntersection.Create(
                     NameFactory.PointerNameReference(NameReference.Create("IGetNeg")),
                     NameFactory.PointerNameReference(NameReference.Create("IGetPos")));
-                IExpression init_value = ExpressionFactory.HeapConstructor("GetAll");
+                IExpression init_value =  ExpressionFactory.HeapConstructor("GetAll");
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo",
                     ExpressionReadMode.CannotBeRead,
@@ -121,7 +121,7 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, init_value),
-                    ExpressionFactory.Readout("a")
+                     ExpressionFactory.Readout("a")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -167,7 +167,7 @@ namespace Skila.Tests.Semantics
                         initValue: Undef.Create()),
                     VariableDeclaration.CreateStatement("b", NameReference.Create("Bar"),
                         initValue: NameReference.Create("f")),
-                    ExpressionFactory.Readout("b")
+                     ExpressionFactory.Readout("b")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -202,7 +202,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(FunctionBuilder.Create("more", "G", VarianceMode.None,
                     NameFactory.UnitNameReference(),
                     Block.CreateStatement(
-                    ExpressionFactory.Readout(is_type_ref)
+                     ExpressionFactory.Readout(is_type_ref)
                     ))
                     .Parameters(FunctionParameter.Create("u", NameFactory.ReferenceNameReference(
                         NameFactory.ISequenceNameReference("G", mutability: TypeMutability.ReadOnly)))));
@@ -314,7 +314,7 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     decl,
-                    ExpressionFactory.Readout("foo")
+                     ExpressionFactory.Readout("foo")
                     })));
 
                 resolver = NameResolver.Create(env);

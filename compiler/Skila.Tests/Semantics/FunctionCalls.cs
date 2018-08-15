@@ -12,7 +12,7 @@ using Skila.Language.Comparers;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class FunctionCalls
+    public class FunctionCalls : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorRegularFunctionWithSpreadCall()
@@ -40,7 +40,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Return.Create(call)
@@ -82,7 +82,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Return.Create(call)
@@ -122,7 +122,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Return.Create(call)
@@ -154,7 +154,7 @@ namespace Skila.Tests.Semantics
                     .With(base_constructor));
 
                 // without pinning down the target constructor with "base" it is not available
-                FunctionCall base_call = ExpressionFactory.ThisInit(FunctionArgument.Create(Int64Literal.Create("3")));
+                FunctionCall base_call =  ExpressionFactory.ThisInit(FunctionArgument.Create(Int64Literal.Create("3")));
                 FunctionDefinition next_constructor = FunctionDefinition.CreateInitConstructor(EntityModifier.None, null,
                     Block.CreateStatement(),
                     base_call);
@@ -265,7 +265,7 @@ namespace Skila.Tests.Semantics
                     NameReference.Create("Foo"),
                     Block.CreateStatement(new IExpression[] {
                     // just playing with declaration-expression
-                    ExpressionFactory.Readout(VariableDeclaration.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
+                     ExpressionFactory.Readout(VariableDeclaration.CreateExpression("result", NameReference.Create("Foo"),initValue: Undef.Create())),
                     Return.Create(NameReference.Create("result"))
                     }));
 
@@ -312,7 +312,7 @@ namespace Skila.Tests.Semantics
                         initValue: Undef.Create()),
                     VariableDeclaration.CreateStatement("x", NameFactory.BoolNameReference(),
                         call),
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("x")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -793,7 +793,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                         call),
                     // _ = x
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("x")
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -837,8 +837,8 @@ namespace Skila.Tests.Semantics
                         NameReference.Create("Foo", NameFactory.Int64NameReference()), initValue: Undef.Create()),
                     VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                         call),
-                    ExpressionFactory.Readout("f"),
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("f"),
+                     ExpressionFactory.Readout("x")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -951,7 +951,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("x", NameFactory.RealNameReference(),
                         call),
                     // _ = x
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("x")
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -992,7 +992,7 @@ namespace Skila.Tests.Semantics
                     // fooer = foo
                     VariableDeclaration.CreateStatement("fooer", null, function_reference),
                     // _ = fooer
-                    ExpressionFactory.Readout("fooer")
+                     ExpressionFactory.Readout("fooer")
                 })));
 
                 resolver = NameResolver.Create(env);

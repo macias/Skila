@@ -2,7 +2,7 @@
 
 namespace Skila.Language.Expressions
 {
-    public interface IFunctionArgumentsProvider : INode
+    public interface IFunctionArgumentsProvider : IOwnedNode
     {
         IReadOnlyList<FunctionArgument> UserArguments { get; }
         INameReference RequestedOutcomeTypeName { get; }

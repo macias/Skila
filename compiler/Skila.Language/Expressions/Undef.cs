@@ -15,14 +15,14 @@ namespace Skila.Language.Expressions
             return new Undef();
         }
 
-        public override IEnumerable<INode> OwnedNodes => Enumerable.Empty<INode>();
+        public override IEnumerable<INode> ChildrenNodes => Enumerable.Empty<INode>();
 
         // todo: change that mode, undef should only be used on variable initialization
         private Undef() : base(ExpressionReadMode.ReadRequired)
         {
-            this.Evaluation = EvaluationInfo.Joker;
+            this.Evaluation = Environment.JokerEval;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

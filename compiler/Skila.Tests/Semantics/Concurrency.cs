@@ -9,7 +9,7 @@ using Skila.Language.Semantics;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Concurrency
+    public class Concurrency : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorSpawningMutables()
@@ -39,7 +39,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("r",null,ExpressionFactory.HeapConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("r",null, ExpressionFactory.HeapConstructor(NameReference.Create("Point"))),
                     Spawn.Create(FunctionCall.Create(mutable_method,mutable_arg)),
                     Return.Create(NameReference.Create("r","x"))
                     })));

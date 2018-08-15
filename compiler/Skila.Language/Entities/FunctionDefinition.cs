@@ -109,7 +109,7 @@ namespace Skila.Language.Entities
         public bool IsMemberUsed { get; private set; }
         public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
 
-        public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
+        public override IEnumerable<INode> ChildrenNodes => base.ChildrenNodes
             .Concat(this.Label)
             .Concat(this.Parameters)// parameters have to go before user body, so they are registered for use
             .Concat(this.MetaThisParameter)
@@ -162,7 +162,7 @@ namespace Skila.Language.Entities
             if (this.IsLambdaInvoker)
                 this.LambdaTrap = new LambdaTrap();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
             this.constructionCompleted = true;
@@ -209,7 +209,7 @@ namespace Skila.Language.Entities
                     if (!TypeMatcher.LowestCommonAncestor(ctx, common, candidate, out common))
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
-                        setResultParameter(EntityInstance.Joker.NameOf);
+                        setResultParameter(Environment.JokerInstance.NameOf);
                         return;
                     }
                 }
@@ -222,7 +222,7 @@ namespace Skila.Language.Entities
                     if (match != TypeMatch.Same && match != TypeMatch.Substitute)
                     {
                         ctx.AddError(ErrorCode.CannotInferResultType, this);
-                        setResultParameter(EntityInstance.Joker.NameOf);
+                        setResultParameter(Environment.JokerInstance.NameOf);
                         return;
                     }
                 }
@@ -232,7 +232,7 @@ namespace Skila.Language.Entities
         }
 
 
-        public override bool AttachTo(INode parent)
+        public override bool AttachTo(IOwnedNode parent)
         {
             // IMPORTANT: when function is attached to a type, the type is NOT fully constructed!
 
@@ -403,7 +403,12 @@ namespace Skila.Language.Entities
 
         public override void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            if (this.DebugId== (10, 114))
+            {
+                ;
+            }
+
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))
                 this.CallMode = ExpressionReadMode.OptionalUse;
@@ -411,16 +416,19 @@ namespace Skila.Language.Entities
 
         internal void SetModifier(EntityModifier modifier)
         {
-            this.Modifier.DetachFrom(this);
             this.Modifier = modifier;
-            this.Modifier.AttachTo(this);
         }
 
         public void CustomEvaluate(ComputationContext ctx)
         {
+            if (this.DebugId == (10, 114))
+            {
+                ;
+            }
+
             // in case of function evaluate, move body of the function as last element
             // otherwise we couldn't evaluate recursive calls
-            this.OwnedNodes.Where(it => this.UserBody != it).ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
+            this.ChildrenNodes.Where(it => this.UserBody != it).ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
             this.Evaluate(ctx);
             this.UserBody?.Evaluated(ctx, EvaluationCall.Nested);
 

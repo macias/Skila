@@ -122,7 +122,7 @@ namespace Skila.Language.Extensions
             TypeDefinition closure_type = buildTypeOfLambda(ctx, lambda, lambda.LambdaTrap.Fields);
             node.AddClosure(closure_type);
 
-            source = ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf,
+            source =  ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf,
                 lambda.LambdaTrap.Fields.Select(it => FunctionArgument.Create(NameReference.Create(it.Name.Name))).ToArray());
             source.AttachTo(node);
 
@@ -167,10 +167,10 @@ namespace Skila.Language.Extensions
                 node.AddClosure(closure_type);
 
                 if (this_obj != null)
-                    source = ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf,
+                    source =  ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf,
                         FunctionArgument.Create(name_ref.Prefix));
                 else
-                    source = ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf);
+                    source =  ExpressionFactory.HeapConstructor(closure_type.InstanceOf.NameOf);
                 source.AttachTo(node);
 
                 closure_type.Surfed(ctx);

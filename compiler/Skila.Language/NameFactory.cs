@@ -486,6 +486,10 @@ namespace Skila.Language
         {
             return NameReference.Create(mutability, SystemNamespaceReference(), NameFactory.OptionTypeName, name);
         }
+        public static NameReference OptionNameReference(LifetimeScope lifetimeScope, INameReference name, TypeMutability mutability = TypeMutability.None)
+        {
+            return NameReference.Create(mutability, SystemNamespaceReference(),lifetimeScope, NameFactory.OptionTypeName, name);
+        }
         public static NameReference ExceptionNameReference()
         {
             return NameReference.Create(SystemNamespaceReference(), NameFactory.ExceptionTypeName);

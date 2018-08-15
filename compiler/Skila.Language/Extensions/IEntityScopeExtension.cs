@@ -26,16 +26,16 @@ namespace Skila.Language.Extensions
         }
         public static IEnumerable<IEntity> NestedEntities(this IEntityScope scope)
         {
-            return scope.OwnedNodes.WhereType<IEntity>();
+            return scope.ChildrenNodes.WhereType<IEntity>();
         }
 
         public static IEnumerable<EntityInstance> NestedEntityInstances(this IEntityScope scope)
         {
-            return scope.OwnedNodes.WhereType<IEntity>().Select(it => it.InstanceOf);
+            return scope.ChildrenNodes.WhereType<IEntity>().Select(it => it.InstanceOf);
         }
         public static IEnumerable<IEntity> NestedMembers(this IEntityScope scope)
         {
-            return scope.OwnedNodes.WhereType<IMember>();
+            return scope.ChildrenNodes.WhereType<IMember>();
         }
 
         public static IEnumerable<EntityInstance> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
@@ -55,7 +55,7 @@ namespace Skila.Language.Extensions
             NameReference name, EntityFindMode findMode)
         {
             var available = new HashSet<EntityInstance>(EntityInstance.Comparer);
-            INode ns = name;
+            IOwnedNode ns = name;
             while (true)
             {
                 ns = ns.EnclosingScope<Namespace>();
@@ -131,8 +131,8 @@ namespace Skila.Language.Extensions
                 foreach (TypeDefinition trait in scopeInstance.AvailableTraits(ctx))
                 {
                     IEnumerable<EntityInstance> trait_entities = trait.AvailableEntities
-                        .Select(it => it.TranslateThroughTraitHost(trait: trait))
-                        .Where(it => !it.Target.IsAnyConstructor());
+                        .Where(it => !it.Target.IsAnyConstructor())
+                        .Select(it => it.TranslateThroughTraitHost(trait: trait));
 
                     entities = entities.Concat(trait_entities);
                 }

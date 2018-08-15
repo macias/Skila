@@ -2,7 +2,10 @@
 {
     public struct BindingMatch
     {
-        public static BindingMatch Joker => new BindingMatch(EntityInstance.Joker, isLocal: false);
+        public static BindingMatch Joker()
+        {
+            return new BindingMatch(Environment.JokerInstance, isLocal: false);
+        }
 
         public EntityInstance Instance { get; }
         // used for tracking variable initializations 

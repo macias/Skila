@@ -12,11 +12,11 @@ namespace Skila.Interpreter
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class VariableRegistry : ILayeredNameRegistry
     {
-        private readonly ILayerDictionary<INode, ObjectData> bag;
+        private readonly ILayerDictionary<IOwnedNode, ObjectData> bag;
 
         public VariableRegistry(bool shadowing)
         {
-            this.bag = LayerDictionary.Create<INode, ObjectData>(shadowing, ReferenceEqualityComparer<INode>.Instance);
+            this.bag = LayerDictionary.Create<IOwnedNode, ObjectData>(shadowing, ReferenceEqualityComparer<IOwnedNode>.Instance);
         }
 
         public void AddLayer(IScope scope)
@@ -25,12 +25,12 @@ namespace Skila.Interpreter
                 this.bag.PushLayer();
         }
 
-        internal IEnumerable<Tuple<INode, ObjectData>> RemoveLayer()
+        internal IEnumerable<Tuple<IOwnedNode, ObjectData>> RemoveLayer()
         {
             return this.bag.PopLayer();
         }
 
-        internal bool Add(INode bindable, ObjectData value)
+        internal bool Add(IOwnedNode bindable, ObjectData value)
         {
             bool result = this.bag.Add(bindable, value);
             return result;

@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class FunctionDefinitions
+    public class FunctionDefinitions : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorInvalidMainResultType()
@@ -102,7 +102,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new IExpression[] {
                     // f = () => x
                     VariableDeclaration.CreateStatement("f",null,lambda),
-                    ExpressionFactory.Readout("f")
+                     ExpressionFactory.Readout("f")
                     })));
 
 

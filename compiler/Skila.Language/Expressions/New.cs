@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
@@ -29,12 +30,14 @@ namespace Skila.Language.Expressions
         private readonly Memory allocMemory;
         private readonly TypeMutability allocMutability;
         private NameReference allocTypeName;
+        private Lifetime forcedLifetime;
+
         public bool IsHeapInitialization => this.allocMemory == Memory.Heap;
 
         public IEnumerable<IExpression> Instructions => new IExpression[] { tempDeclaration, InitConstructorCall }
             .Concat(objectInitialization).Concat(outcome);
 
-        public override IEnumerable<INode> OwnedNodes => this.Instructions;
+        public override IEnumerable<INode> ChildrenNodes => this.Instructions;
 
         private New(string tempName, NameReference allocTypeName,
             Memory allocMemory,
@@ -52,7 +55,7 @@ namespace Skila.Language.Expressions
             this.objectInitialization = objectInitialization.StoreReadOnly();
             this.outcome = outcome;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         private Alloc createAlloc()
@@ -79,14 +82,14 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId ==  (21, 98))
+            if (this.DebugId == (21, 98))
             {
                 ;
             }
             if (this.Evaluation == null)
             {
-                if (this.InitConstructorCall.Resolution?.AttachmentLifetime != null) 
-                    this.Evaluation = this.outcome.Evaluation.PromoteLifetime(ctx, this.InitConstructorCall.Resolution?.AttachmentLifetime);
+                if (this.forcedLifetime != null)
+                    this.Evaluation = this.outcome.Evaluation.PromoteLifetime(ctx, this.forcedLifetime);
                 else
                     this.Evaluation = this.outcome.Evaluation.PromotLifetime(ctx, this);
             }
@@ -102,36 +105,31 @@ namespace Skila.Language.Expressions
             this.tempDeclaration.Evaluated(ctx, EvaluationCall.Nested);
             this.InitConstructorCall.Evaluated(ctx, EvaluationCall.Nested);
 
-            if (this.tempDeclaration.Evaluation.Aggregate.TargetType.Name.Parameters.Any() && this.InitConstructorCall.UserArguments.Any())
+            if (this.tempDeclaration.Evaluation.Aggregate.TargetType.Name.Parameters.Any()
+                && this.InitConstructorCall.UserArguments.Any())
             {
-                /* IEnumerable<TimedIEntityInstance> inferred = this.InitConstructorCall.Resolution
-                   .InferTemplateArguments(ctx, this.tempDeclaration.Evaluation.Aggregate.TargetType).StoreReadOnly();
+                if (this.DebugId == (21, 98))
+                {
+                    ;
+                }
 
-                 if (inferred.All(it => it != null))
-                 {
-                     foreach (var pair in inferred.SyncZip(this.tempDeclaration.Evaluation.Aggregate.TimedTemplateArguments))
-                     {
-                         pair.Item2.SetLifetime(ctx,pair.Item1.Lifetime);
-                     }
-                     foreach (var pair in inferred.SyncZip(this.tempDeclaration.Evaluation.Components.Cast<EntityInstance>().TimedTemplateArguments))
-                     {
-                         pair.Item2.SetLifetime(ctx, pair.Item1.Lifetime);
-                     }
-                     */
+                IEnumerable<TimedIEntityInstance> inferred = this.InitConstructorCall.Resolution
+                  .InferTemplateArguments(ctx, this.tempDeclaration.Evaluation.Aggregate.TargetType).StoreReadOnly();
 
-                /*this.allocTypeName = this.allocTypeName.Recreate(inferred.SyncZip(this.allocTypeName.TemplateArguments)
-                    .Select(it => new TemplateArgument(TypeIReference.Create(it.Item1.Lifetime, it.Item2.TypeName.Name))),
-                        this.allocTypeName.Binding.Match.Instance, this.allocTypeName.Binding.Match.IsLocal);
 
-                ctx.EvalLocalNames?.RemoveLast(this.tempDeclaration);
-                this.tempDeclaration.ReplaceInitValue(createAlloc());
-                this.tempDeclaration.Evaluated(ctx, EvaluationCall.Nested);*/
-                //}
+                foreach (TimedIEntityInstance instance in inferred.Where(it => it != null))
+                {
+                    if (!ctx.Env.IsReferenceOfType(instance.Instance))
+                        continue;
+
+                    this.forcedLifetime = instance.Lifetime.AsAttached().Shorter(forcedLifetime);
+                }
             }
 
-            // evaluate arguments first so we get lifetimes of them
-            //this.InitConstructorCall.UserArguments.ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
-            this.OwnedNodes.ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
+            if (this.InitConstructorCall.Resolution?.AttachmentLifetime != null)
+                forcedLifetime = this.InitConstructorCall.Resolution.AttachmentLifetime.Shorter(forcedLifetime);
+
+            this.ChildrenNodes.ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));
 
             this.Evaluate(ctx);
 

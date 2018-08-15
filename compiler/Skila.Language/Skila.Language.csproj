@@ -63,7 +63,7 @@
     <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />
-    <Compile Include="Comparers\EntityInstanceCoreComparer.cs" />
+    <Compile Include="Comparers\EntityInstanceArgumentsComparer.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Data\Layer.cs" />
     <Compile Include="Data\Tree.cs" />
@@ -88,13 +88,16 @@
     <Compile Include="Expressions\IsSame.cs" />
     <Compile Include="Expressions\Literals\CharLiteral.cs" />
     <Compile Include="Expressions\Literals\Utf8StringLiteral.cs" />
+    <Compile Include="Extensions\TypeBuilderExtension.cs" />
     <Compile Include="Extensions\IEntityExtension.cs" />
     <Compile Include="Extensions\EvaluationCall.cs" />
     <Compile Include="Extensions\INameReferenceExtension.cs" />
     <Compile Include="Extensions\IRestrictedMemberExtension.cs" />
+    <Compile Include="IOwnedNode.cs" />
     <Compile Include="ITimedIEntityInstance.cs" />
     <Compile Include="EntityInstance.RuntimeCore.cs" />
     <Compile Include="LifetimeScope.cs" />
+    <Compile Include="OwnedNode.cs" />
     <Compile Include="TimedIEntityInstance.cs" />
     <Compile Include="IComputable.cs" />
     <Compile Include="ICustomComputable.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Printout\ICode.cs" />
     <Compile Include="Printout\CodeSpan.cs" />
     <Compile Include="Tools\ConsolePrinter.cs" />
+    <Compile Include="Tools\NullableDictionary.cs" />
     <Compile Include="Tools\Printer.cs" />
     <Compile Include="Tools\IPrinter.cs" />
     <Compile Include="Tools\Later.cs" />

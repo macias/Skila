@@ -20,7 +20,7 @@ namespace Skila.Language.Expressions
 
         public IExpression Expr { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Expr, typename }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new IOwnedNode[] { Expr, typename }.Where(it => it != null);
 
         private INameReference typename;
 
@@ -29,7 +29,7 @@ namespace Skila.Language.Expressions
         {
             this.Expr = expr;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

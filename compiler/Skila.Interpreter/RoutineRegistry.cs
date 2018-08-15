@@ -19,7 +19,7 @@ namespace Skila.Interpreter
             this.errors = new List<Exception>();
         }
 
-        public void CompleteWith(Task mainTask)
+        public async Task CompleteWithAsync(Task mainTask)
         {
             Task[] tt;
             lock (this.threadLock)
@@ -27,13 +27,15 @@ namespace Skila.Interpreter
 
             try
             {
-                Task.WaitAll(tt);
+                await Task.WhenAll(tt).ConfigureAwait(false);
             }
             catch (AggregateException ex)
             {
-                ex.Handle(x => {
+                ex.Handle(x =>
+                {
                     Console.WriteLine(x.StackTrace);
-                    return false; });
+                    return false;
+                });
                 throw;
             }
             lock (this.threadLock)

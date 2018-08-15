@@ -9,7 +9,7 @@ namespace Skila.Language.Printout
     public sealed class CodeSpan : ICodeLine
     {
         private readonly List<ICode> codes;
-        private readonly INode node;
+        private readonly IOwnedNode node;
 
         public CodeSpan(params ICode[] codes)
         {
@@ -23,7 +23,7 @@ namespace Skila.Language.Printout
         public CodeSpan(IPrintable expr) : this(expr.Printout())
         {
         }
-        public CodeSpan(INode node, IPrintable expr) : this(expr.Printout())
+        public CodeSpan(IOwnedNode node, IPrintable expr) : this(expr.Printout())
         {
             this.node = node;
         }

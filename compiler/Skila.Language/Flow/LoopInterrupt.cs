@@ -15,7 +15,7 @@ namespace Skila.Language.Flow
     /// break, continue
     /// </summary>
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class LoopInterrupt : Node, IExpression, IFlowJump, ILoopInterrupt
+    public sealed class LoopInterrupt : OwnedNode, IExpression, IFlowJump, ILoopInterrupt
     {
         public static LoopInterrupt CreateBreak(string label = null)
         {
@@ -37,7 +37,7 @@ namespace Skila.Language.Flow
         public int DereferencingCount { get; set; }
         public int DereferencedCount_LEGACY { get; set; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Label }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { Label }.Where(it => it != null);
         public ExecutionFlow Flow => ExecutionFlow.Empty;
         public ExpressionReadMode ReadMode => ExpressionReadMode.CannotBeRead;
         public bool IsBreak { get; }
@@ -47,7 +47,7 @@ namespace Skila.Language.Flow
             this.IsBreak = isBreak;
             this.Label = label;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

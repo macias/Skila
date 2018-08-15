@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class ObjectInitialization
+    public class ObjectInitialization : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorCustomGetterWithInitialization()

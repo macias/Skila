@@ -24,7 +24,7 @@ namespace Skila.Language.Entities
 
         public bool IsMemberUsed { get; private set; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Replacement, Modifier }
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { Replacement, Modifier }
             .Where(it => it != null);
 
         public override ExecutionFlow Flow => ExecutionFlow.Empty;
@@ -44,7 +44,7 @@ namespace Skila.Language.Entities
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
                 translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {
@@ -55,7 +55,7 @@ namespace Skila.Language.Entities
         {
             return new CodeSpan(Name).Append(" = ").Append(this.Replacement);
         }
-        public override bool AttachTo(INode owner)
+        public override bool AttachTo(IOwnedNode owner)
         {
             if (!base.AttachTo(owner))
                 return false;

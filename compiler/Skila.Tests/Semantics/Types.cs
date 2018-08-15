@@ -12,7 +12,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Types
+    public class Types : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorSelfTypeUsage()
@@ -60,7 +60,7 @@ namespace Skila.Tests.Semantics
                     NameDefinition.Create(NameFactory.TupleTypeName,
                     TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
                     .SetModifier(EntityModifier.Mutable)
-                    .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
+                    .With( ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
                         new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
                     .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(),
                         env.Options.ReassignableModifier() | EntityModifier.Public))
@@ -119,13 +119,13 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
                     .With(FunctionBuilder.Create("reader", NameFactory.UnitNameReference(),
-                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                        Block.CreateStatement( ExpressionFactory.Readout(NameReference.CreateThised("s")))))
                     .With(VariableDeclaration.CreateStatement("s", NameFactory.PointerNameReference(NameReference.Create("Form")),
                     Undef.Create(), EntityModifier.Private)));
 
                 root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
                     .With(FunctionBuilder.Create("reader", NameFactory.UnitNameReference(),
-                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                        Block.CreateStatement( ExpressionFactory.Readout(NameReference.CreateThised("f")))))
                     .With(VariableDeclaration.CreateStatement("f", NameFactory.PointerNameReference(NameReference.Create("Shape")),
                     Undef.Create(), EntityModifier.Private)));
 
@@ -149,13 +149,13 @@ namespace Skila.Tests.Semantics
                 VariableDeclaration decl1 = VariableDeclaration.CreateStatement("s", NameReference.Create("Form"), null, EntityModifier.Private);
                 root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Shape"))
                     .With(FunctionBuilder.Create("reader", NameFactory.UnitNameReference(),
-                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("s")))))
+                        Block.CreateStatement( ExpressionFactory.Readout(NameReference.CreateThised("s")))))
                     .With(decl1));
 
                 VariableDeclaration decl2 = VariableDeclaration.CreateStatement("f", NameReference.Create("Shape"), null, EntityModifier.Private);
                 root_ns.AddBuilder(TypeBuilder.Create(NameDefinition.Create("Form"))
                     .With(FunctionBuilder.Create("reader", NameFactory.UnitNameReference(),
-                        Block.CreateStatement(ExpressionFactory.Readout(NameReference.CreateThised("f")))))
+                        Block.CreateStatement( ExpressionFactory.Readout(NameReference.CreateThised("f")))))
                     .With(decl2));
 
                 resolver = NameResolver.Create(env);

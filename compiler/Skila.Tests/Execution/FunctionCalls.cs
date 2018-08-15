@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class FunctionCalls
+    public class FunctionCalls : ITest
     {
         [TestMethod]
         public IInterpreter StoringSequenceAsSequence()
@@ -32,14 +32,14 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
-                    ExpressionFactory.InitializeIndexable("x",Int64Literal.Create("-6"),Int64Literal.Create("8")),
+                     ExpressionFactory.InitializeIndexable("x",Int64Literal.Create("-6"),Int64Literal.Create("8")),
                     // conversion should NOT happen
                     VariableDeclaration.CreateStatement("stored",null,
                         FunctionCall.Create( NameFactory.StoreFunctionReference(),NameReference.Create("x"))),
-                    Return.Create(ExpressionFactory.Ternary(IsSame.Create("x","stored"),Nat8Literal.Create("2"),Nat8Literal.Create("7")))
+                    Return.Create( ExpressionFactory.Ternary(IsSame.Create("x","stored"),Nat8Literal.Create("2"),Nat8Literal.Create("7")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -63,7 +63,7 @@ namespace Skila.Tests.Execution
                 root_ns.AddBuilder(FunctionBuilder.Create("provider", NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("x", null,
-                            ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                             ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                                 FunctionArgument.Create(NatLiteral.Create("2")))),
                         Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("x"), FunctionArgument.Create(NatLiteral.Create("0"))),
                             Int64Literal.Create("-6")),
@@ -84,7 +84,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(),
                         FunctionCall.Create(NameReference.Create("provider")), isNameRequired: false)));
@@ -127,7 +127,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
@@ -170,7 +170,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(2), null, isNameRequired: false)));
 
@@ -213,7 +213,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(), null, isNameRequired: false)));
 
@@ -256,7 +256,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(2, 11), null, isNameRequired: false)));
 
@@ -266,7 +266,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
@@ -311,7 +311,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(2), null, isNameRequired: false)));
 
@@ -321,7 +321,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
@@ -362,7 +362,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("i1",null,FunctionCall.Create(NameReference.Create("n",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(NatLiteral.Create("1")))),
                     // return i0+i1
-                    Return.Create(ExpressionFactory.Add("i0","i1"))
+                    Return.Create( ExpressionFactory.Add("i0","i1"))
                     }))
                     .Parameters(FunctionParameter.Create("n", NameFactory.Int64NameReference(), Variadic.Create(), null, isNameRequired: false)));
 
@@ -372,7 +372,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
@@ -401,8 +401,8 @@ namespace Skila.Tests.Execution
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
-                IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
+                IExpression i_eq_2 =  ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
+                IExpression i_add_1 =  ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
                 FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Int64NameReference(),
                     Block.CreateStatement(new[] {
                     // if i==2 then return i
@@ -442,8 +442,8 @@ namespace Skila.Tests.Execution
                 var env = Environment.Create(new Options() { AllowInvalidMainResult = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression i_eq_2 = ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
-                IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
+                IExpression i_eq_2 =  ExpressionFactory.IsEqual(NameReference.Create("i"), Int64Literal.Create("2"));
+                IExpression i_add_1 =  ExpressionFactory.Add(NameReference.Create("i"), Int64Literal.Create("1"));
                 root_ns.AddBuilder(FunctionBuilder.Create("foo",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
@@ -528,7 +528,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("u",NameFactory.UnitNameReference(),
                         FunctionCall.Create(NameReference.Create("getMe"))),
-                    ExpressionFactory.Readout("u"),
+                     ExpressionFactory.Readout("u"),
                     Return.Create(Int64Literal.Create("2"))
                     })));
 
@@ -570,7 +570,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("p","pass")))
                     })));
 
@@ -643,7 +643,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("z",null,Int64Literal.Create("0")),
                     VariableDeclaration.CreateStatement("t",null,FunctionCall.Create( NameReference.Create("last"))),
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("z"),NameReference.Create("t")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("z"),NameReference.Create("t")))
                     })));
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",

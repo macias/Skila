@@ -12,7 +12,7 @@ namespace Skila.Language.Extensions
         }
 
 
-        public static void ValidateHeapTypeName(this INameReference typeName, ComputationContext ctx, INode errorNode = null)
+        public static void ValidateHeapTypeName(this INameReference typeName, ComputationContext ctx, IOwnedNode errorNode = null)
         {
             if (typeName.Evaluation.Components.EnumerateAll()
                 .Where(it => !ctx.Env.IsPointerOfType(it) && !ctx.Env.IsReferenceOfType(it))

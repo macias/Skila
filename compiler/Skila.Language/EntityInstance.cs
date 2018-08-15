@@ -23,24 +23,25 @@ namespace Skila.Language
             = EqualityComparer.Create<EntityInstance>((a, b) => a.IsIdentical(b), x => x.GetHashCode());
         public static IEqualityComparer<IEntityInstance> ComparerI { get; }
             = EqualityComparer.Create<IEntityInstance>((a, b) => a.IsIdentical(b), x => x.GetHashCode());
+        public static IEqualityComparer<EntityInstance> CoreComparer { get; }
+            = EqualityComparer.Create<EntityInstance>((a, b) => a.HasSameCore(b), x => x.core.GetHashCode());
 
-        public static EntityInstance CreateUnregistered(IEntity target, IEnumerable<IEntityInstance> arguments,
+        internal static EntityInstance CreateUnregistered(RuntimeCore core, IEntity target, IEnumerable<IEntityInstance> arguments,
             TemplateTranslation translation,
             TypeMutability overrideMutability,
             Lifetime lifetime)
         {
-            var instance = new EntityInstance(target, arguments, translation, overrideMutability, lifetime);
+            var instance = new EntityInstance(core, target, arguments, translation, overrideMutability, lifetime);
 
             return instance;
         }
 
+
 #if DEBUG
         public DebugId DebugId { get; } = new DebugId(typeof(EntityInstance));
 #endif
-        public static readonly EntityInstance Joker = TypeDefinition.Joker.GetInstance(null, overrideMutability: TypeMutability.None,
-                translation: TemplateTranslation.Empty, lifetime: Lifetime.Timeless);
 
-        public bool IsJoker => this.Target == TypeDefinition.Joker;
+        public bool IsJoker => this.Target == Environment.JokerType;
 
         // currently modifier only applies to types mutable/immutable and works as notification
         // that despite the type is immutable we would like to treat is as mutable
@@ -83,9 +84,10 @@ namespace Skila.Language
         private readonly Later<NameReference> pureNameOf;
         public NameReference NameOf => this.nameOf.Value;
         public NameReference PureNameOf => this.pureNameOf.Value;
-        private RuntimeCore core { get; set; }
 
-        private EntityInstance(IEntity target, IEnumerable<IEntityInstance> arguments,
+        private readonly RuntimeCore core;
+
+        private EntityInstance(RuntimeCore core, IEntity target, IEnumerable<IEntityInstance> arguments,
             TemplateTranslation translation, TypeMutability overrideMutability,
             Lifetime lifetime)
         {
@@ -108,6 +110,7 @@ namespace Skila.Language
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");
 
+            this.core = core;
             arguments = arguments ?? Enumerable.Empty<IEntityInstance>();
             this.Target = target;
             this.TemplateArguments = arguments.StoreReadOnlyList();
@@ -117,13 +120,13 @@ namespace Skila.Language
 
             this.OverrideMutability = overrideMutability;
 
-            this.nameOf = new Later<NameReference>(() => NameReference.Create(
-                OverrideMutability,
-                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                target: this, isLocal: false));
-            this.pureNameOf = new Later<NameReference>(() => NameReference.Create(
-                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                target: this, isLocal: false));
+             this.nameOf = new Later<NameReference>(() => NameReference.Create(
+                 OverrideMutability,
+                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                 target: this, isLocal: false));
+             this.pureNameOf = new Later<NameReference>(() => NameReference.Create(
+                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                 target: this, isLocal: false));
         }
 
         internal void AddDuckVirtualTable(ComputationContext ctx, EntityInstance target, VirtualTable vtable)
@@ -133,12 +136,6 @@ namespace Skila.Language
         public bool TryGetDuckVirtualTable(EntityInstance target, out VirtualTable vtable)
         {
             return this.core.TryGetDuckVirtualTable(target, out vtable);
-        }
-
-        internal EntityInstance SetCore(RuntimeCore core)
-        {
-            this.core = core;
-            return this;
         }
 
         public override string ToString()
@@ -178,7 +175,7 @@ namespace Skila.Language
 
                 this.Evaluation = eval.TranslateThrough(this);
                 if (this.Evaluation.IsJoker)
-                    this.Aggregate = EntityInstance.Joker;
+                    this.Aggregate = Environment.JokerInstance;
                 else
                 {
                     EntityInstance aggregate = this.Target.Evaluation.Aggregate;
@@ -273,7 +270,7 @@ namespace Skila.Language
 
         public bool HasSameCore(EntityInstance other)
         {
-            return Object.ReferenceEquals(this.core, other.core);
+            return this.core.Equals(other.core);
         }
 
         public bool IsIdentical(IEntityInstance other)
@@ -454,9 +451,8 @@ namespace Skila.Language
             if (mutability == this.OverrideMutability)
                 return this;
             else
-                // since we change only non-core parameters we can go ehead and create sibling directly
-                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, this.Translation, mutability, this.Lifetime)
-                     .SetCore(this.core);
+                return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, this.Lifetime);
+
         }
 
         public EntityInstance Build(TypeMutability mutability, Lifetime lifetime)
@@ -467,9 +463,7 @@ namespace Skila.Language
             if (mutability == this.OverrideMutability && this.Lifetime == lifetime)
                 return this;
             else
-                // since we change only non-core parameters we can go ehead and create sibling directly
-                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, this.Translation, mutability, lifetime)
-                    .SetCore(this.core);
+                return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, lifetime);
         }
 
         public EntityInstance Build(Lifetime lifetime)
@@ -477,10 +471,7 @@ namespace Skila.Language
             if (this.Lifetime == lifetime)
                 return this;
             else
-                // since we change only non-core parameters we can go ehead and create sibling directly
-                return EntityInstance.CreateUnregistered(this.Target, this.TemplateArguments, 
-                    this.Translation, this.OverrideMutability, lifetime)
-                    .SetCore(this.core);
+                return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability, this.Translation, lifetime);
         }
 
         internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, TypeMutability overrideMutability)
@@ -488,7 +479,7 @@ namespace Skila.Language
             TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
 
             return this.Target.GetInstance(templateArguments, overrideMutability,
-                TemplateTranslation.Combine(this.Translation, trans_arg), lifetime: Lifetime.Timeless);
+                TemplateTranslation.Combine(this.Translation, trans_arg), this.Lifetime);
         }
         internal EntityInstance Build(IEnumerable<TemplateArgument> templateArguments, TypeMutability overrideMutability)
         {
@@ -519,7 +510,7 @@ namespace Skila.Language
             return this.surfaceTypeMutabilityCache.Value;
         }
 
-        public bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition)
+        public bool ValidateTypeVariance(ComputationContext ctx, IOwnedNode placement, VarianceMode typeNamePosition)
         {
             // Programming in Scala, 2nd ed, p. 399 (all errors are mine)
 

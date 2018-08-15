@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Templates
+    public class Templates : ITest
     {
         [TestMethod]
         public IInterpreter ResolvingGenericArgumentInRuntime()
@@ -35,14 +35,14 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("acc", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
-                        VariableDeclaration.CreateStatement("i", null, ExpressionFactory.HeapConstructor(NameFactory.IntNameReference(), IntLiteral.Create("7"))),
-                        VariableDeclaration.CreateStatement("d", null, ExpressionFactory.HeapConstructor(NameFactory.RealNameReference(), RealLiteral.Create("3.3"))),
+                        VariableDeclaration.CreateStatement("i", null,  ExpressionFactory.HeapConstructor(NameFactory.IntNameReference(), IntLiteral.Create("7"))),
+                        VariableDeclaration.CreateStatement("d", null,  ExpressionFactory.HeapConstructor(NameFactory.RealNameReference(), RealLiteral.Create("3.3"))),
                         IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntNameReference()),
                             NameReference.Create("i")),
-                            new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("2")) }),
+                            new[] {  ExpressionFactory.IncBy("acc", Nat8Literal.Create("2")) }),
                         IfBranch.CreateIf(FunctionCall.Create(NameReference.Create("oracle", NameFactory.IntNameReference()),
                             NameReference.Create("d")),
-                            new[] { ExpressionFactory.IncBy("acc", Nat8Literal.Create("88")) }),
+                            new[] {  ExpressionFactory.IncBy("acc", Nat8Literal.Create("88")) }),
                         Return.Create(NameReference.Create("acc"))
                     )));
 
@@ -89,9 +89,9 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(
                         // just plain host, no trait is used
                         VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference(NameFactory.IObjectNameReference()),
-                            ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
                         // we should have fail-test here
-                        Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
+                        Return.Create( ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
                             Int64Literal.Create("99"), Int64Literal.Create("2")))
                     )));
 
@@ -142,8 +142,8 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference(NameFactory.IObjectNameReference()),
-                            ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
-                        Return.Create(ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
+                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                        Return.Create( ExpressionFactory.Ternary(IsType.Create(NameReference.Create("g"), NameReference.Create("ISay")),
                             Int64Literal.Create("2"), Int64Literal.Create("88")))
                     )));
 
@@ -195,7 +195,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(
                         // crucial point, we store our object as interface *ISay
                         VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference("ISay"),
-                            ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                             ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
                         // we call method "say" implemented in trait
                         Return.Create(FunctionCall.Create(NameReference.Create("g", "say")))
                     )));
@@ -247,8 +247,8 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("g", null,
-                            ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
-                        VariableDeclaration.CreateStatement("y", null, ExpressionFactory.StackConstructor("Say")),
+                             ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("Say")))),
+                        VariableDeclaration.CreateStatement("y", null,  ExpressionFactory.StackConstructor("Say")),
                         Return.Create(FunctionCall.Create(NameReference.Create("g", "hello"), NameReference.Create("y")))
                     )));
 
@@ -295,7 +295,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("y",null, ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(call)
                     })));
 
@@ -346,7 +346,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y",null,ExpressionFactory.StackConstructor(NameReference.Create("Y"))),
+                    VariableDeclaration.CreateStatement("y",null, ExpressionFactory.StackConstructor(NameReference.Create("Y"))),
                     Return.Create(call)
                     })));
 

@@ -10,7 +10,7 @@ using Skila.Interpreter;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class NameResolution
+    public class NameResolution : ITest
     {
         [TestMethod]
         public IInterpreter GenericTypeAliasing()
@@ -29,7 +29,7 @@ namespace Skila.Tests.Execution
                     env.Options.ReassignableModifier());
                 root_ns.AddBuilder(FunctionBuilder.Create("main", NameFactory.Nat8NameReference(), Block.CreateStatement(
                         VariableDeclaration.CreateStatement("p", null,
-                            ExpressionFactory.StackConstructor(NameReference.Create("Point", NameFactory.Nat8NameReference()))),
+                             ExpressionFactory.StackConstructor(NameReference.Create("Point", NameFactory.Nat8NameReference()))),
                         decl,
                         Assignment.CreateStatement(NameReference.Create("x"), Nat8Literal.Create("5")),
                         Return.Create(NameReference.Create("x"))

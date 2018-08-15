@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Io
+    public class Io : ITest
     {
         private const string randomTextFilePath = "Data/random_text.utf8.txt";
 
@@ -29,10 +29,10 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
-                        ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
+                         ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestProgramPath),
                             NameReference.Create(NameFactory.CommandLineProgramPath)),
 
-                        ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestArgument),
+                         ExpressionFactory.AssertEqual(StringLiteral.Create(Interpreter.Interpreter.CommandLineTestArgument),
                             FunctionCall.Create(NameReference.Create(NameFactory.CommandLineArguments, NameFactory.AtFunctionName),
                                 NatLiteral.Create("0"))),
 
@@ -98,7 +98,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("lines", null,
-                            ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileNameReference(), NameFactory.FileReadLines),
+                             ExpressionFactory.GetOptionValue(FunctionCall.Create(NameReference.Create(NameFactory.FileNameReference(), NameFactory.FileReadLines),
                                 StringLiteral.Create(randomTextFilePath)))),
                         // first line is "It was" (without quotes)
                         VariableDeclaration.CreateStatement("first", null,

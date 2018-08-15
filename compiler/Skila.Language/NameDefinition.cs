@@ -11,7 +11,7 @@ using Skila.Language.Printout;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameDefinition : Node, ITemplateName, ITemplateParameters,IPrintable
+    public sealed class NameDefinition : OwnedNode, ITemplateName, ITemplateParameters,IPrintable
     {
         public static NameDefinition Create(string name, IEnumerable<TemplateParameter> parameters)
         {
@@ -30,7 +30,7 @@ namespace Skila.Language
         public IReadOnlyList<TemplateParameter> Parameters { get; }
         public int Arity => this.Parameters.Count;
 
-        public override IEnumerable<INode> OwnedNodes => this.Parameters;
+        public override IEnumerable<INode> ChildrenNodes => this.Parameters;
 
         private NameDefinition(string name, IEnumerable<TemplateParameter> parameters)
             : base()
@@ -41,7 +41,7 @@ namespace Skila.Language
             this.Name = name;
             this.Parameters = parameters.StoreReadOnlyList();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class ObjectInitialization
+    public class ObjectInitialization : ITest
     {
         [TestMethod]
         public IInterpreter InitializingWithCustomSetter()
@@ -29,7 +29,7 @@ namespace Skila.Tests.Execution
                             env.Options.ReassignableModifier() ))
                         .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))
                         .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.Create("f"),
-                            ExpressionFactory.Mul(NameFactory.PropertySetterValueReference(), Nat8Literal.Create("2")))))));
+                             ExpressionFactory.Mul(NameFactory.PropertySetterValueReference(), Nat8Literal.Create("2")))))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
@@ -111,7 +111,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Return.Create(NameReference.Create(NameReference.Create("p"),"x"))
                     })));
 

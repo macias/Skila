@@ -13,7 +13,7 @@ using Skila.Language.Extensions;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Lifetimes
+    public class Lifetimes : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorEscapingReferenceWithAttachmentObject()
@@ -34,7 +34,7 @@ namespace Skila.Tests.Semantics
                         .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
 
                 Assignment assign = Assignment.CreateStatement(NameReference.Create("attach"),
-                                ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))).Cast<Assignment>();
+                                 ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"))).Cast<Assignment>();
 
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
@@ -51,7 +51,7 @@ namespace Skila.Tests.Semantics
                             // please note this `Keeper` instance is attached to `i`
                             // (triggered by conversion reference->pointer in constructor), so it cannot outlive it
                             assign,
-                            ExpressionFactory.Readout("attach")
+                             ExpressionFactory.Readout("attach")
                             )
                     )));
 
@@ -82,8 +82,8 @@ namespace Skila.Tests.Semantics
                         ))
                         .Parameters(FunctionParameter.Create("in_value", NameFactory.PointerNameReference(NameFactory.IntNameReference())))));
 
-                IExpression stack_init_value = ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"));
-                IExpression heap_init_value = ExpressionFactory.HeapConstructor("Keeper", NameReference.Create("i"));
+                IExpression stack_init_value =  ExpressionFactory.StackConstructor("Keeper", NameReference.Create("i"));
+                IExpression heap_init_value =  ExpressionFactory.HeapConstructor("Keeper", NameReference.Create("i"));
 
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,
@@ -94,11 +94,11 @@ namespace Skila.Tests.Semantics
                             IntLiteral.Create("0"), EntityModifier.Reassignable),
                          // this is incorrect, because we are creating attachment object as value, dropping the lifetime
                          VariableDeclaration.CreateStatement("attach1", NameReference.Create("Keeper"), stack_init_value),
-                         ExpressionFactory.Readout("attach1"),
+                          ExpressionFactory.Readout("attach1"),
                          // this is incorrect, because we are creating attachment object as global instance, dropping the lifetime
                          VariableDeclaration.CreateStatement("attach2", NameFactory.PointerNameReference(NameReference.Create("Keeper")),
                               heap_init_value),
-                         ExpressionFactory.Readout("attach2")
+                          ExpressionFactory.Readout("attach2")
                     )));
 
 
@@ -138,13 +138,13 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
                             IntLiteral.Create("0"), EntityModifier.Reassignable),
-                        VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
+                        VariableDeclaration.CreateStatement("h", null,  ExpressionFactory.HeapConstructor("Keeper")),
                         Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("s", null, ExpressionFactory.StackConstructor("Keeper")),
+                            VariableDeclaration.CreateStatement("s", null,  ExpressionFactory.StackConstructor("Keeper")),
                             Assignment.CreateStatement(NameReference.Create("i"), heap_get_ref),
                             Assignment.CreateStatement(NameReference.Create("i"), stack_get_ref)
                             ),
-                        ExpressionFactory.Readout("i")
+                         ExpressionFactory.Readout("i")
                     )));
 
 
@@ -179,13 +179,13 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("i", NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
                             IntLiteral.Create("0"), EntityModifier.Reassignable),
-                        VariableDeclaration.CreateStatement("h", null, ExpressionFactory.HeapConstructor("Keeper")),
+                        VariableDeclaration.CreateStatement("h", null,  ExpressionFactory.HeapConstructor("Keeper")),
                         Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("s", null, ExpressionFactory.StackConstructor("Keeper")),
+                            VariableDeclaration.CreateStatement("s", null,  ExpressionFactory.StackConstructor("Keeper")),
                             Assignment.CreateStatement(NameReference.Create("i"), heap_field_ref),
                             Assignment.CreateStatement(NameReference.Create("i"), stack_field_ref)
                             ),
-                        ExpressionFactory.Readout("i")
+                         ExpressionFactory.Readout("i")
                     )));
 
 
@@ -213,7 +213,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.ReferenceNameReference(NameFactory.IntNameReference()),
 
                     Block.CreateStatement(
-                        ExpressionFactory.Readout("b"),
+                         ExpressionFactory.Readout("b"),
                         Return.Create(NameReference.Create("a"))
                     ))
                     .Parameters(
@@ -235,7 +235,7 @@ namespace Skila.Tests.Semantics
                             // so it cannot be assigned to outer-scope variable
                             Assignment.CreateStatement(NameReference.Create("h"), call)
                             ),
-                        ExpressionFactory.Readout("h")
+                         ExpressionFactory.Readout("h")
                     )));
 
 
@@ -294,7 +294,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("h", null, IntLiteral.Create("3")),
                         VariableDeclaration.CreateStatement("o", null,
-                            ExpressionFactory.StackConstructor(
+                             ExpressionFactory.StackConstructor(
                                 NameFactory.OptionNameReference(NameFactory.ReferenceNameReference(NameFactory.IntNameReference())),
                             NameReference.Create("h"))),
                         // error, we would effectively escape with reference to local variable
@@ -328,7 +328,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.ReferenceNameReference("Hi"),
 
                     Block.CreateStatement(
-                        VariableDeclaration.CreateStatement("h", null, ExpressionFactory.StackConstructor("Hi")),
+                        VariableDeclaration.CreateStatement("h", null,  ExpressionFactory.StackConstructor("Hi")),
                         // invalid, we cannot return reference to local variable
                         ret
                     )));
@@ -367,7 +367,7 @@ namespace Skila.Tests.Semantics
                             // escaping assignment, once we exit the scope we lose the source of the reference --> error
                             assignment
                             ),
-                        ExpressionFactory.Readout("x")
+                         ExpressionFactory.Readout("x")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -435,7 +435,7 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     decl2,
-                    ExpressionFactory.Readout("bar")
+                     ExpressionFactory.Readout("bar")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -471,7 +471,7 @@ namespace Skila.Tests.Semantics
                             // escaping assignment, once we exit the scope we lose the source of the reference --> error
                             assignment
                             ),
-                        ExpressionFactory.Readout("x")
+                         ExpressionFactory.Readout("x")
                     ));
 
                 root_ns.AddNode(func);
@@ -497,7 +497,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Hi")
                     .With(FunctionBuilder.Create("give", NameFactory.UnitNameReference(), Block.CreateStatement())));
 
-                Return ret = Return.Create(ExpressionFactory.StackConstructor("Hi"));
+                Return ret = Return.Create( ExpressionFactory.StackConstructor("Hi"));
 
                 FunctionDefinition func = root_ns.AddBuilder(FunctionBuilder.Create("notimportant",
                     ExpressionReadMode.OptionalUse,

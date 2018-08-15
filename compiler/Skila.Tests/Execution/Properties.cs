@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Properties
+    public class Properties : ITest
     {
         [TestMethod]
         public IInterpreter OverridingMethodWithIndexerGetter()
@@ -50,7 +50,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",NameFactory.PointerNameReference("IProvider"),
-                        ExpressionFactory.HeapConstructor("Last")),
+                         ExpressionFactory.HeapConstructor("Last")),
                     Return.Create(FunctionCall.Create(NameReference.Create("p",NameFactory.PropertyIndexerName),
                         FunctionArgument.Create(Int64Literal.Create("18"))))
                     })));
@@ -97,7 +97,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("p",NameFactory.PointerNameReference("IProvider"),
-                        ExpressionFactory.HeapConstructor("Last")),
+                         ExpressionFactory.HeapConstructor("Last")),
                     Return.Create(FunctionCall.Create( NameReference.Create("p","getMe")))
                     })));
 
@@ -129,13 +129,13 @@ namespace Skila.Tests.Execution
                         new[] { VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), Int64Literal.Create("1"),
                             env.Options.ReassignableModifier()) },
                         new[] { Property.CreateIndexerGetter(property_typename, property_parameters,
-                        Block.CreateStatement(IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),Int64Literal.Create("17")),new[]{
+                        Block.CreateStatement(IfBranch.CreateIf( ExpressionFactory.IsEqual(NameReference.Create("idx"),Int64Literal.Create("17")),new[]{
                             Return.Create(NameReference.CreateThised("x"))
                             },IfBranch.CreateElse(new[]{
                                 Return.Create(Int64Literal.Create("300"))
                             })))) },
                         new[] { Property.CreateIndexerSetter(property_typename, property_parameters,
-                        Block.CreateStatement(IfBranch.CreateIf(ExpressionFactory.IsEqual(NameReference.Create("idx"),Int64Literal.Create("17")),new[]{
+                        Block.CreateStatement(IfBranch.CreateIf( ExpressionFactory.IsEqual(NameReference.Create("idx"),Int64Literal.Create("17")),new[]{
                             Assignment.CreateStatement(NameReference.CreateThised("x"),
                                 NameReference.Create(NameFactory.PropertySetterValueParameter))
                             }))) }
@@ -147,7 +147,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     // p[17] = 1+p[17]
                     Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("p"),
                         FunctionArgument.Create(Int64Literal.Create("17"))),
@@ -192,7 +192,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     // p.x = 1+p.x
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
                      FunctionCall.Create(NameReference.Create( Int64Literal.Create("1"), NameFactory.AddOperator),
@@ -223,7 +223,7 @@ namespace Skila.Tests.Execution
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
                         new[] { Property.CreateAutoField(NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
-                        ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),  Nat8Literal.Create("1")),
+                         ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),  Nat8Literal.Create("1")),
                             env.Options.ReassignableModifier()) },
                         new[] { Property.CreateAutoGetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) },
                         new[] { Property.CreateAutoSetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) }
@@ -234,10 +234,10 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // p = Point() // p.x is initialized with 1
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     // p.x = 1+p.x
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
-                    ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),
+                     ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),
                      FunctionCall.Create(NameReference.Create( Nat8Literal.Create("1"), NameFactory.AddOperator),
                      FunctionArgument.Create(NameReference.Create("p","x"))))),
                     // return p.x

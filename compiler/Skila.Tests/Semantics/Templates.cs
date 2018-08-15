@@ -12,7 +12,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Templates
+    public class Templates : ITest
     {   
         [TestMethod]
         public IErrorReporter ErrorDisabledProtocols()
@@ -70,14 +70,14 @@ namespace Skila.Tests.Semantics
                             Return.Create(Int64Literal.Create("2"))
                         )).SetModifier(EntityModifier.Override)));
 
-                IExpression init_value = ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")));
+                IExpression init_value =  ExpressionFactory.HeapConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")));
                 root_ns.AddBuilder(FunctionBuilder.Create("major",
                     ExpressionReadMode.OptionalUse,
                     NameFactory.UnitNameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("g", NameFactory.PointerNameReference("ISay"),
                             init_value),
-                        ExpressionFactory.Readout("g")
+                         ExpressionFactory.Readout("g")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -124,7 +124,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("g", null,
-                            ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
+                             ExpressionFactory.StackConstructor(NameReference.Create("Greeter", NameReference.Create("NoSay")))),
                         Return.Create(ext_call)
                     )));
 
@@ -385,10 +385,10 @@ namespace Skila.Tests.Semantics
                             VariableDeclaration.CreateStatement("i",
                                 NameFactory.ReferenceNameReference(NameReference.Create(proxy_typename, NameReference.Create(child_elemtype))),
                                 FunctionCall.Create(NameReference.CreateThised("provide"))),
-                            ExpressionFactory.Readout("i"),
+                             ExpressionFactory.Readout("i"),
 
                             assignment,
-                            ExpressionFactory.Readout("e")
+                             ExpressionFactory.Readout("e")
                             ))));
 
                 resolver = NameResolver.Create(env);
@@ -613,7 +613,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("y_man",null,ExpressionFactory.HeapConstructor(NameReference.Create("YMan"))),
+                    VariableDeclaration.CreateStatement("y_man",null, ExpressionFactory.HeapConstructor(NameReference.Create("YMan"))),
                     Return.Create(call)
                     })));
 

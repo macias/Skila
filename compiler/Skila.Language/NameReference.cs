@@ -13,7 +13,7 @@ using Skila.Language.Printout;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class NameReference : Node, ITemplateName, IExpression, INameReference
+    public sealed class NameReference : OwnedNode, ITemplateName, IExpression, INameReference
     {
         public static NameReference CreateThised(params string[] parts)
         {
@@ -77,6 +77,13 @@ namespace Skila.Language
                 name, arguments.Select(it => new TemplateArgument(it)),
                 ExpressionReadMode.ReadRequired, isRoot: false);
         }
+        public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, LifetimeScope lifetimeScope, string name,
+            params INameReference[] arguments)
+        {
+            return new NameReference(overrideMutability, prefix, BrowseMode.None, lifetimeScope,
+                name, arguments.Select(it => new TemplateArgument(it)),
+                ExpressionReadMode.ReadRequired, isRoot: false);
+        }
         public static NameReference Create(TypeMutability overrideMutability, IExpression prefix, string name)
         {
             return new NameReference(overrideMutability, prefix, BrowseMode.None, null,
@@ -128,7 +135,7 @@ namespace Skila.Language
         public EvaluationInfo Evaluation { get; private set; }
         public ValidationData Validation { get; set; }
 
-        public override IEnumerable<INode> OwnedNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
+        public override IEnumerable<INode> ChildrenNodes => this.TemplateArguments.Select(it => it.Cast<INode>())
             .Concat(this.Prefix).Where(it => it != null);
         private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
@@ -179,7 +186,7 @@ namespace Skila.Language
             this.TemplateArguments = (templateArguments ?? Enumerable.Empty<TemplateArgument>()).StoreReadOnlyList();
             this.Binding = new Binding();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Prefix));
         }
@@ -217,7 +224,7 @@ namespace Skila.Language
 
         public void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             compute(ctx);
         }
@@ -364,135 +371,146 @@ namespace Skila.Language
             {
                 ;
             }
+
             if (this.IsRoot)
-            {
                 return new[] { new BindingMatch(ctx.Env.Root.InstanceOf, isLocal: false) };
-            }
             else if (this.Prefix == null)
+                return rawComputeBindingNoPrefix(ctx,ref notFoundErrorCode);
+            else
+                return rawComputeBindingWithPrefix(ctx, ref notFoundErrorCode);
+        }
+
+        private IEnumerable<BindingMatch> rawComputeBindingWithPrefix(ComputationContext ctx,
+            // we pass error code because in some case we will be able to give more precise reason for error
+            ref ErrorCode notFoundErrorCode)
+        {
+            EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
+
+            if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
             {
-                if (this.Name == NameFactory.RecurFunctionName)
-                {
-                    return new[] { new BindingMatch(this.EnclosingScope<FunctionDefinition>().InstanceOf, isLocal: false) };
-                }
-                else if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
-                {
-                    TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { new BindingMatch(enclosing_type.InstanceOf.Build(this.OverrideMutability), isLocal: false) };
-                }
-                else if (this.Name == NameFactory.BaseVariableName)
-                {
-                    TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
-                    return new[] { new BindingMatch(curr_type.Inheritance.GetTypeImplementationParent(), isLocal: false) };
-                }
-                else if (this.IsSuperReference)
-                {
-                    FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
-                    func = func.TryGetSuperFunction(ctx);
-                    if (func == null)
-                        return Enumerable.Empty<BindingMatch>();
-                    else
-                        return new[] { new BindingMatch(func.InstanceOf, isLocal: false) };
-                }
-                else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
-                {
-                    FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
-                    FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
+                return new[] { new BindingMatch(prefix_instance, isLocal: false) };
+            }
 
-                    bool is_local = true;
-                    if (local_function != entity_function
-                        // we often share nodes, like parameters in setter/getter, so this check is needed to exclude
-                        // such "legal" cases
-                        && local_function.EnclosingScopesToRoot().Contains(entity_function))
-                    {
-                        entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
-                        is_local = false;
-                    }
+            EntityFindMode find_mode = this.isPropertyIndexerCallReference
+                ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
 
-                    return new[] { new BindingMatch(entity.InstanceOf, isLocal: is_local) };
+            // referencing static member?
+            if (this.Prefix is NameReference prefix_ref
+                // todo: make it nice, currently refering to base look like static reference
+                && prefix_ref.Name != NameFactory.BaseVariableName
+                && prefix_ref.Binding.Match.Instance.Target.IsTypeContainer())
+            {
+                EntityInstance target_instance = prefix_ref.Binding.Match.Instance;
+                IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this, find_mode);
+
+                if (entities.Any())
+                    notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
+
+                if (target_instance.Target is TypeDefinition typedef)
+                    entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
+
+                return entities
+                    .Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
+            }
+            else
+            {
+                IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
+
+                if (!entities.Any())
+                    entities = prefix_instance.FindExtensions(ctx, this, find_mode);
+
+                {
+                    IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
+                    // we need to get value evaluation to perform translation
+                    ctx.Env.Dereference(prefix_eval, out prefix_eval);
+                    entities = entities.Select(it => it.TranslateThrough(prefix_eval));
                 }
+
+                if (entities.Any())
+                    notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
+
+                return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
+            }
+        }
+
+        private IEnumerable<BindingMatch> rawComputeBindingNoPrefix(ComputationContext ctx,
+            // we pass error code because in some case we will be able to give more precise reason for error
+            ref ErrorCode notFoundErrorCode)
+        {
+            if (this.Name == NameFactory.RecurFunctionName)
+            {
+                return new[] { new BindingMatch(this.EnclosingScope<FunctionDefinition>().InstanceOf, isLocal: false) };
+            }
+            else if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
+            {
+                TypeDefinition enclosing_type = this.EnclosingScope<TypeDefinition>();
+                return new[] { new BindingMatch(enclosing_type.InstanceOf.Build(this.OverrideMutability), isLocal: false) };
+            }
+            else if (this.Name == NameFactory.BaseVariableName)
+            {
+                TypeDefinition curr_type = this.EnclosingScope<TypeDefinition>();
+                return new[] { new BindingMatch(curr_type.Inheritance.GetTypeImplementationParent(), isLocal: false) };
+            }
+            else if (this.IsSuperReference)
+            {
+                FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();
+                func = func.TryGetSuperFunction(ctx);
+                if (func == null)
+                    return Enumerable.Empty<BindingMatch>();
                 else
-                {
-                    IEnumerable<EntityInstance> entities = Enumerable.Empty<EntityInstance>();
-                    foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
-                    {
-                        entities = scope.FindEntities(this, EntityFindMode.ScopeLimited);
-                        if (entities.Any())
-                        {
-                            TypeDefinition enclosed_type = this.EnclosingScope<TypeDefinition>();
-                            if (enclosed_type == scope)
-                            {
-                                FunctionDefinition enclosing_function = this.EnclosingScope<FunctionDefinition>();
-                                if (enclosing_function != null)
-                                {
-                                    if (enclosing_function.Modifier.HasStatic)
-                                    {
-                                        notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
-                                        entities = filterTargetEntities(entities, it => !(it.Target is IMember)
-                                            || it.Target.Modifier.HasStatic);
-                                    }
-                                    else
-                                    {
-                                        notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
-                                    }
-                                }
+                    return new[] { new BindingMatch(func.InstanceOf, isLocal: false) };
+            }
+            else if (ctx.EvalLocalNames != null && ctx.EvalLocalNames.TryGet(this, out IEntity entity))
+            {
+                FunctionDefinition local_function = this.EnclosingScope<FunctionDefinition>();
+                FunctionDefinition entity_function = entity.EnclosingScope<FunctionDefinition>();
 
+                bool is_local = true;
+                if (local_function != entity_function
+                    // we often share nodes, like parameters in setter/getter, so this check is needed to exclude
+                    // such "legal" cases
+                    && local_function.EnclosingScopesToRoot().Contains(entity_function))
+                {
+                    entity = local_function.LambdaTrap.HijackEscapingReference(entity as VariableDeclaration);
+                    is_local = false;
+                }
+
+                return new[] { new BindingMatch(entity.InstanceOf, isLocal: is_local) };
+            }
+            else
+            {
+                IEnumerable<EntityInstance> entities = Enumerable.Empty<EntityInstance>();
+                foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
+                {
+                    entities = scope.FindEntities(this, EntityFindMode.ScopeLimited);
+                    if (entities.Any())
+                    {
+                        TypeDefinition enclosed_type = this.EnclosingScope<TypeDefinition>();
+                        if (enclosed_type == scope)
+                        {
+                            FunctionDefinition enclosing_function = this.EnclosingScope<FunctionDefinition>();
+                            if (enclosing_function != null)
+                            {
+                                if (enclosing_function.Modifier.HasStatic)
+                                {
+                                    notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
+                                    entities = filterTargetEntities(entities, it => !(it.Target is IMember)
+                                        || it.Target.Modifier.HasStatic);
+                                }
+                                else
+                                {
+                                    notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
+                                }
                             }
 
-                            break;
                         }
+
+                        break;
                     }
-
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
-                }
-            }
-            else // we have prefix
-            {
-                EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
-
-                if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)
-                {
-                    return new[] { new BindingMatch(prefix_instance, isLocal: false) };
                 }
 
-                EntityFindMode find_mode = this.isPropertyIndexerCallReference
-                    ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
-
-                // referencing static member?
-                if (this.Prefix is NameReference prefix_ref
-                    // todo: make it nice, currently refering to base look like static reference
-                    && prefix_ref.Name != NameFactory.BaseVariableName
-                    && prefix_ref.Binding.Match.Instance.Target.IsTypeContainer())
-                {
-                    EntityInstance target_instance = prefix_ref.Binding.Match.Instance;
-                    IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this, find_mode);
-
-                    if (entities.Any())
-                        notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
-
-                    if (target_instance.Target is TypeDefinition typedef)
-                        entities = filterTargetEntities(entities, it => it.Target.Modifier.HasStatic);
-
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
-                }
-                else
-                {
-                    IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
-
-                    if (!entities.Any())
-                        entities = prefix_instance.FindExtensions(ctx, this, find_mode);
-
-                    {
-                        IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
-                        // we need to get value evaluation to perform translation
-                        ctx.Env.Dereference(prefix_eval, out prefix_eval);
-                        entities = entities.Select(it => it.TranslateThrough(prefix_eval));
-                    }
-
-                    if (entities.Any())
-                        notFoundErrorCode = ErrorCode.StaticMemberAccessInInstanceContext;
-
-                    return entities.Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
-                }
+                return entities
+                    .Select(it => new BindingMatch(it.Build(this.TemplateArguments, this.OverrideMutability), isLocal: false));
             }
         }
 
@@ -682,6 +700,13 @@ namespace Skila.Language
             this.TemplateArguments.ForEach(it => it.DetachFrom(this));
 
             var result = new NameReference(this.OverrideMutability, this_prefix, this.browse, this.lifetimeScope, this.Name,
+                arguments, this.ReadMode, this.IsRoot);
+            result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
+            return result;
+        }
+        public NameReference CreateWith(IEnumerable<TemplateArgument> arguments, EntityInstance target, bool isLocal)
+        {
+            var result = new NameReference(this.OverrideMutability, this.Prefix, this.browse, this.lifetimeScope, this.Name,
                 arguments, this.ReadMode, this.IsRoot);
             result.Binding.Set(new[] { new BindingMatch(target, isLocal) });
             return result;

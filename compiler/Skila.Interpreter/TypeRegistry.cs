@@ -18,7 +18,7 @@ namespace Skila.Interpreter
 
         public TypeRegistry()
         {
-            this.types = new Dictionary<EntityInstance, TaskCompletionSource<ObjectData>>(EntityInstanceCoreComparer.Instance);
+            this.types = new Dictionary<EntityInstance, TaskCompletionSource<ObjectData>>(EntityInstance.CoreComparer);
         }
 
         // we need this "simplified" register (without waiting for the result) to resolve legal, infinite loops

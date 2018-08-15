@@ -16,6 +16,8 @@ namespace Skila.Interpreter
 {
     public sealed partial class Interpreter : IInterpreter
     {
+        public static int TimeoutSeconds;
+
         public const string CommandLineTestProgramPath = "hello_world.out";
         public const string CommandLineTestArgument = "hello";
 
@@ -212,9 +214,14 @@ namespace Skila.Interpreter
         }
         public ExecValue TestRun(Language.Environment env)
         {
-            return TestRun(env, PrepareRun(env));
+            TimeSpan timeout = TimeSpan.FromSeconds(TimeoutSeconds);
+            Task<ExecValue> test_task = TestRunAsync(env, PrepareRun(env));
+            int ended_task = Task.WaitAny(Task.Delay(timeout), test_task);
+            if (ended_task == 0) // timeout
+                throw new TimeoutException($"Execution didn't finish in {timeout}");
+            return test_task.Result;
         }
-        public ExecValue TestRun(Language.Environment env, FunctionDefinition main)
+        public async Task<ExecValue> TestRunAsync(Language.Environment env, FunctionDefinition main)
         {
             // this method is for saving time on semantic analysis, so when you run it you know
             // the only thing is going on is execution
@@ -222,7 +229,7 @@ namespace Skila.Interpreter
             ExecutionContext ctx = ExecutionContext.Create(env, this);
             Task<ExecValue> main_task = this.mainExecutedAsync(ctx, main);
 
-            ctx.Routines.CompleteWith(main_task);
+            await ctx.Routines.CompleteWithAsync(main_task).ConfigureAwait(false);
 
             if (!ctx.Heap.IsClean)
                 throw new Exception("Internal error with heap");
@@ -393,7 +400,7 @@ namespace Skila.Interpreter
             ObjectData out_obj = !result.IsExpression
                 || (scope is Block block && !block.IsRead) ? null : result.ExprValue;
 
-            foreach (Tuple<INode, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
+            foreach (Tuple<IOwnedNode, ObjectData> bindable_obj in ctx.LocalVariables.RemoveLayer())
             {
                 ILocalBindable bindable = bindable_obj.Item1 as ILocalBindable;
                 ObjectData obj = bindable_obj.Item2;

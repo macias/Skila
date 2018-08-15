@@ -16,7 +16,7 @@ namespace Skila.Language
     // (which in turn requires Entity, and loops are not entities), EntityInstance uses Evaluation
     // and to compute it we would have to evaluate loop first which leads to circular computations
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class LabelReference : Node, ITemplateName,IComputable,IPrintable
+    public sealed class LabelReference : OwnedNode, ITemplateName,IComputable,IPrintable
     {
         public static LabelReference CreateLocal(string name)
         {
@@ -36,14 +36,14 @@ namespace Skila.Language
         public ILabelBindable Binding => this.binding.Value;
         public bool IsComputed => this.binding.HasValue;
 
-        public override IEnumerable<INode> OwnedNodes => Enumerable.Empty<INode>();
+        public override IEnumerable<INode> ChildrenNodes => Enumerable.Empty<INode>();
 
         private LabelReference(string name,bool isLocal)
         {
             this.Name = name;
             this.isLocal = isLocal;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override string ToString()

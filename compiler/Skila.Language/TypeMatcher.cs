@@ -73,7 +73,7 @@ namespace Skila.Language
             if (!target.Target.IsType() || !input.Target.IsType())
                 return TypeMatch.No;
 
-            if (input.Lifetime.IsAttached || target.Lifetime.IsAttached)
+            if (input.Lifetime.IsAttached)
                 matching = matching.WithLifetimeCheck(true, input.Lifetime, target.Lifetime);
 
 
@@ -357,7 +357,7 @@ namespace Skila.Language
             {
                 // please note that unlike normal type matching we reversed the types, in enum you can
                 // pass base type as descendant!
-                if (matchTypes(ctx, target_mutability, target.Lifetime, inherited_target.AncestorInstance, 
+                if (matchTypes(ctx, target_mutability, target.Lifetime, inherited_target.AncestorInstance,
                     input, matching, inherited_target.Distance,
                     out TypeMatch match))
                 {
@@ -425,7 +425,7 @@ namespace Skila.Language
             }
 
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a)
-                .ToHashSet(EntityInstanceCoreComparer.Instance);
+                            .ToHashSet(EntityInstance.CoreComparer);
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
                 //                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
@@ -481,8 +481,8 @@ namespace Skila.Language
         public static ConstraintMatch ArgumentsMatchConstraintsOf(ComputationContext ctx,
             IEnumerable<TemplateParameter> templateParameters, EntityInstance closedTemplate)
         {
-                if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)
-                    return ConstraintMatch.UndefinedTemplateArguments;
+            if (templateParameters.Count() != closedTemplate.TemplateArguments.Count)
+                return ConstraintMatch.UndefinedTemplateArguments;
 
             foreach (Tuple<TemplateParameter, IEntityInstance> param_arg in templateParameters
                 .SyncZip(closedTemplate.TemplateArguments))

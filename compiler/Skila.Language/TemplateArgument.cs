@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Skila.Language
 {
-    public sealed class TemplateArgument : Node,IPrintable,ISurfable
+    public sealed class TemplateArgument : OwnedNode,IPrintable,ISurfable
     {
         public INameReference TypeName { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new[] { this.TypeName };
+        public override IEnumerable<INode> ChildrenNodes => new[] { this.TypeName };
 
         public bool IsSurfed { get; set; }
 
@@ -17,7 +17,7 @@ namespace Skila.Language
         {
             this.TypeName = typeName;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public TemplateArgument(INameReference typeName) : this(Lifetime.Timeless,typeName)
         {
@@ -30,7 +30,7 @@ namespace Skila.Language
 
         public void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
         }
     }
 }

@@ -13,7 +13,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Flow
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class IfBranch : Node, IExpression, IExecutableScope
+    public sealed class IfBranch : OwnedNode, IExpression, IExecutableScope
     {
         public static IfBranch CreateIf(IExpression condition, IExpression body, IfBranch next = null)
         {
@@ -47,7 +47,7 @@ namespace Skila.Language.Flow
         public IfBranch Next { get; }
 
         public IEnumerable<IExpression> localNodes => new IExpression[] { Condition, Body }.Where(it => it != null);
-        public override IEnumerable<INode> OwnedNodes => localNodes.Concat(Next).Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => localNodes.Concat(Next).Where(it => it != null);
         private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => flow.Value;
 
@@ -67,9 +67,10 @@ namespace Skila.Language.Flow
             this.Body = Block.Create((block) => block.Instructions.Last().ReadMode, body);
             this.Next = next;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => this.IsElse ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
+            this.flow = new Later<ExecutionFlow>(() => this.IsElse 
+                ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
         }
 
         public override string ToString()

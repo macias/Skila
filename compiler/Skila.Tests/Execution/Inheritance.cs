@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Inheritance
+    public class Inheritance : ITest
     {
         [TestMethod]
         public IInterpreter InheritingEnums()
@@ -52,7 +52,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("y",null, FunctionCall.ConvCall(NameReference.Create("b"),
                         NameFactory.NatNameReference())),
                     // return x + y
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -99,11 +99,11 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",union, Undef.Create(),env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("b",union, Undef.Create(),env.Options.ReassignableModifier()),
-                    Assignment.CreateStatement(NameReference.Create("a"),ExpressionFactory.HeapConstructor("GetPos")),
-                    Assignment.CreateStatement(NameReference.Create("b"),ExpressionFactory.HeapConstructor("GetNeg")),
+                    Assignment.CreateStatement(NameReference.Create("a"), ExpressionFactory.HeapConstructor("GetPos")),
+                    Assignment.CreateStatement(NameReference.Create("b"), ExpressionFactory.HeapConstructor("GetNeg")),
                     VariableDeclaration.CreateStatement("x",null, FunctionCall.Create(NameReference.Create("a","getSome"))),
                     VariableDeclaration.CreateStatement("y",null, FunctionCall.Create(NameReference.Create("b","getSome"))),
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -156,11 +156,11 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",intersection, Undef.Create(),env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("b",intersection, Undef.Create(),env.Options.ReassignableModifier()),
-                    Assignment.CreateStatement(NameReference.Create("a"),ExpressionFactory.HeapConstructor("GetAll")),
-                    Assignment.CreateStatement(NameReference.Create("b"),ExpressionFactory.HeapConstructor("GetAll")),
+                    Assignment.CreateStatement(NameReference.Create("a"), ExpressionFactory.HeapConstructor("GetAll")),
+                    Assignment.CreateStatement(NameReference.Create("b"), ExpressionFactory.HeapConstructor("GetAll")),
                     VariableDeclaration.CreateStatement("x",null, FunctionCall.Create(NameReference.Create("a","getSome"))),
                     VariableDeclaration.CreateStatement("y",null, FunctionCall.Create(NameReference.Create("b","getMore"))),
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("x"),NameReference.Create("y")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -209,7 +209,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerNameReference(NameReference.Create("MyBase")),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("SomeChild"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("SomeChild"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                     })));
 
@@ -272,8 +272,8 @@ namespace Skila.Tests.Execution
                         NameFactory.Int64NameReference(),
                         Block.CreateStatement(new[] {
                         // return 1+super()+base.getA()
-                        Return.Create(ExpressionFactory.Add( Int64Literal.Create("1"),
-                            ExpressionFactory.Add(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName)),
+                        Return.Create( ExpressionFactory.Add( Int64Literal.Create("1"),
+                             ExpressionFactory.Add(FunctionCall.Create(NameReference.Create(NameFactory.SuperFunctionName)),
                                 FunctionCall.Create(NameReference.Create(NameFactory.BaseVariableName,"getA")))))
                         }))
                         .SetModifier(EntityModifier.Override)));
@@ -288,7 +288,7 @@ namespace Skila.Tests.Execution
                         null,env.Options.ReassignableModifier()),
                     // i = new End()
                     Assignment.CreateStatement(NameReference.Create("i"),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("End"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("End"))),
                     // return i.getB()
                     Return.Create(FunctionCall.Create(NameReference.Create("i","getB")))
                     })));

@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Collections
+    public class Collections : ITest
     {
         [TestMethod]
         public IInterpreter AllFailureFunction()
@@ -26,7 +26,7 @@ namespace Skila.Tests.Execution
                     "below",
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        Return.Create( ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -41,12 +41,12 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
-                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                        Return.Create( ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
                             NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -73,7 +73,7 @@ namespace Skila.Tests.Execution
                     "below",
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        Return.Create( ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -88,12 +88,12 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("4"), Int64Literal.Create("2"))),
 
-                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
+                        Return.Create( ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AllFunctionName),
                             NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -120,7 +120,7 @@ namespace Skila.Tests.Execution
                     "below",
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        Return.Create( ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -135,12 +135,12 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("7"))),
 
-                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
+                        Return.Create( ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
                             NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -167,7 +167,7 @@ namespace Skila.Tests.Execution
                     "below",
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        Return.Create( ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -182,12 +182,12 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
 
-                        Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
+                        Return.Create( ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("t", NameFactory.AnyFunctionName),
                             NameReference.Create("below")), Nat8Literal.Create("9"), Nat8Literal.Create("0")))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -221,7 +221,7 @@ namespace Skila.Tests.Execution
                                 NameFactory.Nat8NameReference(),
                                 // todo: use sink
                                 NameFactory.Nat8NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference(), NameFactory.Nat8NameReference()),
                             Nat8Literal.Create("7"), Nat8Literal.Create("11"))),
@@ -232,10 +232,10 @@ namespace Skila.Tests.Execution
                         Loop.CreateForEach("el", NameFactory.Nat8NameReference(),
                             FunctionCall.Create(NameReference.Create("t", NameFactory.ReverseFunctionName)),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),
-                                ExpressionFactory.Mul("w","el"))),
+                             ExpressionFactory.Add(NameReference.Create("acc"),
+                                 ExpressionFactory.Mul("w","el"))),
 
-                            ExpressionFactory.IncBy("w",Nat8Literal.Create("2"))
+                             ExpressionFactory.IncBy("w",Nat8Literal.Create("2"))
                                 }),
                         Return.Create(NameReference.Create("acc"))
                     ))
@@ -265,7 +265,7 @@ namespace Skila.Tests.Execution
                     "below",
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
+                        Return.Create( ExpressionFactory.IsLess(NameReference.Create("x"), Int64Literal.Create("5")))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -280,7 +280,7 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("2"))),
@@ -291,7 +291,7 @@ namespace Skila.Tests.Execution
                         VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
                         Loop.CreateForEach(elem_name, NameFactory.Int64NameReference(), NameReference.Create("m"),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                         Return.Create(NameReference.Create("acc"))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -320,7 +320,7 @@ namespace Skila.Tests.Execution
                     "pow",
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(
-                        Return.Create(ExpressionFactory.Mul("x", "x"))
+                        Return.Create( ExpressionFactory.Mul("x", "x"))
                         ))
                     .Parameters(FunctionParameter.Create("x", NameFactory.Int64NameReference())));
 
@@ -335,7 +335,7 @@ namespace Skila.Tests.Execution
                                 NameFactory.Int64NameReference(),
                                 // todo: use sink
                                 NameFactory.Int64NameReference()),
-                            ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
+                             ExpressionFactory.StackConstructor(NameFactory.TupleNameReference(
                                 // todo: use sink for all of them
                                 NameFactory.Int64NameReference(), NameFactory.Int64NameReference(), NameFactory.Int64NameReference()),
                             Int64Literal.Create("6"), Int64Literal.Create("-2"))),
@@ -346,7 +346,7 @@ namespace Skila.Tests.Execution
                         VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
                         Loop.CreateForEach(elem_name, NameFactory.Int64NameReference(), NameReference.Create("m"),
                             new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                         Return.Create(NameReference.Create("acc"))
                     ))
                     .Include(NameFactory.LinqExtensionReference()));
@@ -373,7 +373,7 @@ namespace Skila.Tests.Execution
                     .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
                     .With(VariableDeclaration.CreateStatement("x", NameFactory.Int64NameReference(), null,
                         EntityModifier.Public | env.Options.ReassignableModifier()))
-                    .With(ExpressionFactory.BasicConstructor(new[] { "x" },
+                    .With( ExpressionFactory.BasicConstructor(new[] { "x" },
                         new[] { NameFactory.Int64NameReference() })));
 
                 root_ns.AddBuilder(TypeBuilder.Create("PointA")
@@ -402,20 +402,20 @@ namespace Skila.Tests.Execution
                             NameFactory.PointerNameReference("PointA"),
                             // todo: use wildcard
                             NameFactory.PointerNameReference("PointA")),
-                        ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
+                         ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
                             // todo: use wildcard for all of them
                             NameFactory.PointerNameReference("PointA"),
                             NameFactory.PointerNameReference("PointA"),
                             NameFactory.PointerNameReference("PointA")),
-                        ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("6")),
-                        ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("-2")))),
+                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("6")),
+                         ExpressionFactory.HeapConstructor("PointA",Int64Literal.Create("-2")))),
 
                     // var array = new *PointB[3,-5];
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.PointerNameReference("PointB")))),
-                    ExpressionFactory.InitializeIndexable("array",
-                        ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("3")),
-                        ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("-5"))),
+                         ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.PointerNameReference("PointB")))),
+                     ExpressionFactory.InitializeIndexable("array",
+                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("3")),
+                         ExpressionFactory.HeapConstructor("PointB",Int64Literal.Create("-5"))),
 
                     // let c = concat(t,array) 
                     // in effect we should get iterable of `PointBase` 
@@ -427,7 +427,7 @@ namespace Skila.Tests.Execution
                         null,
                         NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("pt","x"))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("pt","x"))) }),
                     Return.Create(NameReference.Create("acc"))
                     })));
 
@@ -462,15 +462,15 @@ namespace Skila.Tests.Execution
                             NameFactory.Int64NameReference(),
                             // todo: use sink
                             NameFactory.Int64NameReference()),
-                        ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
+                         ExpressionFactory.StackConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
                             NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("6"),Int64Literal.Create("-2"))),
 
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
+                         ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
 
-                    ExpressionFactory.InitializeIndexable("array",Int64Literal.Create("3"),Int64Literal.Create("-5")),
+                     ExpressionFactory.InitializeIndexable("array",Int64Literal.Create("3"),Int64Literal.Create("-5")),
 
                     VariableDeclaration.CreateStatement("c",null,
                         FunctionCall.Create(NameFactory.ConcatReference(),NameReference.Create("t"),NameReference.Create("array"))),
@@ -478,7 +478,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach(elem_name,NameFactory.Int64NameReference(),NameReference.Create("c"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create(elem_name))) }),
                     Return.Create(NameReference.Create("acc"))
                     })));
 
@@ -506,7 +506,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("array",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
+                         ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(NameFactory.Int64NameReference()))),
 
                     Assignment.CreateStatement(FunctionCall.Indexer(NameReference.Create("array"),NatLiteral.Create("0")),
                         Int64Literal.Create("3")),
@@ -520,7 +520,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach("elem",NameFactory.Int64NameReference(),NameReference.Create("array"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
                     })));
 
@@ -553,14 +553,14 @@ namespace Skila.Tests.Execution
                             NameFactory.Int64NameReference(),
                             // todo: use sink
                             NameFactory.Int64NameReference())),
-                        ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
+                         ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
                             NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("4"),Int64Literal.Create("-2"))),
                     VariableDeclaration.CreateStatement("acc",null,Int64Literal.Create("0"),env.Options.ReassignableModifier()),
                     Loop.CreateForEach("elem",NameFactory.Int64NameReference(),NameReference.Create("t"),
                         new[]{ Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
+                             ExpressionFactory.Add(NameReference.Create("acc"),NameReference.Create("elem"))) }),
                     Return.Create(NameReference.Create("acc"))
                     })));
 
@@ -594,7 +594,7 @@ namespace Skila.Tests.Execution
                             NameFactory.Int64NameReference(),
                             // todo: use sink
                             NameFactory.Int64NameReference())),
-                        ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
+                         ExpressionFactory.HeapConstructor( NameFactory.TupleNameReference(
                             // todo: use sink for all of them
                             NameFactory.Int64NameReference(), NameFactory.Int64NameReference(),NameFactory.Int64NameReference()),
                         Int64Literal.Create("4"),Int64Literal.Create("-2"))),
@@ -603,7 +603,7 @@ namespace Skila.Tests.Execution
                     // let v1 = t[1]
                     VariableDeclaration.CreateStatement("v1",null,FunctionCall.Indexer(NameReference.Create("t"),NatLiteral.Create("1"))),
                     // return v0+v1
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("v0"),NameReference.Create("v1")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("v0"),NameReference.Create("v1")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -630,11 +630,11 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
-                        ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.StackConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
@@ -648,7 +648,7 @@ namespace Skila.Tests.Execution
                     Assignment.CreateStatement(NameReference.Create("y"),NameReference.Create("x")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("777")),
-                    Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("0"))),
+                    Return.Create( ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("1")))))
                     })));
 
@@ -676,11 +676,11 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChunkNameReference(NameFactory.Int64NameReference()),
                             FunctionArgument.Create(NatLiteral.Create("2"))),
                         env.Options.ReassignableModifier()),
 
@@ -696,7 +696,7 @@ namespace Skila.Tests.Execution
                     Assignment.CreateStatement(NameReference.Create("y"),NameReference.Create("x")),
                     Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create("x"),FunctionArgument.Create(NatLiteral.Create("0"))),
                         Int64Literal.Create("-18")),
-                    Return.Create(ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),
+                    Return.Create( ExpressionFactory.Add(FunctionCall.Indexer(NameReference.Create("y"),
                         FunctionArgument.Create(NatLiteral.Create("0"))),
                         FunctionCall.Indexer(NameReference.Create("y"),FunctionArgument.Create(NatLiteral.Create("1")))))
                     })));

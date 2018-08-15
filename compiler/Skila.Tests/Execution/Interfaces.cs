@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Interfaces
+    public class Interfaces : ITest
     {
         [TestMethod]
         public IInterpreter TraitFunctionCall()
@@ -37,7 +37,7 @@ namespace Skila.Tests.Execution
                     // i Int = 7
                     VariableDeclaration.CreateStatement("i",NameFactory.Int64NameReference(), Int64Literal.Create("7")),
                     // if e!=i and i!=e then return 2
-                    IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsNotEqual("e","i"),ExpressionFactory.IsNotEqual("e","i")),
+                    IfBranch.CreateIf( ExpressionFactory.And( ExpressionFactory.IsNotEqual("e","i"), ExpressionFactory.IsNotEqual("e","i")),
                         new[]{ Return.Create(Int64Literal.Create("2")) }),
                     // return 15
                     Return.Create(Int64Literal.Create("15"))
@@ -107,7 +107,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerNameReference(NameReference.Create("X")),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                     })));
 
@@ -199,7 +199,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     decl,
                     VariableDeclaration.CreateStatement("o",NameFactory.PointerNameReference(NameReference.Create(mammal_name)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create(dog_name))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create(dog_name))),
 
                     Assignment.CreateStatement(NameReference.Create("i"),NameReference.Create("o")),
 
@@ -270,7 +270,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",
                         NameFactory.PointerNameReference(NameReference.Create("X",NameFactory.Int64NameReference())),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Y"))),
                     Return.Create(FunctionCall.Create(NameReference.Create("i","bar")))
                     })));
 

@@ -2,7 +2,7 @@
 
 namespace Skila.Language
 {
-    public interface IBindable : INode
+    public interface IBindable : IOwnedNode
     {
 
     }

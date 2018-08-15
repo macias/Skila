@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class OverloadCalls
+    public class OverloadCalls : ITest
     {
         [TestMethod]
         public IErrorReporter PreferringNonVariadicFunction()

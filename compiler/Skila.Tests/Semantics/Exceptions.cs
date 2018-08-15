@@ -7,7 +7,7 @@ using Skila.Language.Semantics;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Exceptions
+    public class Exceptions : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorThrowingNonException()

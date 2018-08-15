@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class TemplateConstraint : Node, IValidable
+    public sealed class TemplateConstraint : OwnedNode, IValidable
     {
         public static TemplateConstraint Create(
             NameReference name,
@@ -40,7 +40,7 @@ namespace Skila.Language
 
         // do not report parent typenames as owned, because they will be reused 
         // as parent typenames in associated type definition
-        public override IEnumerable<INode> OwnedNodes => this.BaseOfNames.Concat(this.Name);
+        public override IEnumerable<INode> ChildrenNodes => this.BaseOfNames.Concat(this.Name);
 
         private TemplateConstraint(
             NameReference name,
@@ -58,7 +58,7 @@ namespace Skila.Language
             this.InheritsNames = (inherits ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
             this.BaseOfNames = (baseOf ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override string ToString()

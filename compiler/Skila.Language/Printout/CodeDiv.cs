@@ -7,10 +7,10 @@ namespace Skila.Language.Printout
 {
     public sealed class CodeDiv : ICode
     {
-        private readonly INode node;
+        private readonly IOwnedNode node;
         private List<Tuple<bool, ICode>> codes;
 
-        public CodeDiv(INode node,params ICode[] codes)
+        public CodeDiv(IOwnedNode node,params ICode[] codes)
         {
             this.node = node;
             this.codes = codes.Select(it => Tuple.Create(false, it)).ToList();
@@ -20,7 +20,7 @@ namespace Skila.Language.Printout
         {
         }
         */
-        public CodeDiv(INode node, params IPrintable[] printable) : this(node,printable.Select(it => it.Printout()).ToArray())
+        public CodeDiv(IOwnedNode node, params IPrintable[] printable) : this(node,printable.Select(it => it.Printout()).ToArray())
         {
 
         }

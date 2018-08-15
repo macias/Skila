@@ -19,14 +19,14 @@ namespace Skila.Language.Expressions
 
         public FunctionCall Call { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Call }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { Call }.Where(it => it != null);
 
         private Spawn(FunctionCall call)
             : base(ExpressionReadMode.CannotBeRead)
         {
             this.Call = call;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

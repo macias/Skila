@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Flow
+    public class Flow : ITest
     {
         [TestMethod]
         public IErrorReporter CombiningBranchedInitialization()
@@ -44,10 +44,10 @@ namespace Skila.Tests.Semantics
                             VariableDeclaration.CreateStatement("a", NameFactory.BoolNameReference(), null),
                             VariableDeclaration.CreateStatement("b", NameFactory.BoolNameReference(), null),
 
-                        IfBranch.CreateIf(ExpressionFactory.And(branched_init("a"), branched_init("b")), new[] {
+                        IfBranch.CreateIf( ExpressionFactory.And(branched_init("a"), branched_init("b")), new[] {
                         // at his point both variables should be initialized
-                        ExpressionFactory.Readout("a"),
-                        ExpressionFactory.Readout("b"),
+                         ExpressionFactory.Readout("a"),
+                         ExpressionFactory.Readout("b"),
                         })
                     )));
 
@@ -88,7 +88,7 @@ namespace Skila.Tests.Semantics
 
                         VariableDeclaration.CreateStatement("y", NameFactory.IntNameReference(), null),
                         IfBranch.CreateIf(BoolLiteral.CreateTrue(),
-                            ExpressionFactory.Nop,
+                             ExpressionFactory.Nop,
                             IfBranch.CreateElse(
                                 Assignment.CreateStatement(NameReference.Create("y"), IntLiteral.Create("5")))),
 
@@ -102,9 +102,9 @@ namespace Skila.Tests.Semantics
 
                         second_init_z_2,
 
-                        ExpressionFactory.Readout("x"),
-                        ExpressionFactory.Readout("y"),
-                        ExpressionFactory.Readout("z")
+                         ExpressionFactory.Readout("x"),
+                         ExpressionFactory.Readout("y"),
+                         ExpressionFactory.Readout("z")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -152,12 +152,12 @@ namespace Skila.Tests.Semantics
                         Loop.CreateFor(null, BoolLiteral.CreateTrue(), null, new[] {
                             VariableDeclaration.CreateStatement("z", NameFactory.IntNameReference(), null),
                             Assignment.CreateStatement(NameReference.Create("z"), IntLiteral.Create("5")),
-                            ExpressionFactory.Readout("z")
+                             ExpressionFactory.Readout("z")
                         }),
                         }),
 
-                        ExpressionFactory.Readout("x"),
-                        ExpressionFactory.Readout("y")
+                         ExpressionFactory.Readout("x"),
+                         ExpressionFactory.Readout("y")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -186,9 +186,9 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.IntNameReference(),
                     Block.CreateStatement(
-                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
+                            VariableDeclaration.CreateStatement("o", null,  ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
 
-                            ExpressionFactory.Readout(ExpressionFactory.OptionalDeclaration("m", null, NameReference.Create("o"))),
+                             ExpressionFactory.Readout( ExpressionFactory.OptionalDeclaration("m", null, NameReference.Create("o"))),
 
                             // at this point `m` could be not initialized
                             Return.Create(not_initialized)
@@ -223,9 +223,9 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
                             VariableDeclaration.CreateStatement("m", NameFactory.IntNameReference(), null, env.Options.ReassignableModifier()),
 
-                            VariableDeclaration.CreateStatement("o", null, ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
+                            VariableDeclaration.CreateStatement("o", null,  ExpressionFactory.OptionEmpty(NameFactory.IntNameReference())),
 
-                            ExpressionFactory.Readout(ExpressionFactory.OptionalAssignment(NameReference.Create("m"), NameReference.Create("o"))),
+                             ExpressionFactory.Readout( ExpressionFactory.OptionalAssignment(NameReference.Create("m"), NameReference.Create("o"))),
 
                             // at this point `m` could be not initialized
                             Return.Create(not_initialized)
@@ -268,7 +268,7 @@ namespace Skila.Tests.Semantics
                         IfBranch.CreateIf(
                         // mega condition
                         IfBranch.CreateIf(
-                            ExpressionFactory.And(
+                             ExpressionFactory.And(
                             VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
                             VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue())),
                             new[]
@@ -279,13 +279,13 @@ namespace Skila.Tests.Semantics
                             },
                             IfBranch.CreateElse(BoolLiteral.CreateFalse())),
                         // -- end of mega condition
-                        ExpressionFactory.Nop,
+                         ExpressionFactory.Nop,
                         // in general we cannot guarantee we can read it in `else` branch
-                        IfBranch.CreateElse(ExpressionFactory.Readout(not_initialized1))),
+                        IfBranch.CreateElse( ExpressionFactory.Readout(not_initialized1))),
                         // -- end of main if
 
                         // `else` branch is live, so `m` can be still uninitialized
-                        ExpressionFactory.Readout(not_initialized2)
+                         ExpressionFactory.Readout(not_initialized2)
 
                     )));
 
@@ -326,7 +326,7 @@ namespace Skila.Tests.Semantics
                         IfBranch.CreateIf(
                         // mega condition
                         IfBranch.CreateIf(
-                            ExpressionFactory.And(
+                             ExpressionFactory.And(
                             VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
                             VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue())),
                             new[]
@@ -337,14 +337,14 @@ namespace Skila.Tests.Semantics
                             },
                             IfBranch.CreateElse(BoolLiteral.CreateFalse())),
                         // -- end of mega condition
-                        ExpressionFactory.Readout("a"),
+                         ExpressionFactory.Readout("a"),
                         // making `else` a dead branch
-                        IfBranch.CreateElse(ExpressionFactory.GenericThrow())),
+                        IfBranch.CreateElse( ExpressionFactory.GenericThrow())),
                         // -- end of main if
 
                         // `b` is initialized because `else` is a thrower, so the only way is going through `then`
                         // and `then` is activated only when all variables are initialized
-                        ExpressionFactory.Readout("b")
+                         ExpressionFactory.Readout("b")
 
                     )));
 
@@ -380,10 +380,10 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(
 
                         IfBranch.CreateIf(VariableDeclaration.CreateExpression("temp1", null, BoolLiteral.CreateTrue()),
-                            ExpressionFactory.Readout(NameReference.Create("temp1"))),
+                             ExpressionFactory.Readout(NameReference.Create("temp1"))),
 
                         IfBranch.CreateIf(VariableDeclaration.CreateExpression("temp2", null, BoolLiteral.CreateTrue()),
-                            ExpressionFactory.Readout(NameReference.Create("temp2")))
+                             ExpressionFactory.Readout(NameReference.Create("temp2")))
 
                     )));
 
@@ -422,55 +422,55 @@ namespace Skila.Tests.Semantics
                         VariableDeclaration.CreateStatement("a", NameFactory.IntNameReference(), Undef.Create(), env.Options.ReassignableModifier()),
 
                         // if (x := 3) == 5 then a = x;
-                        IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                        IfBranch.CreateIf( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                             VariableDeclaration.CreateExpression("x", null, IntLiteral.Create("3"))),
                             Assignment.CreateStatement("a", "x")),
 
                         // if (x := 3) == 5 then NOP else a = x;
-                        IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                        IfBranch.CreateIf( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                             VariableDeclaration.CreateExpression("w", null, IntLiteral.Create("3"))),
-                            ExpressionFactory.Nop, IfBranch.CreateElse(Assignment.CreateStatement("a", "w"))),
+                             ExpressionFactory.Nop, IfBranch.CreateElse(Assignment.CreateStatement("a", "w"))),
 
                            // if (y := 3) == 5 and f() then a = y;
-                           IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.And( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("y", null, IntLiteral.Create("3"))),
                                FunctionCall.Create(NameReference.Create("f"))),
                                Assignment.CreateStatement("a", "y")),
 
                            // if (x := 3) == 5 and f() then NOP else a = x;
-                           IfBranch.CreateIf(ExpressionFactory.And(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.And( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("r", null, IntLiteral.Create("3"))),
                                FunctionCall.Create(NameReference.Create("f"))),
-                               ExpressionFactory.Nop,
+                                ExpressionFactory.Nop,
                                IfBranch.CreateElse(Assignment.CreateStatement("a", "r"))),
 
                            // if f() and (z := 3) == 5 then a = z;
-                           IfBranch.CreateIf(ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
-                               ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
+                                ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("z", null, IntLiteral.Create("3")))),
                                Assignment.CreateStatement("a", "z")),
 
                            // if (x := 3) == 5 or f() then NOP else a = x;
-                           IfBranch.CreateIf(ExpressionFactory.Or(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.Or( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("u", null, IntLiteral.Create("3"))),
                                FunctionCall.Create(NameReference.Create("f"))),
-                               ExpressionFactory.Nop,
+                                ExpressionFactory.Nop,
                                IfBranch.CreateElse(Assignment.CreateStatement("a", "u"))),
 
                            // if (x := 3) == 5 or f() then a = x;
-                           IfBranch.CreateIf(ExpressionFactory.Or(ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.Or( ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("q", null, IntLiteral.Create("3"))),
                                FunctionCall.Create(NameReference.Create("f"))),
                                Assignment.CreateStatement("a", "q")),
 
                            // if f() or (x := 3) == 5 then a = x;
-                           IfBranch.CreateIf(ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
-                               ExpressionFactory.IsEqual(IntLiteral.Create("5"),
+                           IfBranch.CreateIf( ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
+                                ExpressionFactory.IsEqual(IntLiteral.Create("5"),
                                VariableDeclaration.CreateExpression("v", null, IntLiteral.Create("3")))),
-                               ExpressionFactory.Nop,
+                                ExpressionFactory.Nop,
                                IfBranch.CreateElse(Assignment.CreateStatement("a", "v"))),
 
-                        ExpressionFactory.Readout("a")
+                         ExpressionFactory.Readout("a")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -500,9 +500,9 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(Return.Create(BoolLiteral.CreateFalse()))));
 
                 const string reused_var_name = "xxx";
-                IfBranch if_branch1 = IfBranch.CreateIf(ExpressionFactory.IsEqual(IntLiteral.Create("2"),
+                IfBranch if_branch1 = IfBranch.CreateIf( ExpressionFactory.IsEqual(IntLiteral.Create("2"),
                             VariableDeclaration.CreateExpression(reused_var_name, null, IntLiteral.Create("1"))),
-                            ExpressionFactory.Readout(reused_var_name));
+                             ExpressionFactory.Readout(reused_var_name));
 
                 NameReference not_initialized1 = NameReference.Create(reused_var_name);
                 NameReference not_initialized2 = NameReference.Create("yyy");
@@ -521,20 +521,20 @@ namespace Skila.Tests.Semantics
 
                         // if f() and (xxx := 3)==5 then NOP else a = xxx;
                         // so when we reach `else` branch `xxx` might be not initialized because `f` failed first
-                        IfBranch.CreateIf(ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
-                            ExpressionFactory.IsEqual(IntLiteral.Create("555"),
+                        IfBranch.CreateIf( ExpressionFactory.And(FunctionCall.Create(NameReference.Create("f")),
+                             ExpressionFactory.IsEqual(IntLiteral.Create("555"),
                             VariableDeclaration.CreateExpression(reused_var_name, null, IntLiteral.Create("333")))),
-                            ExpressionFactory.Nop,
+                             ExpressionFactory.Nop,
                             // when writing this test `xxx` was reported to be initialized
                             IfBranch.CreateElse(Assignment.CreateStatement(NameReference.Create("a"), not_initialized1))),
 
                         // if f() or (yyy := 3)==5 then a = yyy;
-                        IfBranch.CreateIf(ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
-                            ExpressionFactory.IsEqual(IntLiteral.Create("555"),
+                        IfBranch.CreateIf( ExpressionFactory.Or(FunctionCall.Create(NameReference.Create("f")),
+                             ExpressionFactory.IsEqual(IntLiteral.Create("555"),
                             VariableDeclaration.CreateExpression("yyy", null, IntLiteral.Create("333")))),
                             Assignment.CreateStatement(NameReference.Create("a"), not_initialized2)),
 
-                        ExpressionFactory.Readout("a")
+                         ExpressionFactory.Readout("a")
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -570,7 +570,7 @@ namespace Skila.Tests.Semantics
                     decl,
                     if_assign,
                     VariableDeclaration.CreateStatement("x", null, var_ref),
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("x")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -607,7 +607,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     loop,
                     VariableDeclaration.CreateStatement("x", null, var_ref),
-                    ExpressionFactory.Readout("x")
+                     ExpressionFactory.Readout("x")
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -651,21 +651,21 @@ namespace Skila.Tests.Semantics
                         if_double_jump,
                         unreachable_assign,
                         VariableDeclaration.CreateStatement("m1",null,NameReference.Create("s")),
-                        ExpressionFactory.Readout("m1")
+                         ExpressionFactory.Readout("m1")
                         });
                     // since step is executed after the body is executed, from its POV the variable can be read
                     var outer_loop = Loop.CreateFor(NameDefinition.Create("outer"),
                             init: null,
                             condition: null,
                             step: new IExpression[] { VariableDeclaration.CreateStatement("m3", null, NameReference.Create("s")),
-                              ExpressionFactory.Readout("m3") },
+                               ExpressionFactory.Readout("m3") },
                             body: new IExpression[] {
                         inner_loop,
                         // this assigment is skipped when we jump out of this (outer) loop
                         // or it is executed, in first case loop-step is not executed, in the second -- it is
                         Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("44")),
                         VariableDeclaration.CreateStatement("m2",null,NameReference.Create("s")),
-                        ExpressionFactory.Readout("m2")
+                         ExpressionFactory.Readout("m2")
                         });
                     var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                         "main",
@@ -675,7 +675,7 @@ namespace Skila.Tests.Semantics
                         Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null,env.Options.ReassignableModifier()),
                     outer_loop,
-                    ExpressionFactory.Readout(var_ref)
+                     ExpressionFactory.Readout(var_ref)
                         })));
 
                     resolver = NameResolver.Create(env);
@@ -706,7 +706,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("b", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     if_break,
                     Assignment.CreateStatement(NameReference.Create("b"), Int64Literal.Create("5")),
-                    ExpressionFactory.Readout("b"), // safe to read it because locally "b" is initialized
+                     ExpressionFactory.Readout("b"), // safe to read it because locally "b" is initialized
                 });
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
@@ -717,7 +717,7 @@ namespace Skila.Tests.Semantics
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()),
                     loop,
                     Assignment.CreateStatement(NameReference.Create("s"), Int64Literal.Create("3")),
-                    ExpressionFactory.Readout("s")
+                     ExpressionFactory.Readout("s")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -751,7 +751,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s", NameFactory.Int64NameReference(), null,env.Options.ReassignableModifier()),
                     return_or_assign,
-                    ExpressionFactory.Readout("s")
+                     ExpressionFactory.Readout("s")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -828,7 +828,7 @@ namespace Skila.Tests.Semantics
                 var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var dead_step = ExpressionFactory.Readout("i");
+                var dead_step =  ExpressionFactory.Readout("i");
                 var loop = Loop.CreateFor(NameDefinition.Create("pool"),
                     init: new[] { VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("5")) },
                     condition: BoolLiteral.CreateTrue(),
@@ -864,7 +864,7 @@ namespace Skila.Tests.Semantics
                 var root_ns = env.Root;
 
                 var dead_return = Return.Create();
-                var dead_step = ExpressionFactory.Readout("i");
+                var dead_step =  ExpressionFactory.Readout("i");
                 var loop = Loop.CreateFor(NameDefinition.Create("pool"),
                     init: new[] { VariableDeclaration.CreateStatement("i", null, Int64Literal.Create("5")) },
                     condition: BoolLiteral.CreateTrue(),
@@ -1034,7 +1034,7 @@ namespace Skila.Tests.Semantics
 
                 var loop = Loop.CreateFor(init: new[] { VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("5")) },
                     condition: str_literal,
-                    step: new[] { ExpressionFactory.Readout("x") },
+                    step: new[] {  ExpressionFactory.Readout("x") },
                     body: new IExpression[] { });
 
                 root_ns.AddNode(loop);
@@ -1063,7 +1063,7 @@ namespace Skila.Tests.Semantics
                     condition: BoolLiteral.CreateTrue(),
                     step: null,
                     body: new[] {
-                    ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("x"),
                     LoopInterrupt.CreateBreak("foo") });
 
                 root_ns.AddNode(loop);
@@ -1085,7 +1085,7 @@ namespace Skila.Tests.Semantics
                 var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var step = ExpressionFactory.Readout("x");
+                var step =  ExpressionFactory.Readout("x");
                 var loop = Loop.CreateFor(NameDefinition.Create("foo"),
                     init: new[] { VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("5")) },
                     condition: BoolLiteral.CreateTrue(),
@@ -1113,7 +1113,7 @@ namespace Skila.Tests.Semantics
                 var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                var step = ExpressionFactory.Readout("x");
+                var step =  ExpressionFactory.Readout("x");
                 var loop = Loop.CreateFor(NameDefinition.Create("foo"),
                     init: new[] { VariableDeclaration.CreateStatement("x", null, Int64Literal.Create("5")) },
                     condition: BoolLiteral.CreateTrue(),

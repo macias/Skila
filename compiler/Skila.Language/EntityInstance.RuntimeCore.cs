@@ -35,6 +35,19 @@ namespace Skila.Language
             {
                 return RuntimeHelpers.GetHashCode(this);
             }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is RuntimeCore core)
+                    return this.Equals(core);
+                else
+                    throw new ArgumentException();
+            }
+
+            public bool Equals(RuntimeCore obj)
+            {
+                return Object.ReferenceEquals(this, obj);
+            }
         }
     }
 }

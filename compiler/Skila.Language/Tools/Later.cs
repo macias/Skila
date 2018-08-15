@@ -16,6 +16,7 @@ namespace Skila.Language.Tools
                 return value.Value;
             }
         }
+
         private readonly Func<R> factory;
 
         public Later(Func<R> factory)

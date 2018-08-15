@@ -21,7 +21,7 @@ namespace Skila.Language.Entities
 
         private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null,null)
         {
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override void Validate(ComputationContext ctx)
@@ -31,7 +31,7 @@ namespace Skila.Language.Entities
         }
         public override void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
         }
     }
 }

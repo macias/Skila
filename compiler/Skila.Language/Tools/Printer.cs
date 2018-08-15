@@ -8,7 +8,7 @@ namespace Skila.Language.Tools
     {
         public static readonly IPrinter Console = new ConsolePrinter();
 
-        public static void PrintFunction(this INode node)
+        public static void PrintFunction(this IOwnedNode node)
         {
             IPrintable func;
             if (node is FunctionDefinition f)

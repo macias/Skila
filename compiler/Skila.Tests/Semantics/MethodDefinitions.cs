@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class MethodDefinitions
+    public class MethodDefinitions : ITest
     {
         [TestMethod]
         public IErrorReporter Basics()

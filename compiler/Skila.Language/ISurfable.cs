@@ -2,7 +2,7 @@
 
 namespace Skila.Language
 {
-    public interface ISurfable : INode
+    public interface ISurfable : IOwnedNode
     {
         bool IsSurfed { get; set; }
         

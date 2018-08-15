@@ -12,7 +12,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionCall : Node, IExpression, IFunctionArgumentsProvider, ILambdaTransfer
+    public sealed class FunctionCall : OwnedNode, IExpression, IFunctionArgumentsProvider, ILambdaTransfer
     {
         private enum CallMode
         {
@@ -112,7 +112,7 @@ namespace Skila.Language.Expressions
         public NameReference Name => this.Callee.Cast<NameReference>();
 
         public IReadOnlyList<FunctionArgument> UserArguments { get; }
-        public override IEnumerable<INode> OwnedNodes => UserArguments.Select(it => it.Cast<INode>())
+        public override IEnumerable<INode> ChildrenNodes => UserArguments.Select(it => it.Cast<IOwnedNode>())
             .Concat(this.Callee)
             .Concat(RequestedOutcomeTypeName)
             .Where(it => it != null)
@@ -138,7 +138,7 @@ namespace Skila.Language.Expressions
 
             this.closures = new List<TypeDefinition>();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserArguments));
         }
@@ -217,7 +217,7 @@ namespace Skila.Language.Expressions
 
         public void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId== (20, 368))
+            if (this.DebugId ==  (20, 368))
             {
                 ;
             }
@@ -337,14 +337,28 @@ namespace Skila.Language.Expressions
 
                         this.Evaluation = this.Resolution.Evaluation;
 
+                        if (this.DebugId == (20, 82))
+                        {
+                            ;
+                        }
+
                         if (ctx.Env.IsReferenceOfType(this.Evaluation.Aggregate))
                         {
-                            // this is pretty restrictive but it is a good start
-                            // if it is not enough we can use the shortest lifetime from all arguments (including meta this)
-                            // but without any pointer
-                            // if that is not enough include pointer argument as well, but then we need to change GC
-                            // because the owner object couldn't be released before releasing a reference to its field 
-                            Lifetime lifetime = Lifetime.Create(this);
+                            // basically we are saying that the outcome of the function has the lifetime
+                            // equal to the shortest lifetime of arguments
+                            // or local if the function has not arguments at all
+                            Lifetime lifetime = null;
+                            foreach (FunctionArgument arg in this.Resolution.ActualArguments)
+                            {
+                                // todo: we should check if the expression is not passed implictly by reference
+                                if (arg == this.Resolution.MetaThisArgument || ctx.Env.IsReferenceOfType(arg.Evaluation.Aggregate))
+                                {
+                                    lifetime = arg.Evaluation.Aggregate.Lifetime.Shorter(lifetime);
+                                }
+                            }
+
+                            if (lifetime == null)
+                                lifetime = Lifetime.Create(this);
 
                             if (this.Evaluation.Aggregate.Lifetime != lifetime)
                             {
@@ -359,7 +373,7 @@ namespace Skila.Language.Expressions
 
                 if (this.Evaluation == null)
                 {
-                    this.Evaluation = EvaluationInfo.Joker;
+                    this.Evaluation = Environment.JokerEval;
                 }
 
                 foreach (IExpression arg in UserArguments)
@@ -408,7 +422,7 @@ namespace Skila.Language.Expressions
             foreach (CallResolution call_target in targets)
             {
                 var weights = new List<FunctionOverloadWeight>();
-                foreach (FunctionArgument arg in call_target.TrueArguments)
+                foreach (FunctionArgument arg in call_target.ExtensionsArguments)
                 {
                     FunctionParameter param = call_target.GetParamByArg(arg);
                     var weight = new FunctionOverloadWeight();
@@ -475,7 +489,7 @@ namespace Skila.Language.Expressions
 
         public FunctionCall ConvertIndexerIntoSetter(IExpression rhs)
         {
-            this.OwnedNodes.ForEach(it => it.DetachFrom(this));
+            this.ChildrenNodes.WhereType<IOwnedNode>().ForEach(it => it.DetachFrom(this));
             NameReference idx_getter = this.Name;
             idx_getter.Prefix.DetachFrom(idx_getter);
 

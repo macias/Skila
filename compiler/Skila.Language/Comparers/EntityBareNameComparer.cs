@@ -4,7 +4,7 @@ namespace Skila.Language.Comparers
 {
     public sealed class EntityBareNameComparer : IEqualityComparer<ITemplateName>
     {
-        public static IEqualityComparer<ITemplateName> Instance = new EntityBareNameComparer();
+        public static EntityBareNameComparer Instance = new EntityBareNameComparer();
 
         private EntityBareNameComparer()
         {

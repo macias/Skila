@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public abstract class Expression : Node, IExpression
+    public abstract class Expression : OwnedNode, IExpression
     {
         public bool IsComputed => this.Evaluation != null;
 
@@ -29,7 +29,7 @@ namespace Skila.Language.Expressions
         protected Expression(Option<ExpressionReadMode> readMode)
         {
             this.readMode = readMode;
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(OwnedNodes.WhereType<IExpression>()));
+            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(ChildrenNodes.WhereType<IExpression>()));
         }
         protected Expression(ExpressionReadMode readMode) : this(new Option<ExpressionReadMode>(readMode))
         { 

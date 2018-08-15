@@ -45,10 +45,6 @@ namespace Skila.Language.Entities
                 typeParameter, includes: null);
         }
 
-
-        public static TypeDefinition Joker { get; } = TypeDefinition.Create(EntityModifier.None,
-            NameDefinition.Create(NameFactory.JokerTypeName), null, allowSlicing: true);
-
         public bool IsTypeImplementation => !this.IsInterface && !this.IsProtocol;
         public bool IsInterface => this.Modifier.HasInterface;
         public bool IsTrait => this.Modifier.HasTrait;
@@ -65,7 +61,7 @@ namespace Skila.Language.Entities
 
         private bool isEvaluated;
 
-        public override IEnumerable<INode> OwnedNodes => base.OwnedNodes
+        public override IEnumerable<INode> ChildrenNodes => base.ChildrenNodes
             .Concat(this.ParentNames)
             .Where(it => it != null);
 
@@ -96,7 +92,7 @@ namespace Skila.Language.Entities
             this.TemplateParameter = typeParameter;
             this.ParentNames = (parents ?? Enumerable.Empty<NameReference>()).StoreReadOnly();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             features?.ForEach(it => AddNode(it));
 
@@ -123,7 +119,7 @@ namespace Skila.Language.Entities
                 trait.computeAncestors(ctx, new HashSet<TypeDefinition>());
             computeAncestors(ctx, new HashSet<TypeDefinition>());
 
-            IEnumerable<INode> owned_nodes = this.OwnedNodes.Concat(this.AssociatedTraits.SelectMany(it => it.OwnedNodes));
+            IEnumerable<INode> owned_nodes = this.ChildrenNodes.Concat(this.AssociatedTraits.SelectMany(it => it.ChildrenNodes));
             owned_nodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             // --
@@ -160,7 +156,7 @@ namespace Skila.Language.Entities
                     if (this.Modifier.HasHeapOnly)
                     {
                         instructions.Add(VariableDeclaration.CreateStatement("cp", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.ItNameReference(), NameReference.CreateThised())));
+                             ExpressionFactory.HeapConstructor(NameFactory.ItNameReference(), NameReference.CreateThised())));
                     }
                     else
                     {

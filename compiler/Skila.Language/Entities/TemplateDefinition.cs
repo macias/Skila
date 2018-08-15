@@ -14,7 +14,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public abstract class TemplateDefinition : Node, IEntity, IEntityScope, ISurfable
+    public abstract class TemplateDefinition : OwnedNode, IEntity, IEntityScope, ISurfable
     {
         private readonly HashSet<INode> ownedNodes;
         public EntityInstance InstanceOf => this.instancesCache.InstanceOf;
@@ -33,7 +33,7 @@ namespace Skila.Language.Entities
         public IEnumerable<TypeContainerDefinition> NestedTypeContainers => this.NestedTemplates.WhereType<TypeContainerDefinition>();
         public IEnumerable<TemplateDefinition> NestedTemplates => this.ownedNodes.WhereType<TemplateDefinition>();
 
-        public override IEnumerable<INode> OwnedNodes => this.ownedNodes
+        public override IEnumerable<INode> ChildrenNodes => this.ownedNodes
             .Concat(this.Name)
             .Concat(Conditionals)
             .Concat(Modifier)
@@ -43,7 +43,8 @@ namespace Skila.Language.Entities
         private readonly EntityInstanceCache instancesCache;
 
         public bool IsComputed { get; protected set; }
-        public EvaluationInfo Evaluation { get; }
+        private readonly Lazy<EvaluationInfo> evaluation;
+        public EvaluationInfo Evaluation => this.evaluation.Value;
         public ValidationData Validation { get; set; }
         public IEnumerable<NameReference> Includes { get; }
         public EntityModifier Modifier { get; protected set; }
@@ -62,7 +63,7 @@ namespace Skila.Language.Entities
         protected bool constructionCompleted;
 
         protected TemplateDefinition(EntityModifier modifier, NameDefinition name,
-            IEnumerable<TemplateConstraint> constraints,IEnumerable<NameReference> includes) : base()
+            IEnumerable<TemplateConstraint> constraints, IEnumerable<NameReference> includes) : base()
         {
             modifier = modifier ?? EntityModifier.None;
             if (modifier.HasEnum)
@@ -88,14 +89,15 @@ namespace Skila.Language.Entities
                 this.Conditionals = set;
             }
 
-            this.instancesCache = new EntityInstanceCache(this, () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
+            this.instancesCache = new EntityInstanceCache(this,
+                () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
                 overrideMutability: TypeMutability.None, translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
-            this.Evaluation = EvaluationInfo.Joker;
+            this.evaluation = new Lazy<EvaluationInfo>(() => Environment.JokerEval);
         }
 
         public T AddBuilder<T>(IBuilder<T> builder)
-            where T : INode
+            where T : IOwnedNode
         {
             return this.AddNode(builder.Build());
         }
@@ -108,7 +110,8 @@ namespace Skila.Language.Entities
 
             if (!ownedNodes.Add(elem))
                 throw new ArgumentException("Element was already added.");
-            elem.AttachTo(this);
+            if (elem is IOwnedNode ownable_node)
+                ownable_node.AttachTo(this);
             return elem;
         }
 
@@ -118,9 +121,9 @@ namespace Skila.Language.Entities
         }
 
         public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
-            TemplateTranslation translation,Lifetime lifetime)
+            TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,lifetime);
+            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
         }
 
         public override string ToString()

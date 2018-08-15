@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Extensions
+    public class Extensions : ITest
     {
         [TestMethod]
         public IInterpreter StaticCallStaticDispatch()
@@ -25,7 +25,7 @@ namespace Skila.Tests.Execution
                 Extension ext = root_ns.AddNode(Extension.Create("Hq"));
 
                 ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8NameReference(), Block.CreateStatement(
-                    Return.Create(ExpressionFactory.Mul("x", "x"))))
+                    Return.Create( ExpressionFactory.Mul("x", "x"))))
                     .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         EntityModifier.This)));
 
@@ -59,7 +59,7 @@ namespace Skila.Tests.Execution
                 Extension ext = root_ns.AddNode(Extension.Create());
 
                 ext.AddBuilder(FunctionBuilder.Create("paf", NameFactory.Nat8NameReference(), Block.CreateStatement(
-                    Return.Create(ExpressionFactory.Mul("x", "x"))))
+                    Return.Create( ExpressionFactory.Mul("x", "x"))))
                     .Parameters(FunctionParameter.Create("x", NameFactory.ReferenceNameReference(NameFactory.Nat8NameReference()),
                         EntityModifier.This)));
 

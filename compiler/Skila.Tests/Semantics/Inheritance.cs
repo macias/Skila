@@ -12,7 +12,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Inheritance
+    public class Inheritance : ITest
     {
         [TestMethod]
         public IErrorReporter InheritingConstructorWithSelfType()
@@ -29,13 +29,13 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("What")
                     .SetModifier(EntityModifier.Base)
-                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("x")))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement( ExpressionFactory.Readout("x")))
                     .SetModifier(EntityModifier.Pinned)
                         .Parameters(FunctionParameter.Create("x", NameFactory.SelfNameReference()))));
 
                 TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                     .Parents("What")
-                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("y")))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement( ExpressionFactory.Readout("y")))
                     .SetModifier(EntityModifier.Pinned | EntityModifier.Override | EntityModifier.UnchainBase)
                         .Parameters(FunctionParameter.Create("y", NameFactory.SelfNameReference()))));
 
@@ -58,13 +58,13 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("What")
                     .SetModifier(EntityModifier.Base)
-                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("x")))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement( ExpressionFactory.Readout("x")))
                     .SetModifier(EntityModifier.Pinned)
                         .Parameters(FunctionParameter.Create("x", NameFactory.SelfNameReference()))));
 
                 TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                     .Parents("What")
-                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement(ExpressionFactory.Readout("y")))
+                    .With(FunctionBuilder.CreateInitConstructor(Block.CreateStatement( ExpressionFactory.Readout("y")))
                     .SetModifier(EntityModifier.Pinned)
                         // this is an error, we should preserve using self type
                         .Parameters(FunctionParameter.Create("y", NameReference.Create("Next")))));
@@ -258,7 +258,7 @@ namespace Skila.Tests.Semantics
                     .With(EnumCaseBuilder.Create("Mon"))
                     .Parents("Weekend"));
 
-                IExpression init_value = ExpressionFactory.HeapConstructor("First", NameReference.Create("First", "Mon"));
+                IExpression init_value =  ExpressionFactory.HeapConstructor("First", NameReference.Create("First", "Mon"));
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "some",
                     ExpressionReadMode.OptionalUse,
@@ -266,7 +266,7 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameFactory.PointerNameReference( NameReference.Create("Weekend")),
                         init_value),
-                    ExpressionFactory.Readout("a")
+                     ExpressionFactory.Readout("a")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -682,7 +682,7 @@ namespace Skila.Tests.Semantics
                         // subtype of original result typename -- this is legal
                         NameFactory.PointerNameReference(NameFactory.Int64NameReference()),
                         Block.CreateStatement(new[] {
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
+                        Return.Create( ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
                         }))
                         .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), usageMode: ExpressionReadMode.CannotBeRead))
                         .SetModifier(EntityModifier.Override))

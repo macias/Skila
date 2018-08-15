@@ -127,7 +127,7 @@ namespace Skila.Language.Extensions
             }
 
 
-            node.OwnedNodes.ForEach(it => Validated(it, ctx));
+            node.ChildrenNodes.ForEach(it => Validated(it, ctx));
 
             if (node is IValidable verificable)
                 verificable.Validate(ctx);

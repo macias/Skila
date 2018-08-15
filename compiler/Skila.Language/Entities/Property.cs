@@ -15,7 +15,7 @@ namespace Skila.Language.Entities
     // to make sure there will be no problem in defining and passing this data
     // when user defines fancy parameters for indexer
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed partial class Property : Node, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
+    public sealed partial class Property : OwnedNode, IEvaluable, IEntityVariable, IEntityScope, IMember, ISurfable
     {
         public static FunctionDefinition CreateIndexerGetter(INameReference propertyTypeName,
             IEnumerable<FunctionParameter> parameters, Block body)
@@ -133,7 +133,7 @@ namespace Skila.Language.Entities
         public IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
         public bool IsSurfed { get; set; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, Getter, Setter, Modifier }
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { TypeName, Getter, Setter, Modifier }
             .Concat(Fields)
             .Where(it => it != null);
         public EntityModifier Modifier { get; private set; }
@@ -162,7 +162,7 @@ namespace Skila.Language.Entities
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
                 translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {
@@ -203,7 +203,7 @@ namespace Skila.Language.Entities
             }
         }
 
-        public override bool AttachTo(INode parent)
+        public override bool AttachTo(IOwnedNode parent)
         {
             if (!base.AttachTo(parent))
                 return false;
@@ -238,7 +238,7 @@ namespace Skila.Language.Entities
 
         public void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
         }
 
         public FunctionDefinition Get(Accessor accessor)

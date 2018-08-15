@@ -7,11 +7,12 @@ using Skila.Language.Flow;
 using Skila.Interpreter;
 using System.Threading.Tasks;
 using Skila.Language.Expressions.Literals;
+using System;
 
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Concurrency
+    public class Concurrency : ITest
     {
         [TestMethod]
         public IInterpreter ChannelDeadLockOnSend()
@@ -29,13 +30,13 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
-                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
+                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(Int64Literal.Create("2")))),
                     Return.Create(Int64Literal.Create("0"))
                     })));
 
-                int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(() => interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
+                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
                 Assert.AreEqual(0, task_id);
             }
 
@@ -58,12 +59,12 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
-                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
+                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
                     Return.Create(Int64Literal.Create("0"))
                     })));
 
-                int task_id = Task.WaitAny(Task.Delay(2000), Task.Run(() => interpreter.TestRun(env, Interpreter.Interpreter.PrepareRun(env))));
+                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
                 Assert.AreEqual(0, task_id);
             }
 
@@ -85,7 +86,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.CannotBeRead,
                     NameFactory.UnitNameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
+                     ExpressionFactory.AssertTrue(FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelSend),
                         FunctionArgument.Create(Int64Literal.Create("2")))),
                     }))
                     .Parameters(FunctionParameter.Create("ch", NameFactory.PointerNameReference(NameFactory.ChannelNameReference(NameFactory.Int64NameReference())),
@@ -97,12 +98,12 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("ch",null,
-                        ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
+                         ExpressionFactory.HeapConstructor(NameFactory.ChannelNameReference(NameFactory.Int64NameReference()))),
                     Spawn.Create(FunctionCall.Create(NameReference.Create("sender"),FunctionArgument.Create(NameReference.Create("ch")))),
                     VariableDeclaration.CreateStatement("r",null,
                         FunctionCall.Create(NameReference.Create("ch",NameFactory.ChannelReceive))),
-                    ExpressionFactory.AssertOptionIsSome(NameReference.Create("r")),
-                    Return.Create(ExpressionFactory.GetOptionValue(NameReference.Create("r")))
+                     ExpressionFactory.AssertOptionIsSome(NameReference.Create("r")),
+                    Return.Create( ExpressionFactory.GetOptionValue(NameReference.Create("r")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);

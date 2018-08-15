@@ -13,7 +13,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Flow
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class Loop : Node, IExpression, IExecutableScope, IAnchor
+    public sealed class Loop : OwnedNode, IExpression, IExecutableScope, IAnchor
     {
         public static IExpression CreateFor(NameDefinition label, IEnumerable<IExpression> init,
             IExpression condition,
@@ -52,7 +52,7 @@ namespace Skila.Language.Flow
             IExpression condition;
             if (varName == NameFactory.Sink)
             {
-                condition = ExpressionFactory.OptionalAssignment(NameFactory.SinkReference(),
+                condition =  ExpressionFactory.OptionalAssignment(NameFactory.SinkReference(),
                     FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
             else
@@ -62,7 +62,7 @@ namespace Skila.Language.Flow
                          NameReference.Create(elem_name))
                          .Concat(body);
 
-                condition = ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
+                condition =  ExpressionFactory.OptionalDeclaration(elem_name, varTypeName,
                     FunctionCall.Create(NameReference.Create(iter_name, NameFactory.IteratorNext)));
             }
 
@@ -98,7 +98,7 @@ namespace Skila.Language.Flow
         private IExpression postCondition;
         public IExpression PostCondition => this.postCondition;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Label }
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { Label }
             .Concat(PreCondition).Concat(Body).Concat(PostStep).Concat(PostCondition).Where(it => it != null);
 
         private readonly Later<ExecutionFlow> flow;
@@ -130,7 +130,7 @@ namespace Skila.Language.Flow
 
             this.ReadMode = ExpressionReadMode.CannotBeRead; // todo: temporary state
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(PreCondition,
                 thenPath: Body,

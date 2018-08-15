@@ -39,7 +39,7 @@ namespace Skila.Language.Entities
         private readonly List<TypeDefinition> closures;
         public bool IsMemberUsed { get; private set; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, InitValue, Modifier }
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { TypeName, InitValue, Modifier }
             .Where(it => it != null)
             .Concat(this.AccessGrants)
             .Concat(closures);
@@ -69,7 +69,7 @@ namespace Skila.Language.Entities
 
             this.closures = new List<TypeDefinition>();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(InitValue));
         }
@@ -92,7 +92,7 @@ namespace Skila.Language.Entities
             return code;
         }
 
-        public override bool AttachTo(INode owner)
+        public override bool AttachTo(IOwnedNode owner)
         {
             if (!base.AttachTo(owner))
                 return false;
@@ -246,8 +246,8 @@ namespace Skila.Language.Entities
 
             if (this_eval == null)
             {
-                this_eval = EntityInstance.Joker;
-                this_aggregate = EntityInstance.Joker;
+                this_eval = Environment.JokerInstance;
+                this_aggregate = Environment.JokerInstance;
             }
             else
             {

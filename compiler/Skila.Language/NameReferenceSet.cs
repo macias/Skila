@@ -13,11 +13,11 @@ using Skila.Language.Printout;
 namespace Skila.Language
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public abstract class NameReferenceSet : Node, INameReference
+    public abstract class NameReferenceSet : OwnedNode, INameReference
     {
         public bool IsBindingComputed => this.Elements.All(it => it.IsBindingComputed);
         public IReadOnlyCollection<INameReference> Elements { get; }
-        public override IEnumerable<INode> OwnedNodes => this.Elements.Select(it => it.Cast<INode>())
+        public override IEnumerable<INode> ChildrenNodes => this.Elements.Select(it => it.Cast<IOwnedNode>())
             .Concat(this.aggregate)
             .Where(it => it != null);
 
@@ -38,7 +38,7 @@ namespace Skila.Language
             if (!this.Elements.Any())
                 throw new ArgumentException();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public void Evaluate(ComputationContext ctx)
@@ -108,7 +108,7 @@ namespace Skila.Language
 
         public void Surf(ComputationContext ctx)
         {
-            this.OwnedNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
+            this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             compute(ctx);
         }

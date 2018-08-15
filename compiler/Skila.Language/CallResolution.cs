@@ -60,8 +60,18 @@ namespace Skila.Language
         private readonly TypeMatch?[] typeMatches;
         public IReadOnlyList<TypeMatch?> TypeMatches => this.typeMatches;
 
-        public IReadOnlyList<FunctionArgument> TrueArguments { get; }
+        public IReadOnlyList<FunctionArgument> ExtensionsArguments { get; }
         public IReadOnlyList<FunctionArgument> UserArguments => this.argumentsProvider.UserArguments;
+        public IEnumerable<FunctionArgument> ActualArguments
+        {
+            get
+            {
+                if (this.MetaThisArgument == null)
+                    return this.UserArguments;
+                else
+                    return this.MetaThisArgument.Concat(this.UserArguments);
+            }
+        }
         public IReadOnlyCollection<INameReference> InferredTemplateArguments { get; }
         private readonly IReadOnlyList<IEntityInstance> templateArguments;
 
@@ -80,6 +90,10 @@ namespace Skila.Language
             List<int> argParamMapping,
             out bool success)
         {
+            if (this.DebugId== (40, 745))
+            {
+                ;
+            }
             success = true;
 
             this.MetaThisArgument = callContext.MetaThisArgument;
@@ -87,14 +101,14 @@ namespace Skila.Language
             this.argumentsProvider = argumentsProvider;
 
             if (this.IsExtendedCall)
-                this.TrueArguments = new[] { this.MetaThisArgument }.Concat(this.argumentsProvider.UserArguments).StoreReadOnlyList();
+                this.ExtensionsArguments = new[] { this.MetaThisArgument }.Concat(this.argumentsProvider.UserArguments).StoreReadOnlyList();
             else
-                this.TrueArguments = this.argumentsProvider.UserArguments;
+                this.ExtensionsArguments = this.argumentsProvider.UserArguments;
 
             this.typeMatches = new TypeMatch?[this.TargetFunction.Parameters.Count];
             this.templateArguments = (templateArguments.Any()
                 ? templateArguments.Select(it => it.TypeName.Evaluation.Components)
-                : this.TargetFunction.Name.Parameters.Select(it => EntityInstance.Joker)).StoreReadOnlyList();
+                : this.TargetFunction.Name.Parameters.Select(it => Environment.JokerInstance)).StoreReadOnlyList();
             this.argParamMapping = argParamMapping;
             this.paramArgMapping = createParamArgMapping(this.argParamMapping);
 
@@ -107,6 +121,12 @@ namespace Skila.Language
             {
                 ;
             }
+
+            if (this.DebugId == (39, 745))
+            {
+                ;
+            }
+
             extractParameters(ctx, argumentsProvider, call_ctx_eval, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
@@ -197,12 +217,12 @@ namespace Skila.Language
 
         internal void SetMappings(ComputationContext ctx)
         {
-            foreach (var arg in this.TrueArguments)
+            foreach (var arg in this.ExtensionsArguments)
                 arg.SetTargetParam(ctx, this.GetParamByArg(arg));
         }
 
         private static void extractParameters(ComputationContext ctx,
-            INode callNode,
+            IOwnedNode callNode,
             IEntityInstance objectInstance,
             EntityInstance targetFunctionInstance,
             out IReadOnlyList<ParameterType> translatedParamEvaluations,
@@ -211,7 +231,7 @@ namespace Skila.Language
             FunctionDefinition target_function = targetFunctionInstance.TargetTemplate.CastFunction();
 
             translatedParamEvaluations = target_function.Parameters
-                .Select(it => ParameterType.Create(it, objectInstance, targetFunctionInstance))
+                .Select(it => ParameterType.Create(ctx, it, objectInstance, targetFunctionInstance))
                 .StoreReadOnlyList();
 
             target_function.ResultTypeName.Evaluated(ctx, EvaluationCall.AdHocCrossJump);
@@ -237,7 +257,7 @@ namespace Skila.Language
 
         internal bool ArgumentTypesMatchParameters(ComputationContext ctx)
         {
-            foreach (FunctionArgument arg in this.TrueArguments)
+            foreach (FunctionArgument arg in this.ExtensionsArguments)
             {
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
 
@@ -254,11 +274,9 @@ namespace Skila.Language
                 if (match.IsMismatch(attachmentMatches: this.TargetFunction.IsAnyConstructor()))
                     return false;
 
+                // when several arguments are classify for attachments, compute the shortest lifetime of them
                 if (match.HasFlag(TypeMatch.Attachment))
-                    this.AttachmentLifetime = (this.AttachmentLifetime == null
-                            ? arg.Evaluation.Aggregate.Lifetime
-                            : this.AttachmentLifetime.Shorter(arg.Evaluation.Aggregate.Lifetime))
-                        .AsAttached();
+                    this.AttachmentLifetime = arg.Evaluation.Aggregate.Lifetime.AsAttached().Shorter(this.AttachmentLifetime);
 
                 if (match == TypeMatch.ImplicitReference)
                 {
@@ -272,13 +290,14 @@ namespace Skila.Language
         {
             // requested result type has to match perfectly (without conversions)
             TypeMatch match = this.argumentsProvider.RequestedOutcomeTypeName.Evaluation.Components
-                .MatchesTarget(ctx, this.translatedResultEvaluation.Components, TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
+                .MatchesTarget(ctx, this.translatedResultEvaluation.Components,
+                    TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false));
             return match == TypeMatch.Same || match == TypeMatch.Substitute;
         }
 
         internal void EnhanceArguments(ComputationContext ctx)
         {
-            foreach (FunctionArgument arg in this.TrueArguments)
+            foreach (FunctionArgument arg in this.ExtensionsArguments)
             {
                 IEntityInstance param_eval = this.GetTransParamEvalByArg(arg);
                 arg.DataTransfer(ctx, param_eval);
@@ -392,14 +411,14 @@ namespace Skila.Language
 
             for (int i = 0; i < this.TargetFunctionInstance.TargetTemplate.Name.Parameters.Count; ++i)
                 if (this.templateArguments[i].IsJoker)
-                    yield return inferred[i] ?? EntityInstance.Joker;
+                    yield return inferred[i] ?? Environment.JokerInstance;
                 else
                     yield return templateArguments[i];
         }
 
         public IEnumerable<TimedIEntityInstance> InferTemplateArguments(ComputationContext ctx, TemplateDefinition template)
         {
-            if (this.DebugId == (39, 14))
+            if (this.DebugId == (40, 745))
             {
                 ;
             }
@@ -417,14 +436,15 @@ namespace Skila.Language
             for (int i = 0; i < template_parameters.Count; ++i)
                 template_param_inference.Add(template_parameters[i], null);
 
-            foreach (FunctionArgument arg in this.TrueArguments)
+            foreach (FunctionArgument arg in this.ExtensionsArguments)
             {
-                IEntityInstance function_param_type = cross_parameters 
+                IEntityInstance function_param_type = cross_parameters
                     ? this.GetParamByArg(arg).Evaluation.Components : this.GetTransParamEvalByArg(arg);
 
                 IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> type_mapping
-                    = extractTypeParametersMapping(ctx, template, arg.Evaluation.Aggregate.Lifetime, arg.Evaluation.Components,
-                    function_param_type);
+                    = extractTypeParametersMapping(ctx, template,
+                        arg.Evaluation.Aggregate.Lifetime, arg.Evaluation.Components,
+                        function_param_type);
 
                 foreach (Tuple<TemplateParameter, TimedIEntityInstance> pair in type_mapping)
                 {
@@ -486,39 +506,32 @@ namespace Skila.Language
                     }
                 }
 
-                result.Add(computed ?? EntityInstance.Joker);
+                result.Add(computed ?? Environment.JokerInstance);
             }
 
             return result;
         }
 
-        private static IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> extractTypeParametersMapping(ComputationContext ctx,
+        private static IEnumerable<Tuple<TemplateParameter, TimedIEntityInstance>> extractTypeParametersMapping(
+            ComputationContext ctx,
             TemplateDefinition template,
             Lifetime argLifetime,
             IEntityInstance argType, IEntityInstance paramType)
         {
-
-            // three steps logic of dereferencing here
-            // (1) we cannot pass references as template arguments, so we dereference the type right away
-            bool dereferencing_arg = ctx.Env.IsReferenceOfType(argType);
-            if (dereferencing_arg)
-                ctx.Env.DereferencedOnce(argType, out argType, out bool dummy);
-
-            // (2) we need to drop reference from param type as well (scenario: passing values to function taking references of them)
-            if (ctx.Env.IsReferenceOfType(paramType))
+            // todo: actually this a bit wrong because we repeat the logic from type maching, so we have DRY violation
+            // if we pass pointer-like to pointer-like data unwrap both of them
+            if (ctx.Env.IsPointerLikeOfType(argType) && ctx.Env.IsPointerLikeOfType(paramType))
             {
-                ctx.Env.DereferencedOnce(paramType, out paramType, out bool dummy1);
-
-                // (3) at this point it could happen that we didn't dereferenced pointer argument, so we do it, 
-                // but only if the argument was not dereferenced already
-                if (!dereferencing_arg && ctx.Env.IsPointerOfType(argType))
-                    ctx.Env.DereferencedOnce(argType, out argType, out bool dummy2);
+                ctx.Env.DereferencedOnce(argType, out argType, out bool _);
+                ctx.Env.DereferencedOnce(paramType, out paramType, out bool _);
+                return extractTypeParametersMapping(ctx, template, argLifetime, argType, paramType);
             }
-            // done, we covered:
-            // value -> ref
-            // ref -> ref
-            // ptr -> ref
-
+            // if the target is reference mimick implicit dereferencing
+            else if (ctx.Env.IsReferenceOfType(paramType))
+            {
+                ctx.Env.DereferencedOnce(paramType, out paramType, out bool _);
+                return extractTypeParametersMapping(ctx, template, argLifetime, argType, paramType);
+            }
 
             // let's say we pass Tuple<Int,String> into function which expects there Tuple<K,V>
             // we try to extract those type to return mapping K -> Int, V -> String
@@ -552,13 +565,13 @@ namespace Skila.Language
                 return zipped
                     .Select(it => extractTypeParametersMapping(ctx, template, argLifetime, it.Item1, it.Item2))
                     .Flatten()
-                    .ToArray();
+                    .StoreReadOnly();
             }
         }
 
         public override string ToString()
         {
-            return "(" + this.TrueArguments.Select(it => $"{it}").Join(",") + ") -> "
+            return "(" + this.ExtensionsArguments.Select(it => $"{it}").Join(",") + ") -> "
                 + $"{this.TargetFunctionInstance}(" + this.TargetFunction.Parameters.Select(it => $"{it}").Join(",") + ")";
         }
 

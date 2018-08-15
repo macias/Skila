@@ -6,13 +6,12 @@ using System.Linq;
 
 namespace Skila.Language
 {
-    
     public sealed class Lifetime
     {
         // values and pointers are timeless
         public static Lifetime Timeless { get; } = new Lifetime(null, LifetimeScope.Global);
 
-        public static Lifetime Create(INode node, LifetimeScope lifetimeScope = LifetimeScope.Local)
+        public static Lifetime Create(IOwnedNode node, LifetimeScope lifetimeScope = LifetimeScope.Local)
         {
             if (node == null)
                 throw new ArgumentNullException();
@@ -21,14 +20,14 @@ namespace Skila.Language
         }
 
         private IEnumerable<IScope> __nodeScopes => this.__node.EnclosingScopesToRoot().StoreReadOnly();
-        public INode __node { get; }
+        public IOwnedNode __node { get; }
 
         public bool IsAttached => this.lifetimeScope == LifetimeScope.Attachment;
         private readonly LifetimeScope lifetimeScope;
 
         public bool IsTimeless => this.__node == null;
 
-        private Lifetime(INode context,  LifetimeScope lifetimeScope)
+        private Lifetime(IOwnedNode context, LifetimeScope lifetimeScope)
         {
             if (context != null && context.DebugId == (5, 11419))
             {
@@ -73,6 +72,9 @@ namespace Skila.Language
 
         public bool Outlives(Lifetime source)
         {
+            if (source.lifetimeScope == LifetimeScope.Attachment && this.lifetimeScope != LifetimeScope.Attachment)
+                return true;
+
             if (this.IsTimeless || source.IsTimeless)
                 return false;
 
@@ -97,8 +99,7 @@ namespace Skila.Language
                 return false;
             }
 
-            var source_scope = source.lifetimeScope == LifetimeScope.Attachment ? source.__node.EnclosingScope<TypeDefinition>()
-                 : source.__node.EnclosingScope<IScope>();
+            var source_scope = source.__node.EnclosingScope<IScope>();
 
             IEnumerable<IScope> this_scopes = this.__node.EnclosingScopesToRoot();
             bool result = !this_scopes.Contains(source_scope);
@@ -114,10 +115,10 @@ namespace Skila.Language
 
         internal Lifetime Shorter(Lifetime other)
         {
-            if (this.IsTimeless)
-                return other;
-            else if (other.IsTimeless)
+            if (other == null || other.IsTimeless)
                 return this;
+            else if (this.IsTimeless)
+                return other;
             else
                 return this.Outlives(other) ? other : this;
         }

@@ -10,7 +10,7 @@ namespace Skila.Language.Expressions.Literals
     {
         private readonly NameReference typeName;
         public string InputValue { get; }
-        public override IEnumerable<INode> OwnedNodes => new[] { typeName };
+        public override IEnumerable<INode> ChildrenNodes => new[] { typeName };
         public override ExecutionFlow Flow => ExecutionFlow.Empty;
 
         public abstract object LiteralValue { get; }
@@ -21,7 +21,7 @@ namespace Skila.Language.Expressions.Literals
             this.typeName = typeName;
             this.InputValue = inputValue;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override string ToString()
         {

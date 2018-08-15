@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Objects
+    public class Objects : ITest
     {
         [TestMethod]
         public IInterpreter ImplicitReferenceAssignmentInterpretation()
@@ -53,7 +53,7 @@ namespace Skila.Tests.Execution
                         // x = &b
                         Assignment.CreateStatement("x","b"),
 
-                        ExpressionFactory.Inc("b"),
+                         ExpressionFactory.Inc("b"),
 
                         Return.Create(NameReference.Create("x"))
                     })));
@@ -110,13 +110,13 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.HeapConstructor("Carbon")),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.HeapConstructor("Carbon")),
 
                     // calling const-method (which currently is auto created)
                     VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
 
                     VariableDeclaration.CreateStatement("r",null,
-                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+                         ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
 
                         Return.Create(NameReference.Create("r"))
                     })));
@@ -162,13 +162,13 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.HeapConstructor("Carbon")),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.HeapConstructor("Carbon")),
 
                     // calling const-method (which currently is auto created)
                     VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
 
                     VariableDeclaration.CreateStatement("r",null,
-                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+                         ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
 
                         Return.Create(NameReference.Create("r"))
                     })));
@@ -214,13 +214,13 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Carbon")),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.StackConstructor("Carbon")),
 
                     // calling const-method (which currently is auto created)
                     VariableDeclaration.CreateStatement("m",null,FunctionCall.Create(NameReference.Create("a","turtle"))),
 
                     VariableDeclaration.CreateStatement("r",null,
-                        ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
+                         ExpressionFactory.Sub(NameReference.Create("m","x"),NameReference.Create("a","x"))),
 
                         Return.Create(NameReference.Create("r"))
                     })));
@@ -282,14 +282,14 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameFactory.PointerNameReference(NameReference.Create("IDuplicate")),
-                        ExpressionFactory.HeapConstructor("Carbon")),
+                         ExpressionFactory.HeapConstructor("Carbon")),
 
                     // we create a copy using `Self` type on external object 
                     VariableDeclaration.CreateStatement("b",null,
-                        ExpressionFactory.HeapConstructor(NameReference.Create("a",NameFactory.SelfTypeTypeName),NameReference.Create("a"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("a",NameFactory.SelfTypeTypeName),NameReference.Create("a"))),
 
                     // we should get our type back and the value we set in our copy constructor
-                    IfBranch.CreateIf( ExpressionFactory.OptionalDeclaration("c",null,ExpressionFactory.DownCast(NameReference.Create("b"),
+                    IfBranch.CreateIf(  ExpressionFactory.OptionalDeclaration("c",null, ExpressionFactory.DownCast(NameReference.Create("b"),
                         NameFactory.PointerNameReference(NameReference.Create("Carbon")))),
                         Return.Create(NameReference.Create("c","x")),
                         IfBranch.CreateElse(Return.Create(Nat8Literal.Create("100"))))
@@ -329,7 +329,7 @@ namespace Skila.Tests.Execution
 
                                         .With(FunctionBuilder.Create("copy",
                                             NameFactory.PointerNameReference(NameReference.Create("IDuplicate")),
-                                            Block.CreateStatement(Return.Create(ExpressionFactory.HeapConstructor(NameFactory.SelfNameReference(),
+                                            Block.CreateStatement(Return.Create( ExpressionFactory.HeapConstructor(NameFactory.SelfNameReference(),
                                                 NameReference.CreateThised())))))
                                         );
 
@@ -355,14 +355,14 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Carbon")),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.StackConstructor("Carbon")),
 
                     // we call "copy" method which should in turn call copy constructor
                     VariableDeclaration.CreateStatement("b",null,
                         FunctionCall.Create(NameReference.Create("a","copy"))),
 
                     // we should get our type back and the value we set in our copy constructor
-                    IfBranch.CreateIf( ExpressionFactory.OptionalDeclaration("c",null,ExpressionFactory.DownCast(NameReference.Create("b"),
+                    IfBranch.CreateIf(  ExpressionFactory.OptionalDeclaration("c",null, ExpressionFactory.DownCast(NameReference.Create("b"),
                         NameFactory.PointerNameReference(NameReference.Create("Carbon")))),
                         Return.Create(NameReference.Create("c","x")),
                         IfBranch.CreateElse(Return.Create(Nat8Literal.Create("100"))))
@@ -398,31 +398,31 @@ namespace Skila.Tests.Execution
 
 
                         VariableDeclaration.CreateStatement("x", null,
-                            ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("3"))),
+                             ExpressionFactory.OptionOf(NameFactory.Nat8NameReference(), Nat8Literal.Create("3"))),
                         VariableDeclaration.CreateStatement("y", null,
-                            ExpressionFactory.OptionEmpty(NameFactory.Nat8NameReference())),
+                             ExpressionFactory.OptionEmpty(NameFactory.Nat8NameReference())),
 
                         VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("0"), env.Options.ReassignableModifier()),
 
                         // succesful assignment
-                        IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") },
+                        IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a") },
                             new[] { NameReference.Create("x") }),
-                                ExpressionFactory.IncBy("acc", Nat8Literal.Create("2"))),
+                                 ExpressionFactory.IncBy("acc", Nat8Literal.Create("2"))),
                         // failed assignment
-                        IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") },
+                        IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("b") },
                             new[] { NameReference.Create("y") }),
-                                ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
+                                 ExpressionFactory.IncBy("acc", Nat8Literal.Create("3"))),
 
                         Assignment.CreateStatement(NameReference.Create("a"), Nat8Literal.Create("0")),
                         // failed assignment (because the second of the nested assignments fails)
-                        IfBranch.CreateIf(ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"), NameReference.Create("b") },
+                        IfBranch.CreateIf( ExpressionFactory.OptionalAssignment(new[] { NameReference.Create("a"), NameReference.Create("b") },
                             new[] { NameReference.Create("x"), NameReference.Create("y") }),
-                            ExpressionFactory.IncBy("acc", Nat8Literal.Create("7"))),
+                             ExpressionFactory.IncBy("acc", Nat8Literal.Create("7"))),
                         // checking that the first nested assignment was not executed (it is all-or-nothing)
-                        ExpressionFactory.AssertEqual(Nat8Literal.Create("0"), NameReference.Create("a")),
+                         ExpressionFactory.AssertEqual(Nat8Literal.Create("0"), NameReference.Create("a")),
 
-                        ExpressionFactory.Readout("b"),
+                         ExpressionFactory.Readout("b"),
 
                         Return.Create(NameReference.Create("acc"))
                     )));
@@ -454,7 +454,7 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("b",null,NameReference.Create(NameFactory.Nat64NameReference(),
                         NameFactory.NumMaxValueName),env.Options.ReassignableModifier()),
                     Assignment.CreateStatement(NameReference.Create("b"),
-                        ExpressionFactory.AddOverflow(NameReference.Create("b"),Nat64Literal.Create("3"))),
+                         ExpressionFactory.AddOverflow(NameReference.Create("b"),Nat64Literal.Create("3"))),
                     Return.Create(NameReference.Create("b"))
                     })));
 
@@ -507,10 +507,10 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameFactory.PointerNameReference(NameFactory.IEquatableNameReference()),
-                        ExpressionFactory.HeapConstructor("Rich")),
+                         ExpressionFactory.HeapConstructor("Rich")),
                     VariableDeclaration.CreateStatement("b",NameFactory.PointerNameReference(NameFactory.IEquatableNameReference()),
-                        ExpressionFactory.HeapConstructor("Rich")),
-                    Return.Create(ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
+                         ExpressionFactory.HeapConstructor("Rich")),
+                    Return.Create( ExpressionFactory.Ternary(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
                         NameReference.Create("b")),Int64Literal.Create("2"),Int64Literal.Create("7")))
                     })));
 
@@ -563,12 +563,12 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("a",NameFactory.PointerNameReference(NameFactory.IEquatableNameReference()),
-                        ExpressionFactory.HeapConstructor("Tiny")),
+                         ExpressionFactory.HeapConstructor("Tiny")),
                     VariableDeclaration.CreateStatement("b",NameFactory.PointerNameReference(NameFactory.IEquatableNameReference()),
-                        ExpressionFactory.HeapConstructor("Rich")),
+                         ExpressionFactory.HeapConstructor("Rich")),
                     // since the call is dynamic, through IEquatable it should compile but throw in runtime because
                     // we have different types
-                    ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
+                     ExpressionFactory.Readout(FunctionCall.Create(NameReference.Create("a",NameFactory.EqualOperator),
                         NameReference.Create("b"))),
                     Return.Create(Int64Literal.Create("44"))
                     })));
@@ -611,11 +611,11 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("acc", null, Int64Literal.Create("0"), env.Options.ReassignableModifier()),
                     IfBranch.CreateIf(IsSame.Create("x","y"),new[]{
                         Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("2")))
+                             ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("2")))
                     }),
                     IfBranch.CreateIf(IsSame.Create("x","z"),new[]{
                         Assignment.CreateStatement(NameReference.Create("acc"),
-                            ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("7")))
+                             ExpressionFactory.Add(NameReference.Create("acc"),Int64Literal.Create("7")))
                     }),
                     Return.Create(NameReference.Create("acc"))
                     })));
@@ -648,11 +648,11 @@ namespace Skila.Tests.Execution
                     VariableDeclaration.CreateStatement("x",NameFactory.Int64NameReference(),null, env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",NameFactory.Int64NameReference(),null, env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("z",NameFactory.Int64NameReference(),null, env.Options.ReassignableModifier()),
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.Tuple(Int64Literal.Create("-3"),Int64Literal.Create("5"))),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.Tuple(Int64Literal.Create("-3"),Int64Literal.Create("5"))),
                     Assignment.CreateStatement(new[]{ NameReference.Create("x"), NameReference.Create("y"),NameReference.Create("z") },
                         new[]{  Spread.Create(NameReference.Create("a")) }),
-                    ExpressionFactory.Readout("z"),
-                    Return.Create(ExpressionFactory.Add("x","y"))
+                     ExpressionFactory.Readout("z"),
+                    Return.Create( ExpressionFactory.Add("x","y"))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -682,10 +682,10 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("x",NameFactory.Int64NameReference(),null, env.Options.ReassignableModifier()),
                     VariableDeclaration.CreateStatement("y",NameFactory.Int64NameReference(),null, env.Options.ReassignableModifier()),
-                    VariableDeclaration.CreateStatement("a",null,ExpressionFactory.Tuple(Int64Literal.Create("-3"),Int64Literal.Create("5"))),
+                    VariableDeclaration.CreateStatement("a",null, ExpressionFactory.Tuple(Int64Literal.Create("-3"),Int64Literal.Create("5"))),
                     Assignment.CreateStatement(new[]{ NameReference.Create("x"), NameReference.Create("y") },
                         new[]{  Spread.Create(NameReference.Create("a")) }),
-                    Return.Create(ExpressionFactory.Add("x","y"))
+                    Return.Create( ExpressionFactory.Add("x","y"))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -749,7 +749,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Point"))),
                     Assignment.CreateStatement(NameReference.Create(NameReference.Create("p"),"x"),
                      Int64Literal.Create("2")),
                     Return.Create(NameReference.Create(NameReference.Create("p"),"x"))
@@ -783,7 +783,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("s",null,NameReference.Create("Sizing","small")),
-                    IfBranch.CreateIf(ExpressionFactory.IsNotEqual(NameReference.Create( "s"),NameReference.Create("Sizing","big")),
+                    IfBranch.CreateIf( ExpressionFactory.IsNotEqual(NameReference.Create( "s"),NameReference.Create("Sizing","big")),
                         new[]{ Return.Create(Int64Literal.Create("2")) }),
                     Return.Create(Int64Literal.Create("5"))
                     })));
@@ -810,7 +810,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                     // a = a + 5   --> 4
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName, "a"),
-                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"a"),Int64Literal.Create("5")))
+                         ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"a"),Int64Literal.Create("5")))
                     }));
                 root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable | EntityModifier.Base)
@@ -822,8 +822,8 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(new[] {
                     // b = b + 15 --> +5
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"b"),
-                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),Int64Literal.Create("15")))
-                    }), ExpressionFactory.BaseInit());
+                         ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),Int64Literal.Create("15")))
+                    }),  ExpressionFactory.BaseInit());
 
                 TypeDefinition next_type = root_ns.AddBuilder(TypeBuilder.Create("Next")
                     .Parents("Point")
@@ -835,8 +835,8 @@ namespace Skila.Tests.Execution
                         Block.CreateStatement(new[] {
                     // b = b + i  --> i+5
                     Assignment.CreateStatement(NameReference.Create(NameFactory.ThisVariableName,"b"),
-                        ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),NameReference.Create("i")))
-                    }), ExpressionFactory.ThisInit()))
+                         ExpressionFactory.Add(NameReference.Create(NameFactory.ThisVariableName,"b"),NameReference.Create("i")))
+                    }),  ExpressionFactory.ThisInit()))
                     .With(VariableDeclaration.CreateStatement("b", NameFactory.Int64NameReference(), Int64Literal.Create("-10"),
                         EntityModifier.Public | env.Options.ReassignableModifier())));
 
@@ -845,9 +845,9 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor(NameReference.Create("Next"),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor(NameReference.Create("Next"),
                         FunctionArgument.Create(Int64Literal.Create("-7")))),
-                    Return.Create(ExpressionFactory.Add(NameReference.Create("p","a"), NameReference.Create("p","b")))
+                    Return.Create( ExpressionFactory.Add(NameReference.Create("p","a"), NameReference.Create("p","b")))
                     })));
 
                 ExecValue result = interpreter.TestRun(env);

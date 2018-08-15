@@ -32,7 +32,7 @@ namespace Skila.Language.Expressions
         public IExpression Lhs => this.lhs;
         public IExpression Rhs => this.rhs;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Lhs, Rhs }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new IOwnedNode[] { Lhs, Rhs }.Where(it => it != null);
 
         private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
@@ -44,7 +44,7 @@ namespace Skila.Language.Expressions
             this.lhs = lhs;
             this.rhs = rhs;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() =>
             {

@@ -165,7 +165,7 @@ namespace Skila.Language
             return this.directTypeMutability.Value;
         }
 
-        public bool ValidateTypeVariance(ComputationContext ctx, INode placement, VarianceMode typeNamePosition)
+        public bool ValidateTypeVariance(ComputationContext ctx, IOwnedNode placement, VarianceMode typeNamePosition)
         {
             return this.EnumerateAll().All(it => it.ValidateTypeVariance(ctx,
                        placement,

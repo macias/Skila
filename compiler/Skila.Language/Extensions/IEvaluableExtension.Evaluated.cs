@@ -13,7 +13,7 @@ namespace Skila.Language.Extensions
             var evaluable = node as IEvaluable;
 
             if (evaluable != null && evaluable.IsComputed)
-                return evaluable.Evaluation?.Components ?? EntityInstance.Joker;
+                return evaluable.Evaluation?.Components ?? Environment.JokerInstance;
 
             if (!ctx.AddVisited(node))
             {
@@ -23,7 +23,7 @@ namespace Skila.Language.Extensions
                         ctx.AddError(ErrorCode.CircularReference, node);
                 }
 
-                return evaluable?.Evaluation?.Components ?? EntityInstance.Joker;
+                return evaluable?.Evaluation?.Components ?? Environment.JokerInstance;
             }
 
             // todo: this is hacky, redesign this
@@ -61,7 +61,7 @@ namespace Skila.Language.Extensions
                     custom.CustomEvaluate(ctx);
                 else
                 {
-                    node.OwnedNodes.ForEach(it => Evaluated(it, ctx, EvaluationCall.Nested));
+                    node.ChildrenNodes.ForEach(it => Evaluated(it, ctx, EvaluationCall.Nested));
                     (node as IComputable)?.Evaluate(ctx);
                 }
             }
@@ -91,7 +91,7 @@ namespace Skila.Language.Extensions
 
             ctx.RemoveVisited(node);
 
-            return evaluable?.Evaluation?.Components ?? EntityInstance.Joker;
+            return evaluable?.Evaluation?.Components ?? Environment.JokerInstance;
         }
     }
 

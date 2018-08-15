@@ -12,7 +12,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Expressions
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionArgument : Node, IExpression, IIndexed, ILambdaTransfer
+    public sealed class FunctionArgument : OwnedNode, IExpression, IIndexed, ILambdaTransfer
     {
         public static FunctionArgument Create(string nameLabel, IExpression expression)
         {
@@ -36,7 +36,7 @@ namespace Skila.Language.Expressions
         public bool IsComputed => this.Evaluation != null;
         private IExpression expression;
         public IExpression Expression => this.expression;
-        public override IEnumerable<INode> OwnedNodes => new INode[] { Expression }.Concat(closures);
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { Expression }.Concat(closures);
         private readonly Later<ExecutionFlow> flow;
         public ExecutionFlow Flow => this.flow.Value;
         private Option<int> index;
@@ -65,7 +65,7 @@ namespace Skila.Language.Expressions
 
             this.closures = new List<TypeDefinition>();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expression));
         }
@@ -106,7 +106,7 @@ namespace Skila.Language.Expressions
 
         internal void DataTransfer(ComputationContext ctx, IEntityInstance targetTypeName)
         {
-            if (this.expression.DebugId== (5, 11432))
+            if (this.DebugId== (26, 367))
             {
                 ;
             }

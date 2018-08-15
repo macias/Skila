@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Mutability
+    public class Mutability : ITest
     {
         [TestMethod]
         public IInterpreter OldSchoolSwapPointers()
@@ -36,7 +36,7 @@ namespace Skila.Tests.Execution
                         FunctionParameter.Create("b", NameFactory.ReferenceNameReference("T"))));
 
                 VariableDeclaration decl_a = VariableDeclaration.CreateStatement("a", null,
-                            ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
+                             ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
                                 NameFactory.Nat8NameReference(),
                                 Nat8Literal.Create("2")));
 
@@ -50,7 +50,7 @@ namespace Skila.Tests.Execution
                     Block.CreateStatement(
                         decl_a,
                         VariableDeclaration.CreateStatement("b", null,
-                            ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
+                             ExpressionFactory.HeapConstructor(env.Options.ReassignableTypeMutability(),
                                 NameFactory.Nat8NameReference(),
                                 Nat8Literal.Create("17"))),
 
@@ -60,7 +60,7 @@ namespace Skila.Tests.Execution
 
                         // here `c` still points to value of original `a`
 
-                        Return.Create(ExpressionFactory.Sub("a", "c"))
+                        Return.Create( ExpressionFactory.Sub("a", "c"))
                     )));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -100,13 +100,13 @@ namespace Skila.Tests.Execution
                     NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("a", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
+                             ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
                                 Nat8Literal.Create("2"))),
                         VariableDeclaration.CreateStatement("b", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
+                             ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(env.Options.ReassignableTypeMutability()),
                                 Nat8Literal.Create("17"))),
                         FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b")),
-                        Return.Create(ExpressionFactory.Sub("a", "b"))
+                        Return.Create( ExpressionFactory.Sub("a", "b"))
                     )));
 
                 ExecValue result = interpreter.TestRun(env);
@@ -149,7 +149,7 @@ namespace Skila.Tests.Execution
                         VariableDeclaration.CreateStatement("a", null, Nat8Literal.Create("2"), env.Options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17"), env.Options.ReassignableModifier()),
                         FunctionCall.Create("swap", NameReference.Create("a"), NameReference.Create("b")),
-                        Return.Create(ExpressionFactory.Sub("a", "b"))
+                        Return.Create( ExpressionFactory.Sub("a", "b"))
                     )));
 
                 ExecValue result = interpreter.TestRun(env);

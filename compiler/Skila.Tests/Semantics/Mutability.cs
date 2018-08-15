@@ -13,7 +13,7 @@ using System.Linq;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Mutability
+    public class Mutability : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorMutabilityNotIgnoredOnNonValueCopy()
@@ -35,7 +35,7 @@ namespace Skila.Tests.Semantics
                 // we cannot make such assignment, because type is not pure value, 
                 // so its field (pointer) can be shared and mutated this way
                 VariableDeclaration decl = VariableDeclaration.CreateStatement("x", NameReference.Create(TypeMutability.ForceMutable, "Mutant"),
-                            ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst, "Mutant")));
+                             ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst, "Mutant")));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo", null,
@@ -44,7 +44,7 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                         decl,
-                    ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("x"),
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -80,8 +80,8 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                         VariableDeclaration.CreateStatement("x",NameReference.Create(TypeMutability.ForceMutable,"Mutant"),
-                            ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst,"Mutant"))),
-                    ExpressionFactory.Readout("x"),
+                             ExpressionFactory.StackConstructor(NameReference.Create(TypeMutability.ForceConst,"Mutant"))),
+                     ExpressionFactory.Readout("x"),
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -155,7 +155,7 @@ namespace Skila.Tests.Semantics
                         VariableDeclaration.CreateStatement("b", null, Nat8Literal.Create("17")),
                         // error: both values are const
                         swap_call,
-                        Return.Create(ExpressionFactory.Sub("a", "b"))
+                        Return.Create( ExpressionFactory.Sub("a", "b"))
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -213,20 +213,20 @@ namespace Skila.Tests.Semantics
                 // and next it should create an error when passing to const type
                 VariableDeclaration decl_bad = VariableDeclaration.CreateStatement("x",
                             NameFactory.PointerNameReference(NameFactory.IObjectNameReference(TypeMutability.ForceConst)),
-                            ExpressionFactory.OptionEmpty("Alien", Memory.Heap));
+                             ExpressionFactory.OptionEmpty("Alien", Memory.Heap));
 
                 root_ns.AddBuilder(TypeBuilder.Create("Cool"));
 
                 VariableDeclaration decl_ok = VariableDeclaration.CreateStatement("y",
                             NameFactory.PointerNameReference(NameFactory.IObjectNameReference(TypeMutability.ForceConst)),
-                            ExpressionFactory.OptionEmpty("Cool", Memory.Heap));
+                             ExpressionFactory.OptionEmpty("Cool", Memory.Heap));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(NameFactory.MainFunctionName, NameFactory.Nat8NameReference(),
                     Block.CreateStatement(
                         decl_bad,
-                        ExpressionFactory.Readout("x"),
+                         ExpressionFactory.Readout("x"),
                         decl_ok,
-                        ExpressionFactory.Readout("y"),
+                         ExpressionFactory.Readout("y"),
                         Return.Create(Nat8Literal.Create("0"))
                         )));
 
@@ -252,7 +252,7 @@ namespace Skila.Tests.Semantics
                     .SetModifier(EntityModifier.Mutable));
 
                 // since Alien is mutable it looks like we try to shake off neutral flag
-                IExpression bad_cast = ExpressionFactory.DownCast(NameReference.Create("x"),
+                IExpression bad_cast =  ExpressionFactory.DownCast(NameReference.Create("x"),
                                 NameFactory.PointerNameReference(NameReference.Create("Alien")));
                 ReinterpretType bad_reinterpret = bad_cast.DescendantNodes().WhereType<ReinterpretType>().Single();
 
@@ -267,12 +267,12 @@ namespace Skila.Tests.Semantics
                             NameFactory.PointerNameReference(NameFactory.IObjectNameReference(TypeMutability.ReadOnly)),
                             Undef.Create()),
                         VariableDeclaration.CreateStatement("c", null, bad_cast),
-                        ExpressionFactory.Readout("c"),
+                         ExpressionFactory.Readout("c"),
 
                         VariableDeclaration.CreateStatement("ok", null,
-                            ExpressionFactory.DownCast(NameReference.Create("x"),
+                             ExpressionFactory.DownCast(NameReference.Create("x"),
                                 NameFactory.PointerNameReference(NameReference.Create(TypeMutability.ReadOnly, "Alien")))),
-                        ExpressionFactory.Readout("ok")
+                         ExpressionFactory.Readout("ok")
                 )));
 
 
@@ -427,7 +427,7 @@ namespace Skila.Tests.Semantics
                                 StringLiteral.Create("no")),
                             // this is not ok, we are assigning mutable to const
                             assign,
-                            ExpressionFactory.Readout("x")
+                             ExpressionFactory.Readout("x")
                             )));
 
                 resolver = NameResolver.Create(env);
@@ -491,7 +491,7 @@ namespace Skila.Tests.Semantics
                         // we can assign both mutable and immutable to neutral
                         VariableDeclaration.CreateStatement("x",
                             NameFactory.PointerNameReference(NameReference.Create(TypeMutability.ReadOnly, "Elka")),
-                            ExpressionFactory.HeapConstructor(NameReference.Create("Elka"))),
+                             ExpressionFactory.HeapConstructor(NameReference.Create("Elka"))),
                         call,
                         assignment
                 )));
@@ -614,12 +614,12 @@ namespace Skila.Tests.Semantics
                     // we can assign both mutable and immutable to neutral
                     VariableDeclaration.CreateStatement("x",
                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference( TypeMutability.ReadOnly)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
-                    ExpressionFactory.Readout("x"),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
+                     ExpressionFactory.Readout("x"),
                     VariableDeclaration.CreateStatement("y",
                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference( TypeMutability.ReadOnly)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
-                    ExpressionFactory.Readout("y"),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
+                     ExpressionFactory.Readout("y"),
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -654,16 +654,16 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",
                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference( TypeMutability.ReadOnly)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Mutant"))),
                     VariableDeclaration.CreateStatement("xx",
                         NameFactory.PointerNameReference(NameReference.Create("Mutant")),init_value_x),
-                    ExpressionFactory.Readout("xx"),
+                     ExpressionFactory.Readout("xx"),
                     VariableDeclaration.CreateStatement("y",
                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference( TypeMutability.ReadOnly)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Untouchable"))),
                     VariableDeclaration.CreateStatement("yy",
                         NameFactory.PointerNameReference(NameReference.Create("Untouchable")),init_value_y),
-                    ExpressionFactory.Readout("yy"),
+                     ExpressionFactory.Readout("yy"),
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -688,7 +688,7 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Bar")
                     .SetModifier(EntityModifier.Mutable));
 
-                IExpression mutable_init = ExpressionFactory.HeapConstructor(NameReference.Create("Bar"));
+                IExpression mutable_init =  ExpressionFactory.HeapConstructor(NameReference.Create("Bar"));
 
                 VariableDeclaration decl = VariableDeclaration.CreateStatement("x",
                     NameFactory.PointerNameReference(NameFactory.IObjectNameReference()),
@@ -701,12 +701,12 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     decl,
-                    ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("x"),
                     // this is OK, we mark target as mutable type and we pass indeed mutable one
                     VariableDeclaration.CreateStatement("y",
                         NameFactory.PointerNameReference(NameFactory.IObjectNameReference(overrideMutability: TypeMutability.ForceMutable)),
-                        ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
-                    ExpressionFactory.Readout("y"),
+                         ExpressionFactory.HeapConstructor(NameReference.Create("Bar"))),
+                     ExpressionFactory.Readout("y"),
                 })));
 
                 resolver = NameResolver.Create(env);
@@ -804,8 +804,8 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameReference.Create("Point",NameReference.Create("Foo")), Undef.Create()),
                     VariableDeclaration.CreateStatement("y", wrong_type, Undef.Create()),
-                    ExpressionFactory.Readout("x"),
-                    ExpressionFactory.Readout("y"),
+                     ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("y"),
                 })));
 
 

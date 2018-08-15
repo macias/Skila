@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Skila.Language
 {
-    public interface ILambdaTransfer : INode
+    public interface ILambdaTransfer : IOwnedNode
     {
         void AddClosure(TypeDefinition closure);
     }

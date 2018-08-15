@@ -10,7 +10,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Execution
 {
     [TestClass]
-    public class Closures
+    public class Closures : ITest
     {
         [TestMethod]
         public IInterpreter ClosureRecursiveCall()
@@ -22,8 +22,8 @@ namespace Skila.Tests.Execution
                 var env = Environment.Create(new Options() { DebugThrowOnError = true }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression i_eq_jack = ExpressionFactory.IsEqual(NameReference.Create("i"), NameReference.Create("jack"));
-                IExpression i_add_1 = ExpressionFactory.Add(NameReference.Create("i"), Nat8Literal.Create("1"));
+                IExpression i_eq_jack =  ExpressionFactory.IsEqual(NameReference.Create("i"), NameReference.Create("jack"));
+                IExpression i_add_1 =  ExpressionFactory.Add(NameReference.Create("i"), Nat8Literal.Create("1"));
                 FunctionDefinition lambda = FunctionBuilder.CreateLambda(NameFactory.Nat8NameReference(),
                     Block.CreateStatement(new[] {
                     // if i==jack then return i
@@ -114,7 +114,7 @@ namespace Skila.Tests.Execution
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     // b = new Beep()
-                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructor(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null, ExpressionFactory.StackConstructor(NameReference.Create("Beep"))),
                     // b.m = 2
                     Assignment.CreateStatement(NameReference.Create("b","m"),Int64Literal.Create("2")),
                     // f = b.getIt // "b" value is sucked in, so we have a copy
@@ -157,7 +157,7 @@ namespace Skila.Tests.Execution
                     ExpressionReadMode.OptionalUse,
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("b",null,ExpressionFactory.HeapConstructor(NameReference.Create("Beep"))),
+                    VariableDeclaration.CreateStatement("b",null, ExpressionFactory.HeapConstructor(NameReference.Create("Beep"))),
                     Assignment.CreateStatement(NameReference.Create("b","m"),Int64Literal.Create("5")),
                     // pointer of "b" value is sucked in, so we will see any changes 
                     VariableDeclaration.CreateStatement("f",null,NameReference.Create("b","getIt")),

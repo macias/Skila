@@ -10,7 +10,7 @@ using Skila.Language.Semantics;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Properties
+    public class Properties : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorSettingCustomGetter()
@@ -130,7 +130,7 @@ namespace Skila.Tests.Semantics
                     ExpressionReadMode.OptionalUse,
                     NameFactory.UnitNameReference(),
                     Block.CreateStatement(new IExpression[] {
-                    VariableDeclaration.CreateStatement("p",null,ExpressionFactory.StackConstructor("Point")),
+                    VariableDeclaration.CreateStatement("p",null, ExpressionFactory.StackConstructor("Point")),
                     getter_call
                     })));
 

@@ -60,7 +60,7 @@ namespace Skila.Language.Expressions
             }
             else if (lhsExpr.Count() == 1)
             {
-                return create(readMode, lhsExpr.Single(), ExpressionFactory.Tuple(rhsValue.ToArray()), isPostInitialization: false);
+                return create(readMode, lhsExpr.Single(),  ExpressionFactory.Tuple(rhsValue.ToArray()), isPostInitialization: false);
             }
             else
             {
@@ -85,7 +85,7 @@ namespace Skila.Language.Expressions
                 else
                 {
                     // let par = new Tuple(RHS)
-                    code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null, ExpressionFactory.Tuple(rhsValue.ToArray())));
+                    code.Add(VariableDeclaration.CreateStatement(rhs_temp_name, null,  ExpressionFactory.Tuple(rhsValue.ToArray())));
                     int i = 0;
                     foreach (IExpression lhs in lhsExpr)
                     {
@@ -116,7 +116,7 @@ namespace Skila.Language.Expressions
 
         private readonly List<TypeDefinition> closures;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { RhsValue, Lhs }.Concat(closures).Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new IOwnedNode[] { RhsValue, Lhs }.Concat(closures).Where(it => it != null);
 
         private readonly bool isPostInitialization;
 
@@ -131,7 +131,7 @@ namespace Skila.Language.Expressions
 
             this.closures = new List<TypeDefinition>();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
         public override ICode Printout()
         {

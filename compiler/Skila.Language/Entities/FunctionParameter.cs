@@ -13,7 +13,7 @@ using Skila.Language.Printout;
 namespace Skila.Language.Entities
 {
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
-    public sealed class FunctionParameter : Node, IEntityVariable, IIndexed, ILocalBindable, ISurfable, IPrintable
+    public sealed class FunctionParameter : OwnedNode, IEntityVariable, IIndexed, ILocalBindable, ISurfable, IPrintable
     {
         public static FunctionParameter Create(string name, INameReference typeName, Variadic variadic,
             IExpression defaultValue,
@@ -57,7 +57,7 @@ namespace Skila.Language.Entities
         private IExpression defaultValue;
         public IExpression DefaultValue => this.defaultValue;
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { TypeName, DefaultValue }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { TypeName, DefaultValue }.Where(it => it != null);
 
         public bool IsComputed { get; private set; }
 
@@ -100,7 +100,7 @@ namespace Skila.Language.Entities
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
                 translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public FunctionParameter CloneAsReadable()
@@ -133,7 +133,7 @@ namespace Skila.Language.Entities
             {
                 ;
             }
-            IEnumerable<ISurfable> surfables = this.OwnedNodes.WhereType<ISurfable>();
+            IEnumerable<ISurfable> surfables = this.ChildrenNodes.WhereType<ISurfable>();
             surfables.ForEach(it => it.Surfed(ctx));
             compute(ctx);
         }
@@ -166,7 +166,7 @@ namespace Skila.Language.Entities
                 ;
             }
 
-            this.Evaluation = this.TypeName?.Evaluation ?? EvaluationInfo.Joker;
+            this.Evaluation = this.TypeName?.Evaluation ?? Environment.JokerEval;
         }
 
         public void Validate(ComputationContext ctx)
@@ -186,7 +186,7 @@ namespace Skila.Language.Entities
             return true;
         }
 
-        internal bool NOT_USED_CounterpartParameter(INode thisScope, FunctionParameter other, INode otherScope)
+        internal bool NOT_USED_CounterpartParameter(IOwnedNode thisScope, FunctionParameter other, IOwnedNode otherScope)
         {
             // todo: add relative checking so foo<T>(t T) will be equal to bar<X>(x X)
             if (!this.Variadic.Equals(other.Variadic))

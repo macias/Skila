@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Expressions
+    public class Expressions : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorIsSameOnValues()
@@ -27,7 +27,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("x", null,
-                            ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2"))),
+                             ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2"))),
                         Return.Create(IsSame.Create(NameReference.Create("x"), value))
                 )));
 
@@ -78,7 +78,7 @@ namespace Skila.Tests.Semantics
                 var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression discard = ExpressionFactory.Readout("c");
+                IExpression discard =  ExpressionFactory.Readout("c");
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo", null,
                     ExpressionReadMode.OptionalUse,
@@ -119,8 +119,8 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", NameFactory.IObjectNameReference(), Undef.Create()),
-                    VariableDeclaration.CreateStatement("c", null,ExpressionFactory.DownCast(NameReference.Create("x"), type_set)),
-                    ExpressionFactory.Readout("c"),
+                    VariableDeclaration.CreateStatement("c", null, ExpressionFactory.DownCast(NameReference.Create("x"), type_set)),
+                     ExpressionFactory.Readout("c"),
                 })));
 
 
@@ -152,8 +152,8 @@ namespace Skila.Tests.Semantics
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x", null, AddressOf.CreatePointer(int_literal)),
                     VariableDeclaration.CreateStatement("y", null, AddressOf.CreateReference(Int64Literal.Create("2"))),
-                    ExpressionFactory.Readout("x"),
-                    ExpressionFactory.Readout("y"),
+                     ExpressionFactory.Readout("x"),
+                     ExpressionFactory.Readout("y"),
                 })));
 
 
@@ -412,8 +412,8 @@ namespace Skila.Tests.Semantics
                               Block.CreateStatement(new IExpression[] {
                               var_decl,
                               assign_var,
-                              VariableDeclaration.CreateStatement("a",null,ExpressionFactory.StackConstructor("Oint")),
-                              VariableDeclaration.CreateStatement("b",null,ExpressionFactory.StackConstructor("Oint")),
+                              VariableDeclaration.CreateStatement("a",null, ExpressionFactory.StackConstructor("Oint")),
+                              VariableDeclaration.CreateStatement("b",null, ExpressionFactory.StackConstructor("Oint")),
                               Assignment.CreateStatement(NameReference.Create("a","x"),NameReference.Create("b","x")),
                               assign_prop,
                               })));

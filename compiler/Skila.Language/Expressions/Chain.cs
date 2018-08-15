@@ -21,7 +21,7 @@ namespace Skila.Language.Expressions
 
         public IEnumerable<IExpression> Instructions { get; }
 
-        public override IEnumerable<INode> OwnedNodes => this.Instructions;
+        public override IEnumerable<INode> ChildrenNodes => this.Instructions;
 
         private readonly Later<ExecutionFlow> flow;
         public override ExecutionFlow Flow => this.flow.Value;
@@ -31,11 +31,11 @@ namespace Skila.Language.Expressions
         {
             this.Instructions = instructions.StoreReadOnly();
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
 
             this.flow = new Later<ExecutionFlow>(() =>
             {
-                return ExecutionFlow.CreatePath(instructions);
+                return ExecutionFlow.CreatePath(this.Instructions);
             });
         }
 

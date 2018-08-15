@@ -11,7 +11,7 @@ using Skila.Language.Expressions.Literals;
 namespace Skila.Tests.Semantics
 {
     [TestClass]
-    public class Interfaces
+    public class Interfaces : ITest
     {
         [TestMethod]
         public IErrorReporter ErrorCallingConstructor()
@@ -35,8 +35,8 @@ namespace Skila.Tests.Semantics
 
                     Block.CreateStatement(new[] {
                     VariableDeclaration.CreateStatement("x",NameReference.Create("IX"),
-                        ExpressionFactory.StackConstructor(typename,out cons_ref)),
-                    ExpressionFactory.Readout("x")
+                         ExpressionFactory.StackConstructor(typename,out cons_ref)),
+                     ExpressionFactory.Readout("x")
                     })));
 
                 resolver = NameResolver.Create(env);
@@ -95,7 +95,7 @@ namespace Skila.Tests.Semantics
                         // subtype of original result typename -- this is legal
                         NameFactory.PointerNameReference(NameFactory.Int64NameReference()),
                         Block.CreateStatement(new[] {
-                        Return.Create(ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
+                        Return.Create( ExpressionFactory.HeapConstructor(NameFactory.Int64NameReference(), Int64Literal.Create("2")))
                         }))
                         .Parameters(FunctionParameter.Create("x", NameFactory.BoolNameReference(), usageMode: ExpressionReadMode.CannotBeRead))));
 
@@ -105,8 +105,8 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     VariableDeclaration.CreateStatement("i",NameFactory.PointerNameReference(NameReference.Create("IX")),null,env.Options.ReassignableModifier()),
-                    Assignment.CreateStatement(NameReference.Create("i"),ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
-                    ExpressionFactory.Readout("i"),
+                    Assignment.CreateStatement(NameReference.Create("i"), ExpressionFactory.HeapConstructor(NameReference.Create("X"))),
+                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
                     })));
 
@@ -154,7 +154,7 @@ namespace Skila.Tests.Semantics
 
                 root_ns.AddBuilder(TypeBuilder.Create("X"));
 
-                IExpression init_value = ExpressionFactory.StackConstructor(NameReference.Create("X"));
+                IExpression init_value =  ExpressionFactory.StackConstructor(NameReference.Create("X"));
                 // even with duck typing we cannot make the assigment because slicing is forbidden in all cases
                 VariableDeclaration decl = VariableDeclaration.CreateStatement("i", NameReference.Create("IX"), init_value);
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -163,7 +163,7 @@ namespace Skila.Tests.Semantics
                     NameFactory.Int64NameReference(),
                     Block.CreateStatement(new IExpression[] {
                     decl,
-                    ExpressionFactory.Readout("i"),
+                     ExpressionFactory.Readout("i"),
                     Return.Create(Int64Literal.Create("2"))
                     })));
 

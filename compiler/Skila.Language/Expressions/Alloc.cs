@@ -18,7 +18,7 @@ namespace Skila.Language.Expressions
         private readonly NameReference outcomeTypeName;
         public NameReference InnerTypeName { get; }
 
-        public override IEnumerable<INode> OwnedNodes => new INode[] { outcomeTypeName }.Where(it => it != null);
+        public override IEnumerable<INode> ChildrenNodes => new INode[] { outcomeTypeName }.Where(it => it != null);
 
         public bool UseHeap { get; }
 
@@ -34,7 +34,7 @@ namespace Skila.Language.Expressions
                 ? NameFactory.PointerNameReference(this.InnerTypeName, mutability)
                 : this.InnerTypeName;
 
-            this.OwnedNodes.ForEach(it => it.AttachTo(this));
+            this.attachPostConstructor();
         }
 
         public override string ToString()

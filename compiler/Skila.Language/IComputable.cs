@@ -2,7 +2,7 @@
 
 namespace Skila.Language
 {
-    public interface IComputable : INode
+    public interface IComputable : IOwnedNode
     {
         bool IsComputed { get; }
 

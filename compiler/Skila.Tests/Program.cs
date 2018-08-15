@@ -20,20 +20,22 @@ namespace Skila.Tests
         public static void Main()
         {
             {
+                //runQuickTests(new Semantics.Lifetimes());
+
                 //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
-                  //new Semantics.Expressions().ErrorDereferencingValue();
+                //new Semantics.Expressions().ErrorDereferencingValue();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
                 //new Semantics.Flow().ErrorUnreachableCodeAfterBreakSingleReport();
                 //   new Semantics.FunctionCalls().ErrorVariadicFunctionMissingSpread();
                 //new Semantics.FunctionDefinitions().ErrorCannotInferResultType();
                 // new Semantics.Interfaces().ErrorDuckTypingInterfaceValues();
                 //new Semantics.Inheritance().ProperGenericWithCostraintsMethodOverride();
-                //new Semantics.Lifetimes().ErrorAttachmentObjectOnStackAndHeap();
-                 //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
+                // new Semantics.Lifetimes().ErrorStoredLocalReferenceEscapesFromFunction();
+                //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
-                // new Semantics.Mutability().MutabilityIgnoredOnValueCopy();
+                // new Semantics.Mutability().ErrorSwapNonReassignableValues();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
@@ -56,16 +58,16 @@ namespace Skila.Tests
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
                 //new Execution.ObjectInitialization().InitializingWithCustomSetter();
-                //new Execution.Objects().ImplicitReferenceAssignmentInterpretation();
+                //new Execution.Objects().AccessingObjectFields();
                 //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
                 //new Execution.Templates().SwapPointers();
                 //new Execution.Text().StringUtf8Encoding();
             }
 
-            // if (false)
+            //if (false)
             {
-                const double golden_avg_s = 2.04;
+                const double golden_avg_s = 1.81;
                 const double golden_min_s = 0.00;
                 const double golden_max_s = 2.56;
 
@@ -80,9 +82,11 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 2.06;
+                const double golden_avg_s = 1.93;
                 const double golden_min_s = 1.17;
                 const double golden_max_s = 2.17;
+
+                Interpreter.Interpreter.TimeoutSeconds = (int)(golden_avg_s * 5);
 
                 long min_ticks, max_ticks;
                 long start = Stopwatch.GetTimestamp();
@@ -169,7 +173,8 @@ namespace Skila.Tests
 
             if (checkErrorCoverage)
             {
-                HashSet<ErrorCode> all_errors = Tools.GetEnumValues<ErrorCode>().Where(it => !$"{it}".StartsWith("NOTEST")).ToHashSet();
+                HashSet<ErrorCode> all_errors = EnumExtensions.GetValues<ErrorCode>()
+                    .Where(it => !$"{it}".StartsWith("NOTEST")).ToHashSet();
                 all_errors.ExceptWith(reported_errors);
                 if (all_errors.Any())
                 {
@@ -222,6 +227,34 @@ namespace Skila.Tests
             }
 
             return total;
+        }
+
+        private static void runQuickTests(ITest test)
+        {
+            // for ad-hoc running given suite
+
+            foreach (System.Reflection.MethodInfo method in test.GetType()
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .OrderBy(it => it.Name))
+            {
+                try
+                {
+                    if (method.GetCustomAttributes(typeof(TestMethodAttribute), false).Any())
+                    {
+                        string test_name = $"{test.GetType().Name}.{method.Name}";
+                        Console.Write(test_name);
+                        // this is not just dumb casting -- it checks if the given test returns the expected object
+                        // so for example, semantic test is not mixed with interpretation test
+                        method.Invoke(test, new object[] { });
+                        ClearWrite(test_name);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(" FAILED: " + ex.InnerException.StackTrace.Split('\n').FirstOrDefault());
+                }
+            }
         }
 
         private static IEnumerable<string> runTests<T>(Type type, ref int total, ref int failed, ref long minTicks, ref long maxTicks,

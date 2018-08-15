@@ -1,6 +1,6 @@
 ﻿namespace Skila.Language
 {
-    public interface IScope : INode
+    public interface IScope : IOwnedNode
     {
     }
 }
