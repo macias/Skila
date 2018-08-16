@@ -14,6 +14,38 @@ namespace Skila.Tests.Semantics
     public class Expressions : ITest
     {
         [TestMethod]
+        public IErrorReporter ErrorSlicingOnDereference()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Environment.Create(new Options() { AllowDereference = true }.SetMutability(mutability));
+                var root_ns = env.Root;
+
+                Int64Literal rhs_value = IntLiteral.Create("80");
+                root_ns.AddBuilder(FunctionBuilder.Create(
+                    "foo", null,
+                    ExpressionReadMode.OptionalUse,
+                    NameFactory.UnitNameReference(),
+                    Block.CreateStatement(
+                        VariableDeclaration.CreateStatement("p",
+                            NameFactory.PointerNameReference(NameFactory.IObjectNameReference(TypeMutability.Reassignable)),
+                            Undef.Create()),
+                      // only with same type we have guarantee we won't use dereference as slicing tool, consider
+                      // x *Object ; (*x) = big_type_instance
+                      Assignment.CreateStatement(Dereference.Create(NameReference.Create("p")), rhs_value)
+                )));
+
+                resolver = NameResolver.Create(env);
+
+                Assert.AreEqual(1, resolver.ErrorManager.Errors.Count);
+               Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.TypeMismatch, rhs_value));
+            }
+
+            return resolver;
+        }
+
+        [TestMethod]
         public IErrorReporter ErrorIsSameOnValues()
         {
             NameResolver resolver = null;
@@ -78,7 +110,7 @@ namespace Skila.Tests.Semantics
                 var env = Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                IExpression discard =  ExpressionFactory.Readout("c");
+                IExpression discard = ExpressionFactory.Readout("c");
                 root_ns.AddBuilder(FunctionBuilder.Create(
                     "foo", null,
                     ExpressionReadMode.OptionalUse,
@@ -105,8 +137,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true,
-                    AllowProtocols = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options()
+                {
+                    DiscardingAnyExpressionDuringTests = true,
+                    AllowProtocols = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 NameReferenceUnion type_set = NameReferenceUnion.Create(
@@ -172,8 +207,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true,
-                    RelaxedMode = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var if_ctrl = IfBranch.CreateIf(BoolLiteral.CreateTrue(),
@@ -197,8 +235,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true,
-                    RelaxedMode = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 NameReference non_value = NameFactory.Int64NameReference();
@@ -221,8 +262,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true,
-                    RelaxedMode = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -322,8 +366,11 @@ namespace Skila.Tests.Semantics
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
             {
-                var env = Environment.Create(new Options() { GlobalVariables = true,
-                    RelaxedMode = true }.SetMutability(mutability));
+                var env = Environment.Create(new Options()
+                {
+                    GlobalVariables = true,
+                    RelaxedMode = true
+                }.SetMutability(mutability));
                 var root_ns = env.Root;
 
                 root_ns.AddBuilder(FunctionBuilder.Create(

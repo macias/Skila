@@ -19,13 +19,24 @@ namespace Skila.Tests
 
         public static void Main()
         {
+            const double semantic_golden_avg_s = 1.84;
+            const double semantic_golden_min_s = 0.00;
+            const double semantic_golden_max_s = 2.56;
+
+            const double runtime_golden_avg_s = 1.93;
+            const double runtime_golden_min_s = 1.17;
+            const double runtime_golden_max_s = 2.17;
+
+            Interpreter.Interpreter.TimeoutSeconds = (int)(runtime_golden_avg_s * 5);
+
+
             {
-                runQuickTests(new Semantics.Lifetimes());
+                //runQuickTests(new Semantics.Lifetimes());
 
                 //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
-                //new Semantics.Expressions().ErrorDereferencingValue();
+                new Semantics.Expressions().ErrorSlicingOnDereference();
                 //new Semantics.Extensions().ErrorInvalidDefinitions();
                 //new Semantics.Flow().ErrorUnreachableCodeAfterBreakSingleReport();
                 //   new Semantics.FunctionCalls().ErrorVariadicFunctionMissingSpread();
@@ -57,7 +68,7 @@ namespace Skila.Tests
                 //new Execution.Library().StringToInt();
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
-                //new Execution.ObjectInitialization().InitializingWithCustomSetter();
+                //new Execution.ObjectInitialization().NoExtrasWithCopyConstructor();
                 //new Execution.Objects().AccessingObjectFields();
                 //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();
@@ -67,32 +78,23 @@ namespace Skila.Tests
 
             //if (false)
             {
-                const double golden_avg_s = 1.81;
-                const double golden_min_s = 0.00;
-                const double golden_max_s = 2.56;
-
                 long min_ticks, max_ticks;
                 long start = Stopwatch.GetTimestamp();
                 int count = runTests<IErrorReporter>(nameof(Semantics), out min_ticks, out max_ticks, checkErrorCoverage: true);
 
-                reportTime("Semantics", start, count, golden_avg_s, min_ticks, golden_min_s, max_ticks, golden_max_s);
+                reportTime("Semantics", start, count, semantic_golden_avg_s, min_ticks, semantic_golden_min_s, max_ticks, semantic_golden_max_s);
             }
 
             Console.WriteLine();
 
             //if (false)
             {
-                const double golden_avg_s = 1.93;
-                const double golden_min_s = 1.17;
-                const double golden_max_s = 2.17;
-
-                Interpreter.Interpreter.TimeoutSeconds = (int)(golden_avg_s * 5);
 
                 long min_ticks, max_ticks;
                 long start = Stopwatch.GetTimestamp();
                 int count = runTests<IInterpreter>(nameof(Execution), out min_ticks, out max_ticks, checkErrorCoverage: false);
 
-                reportTime("Interpretation", start, count, golden_avg_s, min_ticks, golden_min_s, max_ticks, golden_max_s);
+                reportTime("Interpretation", start, count, runtime_golden_avg_s, min_ticks, runtime_golden_min_s, max_ticks, runtime_golden_max_s);
             }
 
             if (AssertReporter.Fails.Any())
