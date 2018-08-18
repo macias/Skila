@@ -36,8 +36,8 @@ namespace Skila.Tests.Execution
                     .With(PropertyBuilder.Create(env.Options, "x", () => NameFactory.Nat8NameReference())
                         .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8NameReference(), null,
                             env.Options.ReassignableModifier()))
-                        .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))
-                        .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.Create("f"),
+                        .WithGetter(Block.CreateStatement(Return.Create(NameReference.CreateThised("f"))))
+                        .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.CreateThised("f"),
                              ExpressionFactory.Mul(NameFactory.PropertySetterValueReference(), Nat8Literal.Create("2")))))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(
@@ -77,8 +77,8 @@ namespace Skila.Tests.Execution
                     .With(PropertyBuilder.Create(env.Options, "x", () => NameFactory.Nat8NameReference())
                         .With(VariableDeclaration.CreateStatement("f", NameFactory.Nat8NameReference(), null,
                             env.Options.ReassignableModifier()))
-                        .WithGetter(Block.CreateStatement(Return.Create(NameReference.Create("f"))))
-                        .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.Create("f"),
+                        .WithGetter(Block.CreateStatement(Return.Create(NameReference.CreateThised("f"))))
+                        .WithSetter(Block.CreateStatement(Assignment.CreateStatement(NameReference.CreateThised("f"),
                              ExpressionFactory.Mul(NameFactory.PropertySetterValueReference(), Nat8Literal.Create("2")))))));
 
                 root_ns.AddBuilder(FunctionBuilder.Create(

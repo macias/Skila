@@ -203,30 +203,24 @@ namespace Skila.Interpreter
                 return ExecValue.UndefinedExpression;
         }
 
-        public static FunctionDefinition PrepareRun(Language.Environment env)
-        {
-            var resolver = NameResolver.Create(env);
-
-            if (resolver.ErrorManager.Errors.Count != 0)
-                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
-
-            return env.MainFunction;
-        }
         public ExecValue TestRun(Language.Environment env)
         {
             TimeSpan timeout = TimeSpan.FromSeconds(TimeoutSeconds);
-            Task<ExecValue> test_task = TestRunAsync(env, PrepareRun(env));
+            Task<ExecValue> test_task = TestRunAsync(env);
             int ended_task = Task.WaitAny(Task.Delay(timeout), test_task);
             if (ended_task == 0) // timeout
                 throw new TimeoutException($"Execution didn't finish in {timeout}");
             return test_task.Result;
         }
-        public async Task<ExecValue> TestRunAsync(Language.Environment env, FunctionDefinition main)
+        public async Task<ExecValue> TestRunAsync( Language.Environment env)
         {
-            // this method is for saving time on semantic analysis, so when you run it you know
-            // the only thing is going on is execution
+            var resolver = NameResolver.Create(env);
+            if (resolver.ErrorManager.Errors.Count != 0)
+                throw new Exception($"Internal error {ExceptionCode.SourceInfo()}");
 
             ExecutionContext ctx = ExecutionContext.Create(env, this);
+            FunctionDefinition main = ctx.Env.MainFunction(ctx.CreateBareComputation());
+
             Task<ExecValue> main_task = this.mainExecutedAsync(ctx, main);
 
             await ctx.Routines.CompleteWithAsync(main_task).ConfigureAwait(false);

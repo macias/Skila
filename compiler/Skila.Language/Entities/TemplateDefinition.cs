@@ -54,7 +54,7 @@ namespace Skila.Language.Entities
         // that T has method "copy" itself, otherwise the method "Array.copy" is not available
         public IEnumerable<TemplateConstraint> Conditionals { get; }
 
-        public abstract IEnumerable<EntityInstance> AvailableEntities { get; }
+        public abstract ScopeTable AvailableEntities { get; }
 
         public bool IsSurfed { get; set; }
 

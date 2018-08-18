@@ -38,21 +38,15 @@ namespace Skila.Language.Extensions
             return scope.ChildrenNodes.WhereType<IMember>();
         }
 
-        public static IEnumerable<EntityInstance> FindEntities(this IEntityScope scope, NameReference name, EntityFindMode findMode)
-        {
-            IEnumerable<EntityInstance> entities = filterAvailableEntities(availableEntities(scope), scope, name, findMode);
-            return findEntities(name, entities);
-        }
         public static IEnumerable<EntityInstance> FindEntities(this EntityInstance scopeInstance, ComputationContext ctx,
-            NameReference name, EntityFindMode findMode)
+            NameReference name)
         {
-            IEnumerable<EntityInstance> available = availableEntities(ctx, scopeInstance);
-            IEnumerable<EntityInstance> entities = filterAvailableEntities(available, scopeInstance.TargetTemplate, name, findMode);
-            return findEntities(name, entities);
+            ScopeTable entities = availableEntities(ctx, scopeInstance);
+            return entities.Find(name);
         }
 
         public static IEnumerable<EntityInstance> FindExtensions(this EntityInstance extInstance, ComputationContext ctx,
-            NameReference name, EntityFindMode findMode)
+            NameReference name)
         {
             var available = new HashSet<EntityInstance>(EntityInstance.Comparer);
             IOwnedNode ns = name;
@@ -75,8 +69,7 @@ namespace Skila.Language.Extensions
                 available.AddRange(findExtensionFunctions(ctx, ext, extInstance));
             }
 
-            IEnumerable<EntityInstance> entities = filterAvailableEntities(available, extInstance.TargetTemplate, name, findMode);
-            return findEntities(name, entities);
+            return findEntities(name, available);
         }
 
         private static IEnumerable<EntityInstance> findExtensionFunctions(ComputationContext ctx, Extension ext, EntityInstance extInstance)
@@ -112,19 +105,11 @@ namespace Skila.Language.Extensions
             return result;
         }
 
-        private static IEnumerable<EntityInstance> availableEntities(IEntityScope scope)
+        private static ScopeTable availableEntities(ComputationContext ctx, EntityInstance scopeInstance)
         {
-            IEnumerable<EntityInstance> entities = scope.AvailableEntities ?? scope.NestedEntityInstances();
+            IEntityScope scope = scopeInstance.Target.Cast<IEntityScope>();
 
-            return entities;
-        }
-
-
-        private static IEnumerable<EntityInstance> availableEntities(ComputationContext ctx, EntityInstance scopeInstance)
-        {
-            IEntityScope scope = scopeInstance.Target.Cast<TemplateDefinition>();
-
-            IEnumerable<EntityInstance> entities = availableEntities(scope);
+            ScopeTable entities = scope.AvailableEntities;
 
             if (scope is TypeDefinition typedef)
             {
@@ -134,36 +119,7 @@ namespace Skila.Language.Extensions
                         .Where(it => !it.Target.IsAnyConstructor())
                         .Select(it => it.TranslateThroughTraitHost(trait: trait));
 
-                    entities = entities.Concat(trait_entities);
-                }
-            }
-
-            return entities;
-        }
-
-        private static IEnumerable<EntityInstance> filterAvailableEntities(IEnumerable<EntityInstance> entities,
-            IEntityScope scope, NameReference name, EntityFindMode findMode)
-        {
-            if (scope is TypeDefinition typedef)
-            {
-                if (findMode == EntityFindMode.WithCurrentProperty)
-                {
-                    // we need to extend entities if we are inside property, so in getter/setter
-                    // we can write "this.prop_field" and get the internal field for property
-                    // while outside this property that field is unreachable
-                    Property enclosing_property = name.EnclosingScope<Property>();
-                    if (enclosing_property != null)
-                    {
-                        EntityInstance prop_instance = entities.SingleOrDefault(it => it.Target == enclosing_property);
-                        if (prop_instance != null)
-                            entities = entities.Concat(enclosing_property.AvailableEntities
-                                .Select(it => it.TranslateThrough(prop_instance)));
-                    }
-                }
-                else if (findMode == EntityFindMode.AvailableIndexersOnly)
-                {
-                    entities = entities.Where(it => it.Target is Property prop && prop.IsIndexer)
-                        .SelectMany(prop => prop.Target.Cast<Property>().AvailableEntities.Select(it => it.TranslateThrough(prop)));
+                    entities = ScopeTable.Combine(entities,trait_entities);
                 }
             }
 

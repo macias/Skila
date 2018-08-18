@@ -441,9 +441,9 @@ namespace Skila.Tests.Semantics
                 root_ns.AddBuilder(TypeBuilder.Create("Oint")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) })));
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField, NameFactory.Int64NameReference(), null, env.Options.ReassignableModifier()) },
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) })));
 
                 var var_decl = VariableDeclaration.CreateStatement("x", NameFactory.BoolNameReference(),
                     Undef.Create(), env.Options.ReassignableModifier());

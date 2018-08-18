@@ -43,7 +43,7 @@ namespace Skila.Tests.Semantics
         }
 
         [TestMethod]
-        public IErrorReporter ErrorInOutVariance()
+        public IErrorReporter ErrorInOutVarianceFields()
         {
             NameResolver resolver = null;
             foreach (var mutability in Options.AllMutabilityModes)
@@ -52,30 +52,61 @@ namespace Skila.Tests.Semantics
                 .SetMutability(mutability));
                 var root_ns = env.Root;
 
-                NameReference fielda_typename = NameReference.Create("TA");
-                NameReference fieldb_typename = NameReference.Create("TB");
-                NameReference propa_typename = NameReference.Create("TA");
-                NameReference propb_typename = NameReference.Create("TB");
+                NameReference field_a_typename = NameReference.Create("TA");
+                NameReference field_b_typename = NameReference.Create("TB");
+
                 root_ns.AddBuilder(TypeBuilder.Create(
                     NameDefinition.Create(NameFactory.TupleTypeName,
                     TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
                     .SetModifier(EntityModifier.Mutable)
-                    .With( ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
-                        new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
-                    .With(VariableDeclaration.CreateStatement("fa", fielda_typename, Undef.Create(),
+
+                    .With(VariableDeclaration.CreateStatement("fa", field_a_typename, Undef.Create(),
                         env.Options.ReassignableModifier() | EntityModifier.Public))
-                    .With(VariableDeclaration.CreateStatement("fb", fieldb_typename, Undef.Create(),
-                        env.Options.ReassignableModifier() | EntityModifier.Public))
-                    .With(PropertyBuilder.CreateAutoFull(env.Options, "adata", propa_typename, Undef.Create()))
-                    .With(PropertyBuilder.CreateAutoFull(env.Options, "bdata", propb_typename, Undef.Create())));
+
+                    .With(VariableDeclaration.CreateStatement("fb", field_b_typename, Undef.Create(),
+                        env.Options.ReassignableModifier() | EntityModifier.Public)));
+
 
                 resolver = NameResolver.Create(env);
 
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fielda_typename));
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, fieldb_typename));
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propa_typename));
-                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, propb_typename));
-                Assert.AreEqual(4, resolver.ErrorManager.Errors.Count);
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, field_a_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, field_b_typename));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
+            }
+
+            return resolver;
+        }
+
+        [TestMethod]
+        public IErrorReporter ErrorInOutVarianceProperties()
+        {
+            NameResolver resolver = null;
+            foreach (var mutability in Options.AllMutabilityModes)
+            {
+                var env = Language.Environment.Create(new Options() { DiscardingAnyExpressionDuringTests = true }
+                .SetMutability(mutability));
+                var root_ns = env.Root;
+
+                NameReference prop_a_typename = NameReference.Create("TA");
+                NameReference prop_b_typename = NameReference.Create("TB");
+
+                root_ns.AddBuilder(TypeBuilder.Create(
+                    NameDefinition.Create(NameFactory.TupleTypeName,
+                    TemplateParametersBuffer.Create().Add("TA", VarianceMode.In).Add("TB", VarianceMode.Out).Values))
+                    .SetModifier(EntityModifier.Mutable)
+
+                    .With(ExpressionFactory.BasicConstructor(new[] { "adata", "bdata" },
+                        new[] { NameReference.Create("TA"), NameReference.Create("TB") }))
+
+                    .With(PropertyBuilder.CreateAutoFull(env.Options, "adata", prop_a_typename, Undef.Create()))
+
+                    .With(PropertyBuilder.CreateAutoFull(env.Options, "bdata", prop_b_typename, Undef.Create())));
+
+                resolver = NameResolver.Create(env);
+
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, prop_a_typename));
+                Assert.IsTrue(resolver.ErrorManager.HasError(ErrorCode.VarianceForbiddenPosition, prop_b_typename));
+                Assert.AreEqual(2, resolver.ErrorManager.Errors.Count);
             }
 
             return resolver;

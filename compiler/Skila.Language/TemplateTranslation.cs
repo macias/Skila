@@ -1,10 +1,10 @@
 ﻿using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using Skila.Language.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Skila.Language
 {
@@ -80,10 +80,12 @@ namespace Skila.Language
         }
 
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
+        private readonly int hashCode;
 
         private TemplateTranslation(Dictionary<TemplateParameter, IEntityInstance> table)
         {
             this.table = table;
+            this.hashCode = this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
         }
 
         public override string ToString()
@@ -114,28 +116,25 @@ namespace Skila.Language
             else if (overlay == null || basic.table.Count == 0)
                 return basic;
 
-            bool translated = false;
-
-            Dictionary<TemplateParameter, IEntityInstance> dict = basic.table.ToDictionary(it => it.Key, it => it.Value);
+            var dict = Later.Create(() => basic.table.ToDictionary(it => it.Key, it => it.Value));
             foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in basic.table)
             {
                 if (entry.Value != null)
                 {
                     bool trans = false;
-                    dict[entry.Key] = entry.Value.TranslateThrough(ref trans, overlay);
+                    IEntityInstance entityInstance = entry.Value.TranslateThrough(ref trans, overlay);
 
                     if (trans)
-                        translated = true;
+                        dict.Value[entry.Key] = entityInstance;
                 }
                 else if (overlay.Translate(entry.Key, out IEntityInstance value))
                 {
-                    dict[entry.Key] = value;
-                    translated = true;
+                    dict.Value[entry.Key] = value;
                 }
             }
 
-            if (translated)
-                return new TemplateTranslation(dict);
+            if (dict.HasValue)
+                return new TemplateTranslation(dict.Value);
             else
                 return basic;
         }
@@ -153,7 +152,7 @@ namespace Skila.Language
             if (Object.ReferenceEquals(this, obj))
                 return true;
 
-            if (Object.ReferenceEquals( obj, null))
+            if (Object.ReferenceEquals(obj, null))
                 return false;
 
             //return this.table.Count == obj.table.Count && !this.table.Except(obj.table).Any();
@@ -171,7 +170,7 @@ namespace Skila.Language
 
         public override int GetHashCode()
         {
-            return this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
+            return this.hashCode;
         }
 
         public bool Translate(TemplateParameter templateParameter, out IEntityInstance instanceArgument)

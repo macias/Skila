@@ -107,7 +107,16 @@ namespace Skila.Language.Entities
         internal LambdaTrap LambdaTrap { get; set; }
 
         public bool IsMemberUsed { get; private set; }
-        public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
+        private ScopeTable availableEntities;
+        public override ScopeTable AvailableEntities
+        {
+            get
+            {
+                if (availableEntities == null)
+                    this.availableEntities = new ScopeTable(this.NestedEntityInstances());
+                return this.availableEntities;
+            }
+        }
 
         public override IEnumerable<INode> ChildrenNodes => base.ChildrenNodes
             .Concat(this.Label)
@@ -344,7 +353,7 @@ namespace Skila.Language.Entities
             }
 
             if (!ctx.Env.Options.AllowInvalidMainResult
-                && this == ctx.Env.MainFunction
+                && this == ctx.Env.MainFunction(ctx)
                 && !ctx.Env.Nat8Type.InstanceOf.IsIdentical(this.ResultTypeName.Evaluation.Components))
                 ctx.AddError(ErrorCode.MainFunctionInvalidResultType, this.ResultTypeName);
 

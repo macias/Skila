@@ -16,12 +16,22 @@ namespace Skila.Language.Tools
                 return value.Value;
             }
         }
+        public bool HasValue => this.value.HasValue;
 
         private readonly Func<R> factory;
 
         public Later(Func<R> factory)
         {
             this.factory = factory;
+            this.value = new Option<R>();
+        }
+    }
+
+    public static class Later
+    {
+        public static Later<R> Create<R>(Func<R> factory)
+        {
+            return new Later<R>(factory);
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using NaiveLanguageTools.Common;
 using Skila.Language.Entities;
 using Skila.Language.Expressions;
 
@@ -17,7 +19,7 @@ namespace Skila.Language.Builders
         public static PropertyBuilder CreateAutoGetter(IOptions options, string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(options, name, ()=>typename)
+            PropertyBuilder builder = PropertyBuilder.Create(options, name, () => typename)
                 .WithAutoField(initValue, EntityModifier.None, out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter);
 
@@ -28,7 +30,7 @@ namespace Skila.Language.Builders
         public static PropertyBuilder CreateAutoFull(IOptions options, string name, NameReference typename,
             out PropertyMembers members, IExpression initValue = null)
         {
-            PropertyBuilder builder = PropertyBuilder.Create(options, name, ()=>typename)
+            PropertyBuilder builder = PropertyBuilder.Create(options, name, () => typename)
                 .WithAutoField(initValue, options.ReassignableModifier(), out VariableDeclaration field)
                 .WithAutoGetter(out FunctionDefinition getter)
                 .WithAutoSetter(out FunctionDefinition setter);
@@ -52,7 +54,7 @@ namespace Skila.Language.Builders
         }
         public static PropertyBuilder CreateIndexer(IOptions options, NameReference valueTypeName, EntityModifier modifier = null)
         {
-            return new PropertyBuilder(options, null, ()=> valueTypeName, modifier, referential: false);
+            return new PropertyBuilder(options, null, () => valueTypeName, modifier, referential: false);
         }
         public static PropertyBuilder CreateIndexer(IOptions options, Func<NameReference> valueTypeName, EntityModifier modifier = null)
         {
@@ -60,6 +62,7 @@ namespace Skila.Language.Builders
         }
 
         private readonly List<VariableDeclaration> fields;
+        private VariableDeclaration autoField;
         private readonly List<FunctionDefinition> getters;
         private readonly List<FunctionDefinition> setters;
         private Property build;
@@ -89,10 +92,14 @@ namespace Skila.Language.Builders
         {
             if (build == null)
             {
+                IEnumerable<VariableDeclaration> prop_fields = fields.Concat(autoField).Where(it => it != null);
+
                 if (this.name == null)
-                    build = Property.CreateIndexer(options, this.ValueTypeName, fields, getters, setters, modifier);
+                    build = Property.CreateIndexer(options, this.ValueTypeName, prop_fields, getters, setters, modifier);
                 else
-                    build = Property.Create(options, this.name, this.getTransferValueTypeName(), fields, getters, setters, modifier);
+                {
+                    build = Property.Create(options, this.name, this.getTransferValueTypeName(), prop_fields, getters, setters, modifier);
+                }
             }
 
             return build;
@@ -148,9 +155,12 @@ namespace Skila.Language.Builders
         {
             if (build != null)
                 throw new Exception();
+            if (this.autoField != null)
+                throw new ArgumentException();
 
-            field = Property.CreateAutoField(this.ValueTypeName, initValue, modifier);
-            this.fields.Add(field);
+            field = Property.CreateAutoField(AutoName.Instance.CreateNew(NameFactory.PropertyAutoField),
+                this.ValueTypeName, initValue, modifier);
+            this.autoField = field;
 
             return this;
         }
@@ -172,8 +182,10 @@ namespace Skila.Language.Builders
         {
             if (build != null)
                 throw new Exception();
+            if (this.autoField == null)
+                throw new InvalidOperationException();
 
-            getter = Property.CreateAutoGetter(this.getTransferValueTypeName(), modifier);
+            getter = Property.CreateAutoGetter(this.autoField.Name.Name, this.getTransferValueTypeName(), modifier);
             this.getters.Add(getter);
 
             return this;
@@ -226,8 +238,10 @@ namespace Skila.Language.Builders
         {
             if (build != null)
                 throw new Exception();
+            if (this.autoField == null)
+                throw new InvalidOperationException();
 
-            setter = Property.CreateAutoSetter(this.getTransferValueTypeName(), modifier);
+            setter = Property.CreateAutoSetter(this.autoField.Name.Name, this.getTransferValueTypeName(), modifier);
             this.setters.Add(setter);
 
             return this;

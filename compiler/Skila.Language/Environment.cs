@@ -19,16 +19,15 @@ namespace Skila.Language
             return new Environment(options);
         }
 
+        private const int maxSaneArity = 15;
+
         private Option<FunctionDefinition> mainFunction;
-        public FunctionDefinition MainFunction
+        public FunctionDefinition MainFunction(ComputationContext ctx)
         {
-            get
-            {
                 if (!mainFunction.HasValue)
-                    mainFunction = new Option<FunctionDefinition>(this.Root.FindEntities(NameReference.Create(NameFactory.MainFunctionName),
-                        EntityFindMode.ScopeLimited).FirstOrDefault()?.TargetFunction);
+                    mainFunction = new Option<FunctionDefinition>(this.Root.InstanceOf.FindEntities(ctx, NameReference.Create(NameFactory.MainFunctionName))
+                        .FirstOrDefault()?.TargetFunction);
                 return mainFunction.Value;
-            }
         }
 
         // at index "i" there is functor which takes "i" in-parameters
@@ -456,7 +455,7 @@ namespace Skila.Language
             }
 
             this.functionTypes = new List<TypeDefinition>();
-            foreach (int param_count in Enumerable.Range(0, 15))
+            foreach (int param_count in Enumerable.Range(0, maxSaneArity))
                 this.functionTypes.Add(createFunction(param_count));
             this.functionTypes.ForEach(it => this.Root.AddNode(it));
 
@@ -466,7 +465,7 @@ namespace Skila.Language
                     .SetModifier(EntityModifier.Static);
                 this.tupleTypes = new List<TypeDefinition>();
                 this.iTupleTypes = new List<TypeDefinition>();
-                foreach (int count in Enumerable.Range(2, 15))
+                foreach (int count in Enumerable.Range(2, maxSaneArity))
                 {
                     this.tupleTypes.Add(createTuple(this.Options, count, out FunctionDefinition factory));
                     this.iTupleTypes.Add(createITuple(options, count));

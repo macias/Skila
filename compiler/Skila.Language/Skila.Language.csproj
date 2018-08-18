@@ -252,6 +252,7 @@
     <Compile Include="Entities\VariableDeclaration.cs" />
     <Compile Include="Builders\TemplateParametersBuffer.cs" />
     <Compile Include="TypeMatch.cs" />
+    <Compile Include="ScopeTable.cs" />
     <Compile Include="VarianceMode.cs" />
     <Compile Include="TemplateParameter.cs" />
     <Compile Include="NameReference.cs" />

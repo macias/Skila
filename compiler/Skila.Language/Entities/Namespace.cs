@@ -8,7 +8,16 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Namespace : TypeContainerDefinition
     {
-        public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
+        private ScopeTable availableEntities;
+        public override ScopeTable AvailableEntities
+        {
+            get
+            {
+                if (availableEntities == null)
+                    this.availableEntities = new ScopeTable(this.NestedEntityInstances());
+                return this.availableEntities;
+            }
+        }
 
         public static Namespace Create(NameDefinition name)
         {
@@ -19,7 +28,7 @@ namespace Skila.Language.Entities
             return new Namespace(NameDefinition.Create(name));
         }
 
-        private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null,null)
+        private Namespace(NameDefinition name) : base(EntityModifier.Static, name, null, null)
         {
             this.attachPostConstructor();
         }

@@ -25,6 +25,11 @@ namespace Skila.Language.Extensions
                 ctx.AddError(ErrorCode.AssociatedReferenceRequiresPassingByReference, entity);
         }
 
+        public static bool IsPropertyOwned(this IEntity @this)
+        {
+            return @this.Owner is Property;
+        }
+
         public static bool IsTypeContained(this IEntityVariable @this)
         {
             return @this.ContainingType() != null;

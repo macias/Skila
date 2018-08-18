@@ -181,10 +181,10 @@ namespace Skila.Tests.Execution
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField,NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) }
                     )));
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",
@@ -222,11 +222,11 @@ namespace Skila.Tests.Execution
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
-                        new[] { Property.CreateAutoField(NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField,NameFactory.PointerNameReference(NameFactory.Nat8NameReference()),
                          ExpressionFactory.HeapConstructor(NameFactory.Nat8NameReference(),  Nat8Literal.Create("1")),
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) },
-                        new[] { Property.CreateAutoSetter(NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) }
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) },
+                        new[] { Property.CreateAutoSetter(NameFactory.PropertyAutoField, NameFactory.PointerNameReference(NameFactory.Nat8NameReference())) }
                     )));
                 var main_func = root_ns.AddBuilder(FunctionBuilder.Create(
                     "main",

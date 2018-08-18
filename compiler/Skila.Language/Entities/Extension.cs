@@ -8,7 +8,16 @@ namespace Skila.Language.Entities
     [DebuggerDisplay("{GetType().Name} {ToString()}")]
     public sealed class Extension : TypeContainerDefinition
     {
-        public override IEnumerable<EntityInstance> AvailableEntities => this.NestedEntityInstances();
+        private ScopeTable availableEntities;
+        public override ScopeTable AvailableEntities
+        {
+            get
+            {
+                if (availableEntities == null)
+                    this.availableEntities = new ScopeTable(this.NestedEntityInstances());
+                return this.availableEntities;
+            }
+        }
 
         public static Extension Create(string name = null,IEnumerable<NameReference> includes = null)
         {

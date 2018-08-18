@@ -36,7 +36,7 @@ namespace Skila.Tests.Execution
                     Return.Create(Int64Literal.Create("0"))
                     })));
 
-                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env));
                 Assert.AreEqual(0, task_id);
             }
 
@@ -64,7 +64,7 @@ namespace Skila.Tests.Execution
                     Return.Create(Int64Literal.Create("0"))
                     })));
 
-                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env, Interpreter.Interpreter.PrepareRun(env)));
+                int task_id = Task.WaitAny(Task.Delay(TimeSpan.FromSeconds(Interpreter.Interpreter.TimeoutSeconds)), interpreter.TestRunAsync(env));
                 Assert.AreEqual(0, task_id);
             }
 

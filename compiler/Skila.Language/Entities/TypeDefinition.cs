@@ -70,8 +70,24 @@ namespace Skila.Language.Entities
         public VirtualTable InheritanceVirtualTable { get; private set; }
         public DerivationTable DerivationTable { get; private set; }
 
-        private IReadOnlyCollection<EntityInstance> availableEntities;
-        public override IEnumerable<EntityInstance> AvailableEntities => this.availableEntities;
+        private ScopeTable availableEntities;
+        public override ScopeTable AvailableEntities
+        {
+            get
+            {
+                if (availableEntities == null)
+                {
+                    this.availableEntities = new ScopeTable(this.NestedEntityInstances()                
+                        // adding properties fields which are nested within properties
+                        .Concat(this.NestedProperties.SelectMany(it => it.Fields).Select(it => it.InstanceOf))
+                        // we bind to indexers directly during semantic analysis, thus we need them exposed
+                        .Concat(this.NestedProperties.Where(it => it.IsIndexer).SelectMany(it => it.Accessors)
+                            .Select(it => it.InstanceOf)));
+                }
+                return this.availableEntities;
+            }
+        }
+
 
         public IEnumerable<TypeDefinition> AssociatedTraits => this.IsJoker ? Enumerable.Empty<TypeDefinition>()
             : this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
@@ -219,7 +235,7 @@ namespace Skila.Language.Entities
 
             var inherited_member_instances = new HashSet<EntityInstance>(EntityInstance.Comparer);
 
-            if (this.DebugId==(3, 680))
+            if (this.DebugId == (3, 38))
             {
                 ;
             }
@@ -255,13 +271,15 @@ namespace Skila.Language.Entities
                     else
                     {
                         {
-                            EntityInstance base_instance;
                             if (deriv_info.Base.IsPropertyAccessor(out Property base_property))
-                                base_instance = base_property.InstanceOf.TranslateThrough(ancestor);
-                            else
-                                base_instance = deriv_info.Base.InstanceOf.TranslateThrough(ancestor);
+                            {
+                                EntityInstance base_prop_instance = base_property.InstanceOf.TranslateThrough(ancestor);
+                                inherited_member_instances.Remove(base_prop_instance);
+                            }
 
+                            EntityInstance base_instance = deriv_info.Base.InstanceOf.TranslateThrough(ancestor);
                             inherited_member_instances.Remove(base_instance);
+
                         }
 
                         if (deriv_info.Derived.Modifier.HasOverride)
@@ -321,8 +339,7 @@ namespace Skila.Language.Entities
 
             this.InheritanceVirtualTable = virtual_mapping;
             this.DerivationTable = new DerivationTable(ctx, this, derivation_mapping);
-            this.availableEntities = inherited_member_instances.Concat(this.NestedEntities().Select(it => it.InstanceOf)).StoreReadOnly();
-
+            this.availableEntities = ScopeTable.Combine(this.AvailableEntities,inherited_member_instances);
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToOverride, func);
@@ -634,8 +651,8 @@ namespace Skila.Language.Entities
                         int dist;
                         if (ancestors.TryGetValue(ancestor.AncestorInstance, out dist))
                         {
-                                if (ancestor.AncestorInstance.HasSameCore(ctx.Env.IObjectType.InstanceOf))
-                                    ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
+                            if (ancestor.AncestorInstance.HasSameCore(ctx.Env.IObjectType.InstanceOf))
+                                ancestors[ancestor.AncestorInstance] = System.Math.Max(dist, ancestor.Distance);
                             else
                                 ancestors[ancestor.AncestorInstance] = System.Math.Min(dist, ancestor.Distance);
                         }

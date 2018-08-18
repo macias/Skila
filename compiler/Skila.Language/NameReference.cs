@@ -375,7 +375,7 @@ namespace Skila.Language
             if (this.IsRoot)
                 return new[] { new BindingMatch(ctx.Env.Root.InstanceOf, isLocal: false) };
             else if (this.Prefix == null)
-                return rawComputeBindingNoPrefix(ctx,ref notFoundErrorCode);
+                return rawComputeBindingNoPrefix(ctx, ref notFoundErrorCode);
             else
                 return rawComputeBindingWithPrefix(ctx, ref notFoundErrorCode);
         }
@@ -391,9 +391,6 @@ namespace Skila.Language
                 return new[] { new BindingMatch(prefix_instance, isLocal: false) };
             }
 
-            EntityFindMode find_mode = this.isPropertyIndexerCallReference
-                ? EntityFindMode.AvailableIndexersOnly : EntityFindMode.WithCurrentProperty;
-
             // referencing static member?
             if (this.Prefix is NameReference prefix_ref
                 // todo: make it nice, currently refering to base look like static reference
@@ -401,7 +398,7 @@ namespace Skila.Language
                 && prefix_ref.Binding.Match.Instance.Target.IsTypeContainer())
             {
                 EntityInstance target_instance = prefix_ref.Binding.Match.Instance;
-                IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this, find_mode);
+                IEnumerable<EntityInstance> entities = target_instance.FindEntities(ctx, this);
 
                 if (entities.Any())
                     notFoundErrorCode = ErrorCode.InstanceMemberAccessInStaticContext;
@@ -414,10 +411,10 @@ namespace Skila.Language
             }
             else
             {
-                IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this, find_mode);
+                IEnumerable<EntityInstance> entities = prefix_instance.FindEntities(ctx, this);
 
                 if (!entities.Any())
-                    entities = prefix_instance.FindExtensions(ctx, this, find_mode);
+                    entities = prefix_instance.FindExtensions(ctx, this);
 
                 {
                     IEntityInstance prefix_eval = this.Prefix.Evaluation.Components;
@@ -482,7 +479,7 @@ namespace Skila.Language
                 IEnumerable<EntityInstance> entities = Enumerable.Empty<EntityInstance>();
                 foreach (IEntityScope scope in this.EnclosingScopesToRoot().WhereType<IEntityScope>())
                 {
-                    entities = scope.FindEntities(this, EntityFindMode.ScopeLimited);
+                    entities = scope.InstanceOf.FindEntities(ctx, this);
                     if (entities.Any())
                     {
                         TypeDefinition enclosed_type = this.EnclosingScope<TypeDefinition>();
@@ -656,7 +653,14 @@ namespace Skila.Language
                 // both cases are handled elsewhere
                 || !target_func.IsAnyConstructor())
                 && !ctx.Env.Options.ReferencingBase)
+            {
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
+            }
+
+            if (this.DebugId == (6, 11138))
+            {
+                ;
+            }
 
             {
                 if (this.Prefix == null && !this.HasThisPrefix
@@ -669,7 +673,9 @@ namespace Skila.Language
                          // not a method inside closure type
                          // and outside functions allow direct name reference (without it/this; it should be OK)
                          && enclosing_func != null && !enclosing_func.IsLambdaInvoker)
+                    {
                         ctx.AddError(ErrorCode.MissingThisPrefix, this);
+                    }
                 }
             }
 

@@ -80,10 +80,10 @@ namespace Skila.Tests.Semantics
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField,NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoSetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) }
                     )));
 
                 var func_def = root_ns.AddBuilder(FunctionBuilder.Create(
@@ -152,14 +152,14 @@ namespace Skila.Tests.Semantics
                 var env = Language.Environment.Create(new Options() { }.SetMutability(mutability));
                 var root_ns = env.Root;
 
-                FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.Int64NameReference());
+                FunctionDefinition mul_getter = Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference());
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .SetModifier(EntityModifier.Mutable)
                     .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField,NameFactory.Int64NameReference(), Int64Literal.Create("1"), 
                             env.Options.ReassignableModifier()) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()), mul_getter },
-                        new[] { Property.CreateAutoSetter(NameFactory.Int64NameReference()) }
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()), mul_getter },
+                        new[] { Property.CreateAutoSetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) }
                     )));
 
                 resolver = NameResolver.Create(env);
@@ -182,8 +182,8 @@ namespace Skila.Tests.Semantics
 
                 var point_type = root_ns.AddBuilder(TypeBuilder.Create("Point")
                     .With(Property.Create(env.Options, "x", NameFactory.Int64NameReference(),
-                        new[] { Property.CreateAutoField(NameFactory.Int64NameReference(), Int64Literal.Create("1")) },
-                        new[] { Property.CreateAutoGetter(NameFactory.Int64NameReference()) },
+                        new[] { Property.CreateAutoField(NameFactory.PropertyAutoField, NameFactory.Int64NameReference(), Int64Literal.Create("1")) },
+                        new[] { Property.CreateAutoGetter(NameFactory.PropertyAutoField, NameFactory.Int64NameReference()) },
                         setters: null
                     )));
 
