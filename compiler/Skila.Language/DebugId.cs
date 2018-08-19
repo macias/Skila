@@ -15,11 +15,6 @@ namespace Skila.Language
         public DebugId(Type type) 
         {
             this.id = getId(type);
-
-            if (this==  (46, 39))
-            {
-                ;
-            }
         }
 
         private static ValueTuple<int,int> getId(Type type)

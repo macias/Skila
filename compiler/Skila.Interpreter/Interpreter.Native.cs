@@ -109,7 +109,8 @@ namespace Skila.Interpreter
         {
             IEntityInstance outer_typename = typename;
             if (onHeap)
-                outer_typename = ctx.Env.Reference(typename, TypeMutability.None, null, viaPointer: true);
+                outer_typename = ctx.Env.Reference(typename, TypeMutability.None,
+                    viaPointer: true);
             ObjectData this_object = await allocObjectAsync(ctx, typename, outer_typename, null).ConfigureAwait(false);
 
             // it is local variable so we need to inc ref count
@@ -302,7 +303,7 @@ namespace Skila.Interpreter
             return codePoints.ToArray();
         }
 
-        private async Task<ExecValue> assignedNativeString(ExecutionContext ctx, ObjectData thisValue,string s)
+        private async Task<ExecValue> assignedNativeString(ExecutionContext ctx, ObjectData thisValue, string s)
         {
             ObjectData obj = await ObjectData.CreateInstanceAsync(ctx, ctx.Env.Utf8StringType.InstanceOf, s).ConfigureAwait(false);
             thisValue.Assign(obj);
@@ -332,8 +333,8 @@ namespace Skila.Interpreter
                 int native_len_arg = native_end_arg - native_start_arg;
 
                 byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
-                string rest = Encoding.UTF8.GetString(this_utf8, 0,native_start_arg)
-                    + Encoding.UTF8.GetString(this_utf8, native_start_arg+ native_len_arg,this_utf8.Length-(native_start_arg + native_len_arg));
+                string rest = Encoding.UTF8.GetString(this_utf8, 0, native_start_arg)
+                    + Encoding.UTF8.GetString(this_utf8, native_start_arg + native_len_arg, this_utf8.Length - (native_start_arg + native_len_arg));
 
                 return await assignedNativeString(ctx, thisValue, rest).ConfigureAwait(false);
             }
@@ -387,7 +388,7 @@ namespace Skila.Interpreter
                 int native_start_arg = (int)arg_start_obj.NativeNat;
                 ObjectData arg_end_obj = ctx.FunctionArguments[1];
                 int native_end_arg = (int)arg_end_obj.NativeNat;
-                int native_len_arg = native_end_arg-native_start_arg;
+                int native_len_arg = native_end_arg - native_start_arg;
 
                 byte[] this_utf8 = Encoding.UTF8.GetBytes(this_native);
                 string sub = Encoding.UTF8.GetString(this_utf8, native_start_arg, native_len_arg);
@@ -586,9 +587,10 @@ namespace Skila.Interpreter
                 Option<ObjectData> received = await channel.ReceiveAsync().ConfigureAwait(false);
 
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
-                EntityInstance option_type = ctx.Env.OptionType.GetInstance(new[] { value_type }, 
-                    overrideMutability: TypeMutability.None,
-                    translation: null, lifetime: Lifetime.Timeless);
+                EntityInstance option_type = ctx.Env.OptionType.GetInstance(
+                    TypeMutability.None,
+                    TemplateTranslation.Create(ctx.Env.OptionType, new[] { value_type }),
+                    Lifetime.Timeless);
                 ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
                 if (opt_exec.IsThrow)
                     return opt_exec;

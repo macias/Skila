@@ -171,8 +171,8 @@ namespace Skila.Language.Entities
             this.setters = (setters ?? Enumerable.Empty<FunctionDefinition>()).StoreReadOnly();
             this.Modifier = (this.Setter == null ? EntityModifier.None : options.ReassignableModifier()) | modifier;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
+                TemplateTranslation.Create(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }
@@ -182,10 +182,10 @@ namespace Skila.Language.Entities
             return result;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance(TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
+            return this.instancesCache.GetInstance(overrideMutability, translation, lifetime);
         }
 
         public void Validate(ComputationContext ctx)

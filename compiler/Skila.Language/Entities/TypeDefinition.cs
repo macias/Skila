@@ -235,10 +235,6 @@ namespace Skila.Language.Entities
 
             var inherited_member_instances = new HashSet<EntityInstance>(EntityInstance.Comparer);
 
-            if (this.DebugId == (3, 38))
-            {
-                ;
-            }
             var missing_func_implementations = new List<FunctionDefinition>();
 
             foreach (EntityInstance ancestor in this.Inheritance.OrderedAncestorsIncludingObject

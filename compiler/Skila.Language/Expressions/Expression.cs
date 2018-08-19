@@ -29,7 +29,7 @@ namespace Skila.Language.Expressions
         protected Expression(Option<ExpressionReadMode> readMode)
         {
             this.readMode = readMode;
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(ChildrenNodes.WhereType<IExpression>()));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(ChildrenNodes.WhereType<IExpression>()));
         }
         protected Expression(ExpressionReadMode readMode) : this(new Option<ExpressionReadMode>(readMode))
         { 

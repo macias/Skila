@@ -4,11 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using NaiveLanguageTools.Common;
 using Skila.Language.Builders;
-using Skila.Language.Comparers;
 using Skila.Language.Extensions;
-using System.Runtime.CompilerServices;
 using Skila.Language.Semantics;
-using Skila.Language.Tools;
 using Skila.Language.Printout;
 
 namespace Skila.Language.Entities
@@ -90,8 +87,10 @@ namespace Skila.Language.Entities
             }
 
             this.instancesCache = new EntityInstanceCache(this,
-                () => this.GetInstance(this.Name.Parameters.Select(it => it.InstanceOf),
-                overrideMutability: TypeMutability.None, translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
+                () => this.GetInstance(
+                    TypeMutability.None,
+                    TemplateTranslation.Create(this, this.Name.Parameters.Select(it => it.InstanceOf)),
+                    Lifetime.Timeless));
 
             this.evaluation = new Lazy<EvaluationInfo>(() => Environment.JokerEval);
         }
@@ -120,10 +119,10 @@ namespace Skila.Language.Entities
             return this.ownedNodes.Contains(elem);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance(TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
+            return this.instancesCache.GetInstance( overrideMutability, translation, lifetime);
         }
 
         public override string ToString()

@@ -17,7 +17,7 @@ namespace Skila.Language
         public DebugId DebugId { get; } = new DebugId(typeof(TemplateTranslation));
 #endif
 
-        public static readonly TemplateTranslation Empty = new TemplateTranslation(new Dictionary<TemplateParameter, IEntityInstance>());
+        public static readonly TemplateTranslation Empty = new TemplateTranslation(null, new Dictionary<TemplateParameter, IEntityInstance>());
 
         public static TemplateTranslation Create(EntityInstance instance, IEnumerable<IEntityInstance> arguments)
         {
@@ -42,12 +42,16 @@ namespace Skila.Language
             }
 
             if (trans)
-                return new TemplateTranslation(dict);
+                return new TemplateTranslation(instance.Target, dict);
             else
                 return instance.Translation;
         }
 
-        public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments = null)
+        public static TemplateTranslation Create(IEntity entity)
+        {
+            return Create(entity, Enumerable.Empty<IEntityInstance>());
+        }
+        public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments)
         {
             Dictionary<TemplateParameter, IEntityInstance> dict;
             dict = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
@@ -58,10 +62,10 @@ namespace Skila.Language
                     dict.Add(param, null);
             }
 
+            IReadOnlyList<TemplateParameter> parameters = entity.Name.Parameters;
             if (arguments != null && arguments.Any())
             {
                 // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
-                IReadOnlyList<TemplateParameter> parameters = entity.Name.Parameters;
                 if (parameters.Any() && parameters.Count != arguments.Count())
                     throw new NotImplementedException();
 
@@ -75,17 +79,31 @@ namespace Skila.Language
                 return Empty;
             else
             {
-                return new TemplateTranslation(dict);
+                return new TemplateTranslation(entity, dict);
             }
         }
 
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
         private readonly int hashCode;
+        private readonly IEntity entity;
 
-        private TemplateTranslation(Dictionary<TemplateParameter, IEntityInstance> table)
+        private IReadOnlyList<TemplateParameter> primaryParameters => this.entity.Name.Parameters;
+        public IReadOnlyList<IEntityInstance> PrimaryArguments { get; }
+
+        private TemplateTranslation(IEntity entity,
+            Dictionary<TemplateParameter, IEntityInstance> table)
         {
             this.table = table;
             this.hashCode = this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
+
+            this.entity = entity;
+            this.PrimaryArguments = (entity?.Name?.Parameters ?? Enumerable.Empty<TemplateParameter>())
+                .Select(it => this.table[it]).StoreReadOnlyList();
+
+            if (this.PrimaryArguments.All(it => it == null))
+                this.PrimaryArguments = Enumerable.Empty<IEntityInstance>().StoreReadOnlyList();
+            else if (this.PrimaryArguments.Any(it => it == null))
+                throw new NotImplementedException();
         }
 
         public override string ToString()
@@ -97,46 +115,74 @@ namespace Skila.Language
             return $"[{table.Count}: {s}]";
         }
 
-        public static TemplateTranslation CombineTraitWithHostParameters(TemplateTranslation translation, TypeDefinition trait)
+        public static TemplateTranslation OverriddenTraitWithHostParameters(TemplateTranslation translation, TypeDefinition trait)
         {
-            Dictionary<TemplateParameter, IEntityInstance> dict = translation.table.ToDictionary(it => it.Key, it => it.Value);
+            if (translation.table.Count == 0)
+                return translation;
 
-            TypeDefinition host = trait.AssociatedHost;
-
-            foreach (TemplateParameter param in trait.Name.Parameters)
-                dict[param] = host.Name.Parameters[param.Index].InstanceOf;
-
-            return new TemplateTranslation(dict);
+            return translation.overridden(trait.Name.Parameters, trait.AssociatedHost.Name.Parameters.Select(it => it.InstanceOf));
         }
 
-        public static TemplateTranslation Combine(TemplateTranslation basic, TemplateTranslation overlay)
+        public static TemplateTranslation Translated(TemplateTranslation baseTranslation,
+            TemplateTranslation through, ref bool translated)
         {
-            if (basic == null)
-                return overlay;
-            else if (overlay == null || basic.table.Count == 0)
-                return basic;
+            if (baseTranslation == null || through == null)
+                throw new ArgumentNullException();
 
-            var dict = Later.Create(() => basic.table.ToDictionary(it => it.Key, it => it.Value));
-            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in basic.table)
+            if (baseTranslation.table.Count == 0 || through.table.Count == 0)
+                return baseTranslation;
+
+            var dict = Later.Create(() => baseTranslation.table.ToDictionary(it => it.Key, it => it.Value));
+            foreach (KeyValuePair<TemplateParameter, IEntityInstance> entry in baseTranslation.table)
             {
                 if (entry.Value != null)
                 {
                     bool trans = false;
-                    IEntityInstance entityInstance = entry.Value.TranslateThrough(ref trans, overlay);
+                    IEntityInstance entityInstance = entry.Value.TranslateThrough(ref trans, through);
 
                     if (trans)
                         dict.Value[entry.Key] = entityInstance;
                 }
-                else if (overlay.Translate(entry.Key, out IEntityInstance value))
+                else if (through.Translate(entry.Key, out IEntityInstance value))
                 {
                     dict.Value[entry.Key] = value;
                 }
             }
 
             if (dict.HasValue)
-                return new TemplateTranslation(dict.Value);
+            {
+                translated = true;
+                return new TemplateTranslation(baseTranslation.entity, dict.Value);
+            }
             else
-                return basic;
+                return baseTranslation;
+        }
+
+        public TemplateTranslation Overridden(IEnumerable<IEntityInstance> arguments)
+        {
+            if (this.table.Count == 0)
+                return this;
+
+            return overridden(this.primaryParameters,arguments);
+        }
+
+        private TemplateTranslation overridden(IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)
+        {
+            var dict = Later.Create(() => this.table.ToDictionary(it => it.Key, it => it.Value));
+            int i = -1;
+            foreach (IEntityInstance arg in arguments)
+            {
+                ++i;
+
+                TemplateParameter key = parameters[i];
+                if (!object.ReferenceEquals(this.table[key], arg))
+                    dict.Value[key] = arg;
+            }
+
+            if (dict.HasValue)
+                return new TemplateTranslation(this.entity, dict.Value);
+            else
+                return this;
         }
 
         public override bool Equals(object obj)

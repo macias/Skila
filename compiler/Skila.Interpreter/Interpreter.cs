@@ -33,10 +33,6 @@ namespace Skila.Interpreter
         }
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionDefinition func)
         {
-            if (func.DebugId==(11, 235))
-            {
-                ;
-            }
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
@@ -47,7 +43,8 @@ namespace Skila.Interpreter
             {
                 ctx.LocalVariables.Add(func.MetaThisParameter, ctx.ThisArgument);
                 ObjectData this_value = ctx.ThisArgument.DereferencedOnce();
-                ctx.Translation = TemplateTranslation.Combine(ctx.Translation, this_value.RunTimeTypeInstance.Translation);
+                bool dummy = false;
+                ctx.Translation = TemplateTranslation.Translated(ctx.Translation, this_value.RunTimeTypeInstance.Translation, ref dummy);
             }
 
             {
@@ -99,10 +96,6 @@ namespace Skila.Interpreter
 
         private Task<ExecValue> executeAsync(ExecutionContext ctx, Block block)
         {
-            if (block.DebugId== (10, 369))
-            {
-                ;
-            }
             return executeAsync(ctx, block.Instructions);
         }
 
@@ -212,7 +205,7 @@ namespace Skila.Interpreter
                 throw new TimeoutException($"Execution didn't finish in {timeout}");
             return test_task.Result;
         }
-        public async Task<ExecValue> TestRunAsync( Language.Environment env)
+        public async Task<ExecValue> TestRunAsync(Language.Environment env)
         {
             var resolver = NameResolver.Create(env);
             if (resolver.ErrorManager.Errors.Count != 0)
@@ -413,7 +406,7 @@ namespace Skila.Interpreter
                 if (alloc.InnerTypeName.Prefix == null)
                 {
                     inner_type_eval = ctx.ThisArgument.DereferencedOnce().RunTimeTypeInstance;
-                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, viaPointer: true);
                 }
                 else // Self on external object
                 {
@@ -422,7 +415,7 @@ namespace Skila.Interpreter
                         return prefix_exec;
                     ObjectData prefix_obj = prefix_exec.ExprValue.TryDereferenceAnyMany(ctx.Env);
                     inner_type_eval = prefix_obj.RunTimeTypeInstance;
-                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, null, viaPointer: true);
+                    alloc_eval = ctx.Env.Reference(inner_type_eval, alloc.InnerTypeName.OverrideMutability, viaPointer: true);
                 }
             }
             else
@@ -480,7 +473,7 @@ namespace Skila.Interpreter
             // note the difference with value-literals, it goes on heap! so we cannot use its evaluation because it is pointer based
             return allocObjectAsync(ctx,
                 ctx.Env.Utf8StringType.InstanceOf,
-                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, TypeMutability.None, null, viaPointer: true),
+                ctx.Env.Reference(ctx.Env.Utf8StringType.InstanceOf, TypeMutability.None, viaPointer: true),
                 value);
         }
 
@@ -641,10 +634,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, FunctionCall call)
         {
-            if (call.DebugId==  (22, 369))
-            {
-                ;
-            }
             CallPreparationData call_prep = await prepareFunctionCallAsync(call, ctx).ConfigureAwait(false);
             if (call_prep.Prep.Is<ExecValue>())
                 return call_prep.Prep.As<ExecValue>();
@@ -822,8 +811,11 @@ namespace Skila.Interpreter
                     }
 
                     ObjectData chunk_obj = await createChunk(ctx,
-                        ctx.Env.ChunkType.GetInstance(new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components },
-                        TypeMutability.None, null, lifetime: Lifetime.Timeless),
+                        ctx.Env.ChunkType.GetInstance(
+                        TypeMutability.None,
+                        TemplateTranslation.Create(ctx.Env.ChunkType, 
+                            new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components }),
+                        Lifetime.Timeless),
                         chunk).ConfigureAwait(false);
 
                     arguments_repacked[index] = await chunk_obj.ReferenceAsync(ctx).ConfigureAwait(false);
@@ -891,10 +883,6 @@ namespace Skila.Interpreter
                     bool found_duck = false;
 
                     {
-                        if (targetFunc.DebugId == (11, 696))
-                        {
-                            ;
-                        }
                         IEnumerable<EntityInstance> ancestors = thisValue.RunTimeTypeInstance
                             .Concat(thisValue.RunTimeTypeInstance.TargetType.Inheritance
                             .OrderedAncestorsIncludingObject.Select(it => it.TranslateThrough(thisValue.RunTimeTypeInstance)));
@@ -944,11 +932,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, NameReference name)
         {
-            if (name.DebugId == (5, 10257))
-            {
-                ;
-            }
-
             IEntity target = name.Binding.Match.Instance.Target;
 
             if (target is Property)
@@ -1045,10 +1028,6 @@ namespace Skila.Interpreter
 
         private async Task<ExecValue> executeAsync(ExecutionContext ctx, VariableDeclaration decl)
         {
-            if (decl.DebugId== (19, 383))
-            {
-                ;
-            }
             ExecValue rhs_val;
             if (decl.InitValue == null || decl.InitValue.IsUndef())
                 rhs_val = ExecValue.CreateExpression(await ObjectData.CreateEmptyAsync(ctx, decl.Evaluation.Aggregate).ConfigureAwait(false));

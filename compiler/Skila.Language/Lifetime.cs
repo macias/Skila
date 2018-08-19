@@ -29,10 +29,6 @@ namespace Skila.Language
 
         private Lifetime(IOwnedNode context, LifetimeScope lifetimeScope)
         {
-            if (context != null && context.DebugId == (5, 11419))
-            {
-                ;
-            }
             this.__node = context;
             this.lifetimeScope = lifetimeScope;
         }
@@ -92,10 +88,6 @@ namespace Skila.Language
             {
                 // similar rationale as above but we have to exlude accessors, because this would mean
                 // we allow setter/getter to store its reference parameter as property field
-                if (this_scope.DebugId == (35, 320))
-                {
-                    ;
-                }
                 return false;
             }
 

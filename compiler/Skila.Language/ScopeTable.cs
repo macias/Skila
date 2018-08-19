@@ -31,13 +31,15 @@ namespace Skila.Language
                     this.dict.Add(name.Name, list);
                 }
 
-                if (name.Arity == 0 || entity is FunctionDefinition)
+                if (name.Arity == 0)
                     list[0].Add(instance);
-
-                if (name.Arity != 0)
+                else
                 {
                     list[name.Arity] = list[name.Arity] ?? new List<EntityInstance>();
                     list[name.Arity].Add(instance);
+
+                    if (entity is FunctionDefinition)
+                        list[0].Add(instance.BuildNoArguments());
                 }
             }
         }

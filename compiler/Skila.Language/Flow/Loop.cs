@@ -132,7 +132,7 @@ namespace Skila.Language.Flow
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreateLoop(PreCondition,
+            this.flow = Later.Create(() => ExecutionFlow.CreateLoop(PreCondition,
                 thenPath: Body,
                 postMaybes: PostStep.Concat(PostCondition)));
         }

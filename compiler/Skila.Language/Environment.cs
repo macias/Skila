@@ -24,10 +24,10 @@ namespace Skila.Language
         private Option<FunctionDefinition> mainFunction;
         public FunctionDefinition MainFunction(ComputationContext ctx)
         {
-                if (!mainFunction.HasValue)
-                    mainFunction = new Option<FunctionDefinition>(this.Root.InstanceOf.FindEntities(ctx, NameReference.Create(NameFactory.MainFunctionName))
-                        .FirstOrDefault()?.TargetFunction);
-                return mainFunction.Value;
+            if (!mainFunction.HasValue)
+                mainFunction = new Option<FunctionDefinition>(this.Root.InstanceOf.FindEntities(ctx, NameReference.Create(NameFactory.MainFunctionName))
+                    .FirstOrDefault()?.TargetFunction);
+            return mainFunction.Value;
         }
 
         // at index "i" there is functor which takes "i" in-parameters
@@ -168,10 +168,12 @@ namespace Skila.Language
             // we have to recreate them on each run, otherwise old joker will have the references
             // to previous test, this would prevent GC from reclaiming the memory, and after few hundred
             // tests we will be out of memory
+            JokerType = null;
+            JokerInstance = null;
+            JokerEval = null;
             JokerType = TypeDefinition.Create(EntityModifier.None,
                 NameDefinition.Create(NameFactory.JokerTypeName), null, allowSlicing: true);
-            JokerInstance = JokerType.GetInstance(null, overrideMutability: TypeMutability.None,
-                translation: TemplateTranslation.Empty, lifetime: Lifetime.Timeless);
+            JokerInstance = JokerType.GetInstance(TypeMutability.None, TemplateTranslation.Empty, Lifetime.Timeless);
             JokerEval = EvaluationInfo.Create(JokerInstance);
 
             this.Root = Namespace.Create(NameFactory.RootNamespace);
@@ -1023,74 +1025,78 @@ namespace Skila.Language
 
         private static Extension createLinq(IOptions options)
         {
-            const string elem_type = "LQT";
+            // instead of having the same type name we use different one per each function for easier debugging of compiler
+            Func<string, string> elem_type = func_id => $"{func_id}LQT";
             const string this_name = "_this_";
-            Func<FunctionParameter> this_param = () => FunctionParameter.Create(this_name,
-                NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
+            Func<string,FunctionParameter> this_param = func_id => FunctionParameter.Create(this_name,
+                NameFactory.ReferenceNameReference(NameFactory.IIterableNameReference(elem_type(func_id), TypeMutability.ReadOnly)),
                 EntityModifier.This);
             Func<NameReference> this_ref = () => NameReference.Create(this_name);
 
             FunctionDefinition map_func;
             {
+                const string func_id = "M";
                 const string map_type = "MPT";
                 const string buffer_name = "buffer";
                 const string mapper_name = "mapper";
                 const string elem_name = "map_elem";
                 map_func = FunctionBuilder.Create(
-                    NameFactory.MapFunctionName, TemplateParametersBuffer.Create(elem_type, map_type).Values,
+                    NameFactory.MapFunctionName, TemplateParametersBuffer.Create(elem_type(func_id), map_type).Values,
                     NameFactory.PointerNameReference(NameFactory.IIterableNameReference(map_type, TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(buffer_name, null,
                              ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(map_type))),
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                         FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
                             FunctionCall.Create(NameReference.Create(mapper_name), NameReference.Create(elem_name)))
                         }),
                         Return.Create(NameReference.Create(buffer_name))
                         ))
-                        .Parameters(this_param(),
+                        .Parameters(this_param(func_id),
                             FunctionParameter.Create(mapper_name,
                                 NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
-                                     NameReference.Create(elem_type), NameReference.Create(map_type)))));
+                                     NameReference.Create(elem_type(func_id)), NameReference.Create(map_type)))));
             }
 
             FunctionDefinition reverse_func;
             {
+                const string func_id = "R";
                 // this is ineffective, but until having regular syntax it makes no sense to write sth for speed here
                 const string buffer_name = "buffer";
                 const string elem_name = "map_elem";
                 reverse_func = FunctionBuilder.Create(
-                    NameFactory.ReverseFunctionName, TemplateParametersBuffer.Create(elem_type).Values,
-                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
+                    NameFactory.ReverseFunctionName, TemplateParametersBuffer.Create(elem_type(func_id)).Values,
+                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type(func_id), TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement("cnt", null,
                             FunctionCall.Create(NameReference.Create(this_ref(), NameFactory.IIterableCount)),
                             options.ReassignableModifier()),
                         VariableDeclaration.CreateStatement(buffer_name, null,
-                             ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type),
+                             ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type(func_id)),
                             NameReference.Create("cnt"))),
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                              ExpressionFactory.Dec("cnt"),
                             Assignment.CreateStatement( FunctionCall.Indexer(NameReference.Create(buffer_name),NameReference.Create("cnt")),
                                 NameReference.Create(elem_name))
                         }),
                         Return.Create(NameReference.Create(buffer_name))
                         ))
-                        .Parameters(this_param());
+                        .Parameters(this_param(func_id));
             }
 
             FunctionDefinition filter_func;
             {
+                const string func_id = "F";
                 const string buffer_name = "buffer";
                 const string pred_name = "pred";
                 const string elem_name = "filtered_elem";
                 filter_func = FunctionBuilder.Create(
-                    NameFactory.FilterFunctionName, elem_type, VarianceMode.None,
-                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type, TypeMutability.ReadOnly)),
+                    NameFactory.FilterFunctionName, elem_type(func_id), VarianceMode.None,
+                    NameFactory.PointerNameReference(NameFactory.IIterableNameReference(elem_type(func_id), TypeMutability.ReadOnly)),
                     Block.CreateStatement(
                         VariableDeclaration.CreateStatement(buffer_name, null,
-                             ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type))),
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                             ExpressionFactory.HeapConstructor(NameFactory.ArrayNameReference(elem_type(func_id)))),
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                             IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
                                 FunctionCall.Create(NameReference.Create(buffer_name,NameFactory.AppendFunctionName),
                                     NameReference.Create(elem_name))
@@ -1098,59 +1104,62 @@ namespace Skila.Language
                         }),
                         Return.Create(NameReference.Create(buffer_name))
                         ))
-                        .Parameters(this_param(),
+                        .Parameters(this_param(func_id),
                             FunctionParameter.Create(pred_name,
                                 NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
+                                     NameReference.Create(elem_type(func_id)), NameFactory.BoolNameReference()))));
             }
             FunctionDefinition any_func;
             {
+                const string func_id = "AN";
                 const string pred_name = "pred";
                 const string elem_name = "any_elem";
                 any_func = FunctionBuilder.Create(
-                    NameFactory.AnyFunctionName, elem_type, VarianceMode.None,
+                    NameFactory.AnyFunctionName, elem_type(func_id), VarianceMode.None,
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                             IfBranch.CreateIf(FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name)),new[]{
                                 Return.Create(BoolLiteral.CreateTrue())
                             })
                         }),
                                 Return.Create(BoolLiteral.CreateFalse())
                         ))
-                        .Parameters(this_param(),
+                        .Parameters(this_param(func_id),
                             FunctionParameter.Create(pred_name,
                                 NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
+                                     NameReference.Create(elem_type(func_id)), NameFactory.BoolNameReference()))));
             }
             FunctionDefinition all_func;
             {
+                const string func_id = "AL";
                 const string pred_name = "pred";
                 const string elem_name = "all_elem";
                 all_func = FunctionBuilder.Create(
-                    NameFactory.AllFunctionName, elem_type, VarianceMode.None,
+                    NameFactory.AllFunctionName, elem_type(func_id), VarianceMode.None,
                     NameFactory.BoolNameReference(),
                     Block.CreateStatement(
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                             IfBranch.CreateIf( ExpressionFactory.Not( FunctionCall.Create(NameReference.Create(pred_name),NameReference.Create(elem_name))),new[]{
                                 Return.Create(BoolLiteral.CreateFalse())
                             })
                         }),
                                 Return.Create(BoolLiteral.CreateTrue())
                         ))
-                        .Parameters(this_param(),
+                        .Parameters(this_param(func_id),
                             FunctionParameter.Create(pred_name,
                                 NameFactory.ReferenceNameReference(NameFactory.IFunctionNameReference(
-                                     NameReference.Create(elem_type), NameFactory.BoolNameReference()))));
+                                     NameReference.Create(elem_type(func_id)), NameFactory.BoolNameReference()))));
             }
 
             FunctionDefinition count_func;
             {
+                const string func_id = "C";
                 const string count_name = "cnt";
                 string elem_name = NameFactory.Sink;
 
                 count_func = FunctionBuilder.Create(
-                    NameFactory.IIterableCount, elem_type, VarianceMode.None,
+                    NameFactory.IIterableCount, elem_type(func_id), VarianceMode.None,
                     NameFactory.SizeNameReference(),
                     Block.CreateStatement(
 
@@ -1161,12 +1170,12 @@ namespace Skila.Language
 
                         VariableDeclaration.CreateStatement(count_name, null, NatLiteral.Create("0"),
                             options.ReassignableModifier()),
-                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type), this_ref(), new[] {
+                        Loop.CreateForEach(elem_name, NameReference.Create(elem_type(func_id)), this_ref(), new[] {
                              ExpressionFactory.Inc(count_name)
                         }),
                         Return.Create(NameReference.Create(count_name))
                         ))
-                        .Parameters(this_param())
+                        .Parameters(this_param(func_id))
                         ;
             }
 
@@ -1920,16 +1929,16 @@ namespace Skila.Language
         {
             return instance.EnumerateAll().All(it => it.IsOfType(PointerType));
         }
-        public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability, TemplateTranslation translation,
+        public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability,
             bool viaPointer)
         {
-            return Reference(instance, mutability, translation, Lifetime.Timeless, viaPointer);
+            return Reference(instance, mutability, Lifetime.Timeless, viaPointer);
         }
-        public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability, TemplateTranslation translation,
+        public EntityInstance Reference(IEntityInstance instance, TypeMutability mutability,
             Lifetime lifetime, bool viaPointer)
         {
-            return (viaPointer ? this.PointerType : this.ReferenceType)
-                .GetInstance(new[] { instance }, mutability, translation, lifetime);
+            TypeDefinition typedef = (viaPointer ? this.PointerType : this.ReferenceType);
+            return typedef.GetInstance(mutability, TemplateTranslation.Create(typedef, new[] { instance }), lifetime);
         }
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {

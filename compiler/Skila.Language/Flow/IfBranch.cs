@@ -69,7 +69,7 @@ namespace Skila.Language.Flow
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => this.IsElse 
+            this.flow = Later.Create(() => this.IsElse 
                 ? ExecutionFlow.CreateElse(Body, Next) : ExecutionFlow.CreateFork(Condition, Body, Next));
         }
 
@@ -105,11 +105,6 @@ namespace Skila.Language.Flow
         }
         public void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId == (21, 283))
-            {
-                ;
-            }
-
             if (this.Evaluation == null)
             {
                 this.readMode = new Option<ExpressionReadMode>(this.Body.ReadMode);
@@ -151,10 +146,6 @@ namespace Skila.Language.Flow
 
         private bool computeLowestCommonAncestor(ComputationContext ctx, ref IEntityInstance eval, ref IEntityInstance aggregate)
         {
-            if (this.DebugId == (21, 283))
-            {
-                ;
-            }
             if (!TypeMatcher.LowestCommonAncestor(ctx, eval, Next.Evaluation.Components, out eval))
             {
                 return false;

@@ -1,6 +1,4 @@
 ﻿using NaiveLanguageTools.Common;
-using Skila.Language.Comparers;
-using Skila.Language.Extensions;
 using Skila.Language.Tools;
 using System;
 using System.Collections.Generic;
@@ -26,7 +24,7 @@ namespace Skila.Language.Entities
                 this.cache = new Dictionary<Lifetime, EntityInstance[]>();
             }
 
-            internal EntityInstance GetInstance(IEntity entity, IReadOnlyList<IEntityInstance> arguments,
+            internal EntityInstance GetInstance(IEntity entity, 
                 TypeMutability overrideMutability, TemplateTranslation translation, Lifetime lifetime)
             {
                 if (!this.cache.TryGetValue(lifetime, out EntityInstance[] inner_cache))
@@ -36,9 +34,9 @@ namespace Skila.Language.Entities
                 }
 
                 EntityInstance instance = inner_cache[(int)overrideMutability];
-                if (instance ==null)
+                if (instance == null)
                 {
-                    instance = EntityInstance.CreateUnregistered(this.core, entity, arguments, translation,
+                    instance = EntityInstance.CreateUnregistered(this.core, entity, translation,
                         overrideMutability, lifetime);
                     inner_cache[(int)overrideMutability] = instance;
                 }
@@ -51,7 +49,7 @@ namespace Skila.Language.Entities
         // that (by default) entire cache is bigger and bigger as the tests run
         // cleaning cache manually would look ugly so we keep cache as non-static data outside EntityInstance
 
-        private readonly NullableDictionary<TemplateTranslation, Dictionary<IReadOnlyList<IEntityInstance>, CoreCache>> instancesCache;
+        private readonly Dictionary<TemplateTranslation, CoreCache> instancesCache;
 
         private readonly IEntity entity;
         private readonly Later<EntityInstance> instanceOf;
@@ -60,27 +58,22 @@ namespace Skila.Language.Entities
         public EntityInstanceCache(IEntity entity, Func<EntityInstance> instanceOfCreator)
         {
             this.entity = entity;
-            this.instancesCache = new NullableDictionary<TemplateTranslation, Dictionary<IReadOnlyList<IEntityInstance>, CoreCache>>();
-            this.instanceOf = new Later<EntityInstance>(instanceOfCreator);
+            this.instancesCache = new Dictionary<TemplateTranslation, CoreCache>();
+            this.instanceOf = Later.Create(instanceOfCreator);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance( TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            if (!instancesCache.TryGetValue(translation, out var inner_cache))
-            {
-                inner_cache = new Dictionary<IReadOnlyList<IEntityInstance>, CoreCache>(EntityInstanceArgumentsComparer.Instance);
-                instancesCache.Add(translation, inner_cache);
-            }
+            translation = translation ?? TemplateTranslation.Empty;
 
-            var list_args = (arguments ?? Enumerable.Empty<IEntityInstance>()).StoreReadOnlyList();
-            if (!inner_cache.TryGetValue(list_args, out var core_cache))
+            if (!instancesCache.TryGetValue(translation, out CoreCache core_cache))
             {
                 core_cache = new CoreCache();
-                inner_cache.Add(list_args, core_cache);
+                instancesCache.Add(translation, core_cache);
             }
 
-            return core_cache.GetInstance(this.entity, list_args, overrideMutability, translation, lifetime);
+            return core_cache.GetInstance(this.entity, overrideMutability, translation, lifetime);
         }
     }
 }

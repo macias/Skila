@@ -52,7 +52,7 @@ namespace Skila.Language.Expressions
             return new CodeSpan("&").Append(Expr);
         }
 
-        public override bool IsReadingValueOfNode( IExpression node)
+        public override bool IsReadingValueOfNode(IExpression node)
         {
             return true;
         }
@@ -64,10 +64,14 @@ namespace Skila.Language.Expressions
                 if (this.mode == Mode.Pointer)
                 {
                     this.Evaluation = new EvaluationInfo(
-                        ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Components },
-                            TypeMutability.None, null, lifetime: Lifetime.Timeless),
-                        ctx.Env.PointerType.GetInstance(new[] { Expr.Evaluation.Aggregate }, TypeMutability.None, 
-                            null, lifetime: Lifetime.Timeless));
+                        ctx.Env.PointerType.GetInstance(
+                            TypeMutability.None,
+                            TemplateTranslation.Create(ctx.Env.PointerType, new[] { Expr.Evaluation.Components }),
+                            lifetime: Lifetime.Timeless),
+
+                        ctx.Env.PointerType.GetInstance(TypeMutability.None,
+                            TemplateTranslation.Create(ctx.Env.PointerType, new[] { Expr.Evaluation.Aggregate }),
+                            lifetime: Lifetime.Timeless));
                 }
                 else if (ctx.Env.IsReferenceOfType(Expr.Evaluation.Components))
                 {
@@ -77,10 +81,14 @@ namespace Skila.Language.Expressions
                 else
                 {
                     this.Evaluation = new EvaluationInfo(
-                        ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Components },
-                            TypeMutability.None, null, lifetime: this.Expr.Evaluation.Aggregate.Lifetime ),
-                        ctx.Env.ReferenceType.GetInstance(new[] { Expr.Evaluation.Aggregate }, TypeMutability.None, 
-                    null, lifetime: this.Expr.Evaluation.Aggregate.Lifetime));
+                        ctx.Env.ReferenceType.GetInstance(
+                            TypeMutability.None,
+                            TemplateTranslation.Create(ctx.Env.ReferenceType, new[] { Expr.Evaluation.Components }),
+                            lifetime: this.Expr.Evaluation.Aggregate.Lifetime),
+
+                        ctx.Env.ReferenceType.GetInstance(TypeMutability.None,
+                    TemplateTranslation.Create(ctx.Env.ReferenceType, new[] { Expr.Evaluation.Aggregate }),
+                    lifetime: this.Expr.Evaluation.Aggregate.Lifetime));
                 }
 
                 Expr.ValidateValueExpression(ctx);

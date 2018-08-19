@@ -90,10 +90,6 @@ namespace Skila.Language
             List<int> argParamMapping,
             out bool success)
         {
-            if (this.DebugId == (40, 745))
-            {
-                ;
-            }
             success = true;
 
             this.MetaThisArgument = callContext.MetaThisArgument;
@@ -117,30 +113,12 @@ namespace Skila.Language
                 // we need to have evaluation of the value, not ref/ptr, so the correct template translation table could kick in
                 ctx.Env.Dereference(call_ctx_eval, out call_ctx_eval);
 
-            if (this.DebugId == (41, 745))
-            {
-                ;
-            }
-
-            if (this.DebugId == (39, 745))
-            {
-                ;
-            }
-
             extractParameters(ctx, argumentsProvider, call_ctx_eval, this.TargetFunctionInstance,
                 out this.translatedParamEvaluations,
                 out this.translatedResultEvaluation);
 
             if (this.templateArguments.Any(it => it.IsJoker))
             {
-                if (this.DebugId == (40, 747))
-                {
-                    ;
-                }
-                if (argumentsProvider.DebugId == (20, 369))
-                {
-                    ;
-                }
                 IEnumerable<IEntityInstance> inferred = inferTemplateArgumentsFromExpressions(ctx);
 
                 inferred = inferTemplateArgumentsFromConstraints(ctx, inferred);
@@ -319,10 +297,6 @@ namespace Skila.Language
 
         public IEnumerable<FunctionArgument> GetArguments(int paramIndex)
         {
-            if (this.DebugId == (36, 667))
-            {
-                ;
-            }
             if (paramIndex >= this.paramArgMapping.Count)
                 return Enumerable.Empty<FunctionArgument>();
             else if (paramIndex == 0 && this.IsExtendedCall)
@@ -416,11 +390,6 @@ namespace Skila.Language
 
         public IEnumerable<IEntityInstance> InferTemplateArguments(ComputationContext ctx, TemplateDefinition template)
         {
-            if (this.DebugId == (40, 745))
-            {
-                ;
-            }
-
             // we try to cross-infer parameters when trying to match constructor (function) arguments with typedef parameters
             // new Foo<X>(arg)
             // Foo<X> here is typedef, not a function, the above unfolds into

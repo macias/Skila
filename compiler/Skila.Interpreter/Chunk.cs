@@ -35,10 +35,6 @@ namespace Skila.Interpreter
         }
         public Chunk(ObjectData[] data)
         {
-            if (this.DebugId==(43, 2))
-            {
-                ;
-            }
             this.data = data;
         }
         public IInstanceValue Copy()

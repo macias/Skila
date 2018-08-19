@@ -171,11 +171,6 @@ namespace Skila.Language
             bool isRoot)
             : base()
         {
-            if (this.DebugId == (5, 1297))
-            {
-                ;
-            }
-
             this.browse = browse;
             this.lifetimeScope = lifetimeScope;
             this.ReadMode = readMode;
@@ -188,7 +183,7 @@ namespace Skila.Language
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Prefix));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(Prefix));
         }
 
         public override string ToString()
@@ -231,11 +226,6 @@ namespace Skila.Language
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId == (5, 11440))
-            {
-                ;
-            }
-
             handleBinding(ctx);
 
             IEntityInstance eval;
@@ -254,11 +244,6 @@ namespace Skila.Language
 
         private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
         {
-            if (this.DebugId == (5, 1450))
-            {
-                ;
-            }
-
             EntityInstance instance = this.Binding.Match.Instance;
 
             if (instance.Target.IsTypeContainer())
@@ -367,11 +352,6 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
-            if (this.DebugId == (5, 1297))
-            {
-                ;
-            }
-
             if (this.IsRoot)
                 return new[] { new BindingMatch(ctx.Env.Root.InstanceOf, isLocal: false) };
             else if (this.Prefix == null)
@@ -655,11 +635,6 @@ namespace Skila.Language
                 && !ctx.Env.Options.ReferencingBase)
             {
                 ctx.ErrorManager.AddError(ErrorCode.CrossReferencingBaseMember, this);
-            }
-
-            if (this.DebugId == (6, 11138))
-            {
-                ;
             }
 
             {

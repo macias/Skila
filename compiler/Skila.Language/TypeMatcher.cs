@@ -194,10 +194,6 @@ namespace Skila.Language
 
                 foreach (TypeAncestor inherited_input in input_family)
                 {
-                    if (inherited_input.AncestorInstance.DebugId == (5, 44) && target.DebugId == (5, 44))
-                    {
-                        ;
-                    }
                     if (matchTypes(ctx, input_mutability, input.Lifetime, inherited_input.AncestorInstance,
                         target, matching, inherited_input.Distance, out TypeMatch m))
                         return m;
@@ -233,12 +229,7 @@ namespace Skila.Language
 
             if (target.TargetsTemplateParameter)
             {
-                if (input.DebugId == (10, 4898) && target.DebugId == (10, 897))
-                {
-                    ;
-                }
                 // template parameter can have reversed inheritance defined via base-of constraints
-
                 // todo: at this it should be already evaluated, so constraints should be surfables
                 IEnumerable<IEntityInstance> base_of
                     = target.TemplateParameterTarget.Constraint.BaseOfNames.Select(it => it.Evaluated(ctx, EvaluationCall.AdHocCrossJump));
@@ -258,10 +249,6 @@ namespace Skila.Language
             EntityInstance input, EntityInstance target,
             TypeMatching matching, int distance, out TypeMatch match)
         {
-            if (input.DebugId == (10, 7603) && target.DebugId == (10, 7607))
-            {
-                ;
-            }
             bool is_matched = templateMatches(ctx, input, target, matching, out TypeMatch fail_match);
             if (!is_matched)
             {
@@ -420,16 +407,12 @@ namespace Skila.Language
                 return true;
             }
 
-            if (type_a.DebugId == (4, 105457))
-            {
-            }
-
             HashSet<EntityInstance> set_a = type_a.Inheritance(ctx).OrderedAncestorsIncludingObject.Concat(type_a)
                             .ToHashSet(EntityInstance.CoreComparer);
             result = selectFromLowestCommonAncestorPool(ctx, type_b, set_a);
             if (result != null && a_dereferenced && b_dereferenced)
                 //                result = ctx.Env.Reference(result, TypeMutability.None, null, via_pointer);
-                result = ctx.Env.Reference(result, mutability_override, null, via_pointer);
+                result = ctx.Env.Reference(result, mutability_override, via_pointer);
             return result != null;
         }
 

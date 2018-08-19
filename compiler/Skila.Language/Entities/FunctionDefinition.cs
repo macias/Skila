@@ -173,7 +173,7 @@ namespace Skila.Language.Entities
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(UserBody));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(UserBody));
             this.constructionCompleted = true;
 
             if (!IsValidMutableName(this.Name.Name, this.Modifier))
@@ -412,11 +412,6 @@ namespace Skila.Language.Entities
 
         public override void Surf(ComputationContext ctx)
         {
-            if (this.DebugId== (10, 114))
-            {
-                ;
-            }
-
             this.ChildrenNodes.WhereType<ISurfable>().ForEach(it => it.Surfed(ctx));
 
             if (ctx.Env.IsUnitType(this.ResultTypeName.Evaluation.Components))
@@ -430,11 +425,6 @@ namespace Skila.Language.Entities
 
         public void CustomEvaluate(ComputationContext ctx)
         {
-            if (this.DebugId == (10, 114))
-            {
-                ;
-            }
-
             // in case of function evaluate, move body of the function as last element
             // otherwise we couldn't evaluate recursive calls
             this.ChildrenNodes.Where(it => this.UserBody != it).ForEach(it => it.Evaluated(ctx, EvaluationCall.Nested));

@@ -98,7 +98,7 @@ namespace Skila.Language.Extensions
                 else
                 {
                     if (EntityBareNameComparer.Instance.Equals(name, entity.Name))
-                        result.Add(entity_instance);
+                        result.Add(entity_instance.BuildNoArguments());
                 }
             }
 
@@ -119,7 +119,7 @@ namespace Skila.Language.Extensions
                         .Where(it => !it.Target.IsAnyConstructor())
                         .Select(it => it.TranslateThroughTraitHost(trait: trait));
 
-                    entities = ScopeTable.Combine(entities,trait_entities);
+                    entities = ScopeTable.Combine(entities, trait_entities);
                 }
             }
 

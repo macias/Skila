@@ -58,11 +58,6 @@ namespace Skila.Language.Flow
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId==   (18, 377))
-            {
-                ;
-            }
-
             if (this.Evaluation == null)
             {
                 FunctionDefinition func = this.EnclosingScope<FunctionDefinition>();

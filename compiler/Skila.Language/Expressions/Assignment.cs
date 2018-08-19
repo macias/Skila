@@ -191,11 +191,6 @@ namespace Skila.Language.Expressions
                 IEntityVariable lhs_var = this.Lhs.TryGetTargetEntity<IEntityVariable>(out NameReference name_ref);
                 if (lhs_var != null)
                 {
-                    if (this.DebugId== (29, 29))
-                    {
-                        ;
-                    }
-
                     FunctionDefinition current_func = this.EnclosingScope<FunctionDefinition>();
                     // we deal with local assignments using assignment tracker
                     bool can_reassign = name_ref.Binding.Match.IsLocal;
@@ -249,10 +244,6 @@ namespace Skila.Language.Expressions
             {
                 this.TrapClosure(ctx, ref this.rhsValue);
 
-                if (this.DebugId== (27, 336))
-                {
-                    ;
-                }
                 this.DataTransfer(ctx, ref this.rhsValue, Lhs.Evaluation.Components);
 
                 this.Evaluation = this.RhsValue.Evaluation;

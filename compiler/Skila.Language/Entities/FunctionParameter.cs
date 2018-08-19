@@ -97,8 +97,8 @@ namespace Skila.Language.Entities
 
             this.defaultValue = defaultValue;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
+                TemplateTranslation.Create(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }
@@ -129,10 +129,6 @@ namespace Skila.Language.Entities
 
         public void Surf(ComputationContext ctx)
         {
-            if (this.DebugId == (12, 2054))
-            {
-                ;
-            }
             IEnumerable<ISurfable> surfables = this.ChildrenNodes.WhereType<ISurfable>();
             surfables.ForEach(it => it.Surfed(ctx));
             compute(ctx);
@@ -161,11 +157,6 @@ namespace Skila.Language.Entities
 
         private void compute(ComputationContext ctx)
         {
-            if (this.DebugId == (12, 2058))
-            {
-                ;
-            }
-
             this.Evaluation = this.TypeName?.Evaluation ?? Environment.JokerEval;
         }
 
@@ -175,10 +166,10 @@ namespace Skila.Language.Entities
             this.ElementTypeName.ValidateHeapTypeName(ctx);
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance( TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
+            return this.instancesCache.GetInstance(overrideMutability, translation, lifetime);
         }
 
         public bool IsReadingValueOfNode(IExpression node)

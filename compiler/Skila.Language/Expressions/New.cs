@@ -82,10 +82,6 @@ namespace Skila.Language.Expressions
 
         public override void Evaluate(ComputationContext ctx)
         {
-            if (this.DebugId == (21, 98))
-            {
-                ;
-            }
             if (this.Evaluation == null)
             {
                 if (this.forcedLifetime != null)
@@ -108,11 +104,6 @@ namespace Skila.Language.Expressions
             if (this.tempDeclaration.Evaluation.Aggregate.TargetType.Name.Parameters.Any()
                 && this.InitConstructorCall.UserArguments.Any())
             {
-                if (this.DebugId == (21, 98))
-                {
-                    ;
-                }
-
                 IEnumerable<IEntityInstance> inferred = this.InitConstructorCall.Resolution
                   .InferTemplateArguments(ctx, this.tempDeclaration.Evaluation.Aggregate.TargetType).StoreReadOnly();
 

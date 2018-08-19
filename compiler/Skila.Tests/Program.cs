@@ -19,11 +19,11 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            const double semantic_golden_avg_s = 1.78;
+            const double semantic_golden_avg_s = 1.62;
             const double semantic_golden_min_s = 0.00;
             const double semantic_golden_max_s = 2.56;
 
-            const double runtime_golden_avg_s = 1.95;
+            const double runtime_golden_avg_s = 1.81;
             const double runtime_golden_min_s = 1.17;
             const double runtime_golden_max_s = 2.17;
 
@@ -33,7 +33,7 @@ namespace Skila.Tests
             {
                 //runQuickTests(new Semantics.Lifetimes());
 
-                new Semantics.CompilerProtection().Environment();
+                //new Semantics.CompilerProtection().Environment();
                 // new Semantics.Concurrency().ErrorSpawningMutables();
                 // new Semantics.Exceptions().ErrorThrowingNonException();
                 //new Semantics.Expressions().ErrorSlicingOnDereference();
@@ -46,18 +46,18 @@ namespace Skila.Tests
                 // new Semantics.Lifetimes().ErrorStoredLocalReferenceEscapesFromFunction();
                 //new Semantics.MemoryClasses().ErrorViolatingAssociatedReference();
                 //new Semantics.MethodDefinitions().Basics();
-                // new Semantics.Mutability().ErrorSwapNonReassignableValues();
+                // new Semantics.Mutability().ErrorAbusingForcedConst();
                 //new Semantics.NameResolution().ResolvingForDuplicatedType();
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                // new Semantics.Templates().ErrorSwapNonReassignableValues();
+                 new Semantics.Templates().BasicTraitDefinition();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().ErrorInOutVarianceProperties();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 // new Execution.Closures().ClosureRecursiveCall();
-                new Execution.Collections().AccessingTuple();
+                //new Execution.Collections().AccessingTuple();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 //new Execution.Flow().ShortcutComputationInOptionalDeclaration();
@@ -68,7 +68,7 @@ namespace Skila.Tests
                 //new Execution.Library().StringToInt();
                 //new Execution.Mutability().OldSchoolSwapValues();
                 //new Execution.NameResolution().GenericTypeAliasing();
-               // new Execution.ObjectInitialization().NoExtrasWithCopyConstructor();
+                // new Execution.ObjectInitialization().NoExtrasWithCopyConstructor();
                 //new Execution.Objects().AccessingObjectFields();
                 //new Execution.Pointers().RefCountsOnIgnoringFunctionCall();
                 //new Execution.Properties().AutoPropertiesWithPointers();

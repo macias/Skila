@@ -41,8 +41,8 @@ namespace Skila.Language.Entities
             this.Name = NameDefinition.Create(name);
             this.Replacement = replacement;
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
+                TemplateTranslation.Create(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }
@@ -71,10 +71,10 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance( TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation,lifetime);
+            return this.instancesCache.GetInstance( overrideMutability, translation,lifetime);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)

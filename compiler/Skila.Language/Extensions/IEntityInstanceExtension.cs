@@ -11,12 +11,13 @@ namespace Skila.Language.Extensions
         {
             return instance.Map(elem => elem.Rebuild(ctx, mutability, deep));
         }
-        public static EntityInstance Rebuild(this EntityInstance instance, ComputationContext ctx, TypeMutability mutability, bool deep = true)
+        public static EntityInstance Rebuild(this EntityInstance instance, ComputationContext ctx,
+            TypeMutability mutability, bool deep = true)
         {
             if (deep && ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
                 IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, mutability, deep));
-                return ctx.Env.Reference(val_rebuilt, mutability, instance.Translation, instance.Lifetime, via_pointer);
+                return ctx.Env.Reference(val_rebuilt, mutability, instance.Lifetime, via_pointer);
             }
             else
                 return instance.Build(mutability);
@@ -32,7 +33,7 @@ namespace Skila.Language.Extensions
             if (deep && ctx.Env.DereferencedOnce(instance, out IEntityInstance val_instance, out bool via_pointer))
             {
                 IEntityInstance val_rebuilt = val_instance.Map(val_elem => val_elem.Rebuild(ctx, lifetime, deep));
-                return ctx.Env.Reference(val_rebuilt, instance.OverrideMutability, instance.Translation, lifetime, via_pointer);
+                return ctx.Env.Reference(val_rebuilt, instance.OverrideMutability, lifetime, via_pointer);
             }
             else
                 return instance.Build(lifetime);

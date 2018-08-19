@@ -46,7 +46,7 @@ namespace Skila.Language.Expressions
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() =>
+            this.flow = Later.Create(() =>
             {
                 switch (this.Mode)
                 {

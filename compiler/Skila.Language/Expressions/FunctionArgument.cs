@@ -67,7 +67,7 @@ namespace Skila.Language.Expressions
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expression));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(Expression));
         }
 
         internal void SetTargetParam(ComputationContext ctx, FunctionParameter param)
@@ -106,10 +106,6 @@ namespace Skila.Language.Expressions
 
         internal void DataTransfer(ComputationContext ctx, IEntityInstance targetTypeName)
         {
-            if (this.DebugId== (26, 367))
-            {
-                ;
-            }
             if (!this.DataTransfer(ctx, ref this.expression, targetTypeName))
                 throw new Exception("Internal error");
         }

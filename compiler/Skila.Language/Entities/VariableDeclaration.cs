@@ -64,14 +64,14 @@ namespace Skila.Language.Entities
             this.initValue = initValue;
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
-            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(null, TypeMutability.None,
-                translation: TemplateTranslation.Create(this), lifetime: Lifetime.Timeless));
+            this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
+                TemplateTranslation.Create(this), Lifetime.Timeless));
 
             this.closures = new List<TypeDefinition>();
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(InitValue));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(InitValue));
         }
         public override string ToString()
         {
@@ -111,10 +111,10 @@ namespace Skila.Language.Entities
             this.Modifier = modifier;
         }
 
-        public EntityInstance GetInstance(IEnumerable<IEntityInstance> arguments, TypeMutability overrideMutability,
+        public EntityInstance GetInstance(TypeMutability overrideMutability,
             TemplateTranslation translation, Lifetime lifetime)
         {
-            return this.instancesCache.GetInstance(arguments, overrideMutability, translation, lifetime);
+            return this.instancesCache.GetInstance( overrideMutability, translation, lifetime);
         }
 
         public override bool IsReadingValueOfNode(IExpression node)
@@ -222,11 +222,6 @@ namespace Skila.Language.Entities
 
             IEntityInstance this_eval = null;
             EntityInstance this_aggregate = null;
-
-            if (this.DebugId == (17, 385))
-            {
-                ;
-            }
 
             if (tn_eval != null)
             {

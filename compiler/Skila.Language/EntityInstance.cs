@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using NaiveLanguageTools.Common;
-using Skila.Language.Comparers;
 using Skila.Language.Entities;
 using Skila.Language.Extensions;
-using Skila.Language.Semantics;
 using Skila.Language.Tools;
 
 namespace Skila.Language
@@ -26,12 +23,12 @@ namespace Skila.Language
         public static IEqualityComparer<EntityInstance> CoreComparer { get; }
             = EqualityComparer.Create<EntityInstance>((a, b) => a.HasSameCore(b), x => x.core.GetHashCode());
 
-        internal static EntityInstance CreateUnregistered(RuntimeCore core, IEntity target, IEnumerable<IEntityInstance> arguments,
+        internal static EntityInstance CreateUnregistered(RuntimeCore core, IEntity target,
             TemplateTranslation translation,
             TypeMutability overrideMutability,
             Lifetime lifetime)
         {
-            var instance = new EntityInstance(core, target, arguments, translation, overrideMutability, lifetime);
+            var instance = new EntityInstance(core, target, translation, overrideMutability, lifetime);
 
             return instance;
         }
@@ -55,7 +52,7 @@ namespace Skila.Language
         public TypeDefinition TargetType => this.Target.CastType();
         public FunctionDefinition TargetFunction => this.Target.CastFunction();
         public TemplateDefinition TargetTemplate => this.Target.Cast<TemplateDefinition>();
-        public IReadOnlyList<IEntityInstance> TemplateArguments { get; }
+        public IReadOnlyList<IEntityInstance> TemplateArguments => this.Translation.PrimaryArguments;
         public bool TargetsTemplateParameter => this.Target.IsType() && this.TargetType.IsTemplateParameter;
         public TemplateParameter TemplateParameterTarget => this.TargetType.TemplateParameter;
         public EntityInstance Aggregate { get; private set; }
@@ -87,46 +84,28 @@ namespace Skila.Language
 
         private readonly RuntimeCore core;
 
-        private EntityInstance(RuntimeCore core, IEntity target, IEnumerable<IEntityInstance> arguments,
+        private EntityInstance(RuntimeCore core, IEntity target,
             TemplateTranslation translation, TypeMutability overrideMutability,
             Lifetime lifetime)
         {
-            if (this.DebugId == (4, 127187))
-            {
-                ;
-            }
-            if (this.DebugId == (4, 127059))
-            {
-                ;
-            }
-            if (!lifetime.IsTimeless && lifetime.__node.DebugId == (5, 11419))
-            {
-                ;
-            }
-            if (this.DebugId == (4, 127167))
-            {
-                ;
-            }
             if (target == null)
                 throw new ArgumentNullException("Instance has to be created for existing entity");
 
             this.core = core;
-            arguments = arguments ?? Enumerable.Empty<IEntityInstance>();
             this.Target = target;
-            this.TemplateArguments = arguments.StoreReadOnlyList();
             this.Translation = translation;
 
             this.Lifetime = lifetime;
 
             this.OverrideMutability = overrideMutability;
 
-             this.nameOf = new Later<NameReference>(() => NameReference.Create(
-                 OverrideMutability,
-                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                 target: this, isLocal: false));
-             this.pureNameOf = new Later<NameReference>(() => NameReference.Create(
-                 null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
-                 target: this, isLocal: false));
+            this.nameOf = Later.Create(() => NameReference.Create(
+                OverrideMutability,
+                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                target: this, isLocal: false));
+            this.pureNameOf = Later.Create(() => NameReference.Create(
+                null, this.Target.Name.Name, this.TemplateArguments.Select(it => it.NameOf),
+                target: this, isLocal: false));
         }
 
         internal void AddDuckVirtualTable(ComputationContext ctx, EntityInstance target, VirtualTable vtable)
@@ -198,8 +177,9 @@ namespace Skila.Language
 
         internal EntityInstance TranslateThroughTraitHost(TypeDefinition trait)
         {
-            return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability,
-                TemplateTranslation.CombineTraitWithHostParameters(this.Translation, trait: trait), lifetime: Lifetime.Timeless).Cast<EntityInstance>();
+            TemplateTranslation combined = TemplateTranslation.OverriddenTraitWithHostParameters(this.Translation, trait: trait);
+
+            return this.Target.GetInstance(this.OverrideMutability, combined, Lifetime.Timeless);
         }
 
         public EntityInstance TranslateThrough(EntityInstance closedTemplate)
@@ -218,7 +198,7 @@ namespace Skila.Language
             // or let's say we have type Foo<T> and one of its methods returns T
             // then we have instance Foo<String> (closedTemplate), what T is then? (String)
 
-            if (translation == null)
+            if (translation == null || translation == TemplateTranslation.Empty)
                 return this;
 
             if (this.TargetsTemplateParameter)
@@ -235,16 +215,9 @@ namespace Skila.Language
             }
             else
             {
-                var trans_arguments = new List<IEntityInstance>();
-                foreach (IEntityInstance arg in this.TemplateArguments)
-                {
-                    IEntityInstance trans_arg = arg.TranslateThrough(ref translated, translation);
-                    trans_arguments.Add(trans_arg);
-                }
+                TemplateTranslation combo_translation = TemplateTranslation.Translated(this.Translation, translation, ref translated);
 
-                TemplateTranslation combo_translation = TemplateTranslation.Combine(this.Translation, translation);
-                EntityInstance result = this.Target.GetInstance(trans_arguments, this.OverrideMutability, combo_translation,
-                    this.Lifetime);
+                EntityInstance result = this.Target.GetInstance(this.OverrideMutability, combo_translation, this.Lifetime);
 
                 return result;
             }
@@ -347,10 +320,6 @@ namespace Skila.Language
             // 'inherits' part of constraint
             foreach (EntityInstance constraint_inherits in param.Constraint.TranslateInherits(closedTemplate))
             {
-                if (this.DebugId == (5, 6455))
-                {
-                    ;
-                }
                 TypeMatch match = TypeMatcher.Matches(ctx, this, constraint_inherits,
                     TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: true));
                 if (match.IsMismatch())
@@ -451,7 +420,7 @@ namespace Skila.Language
             if (mutability == this.OverrideMutability)
                 return this;
             else
-                return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, this.Lifetime);
+                return this.Target.GetInstance(mutability, this.Translation, this.Lifetime);
 
         }
 
@@ -463,7 +432,7 @@ namespace Skila.Language
             if (mutability == this.OverrideMutability && this.Lifetime == lifetime)
                 return this;
             else
-                return this.Target.GetInstance(this.TemplateArguments, mutability, this.Translation, lifetime);
+                return this.Target.GetInstance(mutability, this.Translation, lifetime);
         }
 
         public EntityInstance Build(Lifetime lifetime)
@@ -471,16 +440,21 @@ namespace Skila.Language
             if (this.Lifetime == lifetime)
                 return this;
             else
-                return this.Target.GetInstance(this.TemplateArguments, this.OverrideMutability, this.Translation, lifetime);
+                return this.Target.GetInstance(this.OverrideMutability, this.Translation, lifetime);
         }
 
         internal EntityInstance Build(IEnumerable<IEntityInstance> templateArguments, TypeMutability overrideMutability)
         {
-            TemplateTranslation trans_arg = TemplateTranslation.Create(this.Target, templateArguments);
+            TemplateTranslation combined = this.Translation.Overridden(templateArguments);
 
-            return this.Target.GetInstance(templateArguments, overrideMutability,
-                TemplateTranslation.Combine(this.Translation, trans_arg), this.Lifetime);
+            return this.Target.GetInstance(overrideMutability, combined, this.Lifetime);
         }
+
+        internal EntityInstance BuildNoArguments()
+        {
+            return Build(this.Target.Name.Parameters.Select(_ => (IEntityInstance)null), this.OverrideMutability);
+        }
+
         internal EntityInstance Build(IEnumerable<TemplateArgument> templateArguments, TypeMutability overrideMutability)
         {
             return Build(templateArguments.Select(it => it.TypeName.Evaluation.Components), overrideMutability);
@@ -553,7 +527,7 @@ namespace Skila.Language
             if (obj?.GetType() == this.GetType())
                 return this.Equals(obj.Cast<EntityInstance>());
             else
-                throw new ArgumentException();
+                return false;
         }
 
         public bool Equals(EntityInstance obj)

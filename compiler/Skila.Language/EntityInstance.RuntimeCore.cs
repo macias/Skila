@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using NaiveLanguageTools.Common;
 
@@ -10,8 +11,12 @@ namespace Skila.Language
         // we need to split runtime data and semantic check data, runtime data (core) is shared among
         // various instances (varying on mutability or lifetime for example)
 
+        [DebuggerDisplay("{GetType().Name} {ToString()}")]
         internal sealed class RuntimeCore
         {
+#if DEBUG
+            public DebugId DebugId { get; } = new DebugId(typeof(RuntimeCore));
+#endif
             private readonly Dictionary<RuntimeCore, VirtualTable> duckVirtualTables;
 
             public RuntimeCore()
@@ -47,6 +52,11 @@ namespace Skila.Language
             public bool Equals(RuntimeCore obj)
             {
                 return Object.ReferenceEquals(this, obj);
+            }
+
+            public override string ToString()
+            {
+                return $"{this.DebugId}";
             }
         }
     }

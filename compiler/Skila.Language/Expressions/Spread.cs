@@ -36,7 +36,7 @@ namespace Skila.Language.Expressions
 
             this.attachPostConstructor();
 
-            this.flow = new Later<ExecutionFlow>(() => ExecutionFlow.CreatePath(Expr));
+            this.flow = Later.Create(() => ExecutionFlow.CreatePath(Expr));
         }
         public override string ToString()
         {

@@ -53,10 +53,6 @@ namespace Skila.Language.Extensions
 
             IEntityInstance src_type = source.Evaluation.Components;
 
-            if (@this.DebugId == (16, 33))
-            {
-                ;
-            }
             TypeMatch match = src_type.MatchesTarget(ctx, targetTypeName,
                 TypeMatching.Create(ctx.Env.Options.InterfaceDuckTyping, allowSlicing: false)
                 .WithIgnoredMutability(ignoreMutability)
@@ -90,10 +86,6 @@ namespace Skila.Language.Extensions
                 if (match != TypeMatch.Substitute && match != TypeMatch.Same)
                     throw new NotImplementedException();
 
-                if (@this.DebugId == (29, 335))
-                {
-                    ;
-                }
                 source.DetachFrom(@this);
                 source = AddressOf.CreateReference(source);
                 source.AttachTo(@this);

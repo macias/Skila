@@ -97,8 +97,7 @@ namespace Skila.Language
             }
 
             if (hasReference || hasPointer)
-                aggregate_instance = ctx.Env.Reference(aggregate_instance, TypeMutability.None,
-                    translation: null, viaPointer: hasPointer);
+                aggregate_instance = ctx.Env.Reference(aggregate_instance, TypeMutability.None, viaPointer: hasPointer);
 
             return aggregate_instance;
         }
@@ -120,7 +119,7 @@ namespace Skila.Language
             if (!jokerMatchesAll)
                 return this == other;
 
-            return hasSymmetricRelation(other, (a, b) => a.IsExactlySame(b,translationTemplate, jokerMatchesAll));
+            return hasSymmetricRelation(other, (a, b) => a.IsExactlySame(b, translationTemplate, jokerMatchesAll));
         }
     }
 

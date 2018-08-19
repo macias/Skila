@@ -63,7 +63,6 @@
     <Compile Include="Builders\EnumCaseBuilder.cs" />
     <Compile Include="Builders\ConstraintBuilder.cs" />
     <Compile Include="CallContext.cs" />
-    <Compile Include="Comparers\EntityInstanceArgumentsComparer.cs" />
     <Compile Include="Comparers\LoopInterruptComparer.cs" />
     <Compile Include="Data\Layer.cs" />
     <Compile Include="Data\Tree.cs" />
