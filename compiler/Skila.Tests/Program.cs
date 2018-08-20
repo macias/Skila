@@ -19,11 +19,11 @@ namespace Skila.Tests
 
         public static void Main()
         {
-            const double semantic_golden_avg_s = 1.62;
+            const double semantic_golden_avg_s = 1.59;
             const double semantic_golden_min_s = 0.00;
             const double semantic_golden_max_s = 2.56;
 
-            const double runtime_golden_avg_s = 1.81;
+            const double runtime_golden_avg_s = 1.78;
             const double runtime_golden_min_s = 1.17;
             const double runtime_golden_max_s = 2.17;
 

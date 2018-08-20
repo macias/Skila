@@ -1,5 +1,6 @@
 ﻿using Skila.Language.Entities;
 using Skila.Language.Extensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +27,7 @@ namespace Skila.Language
                 NameDefinition name = entity.Name;
                 if (!this.dict.TryGetValue(name.Name, out List<List<EntityInstance>> list))
                 {
-                    list = Enumerable.Range(0, arities).Select(_ => (List<EntityInstance>)null).ToList();
-                    list[0] = new List<EntityInstance>();
+                    list = Enumerable.Range(0, arities).Select(_ => new List<EntityInstance>()).ToList();
                     this.dict.Add(name.Name, list);
                 }
 
@@ -35,7 +35,6 @@ namespace Skila.Language
                     list[0].Add(instance);
                 else
                 {
-                    list[name.Arity] = list[name.Arity] ?? new List<EntityInstance>();
                     list[name.Arity].Add(instance);
 
                     if (entity is FunctionDefinition)
@@ -60,7 +59,7 @@ namespace Skila.Language
             if (!this.dict.TryGetValue(name.Name, out List<List<EntityInstance>> list) || name.Arity >= list.Count)
                 return Enumerable.Empty<EntityInstance>();
 
-            return list[name.Arity] ?? Enumerable.Empty<EntityInstance>();
+            return list[name.Arity];
         }
 
         internal static ScopeTable Combine(ScopeTable table, IEnumerable<EntityInstance> entities)

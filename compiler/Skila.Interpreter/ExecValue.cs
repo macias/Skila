@@ -1,11 +1,9 @@
 ﻿using NaiveLanguageTools.Common;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Skila.Interpreter
 {
-    public partial struct ExecValue
+    public readonly partial struct ExecValue
     {
         public static ExecValue UndefinedExpression { get; } = new ExecValue(DataMode.Expression, null);
 

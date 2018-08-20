@@ -41,8 +41,11 @@ namespace Skila.Language.Extensions
         public static IEnumerable<EntityInstance> FindEntities(this EntityInstance scopeInstance, ComputationContext ctx,
             NameReference name)
         {
-            ScopeTable entities = availableEntities(ctx, scopeInstance);
-            return entities.Find(name);
+            IEntityScope scope = scopeInstance.Target.Cast<IEntityScope>();
+
+            return scope.AvailableEntities.Find(name)
+                .Concat(findTraitEntities(ctx, scopeInstance, name));
+
         }
 
         public static IEnumerable<EntityInstance> FindExtensions(this EntityInstance extInstance, ComputationContext ctx,
@@ -105,25 +108,28 @@ namespace Skila.Language.Extensions
             return result;
         }
 
-        private static ScopeTable availableEntities(ComputationContext ctx, EntityInstance scopeInstance)
+        private static IEnumerable<EntityInstance> findTraitEntities(ComputationContext ctx, EntityInstance scopeInstance,
+            NameReference name)
         {
-            IEntityScope scope = scopeInstance.Target.Cast<IEntityScope>();
+            if (!(scopeInstance.Target is TypeDefinition typedef))
+                return Enumerable.Empty<EntityInstance>();
 
-            ScopeTable entities = scope.AvailableEntities;
+            var result = new List<EntityInstance>();
 
-            if (scope is TypeDefinition typedef)
+            foreach (KeyValuePair<TypeDefinition, ScopeTable> entry in typedef.TraitAssociatedEntities)
             {
-                foreach (TypeDefinition trait in scopeInstance.AvailableTraits(ctx))
-                {
-                    IEnumerable<EntityInstance> trait_entities = trait.AvailableEntities
-                        .Where(it => !it.Target.IsAnyConstructor())
-                        .Select(it => it.TranslateThroughTraitHost(trait: trait));
+                IEnumerable<EntityInstance> entities = entry.Value.Find(name);
+                if (!entities.Any())
+                    continue;
 
-                    entities = ScopeTable.Combine(entities, trait_entities);
-                }
+                ConstraintMatch match = TypeMatcher.ArgumentsMatchConstraintsOf(ctx, entry.Key.Name.Parameters, scopeInstance);
+                if (match != ConstraintMatch.Yes)
+                    continue;
+
+                result.AddRange(entities);
             }
 
-            return entities;
+            return result;
         }
     }
 }

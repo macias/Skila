@@ -77,7 +77,7 @@ namespace Skila.Language.Entities
             {
                 if (availableEntities == null)
                 {
-                    this.availableEntities = new ScopeTable(this.NestedEntityInstances()                
+                    this.availableEntities = new ScopeTable(this.NestedEntityInstances()
                         // adding properties fields which are nested within properties
                         .Concat(this.NestedProperties.SelectMany(it => it.Fields).Select(it => it.InstanceOf))
                         // we bind to indexers directly during semantic analysis, thus we need them exposed
@@ -92,6 +92,29 @@ namespace Skila.Language.Entities
         public IEnumerable<TypeDefinition> AssociatedTraits => this.IsJoker ? Enumerable.Empty<TypeDefinition>()
             : this.Owner.NestedTypes().Where(it => this.isHostOfTrait(it));
         public TypeDefinition AssociatedHost => this.Owner.NestedTypes().FirstOrDefault(it => it.isHostOfTrait(this));
+
+        private Dictionary<TypeDefinition, ScopeTable> traitAssociatedEntities;
+        public Dictionary<TypeDefinition, ScopeTable> TraitAssociatedEntities
+        {
+            get
+            {
+
+                if (this.traitAssociatedEntities == null)
+                {
+                    var dict = new Dictionary<TypeDefinition, ScopeTable>();
+                    foreach (TypeDefinition trait in this.AssociatedTraits)
+                    {
+                        dict.Add(trait, new ScopeTable(trait.AvailableEntities
+                            .Where(it => !it.Target.IsAnyConstructor())
+                            .Select(it => it.TranslateThroughTraitHost(trait: trait))));
+                    }
+
+                    this.traitAssociatedEntities = dict;
+                }
+
+                return this.traitAssociatedEntities;
+            }
+        }
 
         private bool? isValueType;
 
@@ -335,7 +358,7 @@ namespace Skila.Language.Entities
 
             this.InheritanceVirtualTable = virtual_mapping;
             this.DerivationTable = new DerivationTable(ctx, this, derivation_mapping);
-            this.availableEntities = ScopeTable.Combine(this.AvailableEntities,inherited_member_instances);
+            this.availableEntities = ScopeTable.Combine(this.AvailableEntities, inherited_member_instances);
 
             foreach (FunctionDefinition func in derivation_mapping.Where(it => !it.Value.Any()).Select(it => it.Key))
                 ctx.AddError(ErrorCode.NothingToOverride, func);
