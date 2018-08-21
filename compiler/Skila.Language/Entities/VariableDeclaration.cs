@@ -65,7 +65,7 @@ namespace Skila.Language.Entities
             this.AccessGrants = (friends ?? Enumerable.Empty<LabelReference>()).StoreReadOnly();
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(this), Lifetime.Timeless));
+                TemplateTranslation.CreateParameterless(this), Lifetime.Timeless));
 
             this.closures = new List<TypeDefinition>();
 

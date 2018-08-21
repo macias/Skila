@@ -42,7 +42,7 @@ namespace Skila.Language.Entities
             this.Replacement = replacement;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(this), Lifetime.Timeless));
+                TemplateTranslation.CreateParameterless(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }

@@ -172,7 +172,7 @@ namespace Skila.Language.Entities
             this.Modifier = (this.Setter == null ? EntityModifier.None : options.ReassignableModifier()) | modifier;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(this), Lifetime.Timeless));
+                TemplateTranslation.CreateParameterless(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }

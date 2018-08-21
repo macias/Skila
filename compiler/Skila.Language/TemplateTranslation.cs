@@ -19,60 +19,80 @@ namespace Skila.Language
 
         public static readonly TemplateTranslation Empty = new TemplateTranslation(null, new Dictionary<TemplateParameter, IEntityInstance>());
 
-        public static TemplateTranslation Create(IEntity entity)
+        public static TemplateTranslation CreateParameterless(IEntity entity)
         {
-            // todo: especially this is pretty inefficient because if we have basic entity at hand
-            // we could in theory even create empty translation, however we can be dependent on parent entities
-            // thus maybe it would be beneficial to compute those translation tables in top-down approach
-            // and if we are in template-free branch we could create empty table faster
-            return Create(entity, Enumerable.Empty<IEntityInstance>());
+            TemplateDefinition parent_template = entity.EnclosingNode<TemplateDefinition>();
+            if (parent_template == null)
+                return Empty;
+
+            TemplateTranslation parent_trans = parent_template.InstanceOf.Translation;
+            if (parent_trans.parametersProvider == null)
+                return parent_trans;
+            else
+                // the case when the parent has some parameter, then we have to pass null as parameter provider
+                // because we are parameterless
+                return new TemplateTranslation(null, parent_trans.table);
         }
+
         public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments)
         {
-            Dictionary<TemplateParameter, IEntityInstance> dict
-                = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
+            Dictionary<TemplateParameter, IEntityInstance> dict;
 
-            foreach (TemplateDefinition template in entity.EnclosingScopesToRoot().WhereType<TemplateDefinition>())
-            {
-                foreach (TemplateParameter param in template.Name.Parameters)
-                    dict.Add(param, null);
-            }
+            TemplateDefinition parent_template = entity.EnclosingNode<TemplateDefinition>();
+            if (parent_template == null)
+                dict = new Dictionary<TemplateParameter, IEntityInstance>();
+            else
+                dict = parent_template.InstanceOf.Translation.table.ToDictionary(it => it.Key, it => it.Value);
 
             IReadOnlyList<TemplateParameter> parameters = entity.Name.Parameters;
-            if (arguments != null && arguments.Any())
+            if (!parameters.Any())
             {
-                // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
-                if (parameters.Any() && parameters.Count != arguments.Count())
+                if (arguments!=null && arguments.Any())
                     throw new NotImplementedException();
 
-                foreach (var pair in parameters.SyncZip(arguments.Select(it => it)))
-                {
-                    dict[pair.Item1] = pair.Item2;
-                }
+                if (dict.Any())
+                    return new TemplateTranslation(null, dict);
+                else
+                    return Empty;
             }
-
-            if (dict.Count == 0)
-                return Empty;
             else
             {
+                foreach (TemplateParameter param in parameters)
+                    dict.Add(param, null);
+
+                if (arguments != null && arguments.Any())
+                {
+                    // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
+                    if (parameters.Any() && parameters.Count != arguments.Count())
+                        throw new NotImplementedException();
+
+                    foreach (var pair in parameters.SyncZip(arguments.Select(it => it)))
+                    {
+                        dict[pair.Item1] = pair.Item2;
+                    }
+                }
+
                 return new TemplateTranslation(entity, dict);
             }
         }
 
         private readonly IReadOnlyDictionary<TemplateParameter, IEntityInstance> table;
         private readonly int hashCode;
-        private readonly IEntity entity;
+        private readonly IEntity parametersProvider;
 
-        private IReadOnlyList<TemplateParameter> primaryParameters => this.entity?.Name?.Parameters;
+        private IReadOnlyList<TemplateParameter> primaryParameters => this.parametersProvider?.Name?.Parameters;
         public IReadOnlyList<IEntityInstance> PrimaryArguments { get; }
 
-        private TemplateTranslation(IEntity entity,
-            Dictionary<TemplateParameter, IEntityInstance> table)
+        private TemplateTranslation(IEntity parametersProvider,
+            IReadOnlyDictionary<TemplateParameter, IEntityInstance> table)
         {
             this.table = table;
             this.hashCode = this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
 
-            this.entity = entity;
+            if (parametersProvider != null && !parametersProvider.Name.Parameters.Any())
+                throw new ArgumentException("No parameters, then pass null");
+
+            this.parametersProvider = parametersProvider;
             this.PrimaryArguments = (this.primaryParameters ?? Enumerable.Empty<TemplateParameter>())
                 .Select(it => this.table[it]).StoreReadOnlyList();
 
@@ -128,7 +148,7 @@ namespace Skila.Language
             if (dict.HasValue)
             {
                 translated = true;
-                return new TemplateTranslation(baseTranslation.entity, dict.Value);
+                return new TemplateTranslation(baseTranslation.parametersProvider, dict.Value);
             }
             else
                 return baseTranslation;
@@ -156,7 +176,7 @@ namespace Skila.Language
             }
 
             if (dict.HasValue)
-                return new TemplateTranslation(this.entity, dict.Value);
+                return new TemplateTranslation(this.parametersProvider, dict.Value);
             else
                 return this;
         }

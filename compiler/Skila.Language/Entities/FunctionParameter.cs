@@ -98,7 +98,7 @@ namespace Skila.Language.Entities
             this.defaultValue = defaultValue;
 
             this.instancesCache = new EntityInstanceCache(this, () => GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(this), Lifetime.Timeless));
+                TemplateTranslation.CreateParameterless(this), Lifetime.Timeless));
 
             this.attachPostConstructor();
         }
