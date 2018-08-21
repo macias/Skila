@@ -19,42 +19,18 @@ namespace Skila.Language
 
         public static readonly TemplateTranslation Empty = new TemplateTranslation(null, new Dictionary<TemplateParameter, IEntityInstance>());
 
-        public static TemplateTranslation Create(EntityInstance instance, IEnumerable<IEntityInstance> arguments)
-        {
-            if (arguments == null || !arguments.Any())
-                return instance.Translation;
-
-            Dictionary<TemplateParameter, IEntityInstance> dict = instance.Translation.table.ToDictionary(it => it.Key, it => it.Value);
-
-            // it is OK not to give arguments at all for parameters but it is NOT ok to give different number than required
-            IReadOnlyList<TemplateParameter> parameters = instance.Target.Name.Parameters;
-            if (parameters.Any() && parameters.Count != arguments.Count())
-                throw new NotImplementedException();
-
-            bool trans = false;
-            foreach (var pair in parameters.SyncZip(arguments.Select(it => it)))
-            {
-                if (dict[pair.Item1] != pair.Item2)
-                {
-                    dict[pair.Item1] = pair.Item2;
-                    trans = true;
-                }
-            }
-
-            if (trans)
-                return new TemplateTranslation(instance.Target, dict);
-            else
-                return instance.Translation;
-        }
-
         public static TemplateTranslation Create(IEntity entity)
         {
+            // todo: especially this is pretty inefficient because if we have basic entity at hand
+            // we could in theory even create empty translation, however we can be dependent on parent entities
+            // thus maybe it would be beneficial to compute those translation tables in top-down approach
+            // and if we are in template-free branch we could create empty table faster
             return Create(entity, Enumerable.Empty<IEntityInstance>());
         }
         public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments)
         {
-            Dictionary<TemplateParameter, IEntityInstance> dict;
-            dict = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
+            Dictionary<TemplateParameter, IEntityInstance> dict
+                = entity.Name.Parameters.ToDictionary(it => it, it => (IEntityInstance)null);
 
             foreach (TemplateDefinition template in entity.EnclosingScopesToRoot().WhereType<TemplateDefinition>())
             {
@@ -87,7 +63,7 @@ namespace Skila.Language
         private readonly int hashCode;
         private readonly IEntity entity;
 
-        private IReadOnlyList<TemplateParameter> primaryParameters => this.entity.Name.Parameters;
+        private IReadOnlyList<TemplateParameter> primaryParameters => this.entity?.Name?.Parameters;
         public IReadOnlyList<IEntityInstance> PrimaryArguments { get; }
 
         private TemplateTranslation(IEntity entity,
@@ -97,7 +73,7 @@ namespace Skila.Language
             this.hashCode = this.table.Aggregate(0, (acc, it) => acc ^ it.Key.GetHashCode() ^ (it.Value?.GetHashCode() ?? 0));
 
             this.entity = entity;
-            this.PrimaryArguments = (entity?.Name?.Parameters ?? Enumerable.Empty<TemplateParameter>())
+            this.PrimaryArguments = (this.primaryParameters ?? Enumerable.Empty<TemplateParameter>())
                 .Select(it => this.table[it]).StoreReadOnlyList();
 
             if (this.PrimaryArguments.All(it => it == null))
@@ -163,7 +139,7 @@ namespace Skila.Language
             if (this.table.Count == 0)
                 return this;
 
-            return overridden(this.primaryParameters,arguments);
+            return overridden(this.primaryParameters, arguments);
         }
 
         private TemplateTranslation overridden(IReadOnlyList<TemplateParameter> parameters, IEnumerable<IEntityInstance> arguments)

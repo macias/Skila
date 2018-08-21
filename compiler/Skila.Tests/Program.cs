@@ -23,7 +23,7 @@ namespace Skila.Tests
             const double semantic_golden_min_s = 0.00;
             const double semantic_golden_max_s = 2.56;
 
-            const double runtime_golden_avg_s = 1.78;
+            const double runtime_golden_avg_s = 1.71;
             const double runtime_golden_min_s = 1.17;
             const double runtime_golden_max_s = 2.17;
 
@@ -51,13 +51,13 @@ namespace Skila.Tests
                 //new Semantics.ObjectInitialization().ErrorCustomGetterWithInitialization();
                 //  new Semantics.OverloadCalls().PreferringNonVariadicFunction();
                 //new Semantics.Properties().ErrorSettingCustomGetter();
-                 new Semantics.Templates().BasicTraitDefinition();
+                // new Semantics.Templates().BasicTraitDefinition();
                 //new Semantics.TypeMatchingTest().ErrorMixingSlicingTypes();
                 //new Semantics.Types().ErrorInOutVarianceProperties();
                 //new Semantics.Variables().ErrorInvalidVariable();
 
                 // new Execution.Closures().ClosureRecursiveCall();
-                //new Execution.Collections().AccessingTuple();
+                new Execution.Collections().AccessingTuple();
                 //new Execution.Concurrency().SingleMessage();
                 //new Execution.Extensions().InstanceCallStaticDispatch();
                 //new Execution.Flow().ShortcutComputationInOptionalDeclaration();

@@ -36,7 +36,7 @@ namespace Skila.Interpreter
             if (func.IsDeclaration)
                 throw new ArgumentException($"Selected declaration for execution {ExceptionCode.SourceInfo()}");
 
-            ctx.Translation = TemplateTranslation.Create(func.InstanceOf, ctx.TemplateArguments);
+            ctx.Translation = TemplateTranslation.Create(func, ctx.TemplateArguments);
 
             // in case of the extension within the function we use first parameter as regular one
             if (ctx.ThisArgument != null && !func.IsExtension)

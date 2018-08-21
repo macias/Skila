@@ -244,6 +244,10 @@ namespace Skila.Language
 
         private void computeEval(ComputationContext ctx, out IEntityInstance eval, out EntityInstance aggregate)
         {
+            if (this.DebugId == (7, 11169))
+            {
+                ;
+            }
             EntityInstance instance = this.Binding.Match.Instance;
 
             if (instance.Target.IsTypeContainer())
@@ -364,6 +368,10 @@ namespace Skila.Language
             // we pass error code because in some case we will be able to give more precise reason for error
             ref ErrorCode notFoundErrorCode)
         {
+            if (this.DebugId == (7, 11169))
+            {
+                ;
+            }
             EntityInstance prefix_instance = tryDereference(ctx, this.Prefix.Evaluation.Aggregate);
 
             if (this.Name == NameFactory.ItTypeName || this.IsSelfTypeName)

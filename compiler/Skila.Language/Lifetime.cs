@@ -19,17 +19,16 @@ namespace Skila.Language
             return new Lifetime(node, lifetimeScope);
         }
 
-        private IEnumerable<IScope> __nodeScopes => this.__node.EnclosingScopesToRoot().StoreReadOnly();
-        public IOwnedNode __node { get; }
-
-        public bool IsAttached => this.lifetimeScope == LifetimeScope.Attachment;
+        private readonly IOwnedNode node;
         private readonly LifetimeScope lifetimeScope;
 
-        public bool IsTimeless => this.__node == null;
+        private IEnumerable<IScope> nodeScopes => this.node.EnclosingScopesToRoot();
+        public bool IsAttached => this.lifetimeScope == LifetimeScope.Attachment;
+        public bool IsTimeless => this.node == null;
 
         private Lifetime(IOwnedNode context, LifetimeScope lifetimeScope)
         {
-            this.__node = context;
+            this.node = context;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -48,12 +47,12 @@ namespace Skila.Language
             else if (ReferenceEquals(other, null))
                 return false;
 
-            return this.__node == other.__node && this.lifetimeScope == other.lifetimeScope;
+            return this.node == other.node && this.lifetimeScope == other.lifetimeScope;
         }
 
         public override int GetHashCode()
         {
-            return (this.__node?.GetHashCode() ?? 0) ^ this.lifetimeScope.GetHashCode();
+            return (this.node?.GetHashCode() ?? 0) ^ this.lifetimeScope.GetHashCode();
         }
 
         public static bool operator ==(Lifetime a, Lifetime b)
@@ -74,8 +73,8 @@ namespace Skila.Language
             if (this.IsTimeless || source.IsTimeless)
                 return false;
 
-            var this_scope = this.__node.EnclosingNode<IEntityScope>();
-            var source_func = source.__node.EnclosingNode<FunctionDefinition>();
+            var this_scope = this.node.EnclosingNode<IEntityScope>();
+            var source_func = source.node.EnclosingNode<FunctionDefinition>();
 
             if (this_scope is FunctionDefinition && this_scope != source_func)
             {
@@ -91,10 +90,9 @@ namespace Skila.Language
                 return false;
             }
 
-            var source_scope = source.__node.EnclosingScope<IScope>();
+            var source_scope = source.node.EnclosingScope<IScope>();
 
-            IEnumerable<IScope> this_scopes = this.__node.EnclosingScopesToRoot();
-            bool result = !this_scopes.Contains(source_scope);
+            bool result = !this.nodeScopes.Contains(source_scope);
 
             if (result)
             {
@@ -117,12 +115,12 @@ namespace Skila.Language
 
         public override string ToString()
         {
-            return IsTimeless ? "~~" : this.__node.GetType().Name + "\\" + this.__node.DebugId;
+            return IsTimeless ? "~~" : this.node.GetType().Name + "\\" + this.node.DebugId;
         }
 
         internal Lifetime AsAttached()
         {
-            return new Lifetime(this.__node, LifetimeScope.Attachment);
+            return new Lifetime(this.node, LifetimeScope.Attachment);
         }
     }
 }

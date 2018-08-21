@@ -196,6 +196,10 @@ namespace Skila.Language.Entities
             if (this.Evaluation != null)
                 return;
 
+            if (this.DebugId== (18, 381))
+            {
+                ;
+            }
             this.TrapClosure(ctx, ref this.initValue);
 
             IEntityInstance init_eval = this.InitValue?.Evaluation?.Components;

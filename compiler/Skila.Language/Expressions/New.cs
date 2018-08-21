@@ -98,6 +98,10 @@ namespace Skila.Language.Expressions
 
         public void CustomEvaluate(ComputationContext ctx)
         {
+            if (this.DebugId==(22, 98))
+            {
+                ;
+            }
             this.tempDeclaration.Evaluated(ctx, EvaluationCall.Nested);
             this.InitConstructorCall.Evaluated(ctx, EvaluationCall.Nested);
 
