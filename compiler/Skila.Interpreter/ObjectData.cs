@@ -291,7 +291,7 @@ namespace Skila.Interpreter
         internal Task<ObjectData> ReferenceAsync(ExecutionContext ctx)
         {
             return ObjectData.CreateInstanceAsync(ctx, ctx.Env.ReferenceType.GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(ctx.Env.ReferenceType, new[] { this.RunTimeTypeInstance }),
+                TemplateTranslation.Create(ctx.Env.ReferenceType.InstanceOf, this.RunTimeTypeInstance ),
                 Lifetime.Timeless), this);
         }
 

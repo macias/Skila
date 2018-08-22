@@ -66,11 +66,11 @@ namespace Skila.Language.Expressions
                     this.Evaluation = new EvaluationInfo(
                         ctx.Env.PointerType.GetInstance(
                             TypeMutability.None,
-                            TemplateTranslation.Create(ctx.Env.PointerType, new[] { Expr.Evaluation.Components }),
+                            TemplateTranslation.Create(ctx.Env.PointerType.InstanceOf,  Expr.Evaluation.Components ),
                             lifetime: Lifetime.Timeless),
 
                         ctx.Env.PointerType.GetInstance(TypeMutability.None,
-                            TemplateTranslation.Create(ctx.Env.PointerType, new[] { Expr.Evaluation.Aggregate }),
+                            TemplateTranslation.Create(ctx.Env.PointerType.InstanceOf, Expr.Evaluation.Aggregate ),
                             lifetime: Lifetime.Timeless));
                 }
                 else if (ctx.Env.IsReferenceOfType(Expr.Evaluation.Components))
@@ -83,11 +83,11 @@ namespace Skila.Language.Expressions
                     this.Evaluation = new EvaluationInfo(
                         ctx.Env.ReferenceType.GetInstance(
                             TypeMutability.None,
-                            TemplateTranslation.Create(ctx.Env.ReferenceType, new[] { Expr.Evaluation.Components }),
+                            TemplateTranslation.Create(ctx.Env.ReferenceType.InstanceOf,  Expr.Evaluation.Components),
                             lifetime: this.Expr.Evaluation.Aggregate.Lifetime),
 
                         ctx.Env.ReferenceType.GetInstance(TypeMutability.None,
-                    TemplateTranslation.Create(ctx.Env.ReferenceType, new[] { Expr.Evaluation.Aggregate }),
+                    TemplateTranslation.Create(ctx.Env.ReferenceType.InstanceOf, Expr.Evaluation.Aggregate ),
                     lifetime: this.Expr.Evaluation.Aggregate.Lifetime));
                 }
 

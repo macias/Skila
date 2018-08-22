@@ -34,6 +34,19 @@ namespace Skila.Language
                 return new TemplateTranslation(null, parent_trans.table);
         }
 
+        public static TemplateTranslation Create(EntityInstance instance, IEntityInstance argument)
+        {
+            if (instance.Target.Name.Parameters.Count != 1)
+                throw new ArgumentException();
+
+            Dictionary<TemplateParameter, IEntityInstance> dict
+                = instance.Translation.table.ToDictionary(it => it.Key, it => it.Value);
+
+            dict[instance.Target.Name.Parameters[0]] = argument;
+
+            return new TemplateTranslation(instance.Target, dict);
+        }
+
         public static TemplateTranslation Create(IEntity entity, IEnumerable<IEntityInstance> arguments)
         {
             Dictionary<TemplateParameter, IEntityInstance> dict;
@@ -47,7 +60,7 @@ namespace Skila.Language
             IReadOnlyList<TemplateParameter> parameters = entity.Name.Parameters;
             if (!parameters.Any())
             {
-                if (arguments!=null && arguments.Any())
+                if (arguments != null && arguments.Any())
                     throw new NotImplementedException();
 
                 if (dict.Any())

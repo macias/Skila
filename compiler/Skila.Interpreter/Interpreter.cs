@@ -813,8 +813,8 @@ namespace Skila.Interpreter
                     ObjectData chunk_obj = await createChunk(ctx,
                         ctx.Env.ChunkType.GetInstance(
                         TypeMutability.None,
-                        TemplateTranslation.Create(ctx.Env.ChunkType, 
-                            new[] { targetFunc.Parameters[index].ElementTypeName.Evaluation.Components }),
+                        TemplateTranslation.Create(ctx.Env.ChunkType.InstanceOf,
+                             targetFunc.Parameters[index].ElementTypeName.Evaluation.Components),
                         Lifetime.Timeless),
                         chunk).ConfigureAwait(false);
 

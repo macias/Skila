@@ -1938,8 +1938,9 @@ namespace Skila.Language
             Lifetime lifetime, bool viaPointer)
         {
             TypeDefinition typedef = (viaPointer ? this.PointerType : this.ReferenceType);
-            return typedef.GetInstance(mutability, TemplateTranslation.Create(typedef, new[] { instance }), lifetime);
+            return typedef.GetInstance(mutability, TemplateTranslation.Create(typedef.InstanceOf, instance ), lifetime);
         }
+
         public int Dereference(IEntityInstance instance, out IEntityInstance result)
         {
             int count = 0;

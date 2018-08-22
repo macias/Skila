@@ -589,7 +589,7 @@ namespace Skila.Interpreter
                 // we have to compute Skila Option type (not C# one we use for C# channel type)
                 EntityInstance option_type = ctx.Env.OptionType.GetInstance(
                     TypeMutability.None,
-                    TemplateTranslation.Create(ctx.Env.OptionType, new[] { value_type }),
+                    TemplateTranslation.Create(ctx.Env.OptionType.InstanceOf,value_type ),
                     Lifetime.Timeless);
                 ExecValue opt_exec = await createOption(ctx, option_type, received).ConfigureAwait(false);
                 if (opt_exec.IsThrow)

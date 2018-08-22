@@ -16,7 +16,7 @@ namespace Skila.Interpreter
         {
             ObjectData chunk_obj = await createChunk(ctx,
                 ctx.Env.ChunkType.GetInstance(TypeMutability.None,
-                TemplateTranslation.Create(ctx.Env.ChunkType, new[] { elementType }),
+                TemplateTranslation.Create(ctx.Env.ChunkType.InstanceOf, elementType ),
                 Lifetime.Timeless),
                 elements.ToArray()).ConfigureAwait(false);
             ObjectData chunk_ptr = await allocateOnHeapAsync(ctx,
