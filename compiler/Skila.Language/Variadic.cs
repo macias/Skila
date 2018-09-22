@@ -61,7 +61,7 @@ namespace Skila.Language
 
         public override bool Equals(object obj)
         {
-            return this.Equals((Variadic)obj);
+            return this.Equals(obj as Variadic);
         }
         public bool Equals(Variadic comp)
         {

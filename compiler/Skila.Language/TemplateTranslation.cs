@@ -196,10 +196,7 @@ namespace Skila.Language
 
         public override bool Equals(object obj)
         {
-            if (obj is TemplateTranslation trans)
-                return this.Equals(trans);
-            else
-                return false;
+            return Equals(obj as TemplateTranslation);
         }
 
         public bool Equals(TemplateTranslation obj)

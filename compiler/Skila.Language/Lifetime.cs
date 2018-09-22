@@ -34,10 +34,7 @@ namespace Skila.Language
 
         public override bool Equals(object obj)
         {
-            if (this.GetType() != obj?.GetType())
-                throw new ArgumentException();
-            else
-                return Equals((Lifetime)obj);
+            return Equals(obj as Lifetime);
         }
 
         public bool Equals(Lifetime other)

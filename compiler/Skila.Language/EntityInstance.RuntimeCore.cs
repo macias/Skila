@@ -43,10 +43,7 @@ namespace Skila.Language
 
             public override bool Equals(object obj)
             {
-                if (obj is RuntimeCore core)
-                    return this.Equals(core);
-                else
-                    throw new ArgumentException();
+                return Equals(obj as RuntimeCore);
             }
 
             public bool Equals(RuntimeCore obj)

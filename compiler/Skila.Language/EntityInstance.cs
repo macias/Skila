@@ -524,10 +524,7 @@ namespace Skila.Language
 
         public override bool Equals(object obj)
         {
-            if (obj?.GetType() == this.GetType())
-                return this.Equals(obj.Cast<EntityInstance>());
-            else
-                return false;
+            return Equals(obj as EntityInstance);
         }
 
         public bool Equals(EntityInstance obj)
